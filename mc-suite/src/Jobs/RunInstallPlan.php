@@ -192,6 +192,8 @@ class RunInstallPlan implements ShouldQueue
             case 'mrpack':
                 // Expands into the pack's own steps, which run next.
                 array_splice($state['steps'], $state['cursor'] + 1, 0, Mrpack::expand($server, $step, $this->jobId));
+                // Progress restarts from here, measured over the steps the pack added.
+                $state['offset'] = ['cursor' => $state['cursor'] + 1, 'percent' => 5];
 
                 return true;
 
@@ -323,9 +325,11 @@ class RunInstallPlan implements ShouldQueue
     /** @param array<string, mixed> $state */
     private function report(ExtensionJobProgress $progress, array $state): void
     {
-        $total = max(1, count($state['steps']));
         $fraction = (float) ($state['pending']['fraction'] ?? 0);
-        $percent = (int) min(99, floor((($state['cursor'] + $fraction) / $total) * 100));
+        $start = (int) ($state['offset']['cursor'] ?? 0);
+        $base = (int) ($state['offset']['percent'] ?? 0);
+        $total = max(1, count($state['steps']) - $start);
+        $percent = (int) min(99, $base + floor((max(0, $state['cursor'] - $start) + $fraction) / $total * (100 - $base)));
         $step = $state['steps'][$state['cursor']] ?? null;
 
         $message = match ($step['type'] ?? null) {

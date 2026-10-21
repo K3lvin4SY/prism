@@ -103,6 +103,7 @@ function JavaVersions({ identifier, overview, onStarted }: { identifier: string;
     const [search, setSearch] = useState('');
     const [channel, setChannel] = useState<'all' | 'RELEASE' | 'SNAPSHOT'>(allowSnapshots() ? 'all' : 'RELEASE');
     const [selected, setSelected] = useState<VersionSummary | null>(null);
+    const [preselect, setPreselect] = useState<number | null>(null);
 
     const versions = useQuery({ queryKey: keys.versionList(identifier, type), queryFn: () => getVersions(identifier, type), staleTime: 300_000 });
     const currentVersions = useQuery({
@@ -125,7 +126,17 @@ function JavaVersions({ identifier, overview, onStarted }: { identifier: string;
 
     return (
         <>
-            <CurrentCard identifier={identifier} overview={overview} type={currentType} versions={currentVersions.data ?? []} onStarted={onStarted} />
+            <CurrentCard
+                overview={overview}
+                type={currentType}
+                versions={currentVersions.data ?? []}
+                onPick={(version, build) => {
+                    // Upgrades go through the builds dialog so the Java check and image switch apply.
+                    setType(info.mcjarsType ?? type);
+                    setPreselect(build);
+                    setSelected(version);
+                }}
+            />
 
             <div className={'mcs:grid mcs:gap-4 mcs:lg:grid-cols-[240px_1fr]'}>
                 <TitledGreyBox title={'Software'}>
@@ -183,7 +194,10 @@ function JavaVersions({ identifier, overview, onStarted }: { identifier: string;
                                 <button
                                     key={version.id}
                                     type={'button'}
-                                    onClick={() => setSelected(version)}
+                                    onClick={() => {
+                                        setPreselect(null);
+                                        setSelected(version);
+                                    }}
                                     className={cn(
                                         'mcs:flex mcs:items-center mcs:gap-3 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-3 mcs:text-left mcs:cursor-pointer mcs:hover:border-primary',
                                         info.mcjarsType === type && info.version === version.id && 'mcs:border-primary'
@@ -221,6 +235,7 @@ function JavaVersions({ identifier, overview, onStarted }: { identifier: string;
                     type={type}
                     typeName={selectedType?.name ?? type}
                     version={selected}
+                    initialBuild={preselect}
                     overview={overview}
                     onClose={() => setSelected(null)}
                     onStarted={(started) => {
@@ -234,35 +249,22 @@ function JavaVersions({ identifier, overview, onStarted }: { identifier: string;
 }
 
 function CurrentCard({
-    identifier,
     overview,
     type,
     versions,
-    onStarted,
+    onPick,
 }: {
-    identifier: string;
     overview: Awaited<ReturnType<typeof getOverview>>;
     type: SoftwareType | null;
     versions: VersionSummary[];
-    onStarted: (job: string) => void;
+    onPick: (version: VersionSummary, build: number) => void;
 }) {
     const info = overview.info;
-    const [busy, setBusy] = useState(false);
     const current = versions.find((version) => version.id === info.version);
     const newestStable = versions.find((version) => version.type === 'RELEASE');
     const canUpdateBuild = current && info.buildId && current.latest.id !== info.buildId;
     const canUpgrade = newestStable && info.version && newestStable.id !== info.version && versions.indexOf(newestStable) < versions.findIndex((version) => version.id === info.version);
 
-    const run = async (build: number) => {
-        setBusy(true);
-        try {
-            onStarted(await installBuild(identifier, build, false));
-        } catch (error) {
-            toast.error(httpErrorToHuman(error));
-        } finally {
-            setBusy(false);
-        }
-    };
 
     return (
         <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-4 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
@@ -287,12 +289,12 @@ function CurrentCard({
             </div>
             <div className={'mcs:flex mcs:flex-wrap mcs:gap-2'}>
                 {canUpdateBuild && current && (
-                    <Button isSecondary isLoading={busy} onClick={() => run(current.latest.id)}>
+                    <Button isSecondary onClick={() => onPick(current, current.latest.id)}>
                         Update build ({current.latest.name})
                     </Button>
                 )}
                 {canUpgrade && newestStable && (
-                    <Button isLoading={busy} onClick={() => run(newestStable.latest.id)}>
+                    <Button onClick={() => onPick(newestStable, newestStable.latest.id)}>
                         Upgrade to {newestStable.id} ({newestStable.latest.name})
                     </Button>
                 )}
@@ -306,6 +308,7 @@ function BuildsDialog({
     type,
     typeName,
     version,
+    initialBuild,
     overview,
     onClose,
     onStarted,
@@ -314,13 +317,14 @@ function BuildsDialog({
     type: string;
     typeName: string;
     version: VersionSummary;
+    initialBuild: number | null;
     overview: Awaited<ReturnType<typeof getOverview>>;
     onClose: () => void;
     onStarted: (job: string) => void;
 }) {
     const server = useCurrentServerRequired();
     const builds = useQuery({ queryKey: keys.builds(identifier, type, version.id), queryFn: () => getBuilds(identifier, type, version.id), staleTime: 300_000 });
-    const [build, setBuild] = useState<number | null>(null);
+    const [build, setBuild] = useState<number | null>(initialBuild);
     const [start, setStart] = useState(true);
     const [busy, setBusy] = useState(false);
     const setImage = useSetServerDockerImage(server.attributes.uuid);
