@@ -1,0 +1,4 @@
+.panel/
+node_modules/
+*.pteroext
+.env

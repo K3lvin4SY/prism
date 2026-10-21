@@ -1,0 +1,11 @@
+{
+    "description": "Players, versions, properties, plugins, mods and modpacks for Minecraft servers.",
+    "autoload": {
+        "psr-4": {
+            "McSuite\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "McSuiteExtension"
+    }
+}

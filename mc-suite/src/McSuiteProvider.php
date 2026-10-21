@@ -1,0 +1,48 @@
+<?php
+
+declare(strict_types=1);
+
+namespace McSuite;
+
+use Pterodactyl\Extensions\ExtensionProvider;
+use Pterodactyl\Models\Egg;
+use Pterodactyl\Services\Extensions\ExtensionSettingDefinition;
+use Pterodactyl\Services\Extensions\ExtensionSettingsDefinition;
+
+class McSuiteProvider extends ExtensionProvider
+{
+    public function boot(): void
+    {
+        $this->registerApiRoutes();
+        $this->registerWebRoutes($this->extensionPath('routes', 'web.php'));
+
+        $this->registerPermissions('Minecraft tools from MC Suite.', [
+            'players-view' => 'See players, their inventories and stats.',
+            'players-manage' => 'Op, whitelist, ban, kick and change players.',
+            'properties' => 'Edit server.properties and the server icon.',
+            'versions' => 'Change the server software and version.',
+            'plugins' => 'Install, update and remove plugins.',
+            'mods' => 'Install, update and remove mods.',
+            'modpacks' => 'Install modpacks. This replaces mods and configs.',
+        ]);
+
+        $this->registerFields(Egg::class, EggFields::class);
+
+        $this->registerSettings(new ExtensionSettingsDefinition($this->settings(), [
+            ExtensionSettingDefinition::make('allow_snapshots', 'allow_snapshots', true, ['required', 'boolean'])
+                ->label('Show snapshots')
+                ->help('List snapshot and experimental builds on the Versions tab.')
+                ->field('toggle')
+                ->frontend()
+                ->frontendType('boolean'),
+            ExtensionSettingDefinition::make('modpack_max_mb', 'modpack_max_mb', 500, ['required', 'integer', 'min:10', 'max:4000'])
+                ->label('Largest modpack (MB)')
+                ->help('Modpack archives bigger than this are refused.')
+                ->field('number'),
+            ExtensionSettingDefinition::make('ping_timeout', 'ping_timeout', 2, ['required', 'numeric', 'min:0.5', 'max:10'])
+                ->label('Status ping timeout (seconds)')
+                ->help('How long to wait for a server to answer a server-list ping.')
+                ->field('number'),
+        ]));
+    }
+}

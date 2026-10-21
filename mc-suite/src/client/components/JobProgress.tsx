@@ -1,0 +1,45 @@
+import { useEffect, useRef } from 'react';
+import { Alert, ProgressBar, useCurrentServerRequired, useExtensionJobProgress } from '@pterodactyl/sdk';
+
+interface Props {
+    job: string;
+    onFinished?: (status: 'completed' | 'failed') => void;
+}
+
+/** Live progress of an install running on the queue. */
+export default function JobProgress({ job, onFinished }: Props) {
+    const server = useCurrentServerRequired();
+    const progress = useExtensionJobProgress(job, { serverUuid: server.attributes.uuid });
+    const reported = useRef(false);
+    const status = progress.data?.status;
+
+    useEffect(() => {
+        if (!reported.current && (status === 'completed' || status === 'failed')) {
+            reported.current = true;
+            onFinished?.(status);
+        }
+    }, [status, onFinished]);
+
+    if (progress.isError) {
+        return <Alert type={'warning'}>Progress for this install is no longer available.</Alert>;
+    }
+
+    const data = progress.data;
+    if (data?.status === 'failed') {
+        return <Alert type={'danger'}>{data.message}</Alert>;
+    }
+
+    if (data?.status === 'completed') {
+        return <Alert type={'success'}>{data.message}</Alert>;
+    }
+
+    return (
+        <div className={'mcs:flex mcs:flex-col mcs:gap-2 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
+            <div className={'mcs:flex mcs:justify-between mcs:text-sm'}>
+                <span>{data?.message ?? 'Starting…'}</span>
+                <span className={'mcs:text-muted-foreground'}>{data?.percent ?? 0}%</span>
+            </div>
+            <ProgressBar value={data?.percent ?? 0} label={data?.message ?? 'Install progress'} />
+        </div>
+    );
+}
