@@ -1,6 +1,5 @@
-import { useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, ServerContentBlock, Spinner, TitledGreyBox, httpErrorToHuman } from '@pterodactyl/sdk';
+import { Alert, ServerContentBlock, Spinner, httpErrorToHuman } from '@pterodactyl/sdk';
 import { keys } from '../api/client';
 import { getProperties, updateProperties, type PropertiesResponse } from '../api/properties';
 import MotdEditor from '../components/MotdEditor';
@@ -10,7 +9,6 @@ import { useMcInfo } from '../hooks/useMcInfo';
 export default function PropertiesScreen() {
     const { identifier, info } = useMcInfo();
     const queryClient = useQueryClient();
-    const motdRef = useRef<HTMLDivElement>(null);
     const query = useQuery({ queryKey: keys.properties(identifier), queryFn: () => getProperties(identifier) });
 
     const save = async (values: Record<string, string>) => {
@@ -43,16 +41,19 @@ export default function PropertiesScreen() {
 
     return (
         <ServerContentBlock title={'Properties'}>
-            <div className={'mcs:flex mcs:flex-col mcs:gap-6'}>
+            <div className={'mcs:flex mcs:flex-col mcs:gap-4'}>
                 {!data.exists && (
                     <Alert type={'info'}>
                         This server has no server.properties yet. Start it once to create the file, or set values here and they will be written to a new file.
                     </Alert>
                 )}
 
-                {edition === 'java' && (
-                    <div ref={motdRef}>
-                        <TitledGreyBox title={'Message of the day'}>
+                <SettingsBrowser
+                    edition={edition}
+                    values={data.values}
+                    onSave={save}
+                    motdEditor={
+                        edition === 'java' ? (
                             <MotdEditor
                                 server={identifier}
                                 software={data.software}
@@ -64,11 +65,9 @@ export default function PropertiesScreen() {
                                 onSave={save}
                                 onIconChange={refresh}
                             />
-                        </TitledGreyBox>
-                    </div>
-                )}
-
-                <SettingsBrowser edition={edition} values={data.values} onSave={save} onEditMotd={() => motdRef.current?.scrollIntoView({ behavior: 'smooth' })} />
+                        ) : undefined
+                    }
+                />
             </div>
         </ServerContentBlock>
     );

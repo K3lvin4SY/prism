@@ -153,7 +153,7 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
                 }}
             />
 
-            <div className={'mcs:grid mcs:gap-4 mcs:lg:grid-cols-2'}>
+            <div className={'mcs:grid mcs:gap-4 mcs:xl:grid-cols-2'}>
                 <TitledGreyBox title={'Editor'}>
                     <div className={'mcs:flex mcs:flex-col mcs:gap-4'}>
                         <div>

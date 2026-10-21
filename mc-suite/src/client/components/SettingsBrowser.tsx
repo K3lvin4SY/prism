@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Badge, Input, NamedIcon, Select, Spinner, Switch, TitledGreyBox, cn, httpErrorToHuman, useDebouncedCallback } from '@pterodactyl/sdk';
 import { categories, definitionsFor, managedKeys, validate, type PropertyDefinition } from '../api/properties';
 import McText from './McText';
@@ -7,7 +7,8 @@ interface Props {
     edition: 'java' | 'bedrock';
     values: Record<string, string>;
     onSave: (values: Record<string, string>) => Promise<void>;
-    onEditMotd?: () => void;
+    /** The MOTD editor, shown in place of the rows while the MOTD category is open. */
+    motdEditor?: ReactNode;
 }
 
 interface Row {
@@ -31,8 +32,8 @@ const otherDefinition = (key: string): PropertyDefinition => ({
  * Every property, sorted into categories, with its real key next to a short explanation.
  * Each row saves on its own as soon as its value is valid.
  */
-export default function SettingsBrowser({ edition, values, onSave, onEditMotd }: Props) {
-    const [category, setCategory] = useState('serverlist');
+export default function SettingsBrowser({ edition, values, onSave, motdEditor }: Props) {
+    const [category, setCategory] = useState('motd');
     const [search, setSearch] = useState('');
 
     const rows = useMemo<Row[]>(() => {
@@ -95,23 +96,35 @@ export default function SettingsBrowser({ edition, values, onSave, onEditMotd }:
                             </button>
                         ))}
                 </nav>
-                <TitledGreyBox title={term !== '' ? `Results for “${search.trim()}”` : current?.label ?? ''}>
-                    {visible.length === 0 ? (
-                        <p className={'mcs:text-sm mcs:text-muted-foreground'}>No settings match.</p>
-                    ) : (
-                        <div className={'mcs:divide-y mcs:divide-border'}>
-                            {visible.map((row) => (
-                                <SettingRow key={`${row.definition.key}-${row.definition.category}`} row={row} onSave={onSave} onEditMotd={onEditMotd} />
-                            ))}
-                        </div>
-                    )}
-                </TitledGreyBox>
+                {term === '' && category === 'motd' && motdEditor ? (
+                    <div className={'mcs:min-w-0'}>{motdEditor}</div>
+                ) : (
+                    <TitledGreyBox title={term !== '' ? `Results for “${search.trim()}”` : current?.label ?? ''}>
+                        {visible.length === 0 ? (
+                            <p className={'mcs:text-sm mcs:text-muted-foreground'}>No settings match.</p>
+                        ) : (
+                            <div className={'mcs:divide-y mcs:divide-border'}>
+                                {visible.map((row) => (
+                                    <SettingRow
+                                        key={`${row.definition.key}-${row.definition.category}`}
+                                        row={row}
+                                        onSave={onSave}
+                                        onEditMotd={() => {
+                                            setSearch('');
+                                            setCategory('motd');
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </TitledGreyBox>
+                )}
             </div>
         </div>
     );
 }
 
-function SettingRow({ row, onSave, onEditMotd }: { row: Row; onSave: Props['onSave']; onEditMotd?: () => void }) {
+function SettingRow({ row, onSave, onEditMotd }: { row: Row; onSave: Props['onSave']; onEditMotd: () => void }) {
     const { definition } = row;
     const [draft, setDraft] = useState(row.value);
     const [state, setState] = useState<'idle' | 'saving' | 'error'>('idle');
