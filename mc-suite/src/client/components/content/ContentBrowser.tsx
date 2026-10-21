@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Alert, Input, NamedIcon, Select, Spinner, cn, httpErrorToHuman } from '@pterodactyl/sdk';
-import { contentKeys, getCategories, search, type BrowseKind, type ProjectHit, type SearchParams, type SortOrder } from '../../api/content';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Alert, Input, NamedIcon, Select, Spinner, Switch, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { contentKeys, getCategories, getDependencies, getProject, install, search, type BrowseKind, type ContentKind, type ProjectHit, type SearchParams, type SortOrder } from '../../api/content';
+import { usePreferences, useSetConfirmInstalls } from '../../api/preferences';
 import { useMcInfo } from '../../hooks/useMcInfo';
 import FilterSidebar, { emptyFilters, type FilterState } from './FilterSidebar';
 import InstalledList from './InstalledList';
@@ -85,6 +86,40 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
     const [page, setPage] = useState(1);
     const [layout, setLayout] = useState<'list' | 'grid'>(readLayout);
     const [open, setOpen] = useState<{ hit: ProjectHit; quick: boolean } | null>(null);
+    const [installing, setInstalling] = useState<string[]>([]);
+    const queryClient = useQueryClient();
+    const preferences = usePreferences();
+    const setConfirmInstalls = useSetConfirmInstalls();
+    // Modpacks replace mods and configs, so they always ask.
+    const confirm = kind === 'modpacks' || (preferences.data?.confirmInstalls ?? true);
+
+    /** Installs the newest compatible version and its required dependencies, without asking. */
+    const installNow = async (hit: ProjectHit, contentKind: ContentKind) => {
+        setInstalling((current) => [...current, hit.id]);
+        try {
+            const { versions } = await getProject(identifier, contentKind, hit.id, false);
+            const newest = versions[0];
+            if (!newest) {
+                setOpen({ hit, quick: false });
+
+                return;
+            }
+
+            const dependencies = await getDependencies(identifier, contentKind, newest.id);
+            await install(
+                identifier,
+                contentKind,
+                newest.id,
+                dependencies.flatMap((dependency) => (dependency.version ? [dependency.version.id] : []))
+            );
+            toast.success(`Installing ${hit.title} ${newest.number}. Restart the server to load it.`);
+            await queryClient.invalidateQueries({ queryKey: ['mc-suite', identifier, contentKind] });
+        } catch (error) {
+            toast.error(httpErrorToHuman(error));
+        } finally {
+            setInstalling((current) => current.filter((id) => id !== hit.id));
+        }
+    };
 
     useEffect(() => {
         const timer = window.setTimeout(() => {
@@ -187,6 +222,15 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
                             >
                                 <NamedIcon name={layout === 'list' ? 'layout-grid' : 'list'} size={16} />
                             </button>
+                            {kind !== 'modpacks' && preferences.data && (
+                                <Switch
+                                    checked={preferences.data.confirmInstalls}
+                                    disabled={setConfirmInstalls.isPending}
+                                    onChange={(checked) => setConfirmInstalls.mutate(checked)}
+                                    label={'Confirm installs'}
+                                    className={'mcs:ml-2'}
+                                />
+                            )}
                             <div className={'mcs:ml-auto'}>
                                 <Pager page={page} total={totalPages} onPage={setPage} />
                             </div>
@@ -208,7 +252,8 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
                                         categories={meta.data?.categories ?? []}
                                         loaders={meta.data?.loaders ?? []}
                                         onOpen={() => setOpen({ hit, quick: false })}
-                                        onInstall={() => setOpen({ hit, quick: true })}
+                                        busy={installing.includes(hit.id)}
+                                        onInstall={() => (kind === 'modpacks' || confirm ? setOpen({ hit, quick: true }) : installNow(hit, kind))}
                                     />
                                 ))}
                             </div>
@@ -228,7 +273,6 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
                     hit={open.hit}
                     quickInstall={open.quick}
                     onClose={() => setOpen(null)}
-                    onInstalled={() => setTab('installed')}
                 />
             )}
         </div>

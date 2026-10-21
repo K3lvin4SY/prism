@@ -29,6 +29,10 @@ class McSuiteProvider extends ExtensionProvider
         $this->registerFields(Egg::class, EggFields::class);
 
         $this->registerSettings(new ExtensionSettingsDefinition($this->settings(), [
+            ExtensionSettingDefinition::make('confirm_installs', 'confirm_installs', true, ['required', 'boolean'])
+                ->label('Confirm before installing')
+                ->help('Ask before a plugin or mod is installed. Users can turn this off for themselves; this is the default for users who have not chosen. Modpacks always ask.')
+                ->field('toggle'),
             ExtensionSettingDefinition::make('allow_snapshots', 'allow_snapshots', true, ['required', 'boolean'])
                 ->label('Show snapshots')
                 ->help('List snapshot and experimental builds on the Versions tab.')

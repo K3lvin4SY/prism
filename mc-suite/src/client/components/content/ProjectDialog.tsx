@@ -13,6 +13,7 @@ import {
     type ProjectHit,
     type ProjectVersion,
 } from '../../api/content';
+import { useSetConfirmInstalls } from '../../api/preferences';
 import { useMcInfo } from '../../hooks/useMcInfo';
 import { ModpackInstallConfirm } from './Modpack';
 import { ProjectIcon } from './ProjectCard';
@@ -167,6 +168,8 @@ function InstallConfirm({ kind, version, title, onCancel, onDone }: { kind: Cont
     const [skipped, setSkipped] = useState<string[]>([]);
     const [busy, setBusy] = useState(false);
     const [mismatch, setMismatch] = useState<string | null>(null);
+    const [dontAsk, setDontAsk] = useState(false);
+    const setConfirmInstalls = useSetConfirmInstalls();
 
     const installable = (dependencies.data ?? []).filter((dependency): dependency is Dependency & { version: NonNullable<Dependency['version']> } => dependency.version !== null);
     const missing = (dependencies.data ?? []).filter((dependency) => dependency.version === null);
@@ -182,6 +185,9 @@ function InstallConfirm({ kind, version, title, onCancel, onDone }: { kind: Cont
                 force
             );
             toast.success(result.job ? `Downloading ${result.files.length} files.` : `Downloading ${result.files.join(', ')}.`);
+            if (dontAsk) {
+                setConfirmInstalls.mutate(false);
+            }
             onDone();
         } catch (error) {
             const message = httpErrorToHuman(error);
@@ -229,6 +235,15 @@ function InstallConfirm({ kind, version, title, onCancel, onDone }: { kind: Cont
                         {installable.length === 0 && missing.length === 0 && <p className={'mcs:text-sm'}>The file is downloaded straight into the {kind} folder.</p>}
                         {mismatch && <Alert type={'warning'}>{mismatch} Install it anyway?</Alert>}
                         <p className={'mcs:text-xs mcs:text-muted-foreground'}>Restart the server to load it.</p>
+                        <label className={'mcs:flex mcs:items-start mcs:gap-2 mcs:text-sm'}>
+                            <Checkbox checked={dontAsk} onChange={setDontAsk} className={'mcs:mt-0.5'} />
+                            <span>
+                                Don't ask me again
+                                <span className={'mcs:block mcs:text-xs mcs:text-muted-foreground'}>
+                                    Install buttons then install the newest version and what it needs right away. Turn this back on with “Confirm installs” on this page.
+                                </span>
+                            </span>
+                        </label>
                     </>
                 )}
             </div>

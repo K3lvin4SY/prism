@@ -1,5 +1,5 @@
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { NamedIcon, cn, fromNow } from '@pterodactyl/sdk';
+import { NamedIcon, Spinner, cn, fromNow } from '@pterodactyl/sdk';
 import { compactNumber, type ProjectHit, type Tag } from '../../api/content';
 import { Chip, LOADER_COLORS, TagIcon, tagIcon, tagLabel } from './tags';
 
@@ -30,23 +30,24 @@ function environment(hit: ProjectHit): { label: string; icon: string } | null {
  * "+ Install" on a solid green background, or "✓ Installed" with only a green border.
  * Installed projects open their versions; the rest go straight to installing.
  */
-export function InstallButton({ installed, onClick }: { installed: boolean; onClick: () => void }) {
+export function InstallButton({ installed, busy = false, onClick }: { installed: boolean; busy?: boolean; onClick: () => void }) {
     return (
         <button
             type={'button'}
+            disabled={busy}
             onClick={(event: MouseEvent) => {
                 event.stopPropagation();
                 onClick();
             }}
             className={cn(
-                'mcs:inline-flex mcs:items-center mcs:gap-1.5 mcs:rounded-lg mcs:border-2 mcs:px-3 mcs:py-1.5 mcs:text-sm mcs:font-semibold mcs:cursor-pointer mcs:whitespace-nowrap mcs:transition-colors',
+                'mcs:inline-flex mcs:items-center mcs:gap-1.5 mcs:rounded-lg mcs:border-2 mcs:px-3 mcs:py-1.5 mcs:text-sm mcs:font-semibold mcs:cursor-pointer mcs:whitespace-nowrap mcs:transition-colors mcs:disabled:cursor-wait mcs:disabled:opacity-80',
                 installed
                     ? 'mcs:border-success mcs:bg-transparent mcs:text-success mcs:hover:bg-success/10'
                     : 'mcs:border-success mcs:bg-success mcs:text-success-foreground mcs:hover:brightness-110'
             )}
         >
-            <NamedIcon name={installed ? 'check' : 'plus'} size={16} />
-            {installed ? 'Installed' : 'Install'}
+            {busy ? <Spinner size={'small'} /> : <NamedIcon name={installed ? 'check' : 'plus'} size={16} />}
+            {busy ? 'Installing' : installed ? 'Installed' : 'Install'}
         </button>
     );
 }
@@ -58,9 +59,10 @@ interface Props {
     loaders: Tag[];
     onOpen: () => void;
     onInstall: () => void;
+    busy?: boolean;
 }
 
-export default function ProjectCard({ hit, layout, categories, loaders, onOpen, onInstall }: Props) {
+export default function ProjectCard({ hit, layout, categories, loaders, onOpen, onInstall, busy = false }: Props) {
     const env = environment(hit);
     const extraLoaders = Math.max(0, hit.loaders.length - MAX_LOADER_CHIPS);
 
@@ -82,7 +84,7 @@ export default function ProjectCard({ hit, layout, categories, loaders, onOpen, 
         </div>
     );
 
-    const action = <InstallButton installed={hit.installed} onClick={hit.installed ? onOpen : onInstall} />;
+    const action = <InstallButton installed={hit.installed} busy={busy} onClick={hit.installed ? onOpen : onInstall} />;
 
     return (
         <div
