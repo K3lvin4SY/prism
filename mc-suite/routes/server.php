@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use McSuite\Http\Controllers\ContentController;
 use McSuite\Http\Controllers\InfoController;
 use McSuite\Http\Controllers\PropertiesController;
 use McSuite\Http\Controllers\VersionsController;
@@ -19,3 +20,16 @@ Route::get('/versions', [VersionsController::class, 'index'])->name('versions');
 Route::post('/versions/install', [VersionsController::class, 'install'])->name('versions.install');
 Route::get('/versions/{type}', [VersionsController::class, 'versions'])->where('type', '[A-Za-z0-9_]+')->name('versions.type');
 Route::get('/versions/{type}/{version}', [VersionsController::class, 'builds'])->where(['type' => '[A-Za-z0-9_]+', 'version' => '[A-Za-z0-9._+-]+'])->name('versions.builds');
+
+Route::prefix('/content/{kind}')->where(['kind' => 'plugins|mods'])->group(function () {
+    Route::get('/search', [ContentController::class, 'search'])->name('content.search');
+    Route::get('/categories', [ContentController::class, 'categories'])->name('content.categories');
+    Route::get('/projects/{project}', [ContentController::class, 'project'])->where('project', '[A-Za-z0-9_.-]+')->name('content.project');
+    Route::get('/versions/{version}/dependencies', [ContentController::class, 'dependencies'])->where('version', '[A-Za-z0-9]+')->name('content.dependencies');
+    Route::get('/installed', [ContentController::class, 'installed'])->name('content.installed');
+    Route::post('/install', [ContentController::class, 'install'])->name('content.install');
+    Route::post('/updates', [ContentController::class, 'updates'])->name('content.updates');
+    Route::post('/identify', [ContentController::class, 'identify'])->name('content.identify');
+    Route::patch('/files/{file}', [ContentController::class, 'toggle'])->where('file', '[^/]+')->name('content.toggle');
+    Route::delete('/files/{file}', [ContentController::class, 'destroy'])->where('file', '[^/]+')->name('content.destroy');
+});

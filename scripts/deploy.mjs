@@ -20,7 +20,8 @@ const work = mkdtempSync(join(tmpdir(), 'mcs-'));
 const tar = join(work, 'mc-suite.tar');
 try {
     execFileSync(
-        'tar',
+        // Git Bash's GNU tar reads "C:" as a remote host, so use the bsdtar Windows ships.
+        process.platform === 'win32' ? join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar',
         ['-cf', tar, '--exclude=node_modules', '--exclude=.github', '--exclude=*.pteroext', '--exclude=src/client', '-C', root, 'mc-suite'],
         { stdio: 'inherit' }
     );
@@ -39,7 +40,7 @@ try {
     if (args.has('--doctor')) {
         await step('doctor', `cd /app && php artisan p:extension:doctor ${remote}/mc-suite`);
     }
-    await step('install', `cd /app && php artisan p:extension:install ${remote}/mc-suite --enable --no-interaction`);
+    await step('install', `cd /app && php artisan p:extension:install ${remote}/mc-suite --enable --replace --no-interaction`);
     await step('permissions', 'chown -R nginx:nginx /app/extensions/mc-suite /app/public/assets/extensions/mc-suite && rm -rf ' + remote);
     await step('state', 'cd /app && php artisan p:extension:list | grep -E "ID|mc-suite"');
 } finally {

@@ -55,7 +55,8 @@ final class ServerFiles
         try {
             return $this->client()->getContent('/'.self::normalize($path), $maxBytes);
         } catch (DaemonConnectionException $exception) {
-            if ($this->isMissing($exception)) {
+            // Some Wings versions answer a missing file with a 500, so check the directory before failing.
+            if ($this->isMissing($exception) || $this->size($path) === null) {
                 return null;
             }
 

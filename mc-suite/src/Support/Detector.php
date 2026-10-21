@@ -113,11 +113,18 @@ final class Detector
         }
 
         $software = $this->detectFromFiles();
+        $fromEgg = $this->detectFromEgg();
+
+        // A server that has not started yet looks like vanilla on disk; the egg knows better.
+        if ($software === 'vanilla' && $fromEgg !== null && $fromEgg !== 'bedrock') {
+            return $this->result($fromEgg, 'egg', $record);
+        }
+
         if ($software !== null) {
             return $this->result($software, 'files', $record);
         }
 
-        $software = $this->detectFromEgg();
+        $software = $fromEgg;
         if ($software !== null) {
             return $this->result($software, 'egg', $record);
         }
@@ -365,6 +372,15 @@ final class Detector
                 : '/Starting minecraft server version ([^\s]+)/i';
             if (preg_match($pattern, $log, $match)) {
                 return $match[1];
+            }
+
+            foreach ($this->server->variables as $variable) {
+                if (in_array($variable->env_variable, ['MINECRAFT_VERSION', 'MC_VERSION', 'VANILLA_VERSION', 'BEDROCK_VERSION'], true)) {
+                    $value = (string) ($variable->server_value ?? $variable->default_value ?? '');
+                    if (preg_match('/^\d+\.\d+(\.\d+){0,2}$/', $value)) {
+                        return $value;
+                    }
+                }
             }
         } catch (Throwable) {
             // Version stays unknown; the Versions tab lets the user pick one.
