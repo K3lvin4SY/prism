@@ -71,9 +71,12 @@ class ContentController extends Controller
             'query' => ['nullable', 'string', 'max:100'],
             'categories' => ['nullable', 'array', 'max:10'],
             'categories.*' => ['string', 'max:40', 'regex:/^[a-z0-9-]+$/'],
+            'exclude' => ['nullable', 'array', 'max:10'],
+            'exclude.*' => ['string', 'max:40', 'regex:/^[a-z0-9-]+$/'],
             'loaders' => ['nullable', 'array', 'max:10'],
             'loaders.*' => ['string', 'max:40', 'regex:/^[a-z0-9-]+$/'],
-            'gameVersion' => ['nullable', 'string', 'max:32', 'regex:/^[A-Za-z0-9._-]+$/'],
+            'gameVersions' => ['nullable', 'array', 'max:20'],
+            'gameVersions.*' => ['string', 'max:32', 'regex:/^[A-Za-z0-9._-]+$/'],
             'sort' => ['nullable', 'string', 'in:relevance,downloads,follows,newest,updated'],
             'page' => ['nullable', 'integer', 'min:1', 'max:500'],
             'limit' => ['nullable', 'integer', 'in:10,20,50,100'],
@@ -84,8 +87,10 @@ class ContentController extends Controller
             'type' => $type,
             'query' => $data['query'] ?? '',
             'categories' => $data['categories'] ?? [],
+            'excludeCategories' => $data['exclude'] ?? [],
+            // Left out, loaders and versions default to the server's; sent empty, they mean "any".
             'loaders' => $request->has('loaders') ? ($data['loaders'] ?? []) : $loaders,
-            'gameVersion' => $request->has('gameVersion') ? ($data['gameVersion'] ?? null) : $info['version'],
+            'gameVersions' => $request->has('gameVersions') ? ($data['gameVersions'] ?? []) : array_filter([$info['version']]),
             'sort' => $data['sort'] ?? 'relevance',
             'offset' => ((int) ($data['page'] ?? 1) - 1) * $limit,
             'limit' => $limit,
@@ -103,12 +108,23 @@ class ContentController extends Controller
 
     public function categories(Request $request, Server $server, string $kind): JsonResponse
     {
-        [, , $type, $loaders] = $this->context($request, $server, $kind);
+        [$info, , $type, $loaders] = $this->context($request, $server, $kind);
+
+        // The loaders this kind is about come first, in their usual order; others follow.
+        $available = $this->provider()->loaders($type);
+        usort($available, static function (array $a, array $b) use ($kind): int {
+            $order = array_flip(self::KIND_LOADERS[$kind]);
+
+            return ($order[$a['name']] ?? 99) <=> ($order[$b['name']] ?? 99) ?: strcmp($a['name'], $b['name']);
+        });
 
         return new JsonResponse([
             'categories' => $this->provider()->categories($type),
-            'loaders' => self::KIND_LOADERS[$kind],
+            'loaders' => array_values(array_filter($available, static fn (array $loader): bool => $kind === 'plugins'
+                || (! in_array($loader['name'], self::KIND_LOADERS['plugins'], true) && $loader['name'] !== 'geyser'))),
+            'gameVersions' => $this->provider()->gameVersions(),
             'serverLoaders' => $loaders,
+            'serverVersion' => $info['version'],
         ]);
     }
 

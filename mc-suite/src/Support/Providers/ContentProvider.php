@@ -24,8 +24,14 @@ interface ContentProvider
      */
     public function search(array $search): array;
 
-    /** @return list<array{name: string, icon: string}> */
+    /** @return list<array{name: string, icon: string|null}> icons are sanitised SVG markup */
     public function categories(string $type): array;
+
+    /** @return list<array{name: string, icon: string|null}> loaders that support the project type */
+    public function loaders(string $type): array;
+
+    /** @return list<array{version: string, type: string}> newest first; type is release, snapshot, alpha or beta */
+    public function gameVersions(): array;
 
     /** @return array<string, mixed> */
     public function project(string $id): array;

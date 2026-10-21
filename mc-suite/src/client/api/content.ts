@@ -24,6 +24,7 @@ export interface ProjectHit {
     loaders: string[];
     gameVersions: string[];
     serverSide: string | null;
+    clientSide: string | null;
     url: string;
     installed: boolean;
 }
@@ -38,11 +39,28 @@ export interface SearchResult {
 export interface SearchParams {
     query: string;
     categories: string[];
+    exclude: string[];
+    /** null leaves it to the server: its own loaders. */
     loaders: string[] | null;
-    gameVersion: string | null | undefined;
+    /** null leaves it to the server: its own Minecraft version. */
+    gameVersions: string[] | null;
     sort: SortOrder;
     page: number;
     limit: number;
+}
+
+export interface Tag {
+    name: string;
+    /** Sanitised SVG markup from Modrinth. */
+    icon: string | null;
+}
+
+export interface Filters {
+    categories: Tag[];
+    loaders: Tag[];
+    gameVersions: { version: string; type: string }[];
+    serverLoaders: string[];
+    serverVersion: string | null;
 }
 
 export interface ProjectDetails {
@@ -137,17 +155,24 @@ export const contentKeys = {
 };
 
 export async function search(server: string, kind: BrowseKind, params: SearchParams): Promise<SearchResult> {
-    const query: Record<string, unknown> = { query: params.query, sort: params.sort, page: params.page, limit: params.limit, categories: params.categories };
-    // An empty list is sent as an empty value, which means "any loader" rather than "the server's".
+    const query: Record<string, unknown> = {
+        query: params.query,
+        sort: params.sort,
+        page: params.page,
+        limit: params.limit,
+        categories: params.categories,
+        exclude: params.exclude,
+    };
+    // An empty list is sent as an empty value, which means "any" rather than "the server's".
     if (params.loaders !== null) query.loaders = params.loaders.length > 0 ? params.loaders : '';
-    if (params.gameVersion !== undefined) query.gameVersion = params.gameVersion ?? '';
+    if (params.gameVersions !== null) query.gameVersions = params.gameVersions.length > 0 ? params.gameVersions : '';
     const { data } = await http.get<SearchResult>(`${url(server, kind)}/search`, { params: query });
 
     return data;
 }
 
-export async function getCategories(server: string, kind: BrowseKind) {
-    const { data } = await http.get<{ categories: { name: string; icon: string }[]; loaders: string[]; serverLoaders: string[] }>(`${url(server, kind)}/categories`);
+export async function getCategories(server: string, kind: BrowseKind): Promise<Filters> {
+    const { data } = await http.get<Filters>(`${url(server, kind)}/categories`);
 
     return data;
 }

@@ -39,8 +39,14 @@ final class ModrinthProvider implements ContentProvider
             $facets[] = ['categories:'.$category];
         }
 
-        if (! empty($search['gameVersion'])) {
-            $facets[] = ['versions:'.$search['gameVersion']];
+        foreach ($search['excludeCategories'] ?? [] as $category) {
+            $facets[] = ['categories!='.$category];
+        }
+
+        // Any of the chosen game versions matches.
+        $gameVersions = array_values(array_filter($search['gameVersions'] ?? [$search['gameVersion'] ?? null]));
+        if ($gameVersions !== []) {
+            $facets[] = array_map(static fn (string $version): string => 'versions:'.$version, $gameVersions);
         }
 
         if ($search['serverSide'] ?? false) {
@@ -71,8 +77,9 @@ final class ModrinthProvider implements ContentProvider
                 'downloads' => (int) ($hit['downloads'] ?? 0),
                 'follows' => (int) ($hit['follows'] ?? 0),
                 'updated' => $hit['date_modified'] ?? null,
-                'categories' => $hit['display_categories'] ?? $hit['categories'] ?? [],
+                'categories' => array_values(array_diff($hit['display_categories'] ?? $hit['categories'] ?? [], self::LOADERS)),
                 'loaders' => array_values(array_intersect($hit['categories'] ?? [], self::LOADERS)),
+                'clientSide' => $hit['client_side'] ?? null,
                 'gameVersions' => array_slice(array_reverse($hit['versions'] ?? []), 0, 5),
                 'serverSide' => $hit['server_side'] ?? null,
                 'url' => 'https://modrinth.com/'.($hit['project_type'] ?? 'project').'/'.($hit['slug'] ?? $hit['project_id']),
@@ -93,9 +100,42 @@ final class ModrinthProvider implements ContentProvider
         $categories = $this->get('/tag/category', [], 86_400);
 
         return array_values(array_map(
-            static fn (array $category): array => ['name' => $category['name'], 'icon' => $category['icon'] ?? ''],
+            static fn (array $category): array => ['name' => $category['name'], 'icon' => self::svg($category['icon'] ?? null)],
             array_filter($categories, static fn (array $category): bool => ($category['project_type'] ?? null) === $type && ($category['header'] ?? null) === 'categories'),
         ));
+    }
+
+    public function loaders(string $type): array
+    {
+        return array_values(array_map(
+            static fn (array $loader): array => ['name' => $loader['name'], 'icon' => self::svg($loader['icon'] ?? null)],
+            array_filter($this->get('/tag/loader', [], 86_400), static fn (array $loader): bool => in_array($type, $loader['supported_project_types'] ?? [], true)),
+        ));
+    }
+
+    public function gameVersions(): array
+    {
+        return array_map(
+            static fn (array $version): array => ['version' => $version['version'], 'type' => $version['version_type'] ?? 'release'],
+            $this->get('/tag/game_version', [], 3600),
+        );
+    }
+
+    /**
+     * Modrinth sends tag icons as SVG markup. Only plain drawing markup is passed on to the
+     * browser; anything that could run script or load other content is dropped.
+     */
+    private static function svg(?string $markup): ?string
+    {
+        if (! is_string($markup) || strlen($markup) > 8000 || ! preg_match('#^\s*<svg[\s>][\s\S]*</svg>\s*$#i', $markup)) {
+            return null;
+        }
+
+        if (preg_match('#<(script|foreignObject|iframe|image|use|a|style)\b|\bon[a-z]+\s*=|href|url\s*\(|javascript:#i', $markup)) {
+            return null;
+        }
+
+        return trim($markup);
     }
 
     public function project(string $id): array
