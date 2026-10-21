@@ -24,13 +24,16 @@ interface Props {
     hit: Pick<ProjectHit, 'id' | 'title' | 'icon' | 'description' | 'author' | 'url'>;
     onClose: () => void;
     onInstalled?: () => void;
+    /** Skip the project view and go straight to installing the newest compatible version. */
+    quickInstall?: boolean;
 }
 
-export default function ProjectDialog({ kind, hit, onClose, onInstalled }: Props) {
+export default function ProjectDialog({ kind, hit, onClose, onInstalled, quickInstall = false }: Props) {
     const { identifier } = useMcInfo();
     const queryClient = useQueryClient();
     const [all, setAll] = useState(false);
     const [pending, setPending] = useState<ProjectVersion | null>(null);
+    const [quick, setQuick] = useState(quickInstall);
     const project = useQuery({ queryKey: contentKeys.project(identifier, kind, hit.id, all), queryFn: () => getProject(identifier, kind, hit.id, all), staleTime: 120_000 });
 
     const done = () => {
@@ -41,6 +44,30 @@ export default function ProjectDialog({ kind, hit, onClose, onInstalled }: Props
 
     const data = project.data;
     const installedVersion = data?.installed?.version;
+    const newest = data?.versions[0];
+
+    if (quick) {
+        if (project.isLoading) {
+            return (
+                <Dialog open onClose={onClose} title={`Install ${hit.title}`}>
+                    <Spinner centered />
+                </Dialog>
+            );
+        }
+
+        if (newest) {
+            const cancel = onClose;
+
+            return kind === 'modpacks' ? (
+                <ModpackInstallConfirm version={newest} title={hit.title} onCancel={cancel} onDone={done} />
+            ) : (
+                <InstallConfirm kind={kind} version={newest} title={hit.title} onCancel={cancel} onDone={done} />
+            );
+        }
+
+        // Nothing compatible, or the lookup failed: fall back to the full project view.
+        setQuick(false);
+    }
 
     return (
         <Dialog open onClose={onClose} title={hit.title} description={hit.author ? `by ${hit.author}` : undefined}>

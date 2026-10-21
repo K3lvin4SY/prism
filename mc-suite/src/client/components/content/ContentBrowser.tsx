@@ -84,7 +84,7 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
     const [limit, setLimit] = useState(20);
     const [page, setPage] = useState(1);
     const [layout, setLayout] = useState<'list' | 'grid'>(readLayout);
-    const [open, setOpen] = useState<ProjectHit | null>(null);
+    const [open, setOpen] = useState<{ hit: ProjectHit; quick: boolean } | null>(null);
 
     useEffect(() => {
         const timer = window.setTimeout(() => {
@@ -207,7 +207,8 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
                                         layout={layout}
                                         categories={meta.data?.categories ?? []}
                                         loaders={meta.data?.loaders ?? []}
-                                        onOpen={() => setOpen(hit)}
+                                        onOpen={() => setOpen({ hit, quick: false })}
+                                        onInstall={() => setOpen({ hit, quick: true })}
                                     />
                                 ))}
                             </div>
@@ -220,7 +221,16 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
                 </div>
             )}
 
-            {open && <ProjectDialog kind={kind} hit={open} onClose={() => setOpen(null)} onInstalled={() => setTab('installed')} />}
+            {open && (
+                <ProjectDialog
+                    key={`${open.hit.id}-${open.quick}`}
+                    kind={kind}
+                    hit={open.hit}
+                    quickInstall={open.quick}
+                    onClose={() => setOpen(null)}
+                    onInstalled={() => setTab('installed')}
+                />
+            )}
         </div>
     );
 }

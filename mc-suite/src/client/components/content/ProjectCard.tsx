@@ -1,4 +1,5 @@
-import { Badge, NamedIcon, cn, fromNow } from '@pterodactyl/sdk';
+import type { KeyboardEvent, MouseEvent } from 'react';
+import { NamedIcon, cn, fromNow } from '@pterodactyl/sdk';
 import { compactNumber, type ProjectHit, type Tag } from '../../api/content';
 import { Chip, LOADER_COLORS, TagIcon, tagIcon, tagLabel } from './tags';
 
@@ -25,20 +26,46 @@ function environment(hit: ProjectHit): { label: string; icon: string } | null {
     return null;
 }
 
+/**
+ * "+ Install" on a solid green background, or "✓ Installed" with only a green border.
+ * Installed projects open their versions; the rest go straight to installing.
+ */
+export function InstallButton({ installed, onClick }: { installed: boolean; onClick: () => void }) {
+    return (
+        <button
+            type={'button'}
+            onClick={(event: MouseEvent) => {
+                event.stopPropagation();
+                onClick();
+            }}
+            className={cn(
+                'mcs:inline-flex mcs:items-center mcs:gap-1.5 mcs:rounded-lg mcs:border-2 mcs:px-3 mcs:py-1.5 mcs:text-sm mcs:font-semibold mcs:cursor-pointer mcs:whitespace-nowrap mcs:transition-colors',
+                installed
+                    ? 'mcs:border-success mcs:bg-transparent mcs:text-success mcs:hover:bg-success/10'
+                    : 'mcs:border-success mcs:bg-success mcs:text-success-foreground mcs:hover:brightness-110'
+            )}
+        >
+            <NamedIcon name={installed ? 'check' : 'plus'} size={16} />
+            {installed ? 'Installed' : 'Install'}
+        </button>
+    );
+}
+
 interface Props {
     hit: ProjectHit;
     layout: 'list' | 'grid';
     categories: Tag[];
     loaders: Tag[];
     onOpen: () => void;
+    onInstall: () => void;
 }
 
-export default function ProjectCard({ hit, layout, categories, loaders, onOpen }: Props) {
+export default function ProjectCard({ hit, layout, categories, loaders, onOpen, onInstall }: Props) {
     const env = environment(hit);
     const extraLoaders = Math.max(0, hit.loaders.length - MAX_LOADER_CHIPS);
 
     const stats = (
-        <div className={cn('mcs:flex mcs:gap-x-4 mcs:gap-y-1 mcs:text-sm mcs:text-muted-foreground', layout === 'list' ? 'mcs:flex-col mcs:items-end mcs:shrink-0' : 'mcs:flex-wrap')}>
+        <div className={cn('mcs:flex mcs:gap-x-4 mcs:gap-y-1 mcs:text-sm mcs:text-muted-foreground', layout === 'list' ? 'mcs:flex-col mcs:items-end' : 'mcs:flex-wrap mcs:items-center')}>
             <div className={'mcs:flex mcs:gap-3'}>
                 <span className={'mcs:inline-flex mcs:items-center mcs:gap-1'} title={`${hit.downloads.toLocaleString()} downloads`}>
                     <NamedIcon name={'download'} size={14} /> <strong className={'mcs:text-foreground mcs:font-semibold'}>{compactNumber(hit.downloads)}</strong>
@@ -55,12 +82,21 @@ export default function ProjectCard({ hit, layout, categories, loaders, onOpen }
         </div>
     );
 
+    const action = <InstallButton installed={hit.installed} onClick={hit.installed ? onOpen : onInstall} />;
+
     return (
-        <button
-            type={'button'}
+        <div
+            role={'button'}
+            tabIndex={0}
             onClick={onOpen}
+            onKeyDown={(event: KeyboardEvent) => {
+                if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+                    event.preventDefault();
+                    onOpen();
+                }
+            }}
             className={
-                'mcs:relative mcs:flex mcs:gap-4 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:text-left mcs:cursor-pointer mcs:hover:border-primary mcs:min-w-0 mcs:overflow-hidden'
+                'mcs:relative mcs:flex mcs:gap-4 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:text-left mcs:cursor-pointer mcs:hover:border-primary mcs:min-w-0 mcs:overflow-hidden mcs:focus-visible:outline-2 mcs:focus-visible:outline-primary'
             }
         >
             <ProjectIcon src={hit.icon} className={cn('mcs:shrink-0', layout === 'list' ? 'mcs:size-20' : 'mcs:size-16')} />
@@ -68,11 +104,6 @@ export default function ProjectCard({ hit, layout, categories, loaders, onOpen }
                 <div className={'mcs:flex mcs:flex-wrap mcs:items-baseline mcs:gap-x-2'}>
                     <span className={'mcs:text-lg mcs:font-bold mcs:text-foreground mcs:truncate'}>{hit.title}</span>
                     {hit.author && <span className={'mcs:text-sm mcs:text-muted-foreground'}>by {hit.author}</span>}
-                    {hit.installed && (
-                        <Badge size={'sm'} tone={'success'}>
-                            Installed
-                        </Badge>
-                    )}
                 </div>
                 <p className={'mcs:text-sm mcs:text-muted-foreground mcs:line-clamp-2'}>{hit.description}</p>
                 <div className={'mcs:flex mcs:flex-wrap mcs:gap-1.5'}>
@@ -93,9 +124,19 @@ export default function ProjectCard({ hit, layout, categories, loaders, onOpen }
                     ))}
                     {extraLoaders > 0 && <Chip title={hit.loaders.slice(MAX_LOADER_CHIPS).map(tagLabel).join(', ')}>+{extraLoaders}</Chip>}
                 </div>
-                {layout === 'grid' && stats}
+                {layout === 'grid' && (
+                    <div className={'mcs:mt-auto mcs:flex mcs:flex-wrap mcs:items-end mcs:justify-between mcs:gap-2 mcs:pt-1'}>
+                        {stats}
+                        {action}
+                    </div>
+                )}
             </div>
-            {layout === 'list' && stats}
-        </button>
+            {layout === 'list' && (
+                <div className={'mcs:flex mcs:shrink-0 mcs:flex-col mcs:items-end mcs:justify-between mcs:gap-3'}>
+                    {stats}
+                    {action}
+                </div>
+            )}
+        </div>
     );
 }

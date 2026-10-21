@@ -97,7 +97,9 @@ class ContentController extends Controller
             'serverSide' => $kind !== 'plugins',
         ]);
 
-        $installed = array_column($this->records($server, $kind), 'project');
+        $installed = $kind === 'modpacks'
+            ? array_filter([Settings::server($server)->get('modpack')['project'] ?? null])
+            : array_column($this->records($server, $kind), 'project');
 
         foreach ($result['hits'] as &$hit) {
             $hit['installed'] = in_array($hit['id'], $installed, true);
