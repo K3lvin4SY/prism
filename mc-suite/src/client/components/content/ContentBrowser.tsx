@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Alert, Button, Input, Label, NamedIcon, Select, Spinner, TitledGreyBox, cn, httpErrorToHuman } from '@pterodactyl/sdk';
-import { contentKeys, getCategories, search, type ContentKind, type ProjectHit, type SearchParams, type SortOrder } from '../../api/content';
+import { contentKeys, getCategories, search, type BrowseKind, type ProjectHit, type SearchParams, type SortOrder } from '../../api/content';
 import { useMcInfo } from '../../hooks/useMcInfo';
 import InstalledList from './InstalledList';
+import { CurrentModpack } from './Modpack';
 import ProjectCard from './ProjectCard';
 import ProjectDialog from './ProjectDialog';
 
@@ -25,7 +26,7 @@ function readLayout(): 'list' | 'grid' {
     }
 }
 
-export default function ContentBrowser({ kind }: { kind: ContentKind }) {
+export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
     const { identifier, info } = useMcInfo();
     const [tab, setTab] = useState<'browse' | 'installed'>('browse');
     const [query, setQuery] = useState('');
@@ -70,7 +71,7 @@ export default function ContentBrowser({ kind }: { kind: ContentKind }) {
     };
 
     const totalPages = results.data ? Math.max(1, Math.ceil(Math.min(results.data.total, 10_000) / limit)) : 1;
-    const noun = kind === 'plugins' ? 'plugins' : 'mods';
+    const noun = kind;
 
     return (
         <div className={'mcs:flex mcs:flex-col mcs:gap-4'}>
@@ -85,13 +86,13 @@ export default function ContentBrowser({ kind }: { kind: ContentKind }) {
                             tab === value ? 'mcs:border-primary mcs:text-foreground' : 'mcs:border-transparent mcs:text-muted-foreground mcs:hover:text-foreground'
                         )}
                     >
-                        {value === 'browse' ? 'Browse' : 'Installed'}
+                        {value === 'browse' ? 'Browse' : kind === 'modpacks' ? 'Current modpack' : 'Installed'}
                     </button>
                 ))}
             </div>
 
             {tab === 'installed' ? (
-                <InstalledList kind={kind} />
+                kind === 'modpacks' ? <CurrentModpack /> : <InstalledList kind={kind} />
             ) : (
                 <div className={'mcs:grid mcs:gap-4 mcs:lg:grid-cols-[240px_1fr]'}>
                     <div className={'mcs:flex mcs:flex-col mcs:gap-3'}>

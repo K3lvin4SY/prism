@@ -7,18 +7,20 @@ import {
     getDependencies,
     getProject,
     install,
+    type BrowseKind,
     type ContentKind,
     type Dependency,
     type ProjectHit,
     type ProjectVersion,
 } from '../../api/content';
 import { useMcInfo } from '../../hooks/useMcInfo';
+import { ModpackInstallConfirm } from './Modpack';
 import { ProjectIcon } from './ProjectCard';
 
 const TYPE_TONES = { release: 'success', beta: 'warning', alpha: 'danger' } as const;
 
 interface Props {
-    kind: ContentKind;
+    kind: BrowseKind;
     hit: Pick<ProjectHit, 'id' | 'title' | 'icon' | 'description' | 'author' | 'url'>;
     onClose: () => void;
     onInstalled?: () => void;
@@ -114,7 +116,12 @@ export default function ProjectDialog({ kind, hit, onClose, onInstalled }: Props
                 <Button.Text onClick={onClose}>Close</Button.Text>
             </Dialog.Footer>
 
-            {pending && <InstallConfirm kind={kind} version={pending} title={hit.title} onCancel={() => setPending(null)} onDone={done} />}
+            {pending &&
+                (kind === 'modpacks' ? (
+                    <ModpackInstallConfirm version={pending} title={hit.title} onCancel={() => setPending(null)} onDone={done} />
+                ) : (
+                    <InstallConfirm kind={kind} version={pending} title={hit.title} onCancel={() => setPending(null)} onDone={done} />
+                ))}
         </Dialog>
     );
 }

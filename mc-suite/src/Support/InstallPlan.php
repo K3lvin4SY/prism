@@ -49,6 +49,16 @@ final class InstallPlan
         return $this;
     }
 
+    /** @param list<array<string, mixed>> $steps */
+    public function addSteps(array $steps): self
+    {
+        foreach ($steps as $step) {
+            $this->steps[] = $step;
+        }
+
+        return $this;
+    }
+
     /** Stops the server and waits for it to go offline. */
     public function stopServer(): self
     {

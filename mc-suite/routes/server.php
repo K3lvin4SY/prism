@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use McSuite\Http\Controllers\ContentController;
 use McSuite\Http\Controllers\InfoController;
+use McSuite\Http\Controllers\ModpacksController;
 use McSuite\Http\Controllers\PropertiesController;
 use McSuite\Http\Controllers\VersionsController;
 
@@ -21,10 +22,14 @@ Route::post('/versions/install', [VersionsController::class, 'install'])->name('
 Route::get('/versions/{type}', [VersionsController::class, 'versions'])->where('type', '[A-Za-z0-9_]+')->name('versions.type');
 Route::get('/versions/{type}/{version}', [VersionsController::class, 'builds'])->where(['type' => '[A-Za-z0-9_]+', 'version' => '[A-Za-z0-9._+-]+'])->name('versions.builds');
 
-Route::prefix('/content/{kind}')->where(['kind' => 'plugins|mods'])->group(function () {
+// Browsing works for modpacks too; installing them has its own routes below.
+Route::prefix('/content/{kind}')->where(['kind' => 'plugins|mods|modpacks'])->group(function () {
     Route::get('/search', [ContentController::class, 'search'])->name('content.search');
     Route::get('/categories', [ContentController::class, 'categories'])->name('content.categories');
     Route::get('/projects/{project}', [ContentController::class, 'project'])->where('project', '[A-Za-z0-9_.-]+')->name('content.project');
+});
+
+Route::prefix('/content/{kind}')->where(['kind' => 'plugins|mods'])->group(function () {
     Route::get('/versions/{version}/dependencies', [ContentController::class, 'dependencies'])->where('version', '[A-Za-z0-9]+')->name('content.dependencies');
     Route::get('/installed', [ContentController::class, 'installed'])->name('content.installed');
     Route::post('/install', [ContentController::class, 'install'])->name('content.install');
@@ -33,3 +38,6 @@ Route::prefix('/content/{kind}')->where(['kind' => 'plugins|mods'])->group(funct
     Route::patch('/files/{file}', [ContentController::class, 'toggle'])->where('file', '[^/]+')->name('content.toggle');
     Route::delete('/files/{file}', [ContentController::class, 'destroy'])->where('file', '[^/]+')->name('content.destroy');
 });
+
+Route::get('/modpacks', [ModpacksController::class, 'current'])->name('modpacks');
+Route::post('/modpacks/install', [ModpacksController::class, 'install'])->name('modpacks.install');

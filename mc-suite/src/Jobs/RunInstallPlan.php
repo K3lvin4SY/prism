@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use McSuite\Support\Detector;
 use McSuite\Support\InstallPlan;
+use McSuite\Support\Mrpack;
 use McSuite\Support\Relay;
 use McSuite\Support\ServerFiles;
 use McSuite\Support\Settings;
@@ -188,6 +189,32 @@ class RunInstallPlan implements ShouldQueue
 
                 return true;
 
+            case 'mrpack':
+                // Expands into the pack's own steps, which run next.
+                array_splice($state['steps'], $state['cursor'] + 1, 0, Mrpack::expand($server, $step, $this->jobId));
+
+                return true;
+
+            case 'archive-write':
+                $next = Mrpack::writeOverrides($server, $step['archive'], $step['prefixes'], (int) ($state['pending']['index'] ?? 0), time() + 25);
+                if ($next !== null) {
+                    $state['pending'] = ['index' => $next, 'fraction' => $next / max(1, (int) $step['count'])];
+
+                    return false;
+                }
+
+                return true;
+
+            case 'remove-local':
+                @unlink(Relay::directory().'/'.basename($step['file']));
+
+                return true;
+
+            case 'forget-prefix':
+                Settings::server($server)->forgetByPrefix($step['prefix']);
+
+                return true;
+
             case 'record':
                 Settings::server($server)->set($step['key'], $step['value']);
 
@@ -219,6 +246,7 @@ class RunInstallPlan implements ShouldQueue
         throw_if(time() - $pending['since'] > self::PULL_TIMEOUT, RuntimeException::class, 'Downloads took too long.');
 
         $listings = [];
+        $made = [];
         $active = 0;
         foreach ($pulls as $index => $pull) {
             if (isset($pending['done'][$index])) {
@@ -257,8 +285,15 @@ class RunInstallPlan implements ShouldQueue
             }
 
             $directory = ServerFiles::normalize($pull['dir']);
-            if ($directory !== '') {
+            if ($directory !== '' && ! isset($made[$directory])) {
                 $files->makeDirectory($directory);
+                $made[$directory] = true;
+            }
+
+            // A file of the same name is replaced, not appended to.
+            $existing = $files->list($directory);
+            if (isset($existing[$pull['file']])) {
+                $files->delete($directory, [$pull['file']]);
             }
 
             $files->pull($pull['url'], $directory, $pull['file']);
@@ -297,6 +332,9 @@ class RunInstallPlan implements ShouldQueue
             'power', 'wait-offline' => 'Stopping the server.',
             'pull', 'pulls' => isset($step['files']) ? sprintf('Downloading files (%d of %d).', count($state['pending']['done'] ?? []), count($step['files'])) : 'Downloading '.($step['file'] ?? 'files').'.',
             'unzip' => 'Extracting '.($step['file'] ?? 'archive').'.',
+            'mrpack' => 'Downloading and reading the modpack.',
+            'archive-write' => sprintf('Writing config files (%d of %d).', $state['pending']['index'] ?? 0, $step['count'] ?? 0),
+            'relay' => 'Downloading through the Panel.',
             'write' => 'Writing '.($step['path'] ?? 'files').'.',
             'delete', 'rename' => 'Moving old files aside.',
             default => 'Working.',

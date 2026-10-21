@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Http;
 use McSuite\Support\Detector;
 use McSuite\Support\InstallPlan;
 use McSuite\Support\McJars;
-use McSuite\Support\ServerFiles;
+use McSuite\Support\McJarsInstaller;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Models\Server;
 
@@ -81,45 +81,11 @@ class VersionsController extends Controller
 
         abort_unless(isset($data['build']), 422, 'Pick a build.');
         $build = McJars::build((int) $data['build']);
-        $type = (string) ($build['type'] ?? '');
-        $groups = $build['installation'] ?? [];
-        abort_if(! is_array($groups) || $groups === [], 422, 'This build cannot be installed automatically.');
+        $software = McJarsInstaller::softwareFor($build);
 
-        $software = Detector::softwareForMcJars($type);
-        abort_if($software === null || $software === 'bedrock', 422, 'This software is not supported.');
-
-        $jar = Detector::for($server)->jarFile();
         $plan = InstallPlan::for($server, sprintf('Installing %s %s', $build['type'], $build['versionId'] ?? ''))
             ->stopServer()
-            ->add('rename', ['dir' => dirname($jar) === '.' ? '' : dirname($jar), 'from' => basename($jar), 'to' => basename($jar).'.old', 'optional' => true]);
-
-        foreach ($groups as $group) {
-            foreach ($group as $step) {
-                match ($step['type'] ?? null) {
-                    'download' => $plan->add('pull', [
-                        'url' => self::httpsUrl($step['url'] ?? ''),
-                        'dir' => self::directoryOf($step['file'] === 'server.jar' ? $jar : $step['file']),
-                        'file' => basename($step['file'] === 'server.jar' ? $jar : ServerFiles::normalize($step['file'])),
-                        'size' => $step['size'] ?? null,
-                    ]),
-                    'unzip' => $plan->add('unzip', ['dir' => ServerFiles::normalize($step['location'] ?? ''), 'file' => ServerFiles::normalize($step['file'])]),
-                    'remove' => $plan->add('delete', ['dir' => self::directoryOf($step['location']), 'files' => [basename(ServerFiles::normalize($step['location']))]]),
-                    default => abort(422, 'This build uses an install step MC Suite does not know.'),
-                };
-            }
-        }
-
-        if ($jar !== 'server.jar') {
-            $plan->add('rename', ['dir' => '', 'from' => 'server.jar', 'to' => $jar, 'optional' => true]);
-        }
-
-        $plan->add('record', ['key' => 'software', 'value' => [
-            'software' => $software,
-            'version' => $build['versionId'] ?? null,
-            'build' => $build['projectVersionId'] ?? $build['name'] ?? null,
-            'buildId' => $build['id'] ?? null,
-            'installed' => now()->toAtomString(),
-        ]])->add('refresh');
+            ->addSteps(McJarsInstaller::steps($build, Detector::for($server)->jarFile()));
 
         if ($data['start'] ?? false) {
             $plan->add('power', ['action' => 'start']);
@@ -189,17 +155,4 @@ class VersionsController extends Controller
         });
     }
 
-    private static function directoryOf(string $path): string
-    {
-        $path = ServerFiles::normalize($path);
-
-        return str_contains($path, '/') ? dirname($path) : '';
-    }
-
-    private static function httpsUrl(string $url): string
-    {
-        abort_unless(preg_match('#^https://[^\s/]+/\S+$#', $url) === 1, 422, 'The build has an invalid download link.');
-
-        return $url;
-    }
 }

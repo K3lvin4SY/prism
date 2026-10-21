@@ -3,6 +3,9 @@ import { base } from './client';
 
 export type ContentKind = 'plugins' | 'mods';
 
+/** Kinds that can be browsed. Modpacks install through their own endpoint. */
+export type BrowseKind = ContentKind | 'modpacks';
+
 export type SortOrder = 'relevance' | 'downloads' | 'follows' | 'newest' | 'updated';
 
 export interface ProjectHit {
@@ -122,18 +125,18 @@ export interface UpdateInfo {
     published: string | null;
 }
 
-const url = (server: string, kind: ContentKind) => `${base(server)}/content/${kind}`;
+const url = (server: string, kind: BrowseKind) => `${base(server)}/content/${kind}`;
 
 export const contentKeys = {
-    search: (server: string, kind: ContentKind, params: SearchParams) => ['mc-suite', server, kind, 'search', params] as const,
-    categories: (server: string, kind: ContentKind) => ['mc-suite', server, kind, 'categories'] as const,
-    project: (server: string, kind: ContentKind, id: string, all: boolean) => ['mc-suite', server, kind, 'project', id, all] as const,
+    search: (server: string, kind: BrowseKind, params: SearchParams) => ['mc-suite', server, kind, 'search', params] as const,
+    categories: (server: string, kind: BrowseKind) => ['mc-suite', server, kind, 'categories'] as const,
+    project: (server: string, kind: BrowseKind, id: string, all: boolean) => ['mc-suite', server, kind, 'project', id, all] as const,
     dependencies: (server: string, kind: ContentKind, version: string) => ['mc-suite', server, kind, 'dependencies', version] as const,
     installed: (server: string, kind: ContentKind) => ['mc-suite', server, kind, 'installed'] as const,
     updates: (server: string, kind: ContentKind) => ['mc-suite', server, kind, 'updates'] as const,
 };
 
-export async function search(server: string, kind: ContentKind, params: SearchParams): Promise<SearchResult> {
+export async function search(server: string, kind: BrowseKind, params: SearchParams): Promise<SearchResult> {
     const query: Record<string, unknown> = { query: params.query, sort: params.sort, page: params.page, limit: params.limit, categories: params.categories };
     // An empty list is sent as an empty value, which means "any loader" rather than "the server's".
     if (params.loaders !== null) query.loaders = params.loaders.length > 0 ? params.loaders : '';
@@ -143,13 +146,13 @@ export async function search(server: string, kind: ContentKind, params: SearchPa
     return data;
 }
 
-export async function getCategories(server: string, kind: ContentKind) {
+export async function getCategories(server: string, kind: BrowseKind) {
     const { data } = await http.get<{ categories: { name: string; icon: string }[]; loaders: string[]; serverLoaders: string[] }>(`${url(server, kind)}/categories`);
 
     return data;
 }
 
-export async function getProject(server: string, kind: ContentKind, id: string, all: boolean) {
+export async function getProject(server: string, kind: BrowseKind, id: string, all: boolean) {
     const { data } = await http.get<{ project: ProjectDetails; versions: ProjectVersion[]; installed: ContentRecord | null }>(`${url(server, kind)}/projects/${id}`, {
         params: all ? { all: 1 } : undefined,
     });
@@ -201,4 +204,31 @@ export function compactNumber(value: number): string {
     if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`;
 
     return String(value);
+}
+
+export interface InstalledModpack {
+    provider: string;
+    project: string;
+    version: string;
+    versionNumber: string;
+    title: string;
+    icon: string | null;
+    url: string | null;
+    name: string | null;
+    minecraft: string;
+    loader: { type: string; version: string | null } | null;
+    files: number;
+    installed: string;
+}
+
+export async function getModpack(server: string) {
+    const { data } = await http.get<{ modpack: InstalledModpack | null; job: string | null; clean: string[] }>(`${base(server)}/modpacks`);
+
+    return data;
+}
+
+export async function installModpack(server: string, version: string, clean: boolean, start: boolean): Promise<string> {
+    const { data } = await http.post<{ job: string }>(`${base(server)}/modpacks/install`, { version, clean, start });
+
+    return data.job;
 }

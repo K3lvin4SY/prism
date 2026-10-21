@@ -25,12 +25,15 @@ class ContentController extends Controller
     private const array KINDS = [
         'plugins' => ['plugins', 'plugins', 'plugin'],
         'mods' => ['mods', 'mods', 'mod'],
+        // Browse only: modpacks install through ModpacksController.
+        'modpacks' => ['modpacks', '', 'modpack'],
     ];
 
     /** Loaders that belong to each kind, used to refuse a mod on a plugin server and the reverse. */
     private const array KIND_LOADERS = [
         'plugins' => ['paper', 'spigot', 'bukkit', 'purpur', 'folia', 'velocity', 'bungeecord', 'waterfall', 'sponge'],
         'mods' => ['fabric', 'quilt', 'forge', 'neoforge'],
+        'modpacks' => ['fabric', 'quilt', 'forge', 'neoforge'],
     ];
 
     /** Hosts files may be downloaded from. */
@@ -86,7 +89,7 @@ class ContentController extends Controller
             'sort' => $data['sort'] ?? 'relevance',
             'offset' => ((int) ($data['page'] ?? 1) - 1) * $limit,
             'limit' => $limit,
-            'serverSide' => $kind === 'mods',
+            'serverSide' => $kind !== 'plugins',
         ]);
 
         $installed = array_column($this->records($server, $kind), 'project');
