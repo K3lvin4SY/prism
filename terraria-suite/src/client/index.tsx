@@ -1,0 +1,27 @@
+import './styles.css';
+import { definePterodactylExtension, type ScreenContext } from '@pterodactyl/sdk';
+import type { Feature } from './api/client';
+import { setConfig } from './config';
+import EggTypeField from './EggTypeField';
+import { useFeatureVisible } from './hooks/useTerrariaInfo';
+
+/** Tabs whose screens are built. The rest stay hidden until their phase ships. */
+const READY = new Set<Feature>(['properties', 'versions']);
+
+/** A visibility predicate: runs as a component, so it can ask the backend what the server runs. */
+const showFor = (feature: Feature) =>
+    function useVisible({ server }: ScreenContext): boolean {
+        const visible = useFeatureVisible(server, feature);
+
+        return READY.has(feature) && visible;
+    };
+
+export default definePterodactylExtension({
+    setup({ config, screens, forms }) {
+        setConfig(config);
+        forms.extend('admin.egg', EggTypeField);
+
+        screens.register('versions', () => import('./screens/VersionsScreen'), { visible: showFor('versions') });
+        screens.register('properties', () => import('./screens/SettingsScreen'), { visible: showFor('properties') });
+    },
+});
