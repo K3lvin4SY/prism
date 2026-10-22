@@ -95,8 +95,8 @@ export async function updateEntry(server: string, name: string, changes: EntryCh
     return (await http.patch(`${url(server)}/links/${name}`, changes)).data;
 }
 
-export async function unlink(server: string, name: string): Promise<void> {
-    await http.delete(`${url(server)}/links/${name}`);
+export async function unlink(server: string, name: string): Promise<LinkedServer[]> {
+    return (await http.delete<{ restart: LinkedServer[] }>(`${url(server)}/links/${name}`)).data.restart;
 }
 
 export async function updateProxySettings(server: string, settings: { mode?: 'modern' | 'legacy'; onlineMode?: boolean; fixBind?: boolean }): Promise<{ failed: string[] }> {

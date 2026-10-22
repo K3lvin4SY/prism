@@ -73,7 +73,7 @@ export default function LinkDialog({ server, side, onClose, onLinked }: Props) {
                     ) : list.length === 0 ? (
                         <p className={'mcs:py-6 mcs:text-center mcs:text-sm mcs:text-muted-foreground'}>
                             {side === 'proxy'
-                                ? 'None of your servers can sit behind a proxy. Paper, Purpur, Spigot, Folia and Fabric can.'
+                                ? 'None of your servers can sit behind a proxy. Paper, Purpur, Spigot, Folia, Fabric and Pumpkin can.'
                                 : 'You have no Velocity, BungeeCord or Waterfall server. Create one, or switch a server to Velocity on its Versions tab.'}
                         </p>
                     ) : (

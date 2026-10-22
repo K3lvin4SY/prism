@@ -314,7 +314,13 @@ class ProxyController extends Controller
 
         Activity::event('server:mc-suite.proxy.unlink')->subject($proxy)->property(['name' => $name])->log();
 
-        return new JsonResponse(['unlinked' => $name]);
+        // Both sides keep running on the old config until they restart.
+        $restart = [$this->describe($request->user(), $proxy)];
+        if ($backend !== null) {
+            $restart[] = $this->describe($request->user(), $backend);
+        }
+
+        return new JsonResponse(['unlinked' => $name, 'restart' => $restart]);
     }
 
     /** Proxy-wide settings: forwarding mode and account checks. */

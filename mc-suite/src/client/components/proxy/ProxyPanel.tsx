@@ -152,7 +152,7 @@ function RestartBar({ server, targets, onDone }: { server: string; targets: Link
     return (
         <Alert type={'warning'} title={'Restart to apply'}>
             <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:justify-between mcs:gap-3'}>
-                <span>{targets.map((target) => target.name).join(' and ')} need a restart before the link works.</span>
+                <span>{targets.map((target) => target.name).join(' and ')} need a restart before the change takes effect.</span>
                 {restartable.length > 0 && (
                     <Button
                         size={'small'}
@@ -211,7 +211,7 @@ export default function ProxyPanel({ server }: { server: string }) {
         if (!removing) return;
         setBusy(true);
         try {
-            await unlink(server, removing);
+            setRestart(await unlink(server, removing));
             toast.success(`${removing} was unlinked and its forwarding settings were reverted.`);
             await refresh();
         } catch (error) {
@@ -232,7 +232,7 @@ export default function ProxyPanel({ server }: { server: string }) {
         return (
             <TitledGreyBox title={'Proxy'}>
                 <p className={'mcs:text-sm mcs:text-muted-foreground'}>
-                    Player forwarding needs Paper, Purpur, Spigot, Folia or Fabric. Vanilla, Forge and NeoForge servers cannot sit behind a proxy here. Switch the software on the Versions tab.
+                    Player forwarding needs Paper, Purpur, Spigot, Folia, Fabric or Pumpkin. Vanilla, Forge and NeoForge servers cannot sit behind a proxy here. Switch the software on the Versions tab.
                 </p>
             </TitledGreyBox>
         );

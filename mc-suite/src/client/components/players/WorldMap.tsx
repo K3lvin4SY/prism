@@ -114,6 +114,19 @@ export default function WorldMap({ server, playerKey, position, dimension: playe
     const box = useRef<HTMLDivElement>(null);
     const drag = useRef<{ x: number; z: number; pointerX: number; pointerY: number } | null>(null);
 
+    // React's wheel listener is passive, so it cannot stop the page scrolling under the map.
+    useEffect(() => {
+        const element = box.current;
+        if (!element) return;
+        const onWheel = (event: WheelEvent) => {
+            event.preventDefault();
+            setZoom((current) => Math.max(0, Math.min(ZOOMS.length - 1, current + (event.deltaY < 0 ? 1 : -1))));
+        };
+        element.addEventListener('wheel', onWheel, { passive: false });
+
+        return () => element.removeEventListener('wheel', onWheel);
+    }, []);
+
     const regions = useQuery({
         queryKey: ['mc-suite', server, 'map', dimension],
         queryFn: async () => (await http.get<{ regions: RegionInfo[] }>(`${base(server)}/map/${dimension}`)).data.regions,
@@ -198,7 +211,6 @@ export default function WorldMap({ server, playerKey, position, dimension: playe
                 onPointerMove={onPointerMove}
                 onPointerUp={() => (drag.current = null)}
                 onPointerCancel={() => (drag.current = null)}
-                onWheel={(event) => setZoom((current) => Math.max(0, Math.min(ZOOMS.length - 1, current + (event.deltaY < 0 ? 1 : -1))))}
             >
                 <div
                     className={'mcs:absolute mcs:left-0 mcs:top-0 mcs:origin-top-left'}
