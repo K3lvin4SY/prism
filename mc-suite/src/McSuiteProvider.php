@@ -14,7 +14,6 @@ class McSuiteProvider extends ExtensionProvider
     public function boot(): void
     {
         $this->registerApiRoutes();
-        $this->registerWebRoutes($this->extensionPath('routes', 'web.php'));
 
         $this->registerPermissions('Minecraft tools from MC Suite.', [
             'players-view' => 'See players, their inventories and stats.',

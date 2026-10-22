@@ -34,6 +34,9 @@ final class InstallPlan
     /** @var list<array<string, mixed>> */
     private array $steps = [];
 
+    /** @var list<array<string, mixed>> steps run if the plan fails */
+    private array $rollback = [];
+
     public function __construct(private readonly Server $server, private readonly string $label) {}
 
     public static function for(Server $server, string $label): self
@@ -55,6 +58,14 @@ final class InstallPlan
         foreach ($steps as $step) {
             $this->steps[] = $step;
         }
+
+        return $this;
+    }
+
+    /** @param array<string, mixed> $options */
+    public function onFailure(string $type, array $options = []): self
+    {
+        $this->rollback[] = ['type' => $type, ...$options];
 
         return $this;
     }
@@ -93,6 +104,7 @@ final class InstallPlan
             'server' => $this->server->id,
             'label' => $this->label,
             'steps' => $this->steps,
+            'rollback' => $this->rollback,
             'cursor' => 0,
             'pending' => null,
             'started' => time(),

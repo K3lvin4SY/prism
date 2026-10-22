@@ -9,6 +9,8 @@ interface Props {
     onSave: (values: Record<string, string>) => Promise<void>;
     /** The MOTD editor, shown in place of the rows while the MOTD category is open. */
     motdEditor?: ReactNode;
+    /** Keys the egg rewrites on start: the startup variable they come from, or null when fixed. */
+    eggBindings?: Record<string, string | null>;
 }
 
 interface Row {
@@ -32,7 +34,7 @@ const otherDefinition = (key: string): PropertyDefinition => ({
  * Every property, sorted into categories, with its real key next to a short explanation.
  * Each row saves on its own as soon as its value is valid.
  */
-export default function SettingsBrowser({ edition, values, onSave, motdEditor }: Props) {
+export default function SettingsBrowser({ edition, values, onSave, motdEditor, eggBindings = {} }: Props) {
     const [category, setCategory] = useState('motd');
     const [search, setSearch] = useState('');
 
@@ -108,6 +110,7 @@ export default function SettingsBrowser({ edition, values, onSave, motdEditor }:
                                     <SettingRow
                                         key={`${row.definition.key}-${row.definition.category}`}
                                         row={row}
+                                        binding={row.definition.key in eggBindings ? eggBindings[row.definition.key] : undefined}
                                         onSave={onSave}
                                         onEditMotd={() => {
                                             setSearch('');
@@ -124,12 +127,23 @@ export default function SettingsBrowser({ edition, values, onSave, motdEditor }:
     );
 }
 
-function SettingRow({ row, onSave, onEditMotd }: { row: Row; onSave: Props['onSave']; onEditMotd: () => void }) {
+function SettingRow({
+    row,
+    onSave,
+    onEditMotd,
+    binding,
+}: {
+    row: Row;
+    onSave: Props['onSave'];
+    onEditMotd: () => void;
+    /** undefined: the egg leaves it alone; null: fixed by the egg; string: from that startup variable. */
+    binding: string | null | undefined;
+}) {
     const { definition } = row;
     const [draft, setDraft] = useState(row.value);
     const [state, setState] = useState<'idle' | 'saving' | 'error'>('idle');
     const [error, setError] = useState<string | null>(null);
-    const managed = managedKeys.includes(definition.key);
+    const managed = managedKeys.includes(definition.key) || binding === null;
 
     useEffect(() => setDraft(row.value), [row.value]);
 
@@ -217,7 +231,16 @@ function SettingRow({ row, onSave, onEditMotd }: { row: Row; onSave: Props['onSa
                     </Badge>
                     {state === 'saving' && <Spinner size={'small'} />}
                 </div>
-                <p className={'mcs:text-xs mcs:text-muted-foreground mcs:mt-1'}>{managed ? 'Set by the allocation in the Network tab.' : definition.description}</p>
+                <p className={'mcs:text-xs mcs:text-muted-foreground mcs:mt-1'}>{managedKeys.includes(definition.key)
+                        ? 'Set by the allocation in the Network tab.'
+                        : binding === null
+                          ? 'The egg sets this itself every time the server starts.'
+                          : definition.description}</p>
+                {typeof binding === 'string' && (
+                    <p className={'mcs:text-xs mcs:text-muted-foreground mcs:mt-1'}>
+                        Also saved to the <span className={'mcs:font-mono'}>{binding}</span> startup variable, which the egg applies on start.
+                    </p>
+                )}
                 {error && <p className={'mcs:text-xs mcs:text-destructive mcs:mt-1'}>{error}</p>}
             </div>
             <div className={'mcs:shrink-0'}>{control()}</div>

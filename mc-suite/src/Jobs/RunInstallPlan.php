@@ -17,7 +17,9 @@ use McSuite\Support\Relay;
 use McSuite\Support\ServerFiles;
 use McSuite\Support\Settings;
 use Pterodactyl\Facades\Daemon;
+use Pterodactyl\Contracts\Servers\ReinstallsServers;
 use Pterodactyl\Models\Server;
+use Pterodactyl\Models\ServerVariable;
 use Pterodactyl\Services\Extensions\ExtensionJobProgress;
 use RuntimeException;
 use Throwable;
@@ -91,6 +93,7 @@ class RunInstallPlan implements ShouldQueue
             }
         } catch (Throwable $exception) {
             Log::warning('MC Suite install failed', ['job' => $this->jobId, 'server' => $server->uuid, 'exception' => $exception]);
+            $this->rollback($server, $state);
             $this->finish($server, $progress, 'failed', $state['label'].' failed: '.self::describe($exception));
 
             return;
@@ -139,6 +142,10 @@ class RunInstallPlan implements ShouldQueue
                 }
 
                 $target = ServerFiles::join($step['dir'], $step['to']);
+                if (($step['ifMissing'] ?? false) && $files->size($target) !== null) {
+                    return true;
+                }
+
                 if ($files->size($target) !== null) {
                     $files->delete(dirname($target) === '.' ? '' : dirname($target), [basename($target)]);
                 }
@@ -165,14 +172,17 @@ class RunInstallPlan implements ShouldQueue
                 return $this->pull($files, $step['files'], $state);
 
             case 'relay':
-                $relay = $state['relays'][$state['cursor']] ??= Relay::fetch($step['url'], $this->jobId);
-                $done = $this->pull($files, [['url' => $relay['url'], 'dir' => $step['dir'], 'file' => $step['file'], 'size' => $relay['size']]], $state);
+                // Fetch in one slice and upload in the next, so neither outlives the queue's time limit.
+                if (! isset($state['relays'][$state['cursor']])) {
+                    $state['relays'][$state['cursor']] = Relay::fetch($step['url'], $this->jobId);
+                    $state['pending'] = ['fraction' => 0.5];
 
-                if ($done) {
-                    Relay::forget($relay['token']);
+                    return false;
                 }
 
-                return $done;
+                Relay::upload($server, $state['relays'][$state['cursor']]['file'], ServerFiles::join($step['dir'], $step['file']));
+
+                return true;
 
             case 'unzip':
                 $files->decompress($step['dir'], $step['file']);
@@ -188,6 +198,27 @@ class RunInstallPlan implements ShouldQueue
                 $files->write($step['path'], (string) base64_decode($step['content'], true));
 
                 return true;
+
+            case 'variable':
+                // Sets an egg variable for this server, as an administrator would.
+                $variable = $server->egg->variables()->where('env_variable', $step['env'])->first();
+                throw_unless($variable, RuntimeException::class, 'The egg has no '.$step['env'].' variable.');
+                ServerVariable::query()->updateOrCreate(['server_id' => $server->id, 'variable_id' => $variable->id], ['variable_value' => (string) $step['value']]);
+
+                return true;
+
+            case 'reinstall':
+                app(ReinstallsServers::class)->reinstall($server->fresh());
+
+                return true;
+
+            case 'wait-installed':
+                $state['pending'] ??= ['since' => time()];
+                $status = $server->fresh()?->status;
+                throw_if(in_array($status, [Server::STATUS_INSTALL_FAILED, Server::STATUS_REINSTALL_FAILED], true), RuntimeException::class, 'The egg install script failed. Its output is in the console.');
+                throw_if(time() - $state['pending']['since'] > 1200, RuntimeException::class, 'The install took longer than twenty minutes.');
+
+                return $status !== Server::STATUS_INSTALLING;
 
             case 'mrpack':
                 // Expands into the pack's own steps, which run next.
@@ -362,6 +393,24 @@ class RunInstallPlan implements ShouldQueue
         Cache::put(InstallPlan::stateKey($this->jobId), $state, 3600);
     }
 
+    /**
+     * Runs the plan's rollback steps after a failure, as far as they go, so the server is
+     * left as it was: settings moved aside are put back, half-installed files are removed.
+     *
+     * @param  array<string, mixed>  $state
+     */
+    private function rollback(Server $server, array $state): void
+    {
+        foreach ($state['rollback'] ?? [] as $step) {
+            try {
+                $scratch = ['pending' => null, 'cursor' => 0, 'steps' => []];
+                $this->run($server, $step, $scratch);
+            } catch (Throwable) {
+                // Best effort: carry on with the remaining steps.
+            }
+        }
+    }
+
     private function finish(Server $server, ExtensionJobProgress $progress, string $status, string $message): void
     {
         Cache::forget(InstallPlan::stateKey($this->jobId));
@@ -390,6 +439,7 @@ class RunInstallPlan implements ShouldQueue
         $state = Cache::get(InstallPlan::stateKey($this->jobId));
         $server = is_array($state) ? Server::query()->find($state['server']) : null;
         if ($server instanceof Server) {
+            $this->rollback($server, $state);
             $this->finish($server, app(ExtensionJobProgress::class), 'failed', ($state['label'] ?? 'Install').' failed: '.($exception ? self::describe($exception) : 'the worker stopped.'));
         }
     }

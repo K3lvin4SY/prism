@@ -40,6 +40,8 @@ export interface PropertiesResponse {
     icon: string | null;
     serverName: string;
     canRename: boolean;
+    /** Keys the egg rewrites on start: the startup variable they come from, or null when fixed. */
+    eggBindings: Record<string, string | null>;
 }
 
 export async function getProperties(server: string): Promise<PropertiesResponse> {

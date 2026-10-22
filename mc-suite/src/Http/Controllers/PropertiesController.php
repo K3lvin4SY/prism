@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use McSuite\Support\Detector;
+use McSuite\Support\EggConfig;
 use McSuite\Support\PropertiesFile;
 use McSuite\Support\PropertySchema;
 use McSuite\Support\ServerFiles;
@@ -48,6 +49,8 @@ class PropertiesController extends Controller
             'icon' => $icon,
             'serverName' => $server->name,
             'canRename' => $request->user()->can('settings.rename', $server),
+            // Keys the egg rewrites on start: from a startup variable, or fixed (null).
+            'eggBindings' => (object) EggConfig::propertyBindings($server),
         ]);
     }
 
@@ -62,10 +65,17 @@ class PropertiesController extends Controller
         $files = ServerFiles::for($server);
         $properties = new PropertiesFile($files->read('server.properties', self::MAX_FILE) ?? '', $info['edition'] === 'java');
 
+        $bindings = EggConfig::propertyBindings($server);
         $changed = [];
         foreach ($data['values'] as $key => $value) {
             $key = (string) $key;
+            abort_if(array_key_exists($key, $bindings) && $bindings[$key] === null, 422, 'The egg sets '.$key.' itself on every start.');
             $normalized = PropertySchema::normalize($info['edition'], $key, $value);
+
+            // The egg writes this key from a startup variable on start, so the variable changes too.
+            if (($bindings[$key] ?? null) !== null) {
+                EggConfig::setVariable($server, $key, $bindings[$key], $normalized);
+            }
             if ($properties->get($key) !== $normalized) {
                 $properties->set($key, $normalized);
                 $changed[$key] = $normalized;

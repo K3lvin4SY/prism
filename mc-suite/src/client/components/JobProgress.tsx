@@ -20,11 +20,14 @@ export default function JobProgress({ job, onFinished }: Props) {
         }
     }, [status, onFinished]);
 
-    if (progress.isError) {
+    // While the egg reinstalls the server, the Panel answers 409 for a while; only a 404 means the job is gone.
+    const status = (progress.error as { response?: { status?: number } } | null)?.response?.status;
+    if (progress.isError && status === 404 && !progress.data) {
         return <Alert type={'warning'}>Progress for this install is no longer available.</Alert>;
     }
 
     const data = progress.data;
+    const reinstalling = progress.isError && status === 409;
     if (data?.status === 'failed') {
         return <Alert type={'danger'}>{data.message}</Alert>;
     }
@@ -36,7 +39,7 @@ export default function JobProgress({ job, onFinished }: Props) {
     return (
         <div className={'mcs:flex mcs:flex-col mcs:gap-2 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
             <div className={'mcs:flex mcs:justify-between mcs:text-sm'}>
-                <span>{data?.message ?? 'Starting…'}</span>
+                <span>{reinstalling ? 'The egg is reinstalling the server…' : (data?.message ?? 'Starting…')}</span>
                 <span className={'mcs:text-muted-foreground'}>{data?.percent ?? 0}%</span>
             </div>
             <ProgressBar value={data?.percent ?? 0} label={data?.message ?? 'Install progress'} />

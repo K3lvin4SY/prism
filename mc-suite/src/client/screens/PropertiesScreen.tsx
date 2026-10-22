@@ -52,6 +52,7 @@ export default function PropertiesScreen() {
                     edition={edition}
                     values={data.values}
                     onSave={save}
+                    eggBindings={data.eggBindings}
                     motdEditor={
                         edition === 'java' ? (
                             <MotdEditor

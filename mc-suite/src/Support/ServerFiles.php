@@ -97,7 +97,8 @@ final class ServerFiles
         try {
             $entries = $this->client()->getDirectory('/'.self::normalize($directory));
         } catch (DaemonConnectionException $exception) {
-            if ($this->isMissing($exception)) {
+            // As with files, some Wings versions answer a missing directory with a 500.
+            if ($this->isMissing($exception) || ! $this->directoryExists($directory)) {
                 return [];
             }
 
@@ -181,6 +182,19 @@ final class ServerFiles
         $entry = $this->list($directory)[basename($path)] ?? null;
 
         return $entry === null ? null : $entry['size'];
+    }
+
+    private function directoryExists(string $directory): bool
+    {
+        $directory = self::normalize($directory);
+        if ($directory === '') {
+            return true;
+        }
+
+        $parent = str_contains($directory, '/') ? dirname($directory) : '';
+        $entry = $this->list($parent)[basename($directory)] ?? null;
+
+        return $entry !== null && ! $entry['file'];
     }
 
     private function client(): FilesClient

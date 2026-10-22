@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace McSuite\Support;
 
-use Illuminate\Support\Facades\Cache;
+use GuzzleHttp\Psr7\Utils;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
+use Pterodactyl\Models\Server;
+use Pterodactyl\Services\Daemon\DaemonConnection;
 use RuntimeException;
 
 /**
  * Downloads that Wings cannot make itself (minecraft.net refuses non-browser clients) are
- * fetched by the Panel and handed to Wings through a short-lived signed link.
+ * fetched by the Panel and written to the server through Wings' own file API. Wings never has
+ * to reach the Panel, which matters where it blocks addresses it considers internal.
  */
 final class Relay
 {
@@ -20,6 +22,8 @@ final class Relay
     private const int MAX_BYTES = 400 * 1024 * 1024;
 
     private const int TTL = 3600;
+
+    private const int UPLOAD_TIMEOUT = 70;
 
     /** Hosts the relay will fetch from. */
     private const array HOSTS = ['www.minecraft.net', 'minecraft.net'];
@@ -30,9 +34,9 @@ final class Relay
     }
 
     /**
-     * Fetches the file to Panel storage and returns a signed link Wings can pull from.
+     * Fetches the file into Panel storage and returns where it is.
      *
-     * @return array{token: string, url: string, size: int}
+     * @return array{file: string, size: int}
      */
     public static function fetch(string $url, string $jobId): array
     {
@@ -40,11 +44,12 @@ final class Relay
         throw_unless(str_starts_with($url, 'https://') && in_array($host, self::HOSTS, true), RuntimeException::class, 'This download cannot be relayed.');
 
         self::prune();
-        $token = Str::random(48);
-        $path = self::directory().'/'.$token;
         if (! is_dir(self::directory())) {
             mkdir(self::directory(), 0700, true);
         }
+
+        $file = 'relay-'.preg_replace('/[^A-Za-z0-9-]/', '', $jobId).'.bin';
+        $path = self::directory().'/'.$file;
 
         $response = Http::withUserAgent(self::BROWSER_AGENT)
             ->withHeaders(['Accept-Language' => 'en-US,en;q=0.9'])
@@ -57,35 +62,33 @@ final class Relay
             throw new RuntimeException('The download from '.$host.' failed ('.$response->status().').');
         }
 
-        Cache::put('ext:mc-suite:relay:'.$token, ['job' => $jobId], self::TTL);
-
-        return [
-            'token' => $token,
-            'url' => url()->temporarySignedRoute('extensions.mc-suite.web.relay', now()->addSeconds(self::TTL), ['token' => $token]),
-            'size' => (int) filesize($path),
-        ];
+        return ['file' => $file, 'size' => (int) filesize($path)];
     }
 
-    public static function path(string $token): ?string
+    /**
+     * Writes a fetched file to the server, then removes the Panel's copy.
+     */
+    public static function upload(Server $server, string $file, string $target): void
     {
-        if (! preg_match('/^[A-Za-z0-9]{48}$/', $token) || ! Cache::has('ext:mc-suite:relay:'.$token)) {
-            return null;
+        $path = self::directory().'/'.basename($file);
+        throw_unless(is_file($path), RuntimeException::class, 'The downloaded file is gone.');
+
+        // Streamed from disk: the archive is larger than PHP's memory limit allows reading in one go.
+        $stream = Utils::streamFor(fopen($path, 'rb'));
+        try {
+            DaemonConnection::forNode($server->node)->request('POST', "/api/servers/{$server->uuid}/files/write", [
+                'query' => ['file' => '/'.ServerFiles::normalize($target)],
+                'body' => $stream,
+                'timeout' => self::UPLOAD_TIMEOUT,
+            ]);
+        } finally {
+            $stream->close();
         }
 
-        $path = self::directory().'/'.$token;
-
-        return is_file($path) ? $path : null;
+        @unlink($path);
     }
 
-    public static function forget(string $token): void
-    {
-        Cache::forget('ext:mc-suite:relay:'.$token);
-        if (preg_match('/^[A-Za-z0-9]{48}$/', $token)) {
-            @unlink(self::directory().'/'.$token);
-        }
-    }
-
-    /** Removes relayed files older than their link. */
+    /** Removes relayed files left behind by failed installs. */
     private static function prune(): void
     {
         foreach (glob(self::directory().'/*') ?: [] as $file) {

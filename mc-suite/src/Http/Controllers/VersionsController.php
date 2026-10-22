@@ -21,6 +21,9 @@ class VersionsController extends Controller
 
     private const string BEDROCK_CDN = 'https://www.minecraft.net/bedrockdedicatedserver';
 
+    /** The version variable of the common Bedrock eggs. */
+    private const string BEDROCK_VARIABLE = 'BEDROCK_VERSION';
+
     /** Files a Bedrock update must never overwrite. */
     private const array BEDROCK_KEEP = ['server.properties', 'allowlist.json', 'permissions.json', 'whitelist.json'];
 
@@ -83,9 +86,12 @@ class VersionsController extends Controller
         $build = McJars::build((int) $data['build']);
         $software = McJarsInstaller::softwareFor($build);
 
+        $jar = Detector::for($server)->jarFile();
         $plan = InstallPlan::for($server, sprintf('Installing %s %s', $build['type'], $build['versionId'] ?? ''))
             ->stopServer()
-            ->addSteps(McJarsInstaller::steps($build, Detector::for($server)->jarFile()));
+            ->addSteps(McJarsInstaller::steps($build, $jar))
+            // If the new jar never arrived, the old one goes back.
+            ->onFailure('rename', ['dir' => dirname($jar) === '.' ? '' : dirname($jar), 'from' => basename($jar).'.old', 'to' => basename($jar), 'optional' => true, 'ifMissing' => true]);
 
         if ($data['start'] ?? false) {
             $plan->add('power', ['action' => 'start']);
@@ -102,13 +108,38 @@ class VersionsController extends Controller
         $known = $this->bedrockVersions();
         abort_unless(in_array($version, $preview ? $known['preview'] : $known['versions'], true), 422, 'Unknown Bedrock version.');
 
+        // Eggs with a version variable download the server themselves, with a browser-like client,
+        // and keep server.properties, permissions and the allowlist. That works on every node.
+        if (! $preview && $server->egg?->variables()->where('env_variable', self::BEDROCK_VARIABLE)->exists() && $server->canBeReinstalled()) {
+            $plan = InstallPlan::for($server, 'Installing Bedrock '.$version)
+                ->stopServer()
+                ->add('variable', ['env' => self::BEDROCK_VARIABLE, 'value' => $version])
+                ->add('reinstall')
+                ->add('wait-installed')
+                ->add('record', ['key' => 'software', 'value' => ['software' => 'bedrock', 'version' => $version, 'build' => null, 'buildId' => null, 'installed' => now()->toAtomString()]])
+                ->add('refresh');
+
+            if ($start) {
+                $plan->add('power', ['action' => 'start']);
+            }
+
+            $job = $plan->dispatch($request->user(), 'versions');
+            Activity::event('server:mc-suite.version.install')->property(['software' => 'bedrock', 'version' => $version, 'method' => 'egg'])->log();
+
+            return new JsonResponse(['job' => $job], 202);
+        }
+
         $folder = $preview ? 'bin-linux-preview' : 'bin-linux';
         $zip = '.mcsuite-bedrock.zip';
         $plan = InstallPlan::for($server, 'Installing Bedrock '.$version)->stopServer()->add('mkdir', ['path' => '.mcsuite-keep']);
 
         foreach (self::BEDROCK_KEEP as $file) {
             $plan->add('rename', ['dir' => '', 'from' => $file, 'to' => '.mcsuite-keep/'.$file, 'optional' => true]);
+            // On failure the kept files go back, replacing any the archive brought.
+            $plan->onFailure('rename', ['dir' => '', 'from' => '.mcsuite-keep/'.$file, 'to' => $file, 'optional' => true]);
         }
+
+        $plan->onFailure('delete', ['dir' => '', 'files' => ['.mcsuite-keep', $zip]]);
 
         $plan->add('relay', ['url' => sprintf('%s/%s/bedrock-server-%s.zip', self::BEDROCK_CDN, $folder, $version), 'dir' => '', 'file' => $zip])
             ->add('unzip', ['dir' => '', 'file' => $zip])
