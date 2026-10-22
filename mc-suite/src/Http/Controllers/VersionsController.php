@@ -240,6 +240,8 @@ class VersionsController extends Controller
         $plan
             ->add('reinstall')
             ->add('wait-installed')
+            // With its line-editing console on, Pumpkin never reads the Panel's stop command.
+            ->add('property', ['key' => 'console-tty', 'value' => 'false'])
             ->add('record', ['key' => 'software', 'value' => [
                 'software' => 'pumpkin',
                 'version' => $release['minecraft'],

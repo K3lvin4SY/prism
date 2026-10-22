@@ -44,6 +44,7 @@ final class PumpkinConfig
         'tps' => ['', 'tps', 'float'],
         'pvp' => ['pvp', 'enabled', 'bool'],
         'broadcast-console-to-ops' => ['commands', 'broadcast_console_to_ops', 'bool'],
+        // Always written false by MC Suite: the Panel console is not a terminal Pumpkin can edit.
         'console-tty' => ['commands', 'use_tty', 'bool'],
         'chat-format' => ['chat', 'format', 'string'],
         'save-player-data' => ['player_data', 'save_player_data', 'bool'],

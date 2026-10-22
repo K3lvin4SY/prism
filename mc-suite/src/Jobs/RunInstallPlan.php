@@ -214,7 +214,12 @@ class RunInstallPlan implements ShouldQueue
                 return true;
 
             case 'property':
-                ServerProperties::load($server)->set($step['key'], (string) $step['value'])->save();
+                $properties = ServerProperties::load($server);
+                // Pumpkin writes pumpkin.toml on its first start, and its egg only seeds the
+                // ports into a file that is not there yet: a file of one key would lose them.
+                if (! $properties->isPumpkin() || $properties->exists) {
+                    $properties->set($step['key'], (string) $step['value'])->save();
+                }
 
                 return true;
 

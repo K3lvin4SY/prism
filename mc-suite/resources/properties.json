@@ -86,7 +86,6 @@
         { "key": "accepts-transfers", "editions": ["pumpkin"], "category": "other", "type": "bool", "label": "Accept transfers", "description": "Let other servers send players here with the transfer command.", "default": true },
         { "key": "allow-chat-reports", "editions": ["pumpkin"], "category": "players", "type": "bool", "label": "Chat reporting", "description": "Sign chat messages so players can report them to Mojang.", "default": false },
         { "key": "chat-format", "editions": ["pumpkin"], "category": "players", "type": "string", "label": "Chat format", "description": "How chat lines look. {DISPLAYNAME} is the player, {MESSAGE} what they wrote.", "default": "<{DISPLAYNAME}> {MESSAGE}", "maxLength": 256 },
-        { "key": "console-tty", "editions": ["pumpkin"], "category": "other", "type": "bool", "label": "Interactive console", "description": "Line editing and history in the console. Turn it off if typed commands show up garbled in the Panel console.", "default": true },
         { "key": "resource-pack-prompt", "editions": ["pumpkin"], "category": "world", "type": "string", "label": "Resource pack message", "description": "The text players see when they are asked to download the resource pack.", "default": "", "maxLength": 256 }
     ]
 }

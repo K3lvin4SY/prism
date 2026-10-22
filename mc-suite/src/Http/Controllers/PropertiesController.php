@@ -66,6 +66,7 @@ class PropertiesController extends Controller
 
         $properties = ServerProperties::load($server, $info);
         $schema = $properties->schema($info['edition']);
+        abort_if($properties->isPumpkin() && ! $properties->exists, 409, 'Start the server once so Pumpkin writes pumpkin.toml, then change its settings here.');
 
         $bindings = EggConfig::propertyBindings($server);
         $changed = [];
@@ -83,6 +84,12 @@ class PropertiesController extends Controller
                 $properties->set($key, $normalized);
                 $changed[$key] = $normalized;
             }
+        }
+
+        // Pumpkin's line-editing console swallows what the Panel types into it, Stop included.
+        if ($properties->isPumpkin() && $properties->get('console-tty') !== 'false') {
+            $properties->set('console-tty', 'false');
+            $changed['console-tty'] = 'false';
         }
 
         if ($changed !== []) {
