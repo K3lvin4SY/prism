@@ -32,8 +32,8 @@ final class Detector
         'neoforge' => ['modded', 'NEOFORGE', [], ['neoforge']],
         'mohist' => ['hybrid', 'MOHIST', ['spigot', 'bukkit'], ['forge']],
         'arclight' => ['hybrid', 'ARCLIGHT', ['spigot', 'bukkit'], ['forge', 'neoforge', 'fabric']],
-        // Pumpkin is written in Rust; Bukkit plugins run on it through PatchBukkit.
-        'pumpkin' => ['plugins', 'PUMPKIN', ['paper', 'spigot', 'bukkit'], []],
+        // Pumpkin is written in Rust and runs WASM plugins; Bukkit ones need PatchBukkit.
+        'pumpkin' => ['plugins', 'PUMPKIN', ['pumpkin'], []],
         'velocity' => ['proxy', 'VELOCITY', ['velocity'], []],
         'waterfall' => ['proxy', 'WATERFALL', ['waterfall', 'bungeecord'], []],
         'bungeecord' => ['proxy', 'BUNGEECORD', ['bungeecord'], []],
@@ -270,6 +270,10 @@ final class Detector
         }
 
         [$kind, $mcjarsType, $pluginLoaders, $modLoaders] = self::SOFTWARE[$software];
+        if ($software === 'pumpkin' && $this->hasPatchBukkit()) {
+            $pluginLoaders = [...$pluginLoaders, 'paper', 'spigot', 'bukkit'];
+        }
+
         $matchesRecord = ($record['software'] ?? null) === $software;
         $version = $matchesRecord && is_string($record['version'] ?? null) ? $record['version'] : $this->detectVersion($software);
 
@@ -299,6 +303,15 @@ final class Detector
             },
             'source' => $source,
         ];
+    }
+
+    private function hasPatchBukkit(): bool
+    {
+        try {
+            return PatchBukkit::for($this->server)->installed() !== null;
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**

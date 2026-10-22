@@ -27,6 +27,13 @@ export interface ProjectHit {
     clientSide: string | null;
     url: string;
     installed: boolean;
+    /** Set on Pumpkin Market plugins, which have no followers or game versions. */
+    source?: 'pumpkin-market';
+}
+
+/** Where a project page lives, for its link: Modrinth, or the Pumpkin Market. */
+export function sourceName(url: string): string {
+    return url.startsWith('https://market.pumpkinmc.org/') ? 'Pumpkin Market' : 'Modrinth';
 }
 
 export interface SearchResult {
@@ -85,7 +92,8 @@ export interface ProjectDetails {
 export interface VersionFile {
     url: string;
     filename: string;
-    size: number;
+    /** Unknown for Pumpkin Market files, which are signed per download. */
+    size: number | null;
     sha1: string | null;
     primary: boolean;
 }
@@ -128,6 +136,8 @@ export interface InstalledFile {
     modified: string | null;
     downloading: boolean;
     record: ContentRecord | null;
+    /** Why Pumpkin did not load the plugin at its last start. */
+    loadError?: string | null;
 }
 
 export interface Dependency {

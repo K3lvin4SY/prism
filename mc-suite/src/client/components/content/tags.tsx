@@ -18,6 +18,7 @@ export const LOADER_COLORS: Record<string, string> = {
     waterfall: '#78a4fb',
     bungeecord: '#d2c080',
     liteloader: '#7ab0ee',
+    pumpkin: '#f28c28',
 };
 
 const LABELS: Record<string, string> = {

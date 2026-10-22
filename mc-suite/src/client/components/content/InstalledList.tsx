@@ -99,11 +99,21 @@ export default function InstalledList({ kind }: { kind: ContentKind }) {
                                                 Disabled
                                             </Badge>
                                         )}
+                                        {file.enabled && file.loadError && (
+                                            <Badge size={'sm'} tone={'danger'} title={file.loadError}>
+                                                Did not load
+                                            </Badge>
+                                        )}
                                     </div>
                                     <p className={'mcs:text-xs mcs:text-muted-foreground mcs:truncate mcs:font-mono'}>
                                         {file.file}
                                         {file.size > 0 && ` · ${bytesToString(file.size)}`}
                                     </p>
+                                    {file.enabled && file.loadError && (
+                                        <p className={'mcs:text-xs mcs:text-destructive mcs:mt-1'}>
+                                            Pumpkin could not load it at its last start: {/different (API version|iteration of the API)/.test(file.loadError) ? 'it was built for another Pumpkin version. Try another Pumpkin build on the Versions tab, or a newer release of the plugin.' : file.loadError}
+                                        </p>
+                                    )}
                                 </div>
                                 {available && (
                                     <Button size={'small'} isLoading={update.isPending && update.variables === available.id} onClick={() => update.mutate(available.id)}>

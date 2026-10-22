@@ -7,6 +7,7 @@ import {
     getDependencies,
     getProject,
     install,
+    sourceName,
     type BrowseKind,
     type ContentKind,
     type Dependency,
@@ -80,10 +81,10 @@ export default function ProjectDialog({ kind, hit, onClose, onInstalled, quickIn
                         {data && (
                             <div className={'mcs:flex mcs:flex-wrap mcs:gap-3 mcs:mt-2 mcs:text-xs mcs:text-muted-foreground'}>
                                 <span>{compactNumber(data.project.downloads)} downloads</span>
-                                <span>{compactNumber(data.project.follows)} followers</span>
+                                {sourceName(data.project.url) === 'Modrinth' && <span>{compactNumber(data.project.follows)} followers</span>}
                                 {data.project.license && <span>{data.project.license}</span>}
                                 <a href={data.project.url} target={'_blank'} rel={'noreferrer'} className={'mcs:inline-flex mcs:items-center mcs:gap-1 mcs:underline'}>
-                                    Modrinth <NamedIcon name={'external-link'} size={12} />
+                                    {sourceName(data.project.url)} <NamedIcon name={'external-link'} size={12} />
                                 </a>
                                 {data.project.source && (
                                     <a href={data.project.source} target={'_blank'} rel={'noreferrer'} className={'mcs:underline'}>
@@ -128,7 +129,7 @@ export default function ProjectDialog({ kind, hit, onClose, onInstalled, quickIn
                                         <p className={'mcs:text-xs mcs:text-muted-foreground mcs:truncate'}>
                                             {version.loaders.join(', ')} · {summarizeVersions(version.gameVersions)}
                                             {version.published && ` · ${formatDate(version.published, 'MMM D, YYYY')}`}
-                                            {file && ` · ${bytesToString(file.size)}`}
+                                            {file?.size ? ` · ${bytesToString(file.size)}` : ''}
                                         </p>
                                     </div>
                                     <Button size={'small'} isSecondary={installedVersion === version.id} onClick={() => setPending(version)}>

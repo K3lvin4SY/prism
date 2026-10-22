@@ -72,9 +72,11 @@ export default function ProjectCard({ hit, layout, categories, loaders, onOpen, 
                 <span className={'mcs:inline-flex mcs:items-center mcs:gap-1'} title={`${hit.downloads.toLocaleString()} downloads`}>
                     <NamedIcon name={'download'} size={14} /> <strong className={'mcs:text-foreground mcs:font-semibold'}>{compactNumber(hit.downloads)}</strong>
                 </span>
-                <span className={'mcs:inline-flex mcs:items-center mcs:gap-1'} title={`${hit.follows.toLocaleString()} followers`}>
-                    <NamedIcon name={'heart'} size={14} /> <strong className={'mcs:text-foreground mcs:font-semibold'}>{compactNumber(hit.follows)}</strong>
-                </span>
+                {hit.source !== 'pumpkin-market' && (
+                    <span className={'mcs:inline-flex mcs:items-center mcs:gap-1'} title={`${hit.follows.toLocaleString()} followers`}>
+                        <NamedIcon name={'heart'} size={14} /> <strong className={'mcs:text-foreground mcs:font-semibold'}>{compactNumber(hit.follows)}</strong>
+                    </span>
+                )}
             </div>
             {hit.updated && (
                 <span className={'mcs:inline-flex mcs:items-center mcs:gap-1'} title={'Last updated'}>

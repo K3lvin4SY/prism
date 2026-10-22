@@ -74,7 +74,8 @@ class PatchBukkitController extends Controller
                 ->add('refresh');
         }
 
-        $job = $plan->dispatch($request->user(), 'plugins');
+        // The server's plugin loaders now include the Bukkit ones.
+        $job = $plan->add('refresh')->dispatch($request->user(), 'plugins');
 
         Activity::event('server:mc-suite.plugins.patchbukkit')->property(['tag' => $release['tag']])->log();
 

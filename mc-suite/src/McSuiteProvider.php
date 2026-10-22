@@ -46,6 +46,10 @@ class McSuiteProvider extends ExtensionProvider
                 ->label('Status ping timeout (seconds)')
                 ->help('How long to wait for a server to answer a server-list ping.')
                 ->field('number'),
+            ExtensionSettingDefinition::make('pumpkin_market_key', 'pumpkin_market_key', '', ['nullable', 'string', 'max:200', 'regex:/^(pmk_[A-Za-z0-9]+)?$/'])
+                ->label('Pumpkin Market API key')
+                ->help('A pmk_ key from your Pumpkin Market profile. Plugins from the Market are listed for Pumpkin servers; the key is sent with every Market request.')
+                ->field('password'),
         ]));
     }
 }

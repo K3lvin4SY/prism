@@ -11,6 +11,7 @@ use McSuite\Support\InstallPlan;
 use McSuite\Support\PatchBukkit;
 use McSuite\Support\Providers\ContentProvider;
 use McSuite\Support\Providers\ModrinthProvider;
+use McSuite\Support\Providers\PumpkinMarketProvider;
 use McSuite\Support\ServerFiles;
 use McSuite\Support\Settings;
 use Pterodactyl\Facades\Activity;
@@ -32,23 +33,33 @@ class ContentController extends Controller
 
     /** Loaders that belong to each kind, used to refuse a mod on a plugin server and the reverse. */
     private const array KIND_LOADERS = [
-        'plugins' => ['paper', 'spigot', 'bukkit', 'purpur', 'folia', 'velocity', 'bungeecord', 'waterfall', 'sponge'],
+        'plugins' => ['pumpkin', 'paper', 'spigot', 'bukkit', 'purpur', 'folia', 'velocity', 'bungeecord', 'waterfall', 'sponge'],
         'mods' => ['fabric', 'quilt', 'forge', 'neoforge'],
         'modpacks' => ['fabric', 'quilt', 'forge', 'neoforge'],
     ];
 
     /** Hosts files may be downloaded from. */
-    private const array DOWNLOAD_HOSTS = ['cdn.modrinth.com'];
+    private const array DOWNLOAD_HOSTS = ['cdn.modrinth.com', 'market.pumpkinmc.org'];
+
+    /** Installable file names: Java plugin and mod jars, and Pumpkin's WASM plugins. */
+    private const string FILE = '/^[^\/\\\\\0]{1,150}\.(jar|wasm)$/i';
 
     private const int IDENTIFY_MAX_FILE = 15 * 1024 * 1024;
 
     private const int IDENTIFY_MAX_TOTAL = 150 * 1024 * 1024;
 
-    public function __construct(private readonly ModrinthProvider $modrinth) {}
+    public function __construct(private readonly ModrinthProvider $modrinth, private readonly PumpkinMarketProvider $market) {}
 
-    private function provider(): ContentProvider
+    /** The source of a project or version id: the Pumpkin Market's carry a prefix, the rest are Modrinth's. */
+    private function provider(?string $id = null): ContentProvider
     {
-        return $this->modrinth;
+        return PumpkinMarketProvider::owns($id) ? $this->market : $this->modrinth;
+    }
+
+    /** Where a file goes: WASM plugins in Pumpkin's plugins/, jars in the kind's folder. */
+    private function folderFor(string $file, string $directory): string
+    {
+        return str_ends_with(strtolower($file), '.wasm') ? 'plugins' : $directory;
     }
 
     /**
@@ -89,19 +100,23 @@ class ContentController extends Controller
         ]);
 
         $limit = (int) ($data['limit'] ?? 20);
-        $result = $this->provider()->search([
+        // Left out, loaders and versions default to the server's; sent empty, they mean "any".
+        $selected = $request->has('loaders') ? ($data['loaders'] ?? []) : $loaders;
+        $search = [
             'type' => $type,
             'query' => $data['query'] ?? '',
             'categories' => $data['categories'] ?? [],
             'excludeCategories' => $data['exclude'] ?? [],
-            // Left out, loaders and versions default to the server's; sent empty, they mean "any".
-            'loaders' => $request->has('loaders') ? ($data['loaders'] ?? []) : $loaders,
+            'loaders' => array_values(array_diff($selected, [PumpkinMarketProvider::LOADER])),
             'gameVersions' => $request->has('gameVersions') ? ($data['gameVersions'] ?? []) : array_filter([$info['version']]),
             'sort' => $data['sort'] ?? 'relevance',
             'offset' => ((int) ($data['page'] ?? 1) - 1) * $limit,
             'limit' => $limit,
             'serverSide' => $kind !== 'plugins',
-        ]);
+        ];
+        $result = $kind === 'plugins' && in_array(PumpkinMarketProvider::LOADER, $selected, true)
+            ? $this->searchWithMarket($search, $search['loaders'] !== [] || $selected === [])
+            : $this->modrinth->search($search);
 
         $installed = $kind === 'modpacks'
             ? array_filter([Settings::server($server)->get('modpack')['project'] ?? null])
@@ -114,12 +129,68 @@ class ContentController extends Controller
         return new JsonResponse([...$result, 'page' => (int) ($data['page'] ?? 1), 'limit' => $limit]);
     }
 
+    /**
+     * Why Pumpkin did not load plugins at its last start, by file name, from its log: a WASM
+     * plugin built for another plugin API version is the usual reason.
+     *
+     * @return array<string, string>
+     */
+    private function pumpkinLoadErrors(Server $server): array
+    {
+        try {
+            $files = ServerFiles::for($server);
+            $size = $files->size('logs/latest.log');
+            $log = $size !== null && $size <= 4_000_000 ? ($files->read('logs/latest.log', 4_000_000) ?? '') : '';
+        } catch (Throwable) {
+            return [];
+        }
+
+        preg_match_all('/Failed to load plugin from "\.?\/?plugins\/([^"\/]+)": (.+)$/m', (string) preg_replace('/\e\[[0-9;]*m/', '', $log), $matches, PREG_SET_ORDER);
+        $errors = [];
+        foreach ($matches as [, $file, $reason]) {
+            $errors[$file] = mb_substr(trim($reason), 0, 300);
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Pumpkin Market plugins first, then Modrinth's, as one list. The Market's matches are
+     * counted in full, so every page knows where Modrinth's part starts.
+     *
+     * @param  array<string, mixed>  $search
+     * @return array{hits: list<array<string, mixed>>, total: int}
+     */
+    private function searchWithMarket(array $search, bool $withModrinth): array
+    {
+        $market = $this->market->search($search);
+        if (! $withModrinth) {
+            return $market;
+        }
+
+        $room = $search['limit'] - count($market['hits']);
+        $modrinth = $this->modrinth->search([
+            ...$search,
+            'offset' => max(0, $search['offset'] - $market['total']),
+            'limit' => max(1, $room),
+        ]);
+
+        return [
+            'hits' => [...$market['hits'], ...($room > 0 ? $modrinth['hits'] : [])],
+            'total' => $market['total'] + $modrinth['total'],
+        ];
+    }
+
     public function categories(Request $request, Server $server, string $kind): JsonResponse
     {
         [$info, , $type, $loaders] = $this->context($request, $server, $kind);
 
         // The loaders this kind is about come first, in their usual order; others follow.
-        $available = $this->provider()->loaders($type);
+        $available = $this->modrinth->loaders($type);
+        if ($kind === 'plugins') {
+            $available[] = PumpkinMarketProvider::loader();
+        }
+
         usort($available, static function (array $a, array $b) use ($kind): int {
             $order = array_flip(self::KIND_LOADERS[$kind]);
 
@@ -127,10 +198,10 @@ class ContentController extends Controller
         });
 
         return new JsonResponse([
-            'categories' => $this->provider()->categories($type),
+            'categories' => $this->modrinth->categories($type),
             'loaders' => array_values(array_filter($available, static fn (array $loader): bool => $kind === 'plugins'
                 || (! in_array($loader['name'], self::KIND_LOADERS['plugins'], true) && $loader['name'] !== 'geyser'))),
-            'gameVersions' => $this->provider()->gameVersions(),
+            'gameVersions' => $this->modrinth->gameVersions(),
             'serverLoaders' => $loaders,
             'serverVersion' => $info['version'],
         ]);
@@ -141,14 +212,14 @@ class ContentController extends Controller
         [$info, , , $loaders] = $this->context($request, $server, $kind);
         $all = $request->boolean('all');
 
-        $versions = $this->provider()->versions(
+        $versions = $this->provider($project)->versions(
             $project,
             $all ? [] : $loaders,
             $all || $info['version'] === null ? [] : [$info['version']],
         );
 
         return new JsonResponse([
-            'project' => $this->provider()->project($project),
+            'project' => $this->provider($project)->project($project),
             'versions' => array_slice($versions, 0, 100),
             'installed' => collect($this->records($server, $kind))->firstWhere('project', $project),
         ]);
@@ -161,8 +232,8 @@ class ContentController extends Controller
     public function dependencies(Request $request, Server $server, string $kind, string $version): JsonResponse
     {
         [$info, , , $loaders] = $this->context($request, $server, $kind);
-        $resolved = $this->resolveDependencies($server, $kind, $this->provider()->version($version), $loaders, $info['version']);
-        $projects = $this->provider()->projects(array_column($resolved, 'projectId'));
+        $resolved = $this->resolveDependencies($server, $kind, $this->provider($version)->version($version), $loaders, $info['version']);
+        $projects = $this->provider($version)->projects(array_column($resolved, 'projectId'));
 
         return new JsonResponse(['dependencies' => array_map(static fn (array $dependency): array => [
             ...$dependency,
@@ -172,13 +243,25 @@ class ContentController extends Controller
 
     public function installed(Request $request, Server $server, string $kind): JsonResponse
     {
-        [, $directory] = $this->context($request, $server, $kind);
+        [$info, $directory] = $this->context($request, $server, $kind);
         $records = $this->records($server, $kind);
         $files = ServerFiles::for($server)->list($directory);
 
+        // Pumpkin's own WASM plugins sit in plugins/, next to PatchBukkit's library.
+        $loadErrors = [];
+        if ($kind === 'plugins' && $info['software'] === 'pumpkin') {
+            foreach (ServerFiles::for($server)->list('plugins') as $name => $file) {
+                if (preg_match('/\.wasm(\.disabled)?$/i', $name)) {
+                    $files[$name] = $file;
+                }
+            }
+
+            $loadErrors = $this->pumpkinLoadErrors($server);
+        }
+
         $entries = [];
         foreach ($files as $name => $file) {
-            if (! $file['file'] || ! preg_match('/\.jar(\.disabled)?$/i', $name)) {
+            if (! $file['file'] || ! preg_match('/\.(jar|wasm)(\.disabled)?$/i', $name)) {
                 continue;
             }
 
@@ -191,6 +274,7 @@ class ContentController extends Controller
                 'modified' => $file['modified'],
                 'downloading' => $record !== null && isset($record['size']) && $file['size'] < $record['size'],
                 'record' => $record,
+                'loadError' => $loadErrors[$base] ?? null,
             ];
         }
 
@@ -216,12 +300,16 @@ class ContentController extends Controller
             'force' => ['sometimes', 'boolean'],
         ]);
 
-        $versions = [$this->provider()->version($data['version'])];
+        $versions = [$this->provider($data['version'])->version($data['version'])];
         foreach ($data['dependencies'] ?? [] as $dependency) {
-            $versions[] = $this->provider()->version($dependency);
+            $versions[] = $this->provider($dependency)->version($dependency);
         }
 
-        $projects = $this->provider()->projects(array_column($versions, 'projectId'));
+        $projects = [];
+        foreach ($versions as $version) {
+            $projects += $this->provider($version['projectId'])->projects([$version['projectId']]);
+        }
+
         $records = $this->records($server, $kind);
         $files = ServerFiles::for($server);
         $pulls = [];
@@ -232,24 +320,25 @@ class ContentController extends Controller
             }
 
             $file = $this->pickFile($version);
+            $folder = $this->folderFor($file['filename'], $directory);
 
             // Updating: the old file of the same project goes first.
             foreach ($records as $existing => $record) {
                 if (($record['project'] ?? null) === $version['projectId']) {
-                    $this->removeFile($server, $kind, $directory, $existing);
+                    $this->removeFile($server, $kind, $this->folderFor($existing, $directory), $existing);
                     unset($records[$existing]);
                 }
             }
 
-            $existing = $files->list($directory);
+            $existing = $files->list($folder);
             if (isset($existing[$file['filename']])) {
-                $files->delete($directory, [$file['filename']]);
+                $files->delete($folder, [$file['filename']]);
             }
 
-            $pulls[] = ['url' => $file['url'], 'dir' => $directory, 'file' => $file['filename'], 'size' => $file['size']];
+            $pulls[] = ['url' => $file['url'], 'dir' => $folder, 'file' => $file['filename'], 'size' => $file['size']];
             $project = $projects[$version['projectId']] ?? null;
             $this->saveRecord($server, $kind, $file['filename'], [
-                'provider' => $this->provider()->id(),
+                'provider' => $this->provider($version['projectId'])->id(),
                 'project' => $version['projectId'],
                 'version' => $version['id'],
                 'versionNumber' => $version['number'],
@@ -269,8 +358,10 @@ class ContentController extends Controller
             $plan = InstallPlan::for($server, sprintf('Installing %d %s', count($pulls), $kind))->add('pulls', ['files' => $pulls]);
             $job = $plan->dispatch($request->user(), self::KINDS[$kind][0]);
         } else {
-            if ($directory !== '') {
-                $files->makeDirectory($directory);
+            foreach (array_unique(array_column($pulls, 'dir')) as $folder) {
+                if ($folder !== '') {
+                    $files->makeDirectory($folder);
+                }
             }
 
             foreach ($pulls as $pull) {
@@ -292,13 +383,20 @@ class ContentController extends Controller
     {
         [$info, , , $loaders] = $this->context($request, $server, $kind);
         $records = array_filter($this->records($server, $kind), static fn (array $record): bool => is_string($record['sha1'] ?? null));
-        if ($records === []) {
-            return new JsonResponse(['updates' => (object) []]);
-        }
 
-        $latest = $this->provider()->latestForHashes(array_values(array_column($records, 'sha1')), $loaders, $info['version'] ? [$info['version']] : []);
+        $latest = $this->modrinth->latestForHashes(array_values(array_column($records, 'sha1')), $loaders, $info['version'] ? [$info['version']] : []);
 
         $updates = [];
+        // Market listings have one current file; a different version number is an update.
+        foreach ($this->records($server, $kind) as $file => $record) {
+            if (($record['provider'] ?? null) === PumpkinMarketProvider::ID) {
+                $current = $this->market->currentVersion((string) $record['project']);
+                if ($current !== null && $current !== ($record['versionNumber'] ?? null)) {
+                    $updates[$file] = ['id' => $record['project'], 'number' => $current, 'name' => $record['title'].' '.$current, 'published' => null];
+                }
+            }
+        }
+
         foreach ($records as $file => $record) {
             $version = $latest[$record['sha1']] ?? null;
             if ($version !== null && $version['id'] !== $record['version']) {
@@ -343,8 +441,8 @@ class ContentController extends Controller
             }
         }
 
-        $versions = $this->provider()->versionsForHashes(array_keys($hashes));
-        $projects = $this->provider()->projects(array_values(array_filter(array_column($versions, 'projectId'))));
+        $versions = $this->modrinth->versionsForHashes(array_keys($hashes));
+        $projects = $this->modrinth->projects(array_values(array_filter(array_column($versions, 'projectId'))));
 
         $identified = 0;
         foreach ($versions as $hash => $version) {
@@ -355,7 +453,7 @@ class ContentController extends Controller
 
             $project = $projects[$version['projectId']] ?? null;
             $this->saveRecord($server, $kind, $base, [
-                'provider' => $this->provider()->id(),
+                'provider' => $this->modrinth->id(),
                 'project' => $version['projectId'],
                 'version' => $version['id'],
                 'versionNumber' => $version['number'],
@@ -379,6 +477,7 @@ class ContentController extends Controller
         [, $directory] = $this->context($request, $server, $kind);
         $data = $request->validate(['enabled' => ['required', 'boolean']]);
         $file = $this->assertFile($file);
+        $directory = $this->folderFor($file, $directory);
         $files = ServerFiles::for($server);
         $existing = $files->list($directory);
 
@@ -397,7 +496,7 @@ class ContentController extends Controller
     {
         [, $directory] = $this->context($request, $server, $kind);
         $file = $this->assertFile($file);
-        $this->removeFile($server, $kind, $directory, $file);
+        $this->removeFile($server, $kind, $this->folderFor($file, $directory), $file);
         Activity::event('server:mc-suite.'.$kind.'.remove')->property('file', $file)->log();
 
         return response()->noContent();
@@ -428,9 +527,9 @@ class ContentController extends Controller
 
             try {
                 if ($dependency['versionId'] !== null) {
-                    $resolved = $this->provider()->version($dependency['versionId']);
+                    $resolved = $this->provider($dependency['versionId'])->version($dependency['versionId']);
                 } elseif ($dependency['projectId'] !== null) {
-                    $candidates = $this->provider()->versions($dependency['projectId'], $loaders, $gameVersion ? [$gameVersion] : []);
+                    $candidates = $this->provider($dependency['projectId'])->versions($dependency['projectId'], $loaders, $gameVersion ? [$gameVersion] : []);
                     $resolved = $candidates[0] ?? null;
                 } else {
                     $resolved = null;
@@ -463,7 +562,7 @@ class ContentController extends Controller
                 continue;
             }
 
-            if (preg_match('/^[^\/\\\\\0]{1,150}\.jar$/i', $file['filename']) && $file['filename'][0] !== '.') {
+            if (preg_match(self::FILE, $file['filename']) && $file['filename'][0] !== '.') {
                 return $file;
             }
         }
@@ -473,7 +572,7 @@ class ContentController extends Controller
 
     private function assertFile(string $file): string
     {
-        abort_unless(preg_match('/^[^\/\\\\\0]{1,150}\.jar$/i', $file) && $file[0] !== '.', 422, 'Invalid file name.');
+        abort_unless(preg_match(self::FILE, $file) && $file[0] !== '.', 422, 'Invalid file name.');
 
         return $file;
     }

@@ -35,7 +35,7 @@ Route::prefix('/content/{kind}')->where(['kind' => 'plugins|mods|modpacks'])->gr
 });
 
 Route::prefix('/content/{kind}')->where(['kind' => 'plugins|mods'])->group(function () {
-    Route::get('/versions/{version}/dependencies', [ContentController::class, 'dependencies'])->where('version', '[A-Za-z0-9]+')->name('content.dependencies');
+    Route::get('/versions/{version}/dependencies', [ContentController::class, 'dependencies'])->where('version', '[A-Za-z0-9-]+')->name('content.dependencies');
     Route::get('/installed', [ContentController::class, 'installed'])->name('content.installed');
     Route::post('/install', [ContentController::class, 'install'])->name('content.install');
     Route::post('/updates', [ContentController::class, 'updates'])->name('content.updates');
