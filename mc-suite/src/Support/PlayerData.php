@@ -81,6 +81,34 @@ final class PlayerData
             : ["$level/playerdata", "$level/stats", "$level/advancements"];
     }
 
+    /**
+     * The region folder of a dimension. Minecraft 26.1 keeps every dimension under
+     * dimensions/minecraft/; older vanilla worlds use DIM-1 and DIM1, and Bukkit servers keep
+     * the Nether and the End in worlds of their own.
+     */
+    public function regionFolder(string $dimension): ?string
+    {
+        $level = $this->levelName();
+        $root = $this->files()->list($level);
+
+        if (array_key_exists('dimensions', $root)) {
+            return "$level/dimensions/minecraft/$dimension/region";
+        }
+
+        if ($dimension === 'overworld') {
+            return "$level/region";
+        }
+
+        $folder = $dimension === 'the_nether' ? 'DIM-1' : 'DIM1';
+        if (array_key_exists($folder, $root)) {
+            return "$level/$folder/region";
+        }
+
+        $bukkit = $level.($dimension === 'the_nether' ? '_nether' : '_the_end');
+
+        return array_key_exists($folder, $this->files()->list($bukkit)) ? "$bukkit/$folder/region" : null;
+    }
+
     /** @return list<array<string, mixed>> */
     public function jsonList(string $file): array
     {

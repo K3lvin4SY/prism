@@ -18,6 +18,7 @@ import {
 import { getPlayer, getPlayers, playerAction, playerKeys, useSkin, type PlayerSummary, type Skin } from '../api/players';
 import ControlPanel from '../components/players/ControlPanel';
 import Hud from '../components/players/Hud';
+import WorldMap from '../components/players/WorldMap';
 import { EnderChestView, InventoryView } from '../components/players/Inventory';
 import PlayerHead from '../components/players/PlayerHead';
 import SkinViewer from '../components/players/SkinViewer';
@@ -68,7 +69,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
     const { identifier, info } = useMcInfo();
     const queryClient = useQueryClient();
     const uuid = String(route.params.player ?? '').toLowerCase();
-    const [tab, setTab] = useState<'inventory' | 'ender'>('inventory');
+    const [tab, setTab] = useState<'inventory' | 'ender' | 'map'>('inventory');
     const [saving, setSaving] = useState(false);
 
     const list = useQuery({ queryKey: playerKeys.list(identifier), queryFn: () => getPlayers(identifier), refetchInterval: 15_000 });
@@ -229,6 +230,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                             [
                                                 ['inventory', 'Inventory', 'package'],
                                                 ['ender', 'Ender Chest', 'box'],
+                                                ['map', 'Map', 'map'],
                                             ] as const
                                         ).map(([value, label, icon]) => (
                                             <button
@@ -251,8 +253,10 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                     )}
                                 </div>
                                 <div className={'mcs:flex mcs:justify-center'}>
-                                    {tab === 'inventory' ? <InventoryView player={player} version={version} /> : <EnderChestView player={player} version={version} />}
+                                    {tab === 'inventory' && <InventoryView player={player} version={version} />}
+                                    {tab === 'ender' && <EnderChestView player={player} version={version} />}
                                 </div>
+                                {tab === 'map' && <WorldMap server={identifier} playerKey={uuid} position={player.position} dimension={player.dimension} />}
                                 <p className={'mcs:text-xs mcs:text-muted-foreground'}>This is the last save. Online players are saved every few minutes, or right away with Save now.</p>
                             </div>
                         )}

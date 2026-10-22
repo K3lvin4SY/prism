@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use McSuite\Http\Controllers\ContentController;
 use McSuite\Http\Controllers\InfoController;
+use McSuite\Http\Controllers\MapController;
 use McSuite\Http\Controllers\ModpacksController;
 use McSuite\Http\Controllers\PlayersController;
 use McSuite\Http\Controllers\PropertiesController;
@@ -48,3 +49,6 @@ Route::post('/players/action', [PlayersController::class, 'action'])->name('play
 Route::put('/players/whitelist', [PlayersController::class, 'whitelist'])->name('players.whitelist');
 Route::get('/players/skins/{key}', [PlayersController::class, 'skin'])->where('key', '[A-Za-z0-9_.*-]{1,40}')->name('players.skin');
 Route::get('/players/{player}', [PlayersController::class, 'show'])->where('player', '[0-9a-fA-F-]{36}')->name('players.show');
+
+Route::get('/map/{dimension}', [MapController::class, 'regions'])->where('dimension', 'overworld|the_nether|the_end')->name('map.regions');
+Route::get('/map/{dimension}/{x}/{z}', [MapController::class, 'region'])->where(['dimension' => 'overworld|the_nether|the_end', 'x' => '-?\d+', 'z' => '-?\d+'])->name('map.region');
