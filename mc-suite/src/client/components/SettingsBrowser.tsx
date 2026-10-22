@@ -36,6 +36,9 @@ const otherDefinition = (key: string): PropertyDefinition => ({
  * Every property, sorted into categories, with its real key next to a short explanation.
  * Each row saves on its own as soon as its value is valid.
  */
+/** Categories that hold a tool instead of properties, shown only when that tool is passed in. */
+const PANEL_ONLY = ['crossplay', 'proxy'];
+
 export default function SettingsBrowser({ edition, values, onSave, motdEditor, panels = {}, eggBindings = {} }: Props) {
     const [category, setCategory] = useState('motd');
     const [search, setSearch] = useState('');
@@ -80,7 +83,7 @@ export default function SettingsBrowser({ edition, values, onSave, motdEditor, p
             <div className={'mcs:grid mcs:gap-4 mcs:md:grid-cols-[220px_1fr]'}>
                 <nav className={'mcs:flex mcs:md:flex-col mcs:gap-1 mcs:overflow-x-auto'} aria-label={'Categories'}>
                     {categories
-                        .filter((entry) => (entry.id === 'crossplay' ? entry.id in panels : entry.id !== 'other' || counts.other > 0))
+                        .filter((entry) => (PANEL_ONLY.includes(entry.id) ? entry.id in panels : entry.id !== 'other' || counts.other > 0))
                         .map((entry) => (
                             <button
                                 key={entry.id}

@@ -7,6 +7,7 @@ use McSuite\Http\Controllers\InfoController;
 use McSuite\Http\Controllers\MapController;
 use McSuite\Http\Controllers\ModpacksController;
 use McSuite\Http\Controllers\PlayersController;
+use McSuite\Http\Controllers\ProxyController;
 use McSuite\Http\Controllers\PropertiesController;
 use McSuite\Http\Controllers\VersionsController;
 
@@ -58,3 +59,11 @@ Route::get('/map/{dimension}/{x}/{z}', [MapController::class, 'region'])->where(
 Route::get('/crossplay', [CrossplayController::class, 'show'])->name('crossplay');
 Route::post('/crossplay', [CrossplayController::class, 'enable'])->name('crossplay.enable');
 Route::delete('/crossplay', [CrossplayController::class, 'disable'])->name('crossplay.disable');
+
+Route::get('/proxy', [ProxyController::class, 'show'])->name('proxy');
+Route::get('/proxy/candidates', [ProxyController::class, 'candidates'])->name('proxy.candidates');
+Route::post('/proxy/links', [ProxyController::class, 'link'])->name('proxy.link');
+Route::patch('/proxy/links/{name}', [ProxyController::class, 'update'])->where('name', '[a-z0-9_-]{1,32}')->name('proxy.update');
+Route::delete('/proxy/links/{name}', [ProxyController::class, 'unlink'])->where('name', '[a-z0-9_-]{1,32}')->name('proxy.unlink');
+Route::patch('/proxy/settings', [ProxyController::class, 'settings'])->name('proxy.settings');
+Route::post('/proxy/restart', [ProxyController::class, 'restart'])->name('proxy.restart');

@@ -87,7 +87,7 @@ class VersionsController extends Controller
         $software = McJarsInstaller::softwareFor($build);
 
         $jar = Detector::for($server)->jarFile();
-        $plan = InstallPlan::for($server, sprintf('Installing %s %s', $build['type'], $build['versionId'] ?? ''))
+        $plan = InstallPlan::for($server, sprintf('Installing %s %s', $build['type'], $build['versionId'] ?? $build['projectVersionId'] ?? $build['name'] ?? ''))
             ->stopServer()
             ->addSteps(McJarsInstaller::steps($build, $jar))
             // If the new jar never arrived, the old one goes back.

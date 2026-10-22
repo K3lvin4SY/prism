@@ -4,13 +4,15 @@ import { keys } from '../api/client';
 import { getProperties, updateProperties, type PropertiesResponse } from '../api/properties';
 import CrossplayPanel from '../components/CrossplayPanel';
 import MotdEditor from '../components/MotdEditor';
+import ProxyPanel from '../components/proxy/ProxyPanel';
 import SettingsBrowser from '../components/SettingsBrowser';
 import { useMcInfo } from '../hooks/useMcInfo';
 
 export default function PropertiesScreen() {
     const { identifier, info } = useMcInfo();
     const queryClient = useQueryClient();
-    const query = useQuery({ queryKey: keys.properties(identifier), queryFn: () => getProperties(identifier) });
+    const isProxy = info?.kind === 'proxy';
+    const query = useQuery({ queryKey: keys.properties(identifier), queryFn: () => getProperties(identifier), enabled: !isProxy });
 
     const save = async (values: Record<string, string>) => {
         const changed = await updateProperties(identifier, values);
@@ -20,6 +22,15 @@ export default function PropertiesScreen() {
     };
 
     const refresh = () => queryClient.invalidateQueries({ queryKey: keys.properties(identifier) });
+
+    // A proxy has no server.properties; its page is the network it fronts.
+    if (isProxy) {
+        return (
+            <ServerContentBlock title={'Properties'}>
+                <ProxyPanel server={identifier} />
+            </ServerContentBlock>
+        );
+    }
 
     if (query.isLoading) {
         return (
@@ -54,7 +65,7 @@ export default function PropertiesScreen() {
                     values={data.values}
                     onSave={save}
                     eggBindings={data.eggBindings}
-                    panels={edition === 'java' ? { crossplay: <CrossplayPanel server={identifier} /> } : {}}
+                    panels={edition === 'java' ? { crossplay: <CrossplayPanel server={identifier} />, proxy: <ProxyPanel server={identifier} /> } : {}}
                     motdEditor={
                         edition === 'java' ? (
                             <MotdEditor

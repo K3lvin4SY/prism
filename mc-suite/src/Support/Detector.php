@@ -278,7 +278,7 @@ final class Detector
             'features' => [
                 'players' => $kind !== 'proxy',
                 'versions' => true,
-                'properties' => $kind !== 'proxy',
+                'properties' => true,
                 'plugins' => in_array($kind, ['plugins', 'hybrid', 'proxy'], true),
                 'mods' => in_array($kind, ['modded', 'hybrid'], true),
                 'modpacks' => in_array($kind, ['modded', 'hybrid'], true),
