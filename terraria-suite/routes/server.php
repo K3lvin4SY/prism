@@ -7,6 +7,7 @@ use TerrariaSuite\Http\Controllers\PlayersController;
 use TerrariaSuite\Http\Controllers\PluginsController;
 use TerrariaSuite\Http\Controllers\SettingsController;
 use TerrariaSuite\Http\Controllers\VersionsController;
+use TerrariaSuite\Http\Controllers\WorldController;
 
 // Every route is under /api/client/servers/{server}/extensions/terraria-suite.
 
@@ -36,3 +37,6 @@ Route::get('/plugins/catalog', [PluginsController::class, 'catalog'])->name('plu
 Route::post('/plugins/install', [PluginsController::class, 'install'])->name('plugins.install');
 Route::post('/plugins/toggle', [PluginsController::class, 'toggle'])->name('plugins.toggle');
 Route::post('/plugins/remove', [PluginsController::class, 'remove'])->name('plugins.remove');
+
+Route::get('/world', [WorldController::class, 'show'])->name('world');
+Route::get('/world/file', [WorldController::class, 'file'])->name('world.file');
