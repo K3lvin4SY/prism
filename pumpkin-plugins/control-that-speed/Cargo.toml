@@ -1,0 +1,18 @@
+[package]
+name = "control-that-speed"
+version = "2.0.0"
+edition = "2024"
+description = "Speed multipliers for walking, flying, sneaking and mining on Pumpkin."
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Pinned to the Pumpkin release the plugin is built for: the plugin API changes between builds.
+pumpkin-plugin-api = { git = "https://github.com/Pumpkin-MC/Pumpkin", tag = "0.2.0+26.3-26.51" }
+
+[profile.release]
+lto = true
+opt-level = "s"
+strip = true
