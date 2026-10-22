@@ -21,13 +21,13 @@ export default function JobProgress({ job, onFinished }: Props) {
     }, [status, onFinished]);
 
     // While the egg reinstalls the server, the Panel answers 409 for a while; only a 404 means the job is gone.
-    const status = (progress.error as { response?: { status?: number } } | null)?.response?.status;
-    if (progress.isError && status === 404 && !progress.data) {
+    const httpStatus = (progress.error as { response?: { status?: number } } | null)?.response?.status;
+    if (progress.isError && httpStatus === 404 && !progress.data) {
         return <Alert type={'warning'}>Progress for this install is no longer available.</Alert>;
     }
 
     const data = progress.data;
-    const reinstalling = progress.isError && status === 409;
+    const reinstalling = progress.isError && httpStatus === 409;
     if (data?.status === 'failed') {
         return <Alert type={'danger'}>{data.message}</Alert>;
     }
