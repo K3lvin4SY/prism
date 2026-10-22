@@ -56,12 +56,13 @@ export default function PropertiesScreen() {
             <div className={'mcs:flex mcs:flex-col mcs:gap-4'}>
                 {!data.exists && (
                     <Alert type={'info'}>
-                        This server has no server.properties yet. Start it once to create the file, or set values here and they will be written to a new file.
+                        This server has no {data.file} yet. Start it once to create the file, or set values here and they will be written to a new file.
                     </Alert>
                 )}
 
                 <SettingsBrowser
-                    edition={edition}
+                    edition={data.schema ?? edition}
+                    file={data.file}
                     values={data.values}
                     onSave={save}
                     eggBindings={data.eggBindings}

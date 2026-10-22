@@ -9,24 +9,23 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use McSuite\Support\Detector;
 use McSuite\Support\EggConfig;
-use McSuite\Support\PropertiesFile;
 use McSuite\Support\PropertySchema;
+use McSuite\Support\PumpkinConfig;
 use McSuite\Support\ServerFiles;
+use McSuite\Support\ServerProperties;
+use McSuite\Support\TomlLines;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Models\Server;
 
 class PropertiesController extends Controller
 {
-    private const int MAX_FILE = 256_000;
-
     private const int MAX_ICON = 256_000;
 
     public function show(Request $request, Server $server): JsonResponse
     {
         $info = $this->authorizeFeature($request, $server, 'properties', 'properties');
         $files = ServerFiles::for($server);
-        $content = $files->read('server.properties', self::MAX_FILE);
-        $properties = new PropertiesFile($content ?? '', $info['edition'] === 'java');
+        $properties = ServerProperties::load($server, $info);
 
         $values = [];
         foreach ($properties->all() as $key => $value) {
@@ -37,13 +36,16 @@ class PropertiesController extends Controller
 
         $icon = null;
         if ($info['edition'] === 'java') {
-            $png = $files->read('server-icon.png', self::MAX_ICON);
+            $png = $files->read($this->iconFile($properties), self::MAX_ICON);
             $icon = $png !== null ? 'data:image/png;base64,'.base64_encode($png) : null;
         }
 
         return new JsonResponse([
-            'exists' => $content !== null,
+            'exists' => $properties->exists,
             'edition' => $info['edition'],
+            // Which keys apply: Pumpkin has its own set, mapped onto pumpkin.toml.
+            'schema' => $properties->schema($info['edition']),
+            'file' => $properties->file,
             'software' => $info['software'],
             'values' => (object) $values,
             'icon' => $icon,
@@ -62,15 +64,16 @@ class PropertiesController extends Controller
         $info = $this->authorizeFeature($request, $server, 'properties', 'properties');
         $data = $request->validate(['values' => ['required', 'array', 'min:1', 'max:100']]);
 
-        $files = ServerFiles::for($server);
-        $properties = new PropertiesFile($files->read('server.properties', self::MAX_FILE) ?? '', $info['edition'] === 'java');
+        $properties = ServerProperties::load($server, $info);
+        $schema = $properties->schema($info['edition']);
 
         $bindings = EggConfig::propertyBindings($server);
         $changed = [];
         foreach ($data['values'] as $key => $value) {
             $key = (string) $key;
             abort_if(array_key_exists($key, $bindings) && $bindings[$key] === null, 422, 'The egg sets '.$key.' itself on every start.');
-            $normalized = PropertySchema::normalize($info['edition'], $key, $value);
+            abort_if($properties->isPumpkin() && ! PumpkinConfig::supports($key), 422, 'Pumpkin has no '.$key.' setting.');
+            $normalized = PropertySchema::normalize($schema, $key, $value);
 
             // The egg writes this key from a startup variable on start, so the variable changes too.
             if (($bindings[$key] ?? null) !== null) {
@@ -83,7 +86,7 @@ class PropertiesController extends Controller
         }
 
         if ($changed !== []) {
-            $files->write('server.properties', $properties->toString());
+            $properties->save();
             Activity::event('server:mc-suite.properties.update')->property('keys', array_keys($changed))->log();
 
             if (array_key_exists('level-name', $changed)) {
@@ -109,7 +112,14 @@ class PropertiesController extends Controller
         $size = @getimagesizefromstring($png);
         abort_unless($size !== false && $size[0] === 64 && $size[1] === 64, 422, 'The icon must be 64×64 pixels.');
 
-        ServerFiles::for($server)->write('server-icon.png', $png);
+        $properties = ServerProperties::load($server, $info);
+        ServerFiles::for($server)->write($this->iconFile($properties), $png);
+        if ($pumpkin = $properties->pumpkin()) {
+            $pumpkin->setRaw('', 'use_favicon', 'true');
+            $pumpkin->setRaw('', 'favicon_path', TomlLines::string($this->iconFile($properties)));
+            $properties->save();
+        }
+
         Activity::event('server:mc-suite.properties.icon')->log();
 
         return response()->noContent();
@@ -120,9 +130,24 @@ class PropertiesController extends Controller
         $info = $this->authorizeFeature($request, $server, 'properties', 'properties');
         abort_unless($info['edition'] === 'java', 404);
 
-        ServerFiles::for($server)->delete('', ['server-icon.png']);
+        $properties = ServerProperties::load($server, $info);
+        ServerFiles::for($server)->delete('', [$this->iconFile($properties)]);
+        // Without a path Pumpkin falls back to its own icon.
+        if ($pumpkin = $properties->pumpkin()) {
+            $pumpkin->removeRaw('', 'favicon_path');
+            $properties->save();
+        }
+
         Activity::event('server:mc-suite.properties.icon')->property('removed', true)->log();
 
         return response()->noContent();
+    }
+
+    /** Pumpkin reads its icon from favicon_path; MC Suite uses server-icon.png there too. */
+    private function iconFile(ServerProperties $properties): string
+    {
+        $path = TomlLines::scalar($properties->pumpkin()?->getRaw('', 'favicon_path'));
+
+        return $path !== null && $path !== '' ? ServerFiles::normalize($path) : 'server-icon.png';
     }
 }

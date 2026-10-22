@@ -6,6 +6,7 @@ use McSuite\Http\Controllers\CrossplayController;
 use McSuite\Http\Controllers\InfoController;
 use McSuite\Http\Controllers\MapController;
 use McSuite\Http\Controllers\ModpacksController;
+use McSuite\Http\Controllers\PatchBukkitController;
 use McSuite\Http\Controllers\PlayersController;
 use McSuite\Http\Controllers\ProxyController;
 use McSuite\Http\Controllers\PropertiesController;
@@ -42,6 +43,9 @@ Route::prefix('/content/{kind}')->where(['kind' => 'plugins|mods'])->group(funct
     Route::patch('/files/{file}', [ContentController::class, 'toggle'])->where('file', '[^/]+')->name('content.toggle');
     Route::delete('/files/{file}', [ContentController::class, 'destroy'])->where('file', '[^/]+')->name('content.destroy');
 });
+
+Route::get('/patchbukkit', [PatchBukkitController::class, 'show'])->name('patchbukkit');
+Route::post('/patchbukkit', [PatchBukkitController::class, 'install'])->name('patchbukkit.install');
 
 Route::get('/modpacks', [ModpacksController::class, 'current'])->name('modpacks');
 Route::post('/modpacks/install', [ModpacksController::class, 'install'])->name('modpacks.install');

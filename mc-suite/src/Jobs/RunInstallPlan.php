@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 use McSuite\Support\Detector;
 use McSuite\Support\InstallPlan;
 use McSuite\Support\Mrpack;
-use McSuite\Support\PropertiesFile;
+use McSuite\Support\ServerProperties;
 use McSuite\Support\Relay;
 use McSuite\Support\ServerFiles;
 use McSuite\Support\Settings;
@@ -214,9 +214,7 @@ class RunInstallPlan implements ShouldQueue
                 return true;
 
             case 'property':
-                $properties = new PropertiesFile($files->read('server.properties', 256_000) ?? '', true);
-                $properties->set($step['key'], (string) $step['value']);
-                $files->write('server.properties', $properties->toString());
+                ServerProperties::load($server)->set($step['key'], (string) $step['value'])->save();
 
                 return true;
 
@@ -423,7 +421,7 @@ class RunInstallPlan implements ShouldQueue
             'archive-write' => sprintf('Writing config files (%d of %d).', $state['pending']['index'] ?? 0, $step['count'] ?? 0),
             'relay' => 'Downloading through the Panel.',
             'verify' => 'Checking '.basename((string) ($step['path'] ?? 'the download')).'.',
-            'property' => 'Updating server.properties.',
+            'property' => 'Updating the server settings.',
             'wait-file' => 'Starting the server once so it writes its config.',
             'yaml-set' => 'Changing the config.',
             'reinstall', 'wait-installed' => 'The egg is reinstalling the server.',

@@ -11,7 +11,7 @@ use McSuite\Support\BedrockNbt;
 use McSuite\Support\LevelDb;
 use McSuite\Support\MinecraftPing;
 use McSuite\Support\PlayerData;
-use McSuite\Support\PropertiesFile;
+use McSuite\Support\ServerProperties;
 use McSuite\Support\ServerFiles;
 use McSuite\Support\Skins;
 use Pterodactyl\Facades\Activity;
@@ -347,7 +347,7 @@ class PlayersController extends Controller
     }
 
     /**
-     * Turns the whitelist on or off in server.properties, and live when the server runs.
+     * Turns the whitelist on or off in the settings file, and live when the server runs.
      */
     public function whitelist(Request $request, Server $server): JsonResponse
     {
@@ -356,9 +356,7 @@ class PlayersController extends Controller
         $bedrock = $info['edition'] === 'bedrock';
         $data = PlayerData::for($server, $info['edition']);
 
-        $properties = new PropertiesFile($data->files()->read('server.properties', 256_000) ?? '', ! $bedrock);
-        $properties->set($bedrock ? 'allow-list' : 'white-list', $enabled ? 'true' : 'false');
-        $data->files()->write('server.properties', $properties->toString());
+        ServerProperties::load($server, $info)->set($bedrock ? 'allow-list' : 'white-list', $enabled ? 'true' : 'false')->save();
 
         if ($data->isRunning()) {
             Daemon::server($server)->commands([$bedrock ? 'allowlist reload' : 'whitelist '.($enabled ? 'on' : 'off')]);
@@ -417,7 +415,7 @@ class PlayersController extends Controller
             $list[] = $add;
         }
 
-        $files->writeJson($file, $list);
+        $files->writeJson($data->listPath($file), $list);
     }
 
     /**

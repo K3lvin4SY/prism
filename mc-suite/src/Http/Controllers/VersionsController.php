@@ -12,8 +12,11 @@ use McSuite\Support\Detector;
 use McSuite\Support\InstallPlan;
 use McSuite\Support\McJars;
 use McSuite\Support\McJarsInstaller;
+use McSuite\Support\PatchBukkit;
+use McSuite\Support\PumpkinReleases;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Models\Server;
+use Throwable;
 
 class VersionsController extends Controller
 {
@@ -36,7 +39,9 @@ class VersionsController extends Controller
 
         return new JsonResponse([
             'info' => $info,
-            'types' => $info['edition'] === 'java' ? McJars::types() : null,
+            'types' => $info['edition'] === 'java' ? $this->types() : null,
+            // Pumpkin and the Java servers start differently, so only the egg can switch between them.
+            'pumpkinEgg' => $this->hasPumpkinEgg($server),
             'job' => InstallPlan::current($server),
             'dockerImage' => $server->image,
             'dockerImages' => $server->egg?->docker_images ?? [],
@@ -52,12 +57,20 @@ class VersionsController extends Controller
             return new JsonResponse(['versions' => $this->bedrockVersions()]);
         }
 
+        if (strtoupper($type) === PumpkinReleases::TYPE) {
+            return new JsonResponse(['versions' => PumpkinReleases::versions()]);
+        }
+
         return new JsonResponse(['versions' => McJars::versions($type)]);
     }
 
     public function builds(Request $request, Server $server, string $type, string $version): JsonResponse
     {
         $this->authorizeFeature($request, $server, 'versions', 'versions');
+
+        if (strtoupper($type) === PumpkinReleases::TYPE) {
+            return new JsonResponse(['builds' => PumpkinReleases::builds($version)]);
+        }
 
         return new JsonResponse(['builds' => McJars::builds($type, $version)]);
     }
@@ -71,6 +84,7 @@ class VersionsController extends Controller
         $info = $this->authorizeFeature($request, $server, 'versions', 'versions');
         $data = $request->validate([
             'build' => ['required_without:bedrock', 'integer', 'min:1'],
+            'type' => ['sometimes', 'string', 'max:32'],
             'bedrock' => ['required_without:build', 'string', 'regex:/^\d+\.\d+\.\d+\.\d+$/'],
             'preview' => ['sometimes', 'boolean'],
             'start' => ['sometimes', 'boolean'],
@@ -83,6 +97,12 @@ class VersionsController extends Controller
         }
 
         abort_unless(isset($data['build']), 422, 'Pick a build.');
+
+        if (strtoupper($data['type'] ?? '') === PumpkinReleases::TYPE) {
+            return $this->installPumpkin($request, $server, (int) $data['build'], (bool) ($data['start'] ?? false));
+        }
+
+        abort_if($this->hasPumpkinEgg($server), 422, 'This server uses the Pumpkin egg, which only starts Pumpkin. Ask an administrator to change the egg to switch to Java server software.');
         $build = McJars::build((int) $data['build']);
         $software = McJarsInstaller::softwareFor($build);
 
@@ -167,6 +187,71 @@ class VersionsController extends Controller
         Activity::event('server:mc-suite.version.install')->property(['software' => 'bedrock', 'version' => $version])->log();
 
         return new JsonResponse(['job' => $job], 202);
+    }
+
+    /**
+     * Pumpkin builds come from the egg's own install script: the version variable picks the
+     * release, and a reinstall downloads it. The world and pumpkin.toml are left alone.
+     */
+    private function installPumpkin(Request $request, Server $server, int $id, bool $start): JsonResponse
+    {
+        $release = PumpkinReleases::find($id);
+        abort_if($release === null, 422, 'Unknown Pumpkin build.');
+        abort_unless($this->hasPumpkinEgg($server), 422, 'Pumpkin needs the Pumpkin egg, which starts the Pumpkin binary instead of a jar. Ask an administrator to change the egg.');
+        abort_unless($server->canBeReinstalled(), 409, 'The server is busy. Try again in a moment.');
+
+        $plan = InstallPlan::for($server, 'Installing Pumpkin '.$release['name'])
+            ->stopServer()
+            ->add('variable', ['env' => Detector::PUMPKIN_VARIABLE, 'value' => $release['tag']]);
+
+        // With PatchBukkit, Pumpkin has to be the glibc build, which the egg only installs from
+        // a download URL. A URL an administrator set by hand is left alone.
+        $download = $server->egg?->variables()->where('env_variable', PatchBukkit::DOWNLOAD_VARIABLE)->exists()
+            ? Detector::for($server)->variable(PatchBukkit::DOWNLOAD_VARIABLE)
+            : false;
+        if ($download !== false && PatchBukkit::isOurDownload($download)) {
+            $plan->add('variable', ['env' => PatchBukkit::DOWNLOAD_VARIABLE, 'value' => PatchBukkit::for($server)->installed() !== null ? PatchBukkit::glibcBinary($release['tag']) : '']);
+        }
+
+        $plan
+            ->add('reinstall')
+            ->add('wait-installed')
+            ->add('record', ['key' => 'software', 'value' => [
+                'software' => 'pumpkin',
+                'version' => $release['minecraft'],
+                'build' => $release['name'],
+                'buildId' => $release['id'],
+                'tag' => $release['tag'],
+                'installed' => now()->toAtomString(),
+            ]])
+            ->add('refresh');
+
+        if ($start) {
+            $plan->add('power', ['action' => 'start']);
+        }
+
+        $job = $plan->dispatch($request->user(), 'versions');
+        Activity::event('server:mc-suite.version.install')->property(['software' => 'pumpkin', 'version' => $release['minecraft'], 'build' => $release['tag']])->log();
+
+        return new JsonResponse(['job' => $job], 202);
+    }
+
+    /** The mcjars catalogue with Pumpkin added to the experimental group. */
+    private function types(): array
+    {
+        $types = McJars::types();
+        try {
+            $types['experimental'][PumpkinReleases::TYPE] = PumpkinReleases::type();
+        } catch (\Throwable) {
+            // GitHub is unreachable; the rest of the catalogue still works.
+        }
+
+        return $types;
+    }
+
+    private function hasPumpkinEgg(Server $server): bool
+    {
+        return $server->egg?->variables()->where('env_variable', Detector::PUMPKIN_VARIABLE)->exists() ?? false;
     }
 
     /** @return array{stable: string|null, preview: list<string>, versions: list<string>, latestPreview: string|null} */

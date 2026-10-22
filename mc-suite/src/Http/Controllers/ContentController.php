@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use McSuite\Support\InstallPlan;
+use McSuite\Support\PatchBukkit;
 use McSuite\Support\Providers\ContentProvider;
 use McSuite\Support\Providers\ModrinthProvider;
 use McSuite\Support\ServerFiles;
@@ -60,6 +61,11 @@ class ContentController extends Controller
         [$feature, $directory, $type] = self::KINDS[$kind];
         $info = $this->authorizeFeature($request, $server, $feature, $feature);
         $loaders = $kind === 'plugins' ? $info['pluginLoaders'] : $info['modLoaders'];
+
+        // Pumpkin's own plugins/ holds native plugins; Bukkit jars go to PatchBukkit's folder.
+        if ($kind === 'plugins' && $info['software'] === 'pumpkin') {
+            $directory = PatchBukkit::for($server)->pluginFolder();
+        }
 
         return [$info, $directory, $type, $loaders];
     }

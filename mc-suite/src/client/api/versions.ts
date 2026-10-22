@@ -54,6 +54,8 @@ export interface VersionsOverview {
     dockerImage: string;
     dockerImages: Record<string, string>;
     canChangeImage: boolean;
+    /** The egg starts the Pumpkin binary, so it can only run Pumpkin builds. */
+    pumpkinEgg: boolean;
 }
 
 export async function getOverview(server: string): Promise<VersionsOverview> {
@@ -80,8 +82,8 @@ export async function getBuilds(server: string, type: string, version: string): 
     return data.builds;
 }
 
-export async function installBuild(server: string, build: number, start: boolean): Promise<string> {
-    const { data } = await http.post<{ job: string }>(`${base(server)}/versions/install`, { build, start });
+export async function installBuild(server: string, build: number, start: boolean, type?: string): Promise<string> {
+    const { data } = await http.post<{ job: string }>(`${base(server)}/versions/install`, { build, start, type });
 
     return data.job;
 }

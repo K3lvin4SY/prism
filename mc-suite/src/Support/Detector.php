@@ -32,11 +32,16 @@ final class Detector
         'neoforge' => ['modded', 'NEOFORGE', [], ['neoforge']],
         'mohist' => ['hybrid', 'MOHIST', ['spigot', 'bukkit'], ['forge']],
         'arclight' => ['hybrid', 'ARCLIGHT', ['spigot', 'bukkit'], ['forge', 'neoforge', 'fabric']],
+        // Pumpkin is written in Rust; Bukkit plugins run on it through PatchBukkit.
+        'pumpkin' => ['plugins', 'PUMPKIN', ['paper', 'spigot', 'bukkit'], []],
         'velocity' => ['proxy', 'VELOCITY', ['velocity'], []],
         'waterfall' => ['proxy', 'WATERFALL', ['waterfall', 'bungeecord'], []],
         'bungeecord' => ['proxy', 'BUNGEECORD', ['bungeecord'], []],
         'bedrock' => ['bedrock', null, [], []],
     ];
+
+    /** The startup variable of the Pumpkin egg that picks the build to install. */
+    public const string PUMPKIN_VARIABLE = 'PUMPKIN_VERSION';
 
     /** Fallback software when only a kind is known. */
     private const array KIND_DEFAULTS = [
@@ -147,6 +152,10 @@ final class Detector
             return 'bedrock';
         }
 
+        if ($has('pumpkin.toml') || ($has('pumpkin') && ! $has('server.properties'))) {
+            return 'pumpkin';
+        }
+
         if ($has('velocity.toml')) {
             return 'velocity';
         }
@@ -228,7 +237,7 @@ final class Detector
     private function detectFromEgg(): ?string
     {
         $name = strtolower(($this->server->egg->name ?? '').' '.($this->server->startup ?? ''));
-        foreach (['neoforge', 'forge', 'fabric', 'quilt', 'purpur', 'folia', 'paper', 'spigot', 'velocity', 'waterfall', 'bungee', 'bedrock', 'vanilla'] as $needle) {
+        foreach (['pumpkin', 'neoforge', 'forge', 'fabric', 'quilt', 'purpur', 'folia', 'paper', 'spigot', 'velocity', 'waterfall', 'bungee', 'bedrock', 'vanilla'] as $needle) {
             if (str_contains($name, $needle)) {
                 return $needle === 'bungee' ? 'bungeecord' : $needle;
             }
@@ -271,7 +280,7 @@ final class Detector
             'kind' => $kind,
             'mcjarsType' => $mcjarsType,
             'version' => $version,
-            'build' => $matchesRecord ? ($record['build'] ?? null) : null,
+            'build' => $matchesRecord ? ($record['build'] ?? null) : ($software === 'pumpkin' ? $this->variable(self::PUMPKIN_VARIABLE) : null),
             'buildId' => $matchesRecord ? ($record['buildId'] ?? null) : null,
             'pluginLoaders' => $pluginLoaders,
             'modLoaders' => $modLoaders,
@@ -283,7 +292,11 @@ final class Detector
                 'mods' => in_array($kind, ['modded', 'hybrid'], true),
                 'modpacks' => in_array($kind, ['modded', 'hybrid'], true),
             ],
-            'jarFile' => $kind === 'bedrock' ? null : $this->jarFile(),
+            'jarFile' => match (true) {
+                $kind === 'bedrock' => null,
+                $software === 'pumpkin' => 'pumpkin',
+                default => $this->jarFile(),
+            },
             'source' => $source,
         ];
     }
@@ -325,6 +338,20 @@ final class Detector
         return null;
     }
 
+    /** A startup variable's value on this server, or null when the egg has no such variable. */
+    public function variable(string $name): ?string
+    {
+        foreach ($this->server->variables as $variable) {
+            if ($variable->env_variable === $name) {
+                $value = $variable->server_value ?? $variable->default_value;
+
+                return is_string($value) && $value !== '' ? $value : null;
+            }
+        }
+
+        return null;
+    }
+
     public function jarFile(): string
     {
         foreach ($this->server->variables as $variable) {
@@ -343,7 +370,7 @@ final class Detector
         try {
             $files = ServerFiles::for($this->server);
 
-            if ($software !== 'bedrock') {
+            if ($software !== 'bedrock' && $software !== 'pumpkin') {
                 $history = $files->readJson('version_history.json', 64_000);
                 if (is_string($history['currentVersion'] ?? null) && preg_match('/MC: ([0-9][^)\s]*)/', $history['currentVersion'], $match)) {
                     return $match[1];
@@ -367,9 +394,12 @@ final class Detector
             $log = $size !== null && $size < 4_000_000 ? ($files->read('logs/latest.log') ?? '') : '';
             $log .= "\n".implode("\n", \Pterodactyl\Facades\Daemon::server($this->server)->logs(100));
 
-            $pattern = $software === 'bedrock'
-                ? '/Version:?\s+(\d+\.\d+\.\d+(?:\.\d+)?)/'
-                : '/Starting minecraft server version ([^\s]+)/i';
+            $pattern = match ($software) {
+                'bedrock' => '/Version:?\s+(\d+\.\d+\.\d+(?:\.\d+)?)/',
+                // "Starting Pumpkin 0.2.0+26.3-26.51": the part after + is the Java version.
+                'pumpkin' => '/Starting Pumpkin \S+?\+(\d+\.\d+(?:\.\d+)?)/',
+                default => '/Starting minecraft server version ([^\s]+)/i',
+            };
             if (preg_match($pattern, $log, $match)) {
                 return $match[1];
             }

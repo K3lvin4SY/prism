@@ -12,7 +12,7 @@ use Pterodactyl\Models\Server;
 
 /**
  * Region files for the player map. The browser decodes and draws them itself, so this only
- * finds the files and hands them over unchanged.
+ * finds the files and hands them over unchanged: Anvil (.mca), or Pumpkin's own .pump.
  */
 class MapController extends Controller
 {
@@ -32,7 +32,7 @@ class MapController extends Controller
         $regions = [];
 
         foreach ($folder === null ? [] : $data->files()->list($folder) as $name => $file) {
-            if ($file['file'] && $file['size'] > 8192 && preg_match('/^r\.(-?\d+)\.(-?\d+)\.mca$/', $name, $match)) {
+            if ($file['file'] && $file['size'] > 8192 && preg_match('/^r\.(-?\d+)\.(-?\d+)\.(mca|pump)$/', $name, $match)) {
                 $regions[] = ['x' => (int) $match[1], 'z' => (int) $match[2], 'size' => $file['size'], 'modified' => $file['modified']];
             }
         }
@@ -50,7 +50,7 @@ class MapController extends Controller
         $folder = $data->regionFolder($dimension);
         abort_if($folder === null, 404);
 
-        $bytes = $data->files()->read("$folder/r.$x.$z.mca", self::MAX_REGION);
+        $bytes = $data->files()->read("$folder/r.$x.$z.mca", self::MAX_REGION) ?? $data->files()->read("$folder/r.$x.$z.pump", self::MAX_REGION);
         abort_if($bytes === null, 404);
 
         return response($bytes, 200, [

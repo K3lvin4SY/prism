@@ -39,10 +39,24 @@ final class PlayerData
         return $this->files ??= ServerFiles::for($this->server);
     }
 
+    /** Pumpkin's list files live in data/, everything else in the server root. */
+    private const array PUMPKIN_DATA = ['ops.json', 'whitelist.json', 'banned-players.json', 'banned-ips.json'];
+
     /** @return array<string, string> */
     public function properties(): array
     {
-        return $this->properties ??= (new PropertiesFile($this->files()->read('server.properties', 256_000) ?? '', $this->edition === 'java'))->all();
+        return $this->properties ??= ServerProperties::load($this->server)->all();
+    }
+
+    public function isPumpkin(): bool
+    {
+        return (Detector::for($this->server)->info()['software'] ?? null) === 'pumpkin';
+    }
+
+    /** Where a player list such as ops.json is kept on this server. */
+    public function listPath(string $file): string
+    {
+        return $this->isPumpkin() && in_array($file, self::PUMPKIN_DATA, true) ? 'data/'.$file : $file;
     }
 
     public function levelName(): string
@@ -113,7 +127,7 @@ final class PlayerData
     public function jsonList(string $file): array
     {
         try {
-            $data = $this->files()->readJson($file, 2_000_000);
+            $data = $this->files()->readJson($this->listPath($file), 2_000_000);
         } catch (Throwable) {
             return [];
         }
@@ -162,11 +176,16 @@ final class PlayerData
     /** @return array{time: string|null, name: string, event: string, detail: string|null, id: string|null}|null */
     private function javaEvent(string $line): ?array
     {
-        if (! preg_match('/^\[(\d{2}:\d{2}:\d{2})[^\]]*\](?:\s*\[[^\]]*\])*:\s?(.*)$/', $line, $match)) {
+        if (preg_match('/^\[(\d{2}:\d{2}:\d{2})[^\]]*\](?:\s*\[[^\]]*\])*:\s?(.*)$/', $line, $match)) {
+            [, $time, $message] = $match;
+        } elseif (preg_match('/^(?:(\d{2}:\d{2}:\d{2})\s+)?\[?(?:INFO|WARN|ERROR|DEBUG)\]?\s+(.*)$/', $line, $match)) {
+            // Pumpkin: "[INFO] message" in latest.log, "12:00:00  INFO message" on the console.
+            $time = $match[1] !== '' ? $match[1] : null;
+            $message = $match[2];
+        } else {
             return null;
         }
 
-        [, $time, $message] = $match;
         $name = '[.*]?[A-Za-z0-9_]{1,32}';
 
         $patterns = [

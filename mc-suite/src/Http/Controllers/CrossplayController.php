@@ -12,9 +12,12 @@ use McSuite\Support\InstallPlan;
 use McSuite\Support\McJars;
 use McSuite\Support\Providers\ModrinthProvider;
 use McSuite\Support\ServerFiles;
+use McSuite\Support\ServerProperties;
 use McSuite\Support\Settings;
+use McSuite\Support\TomlLines;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Models\Server;
+use Pterodactyl\Models\ServerVariable;
 use RuntimeException;
 
 /**
@@ -57,6 +60,21 @@ class CrossplayController extends Controller
     public function show(Request $request, Server $server): JsonResponse
     {
         [$info, $platform] = $this->context($request, $server);
+        if ($info['software'] === 'pumpkin') {
+            $config = ServerProperties::load($server, $info)->pumpkin();
+
+            return new JsonResponse([
+                'supported' => true,
+                'native' => true,
+                'software' => 'pumpkin',
+                'enabled' => $this->pumpkinVariable($server, 'BEDROCK_ENABLED') !== null
+                    ? in_array($this->pumpkinVariable($server, 'BEDROCK_ENABLED'), ['1', 'true'], true)
+                    : $config?->getRaw('networking.bedrock', 'enabled') === 'true',
+                'port' => $server->allocation?->port,
+                'job' => null,
+            ]);
+        }
+
         if ($platform === null) {
             return new JsonResponse(['supported' => false, 'software' => $info['software']]);
         }
@@ -93,6 +111,10 @@ class CrossplayController extends Controller
     public function enable(Request $request, Server $server): JsonResponse
     {
         [$info, $platform] = $this->context($request, $server);
+        if ($info['software'] === 'pumpkin') {
+            return $this->setPumpkinBedrock($server, $info, true);
+        }
+
         abort_if($platform === null, 422, 'Geyser does not run on '.($info['software'] ?? 'this software').'.');
         abort_unless($this->can($request, $server, $platform[2] === 'mods' ? 'mods' : 'plugins'), 403, 'You also need permission to install '.$platform[2].'.');
         [$loader, $floodgateSource, $folder, $configFolders] = $platform;
@@ -161,7 +183,11 @@ class CrossplayController extends Controller
     /** Removes the Geyser and Floodgate jars. Their config folders stay. */
     public function disable(Request $request, Server $server): JsonResponse
     {
-        [, $platform] = $this->context($request, $server);
+        [$info, $platform] = $this->context($request, $server);
+        if ($info['software'] === 'pumpkin') {
+            return $this->setPumpkinBedrock($server, $info, false);
+        }
+
         abort_if($platform === null, 404);
         [, , $folder] = $platform;
 
@@ -175,6 +201,52 @@ class CrossplayController extends Controller
         Activity::event('server:mc-suite.crossplay.disable')->property('files', $jars)->log();
 
         return new JsonResponse(['removed' => $jars]);
+    }
+
+    /**
+     * Pumpkin speaks Bedrock itself. Its egg rewrites the Bedrock switch and port from startup
+     * variables on every start, so those change too, with the port set to the server's own.
+     *
+     * @param  array<string, mixed>  $info
+     */
+    private function setPumpkinBedrock(Server $server, array $info, bool $enabled): JsonResponse
+    {
+        $port = $server->allocation?->port;
+        abort_if($port === null, 422, 'The server has no allocation.');
+
+        $this->setPumpkinVariable($server, 'BEDROCK_ENABLED', $enabled ? '1' : '0');
+        if ($enabled && $port >= 1024) {
+            $this->setPumpkinVariable($server, 'BEDROCK_PORT', (string) $port);
+        }
+
+        $properties = ServerProperties::load($server, $info);
+        if ($config = $properties->pumpkin()) {
+            $config->setRaw('networking.bedrock', 'enabled', $enabled ? 'true' : 'false');
+            if ($enabled) {
+                $config->setRaw('networking.bedrock.nethernet', 'address', TomlLines::string('0.0.0.0:'.$port));
+            }
+
+            $properties->save();
+        }
+
+        Activity::event('server:mc-suite.crossplay.'.($enabled ? 'enable' : 'disable'))->property('native', true)->log();
+
+        return new JsonResponse(['enabled' => $enabled, 'port' => $port]);
+    }
+
+    private function pumpkinVariable(Server $server, string $env): ?string
+    {
+        $variable = $server->variables->firstWhere('env_variable', $env);
+
+        return $variable ? (string) ($variable->server_value ?? $variable->default_value) : null;
+    }
+
+    private function setPumpkinVariable(Server $server, string $env, string $value): void
+    {
+        $variable = $server->egg?->variables()->where('env_variable', $env)->first();
+        if ($variable !== null) {
+            ServerVariable::query()->updateOrCreate(['server_id' => $server->id, 'variable_id' => $variable->id], ['variable_value' => $value]);
+        }
     }
 
     /** @return list<string> Modrinth project ids already recorded in the folder */

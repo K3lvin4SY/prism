@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace McSuite\Support;
 
+use Illuminate\Support\Facades\Http;
 use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
 use Pterodactyl\Facades\Daemon;
 use Pterodactyl\Models\Server;
@@ -166,7 +167,23 @@ final class ServerFiles
      */
     public function pull(string $url, string $directory, string $filename): void
     {
-        $this->client()->pull($url, '/'.self::normalize($directory), ['filename' => self::normalize($filename)]);
+        $this->client()->pull(self::resolveGitHub($url), '/'.self::normalize($directory), ['filename' => self::normalize($filename)]);
+    }
+
+    /**
+     * GitHub release downloads redirect to a signed link on another host, which Wings does not
+     * follow. The link is looked up here and handed to Wings instead; it stays valid for a few
+     * minutes, and the download starts at once.
+     */
+    private static function resolveGitHub(string $url): string
+    {
+        if (parse_url($url, PHP_URL_HOST) !== 'github.com' || ! str_contains($url, '/releases/download/')) {
+            return $url;
+        }
+
+        $location = Http::withUserAgent(McJars::USER_AGENT)->withoutRedirecting()->timeout(15)->head($url)->header('Location');
+
+        return is_string($location) && str_starts_with($location, 'https://') ? $location : $url;
     }
 
     public function decompress(string $directory, string $file): void

@@ -15,6 +15,8 @@ use RuntimeException;
  *  modern  Velocity's own forwarding (1.13+): Paper's proxies.velocity, or FabricProxy-Lite.
  *  legacy  BungeeCord-style forwarding: spigot.yml bungeecord. Used by BungeeCord, Waterfall,
  *          and Velocity's legacy mode.
+ *
+ * Pumpkin does both natively, in the [networking.proxy] tables of pumpkin.toml.
  */
 final class ProxyForwarding
 {
@@ -35,6 +37,7 @@ final class ProxyForwarding
             in_array($software, self::PAPER, true) => ['modern', 'legacy'],
             in_array($software, self::SPIGOT, true) => ['legacy'],
             in_array($software, self::FABRIC, true) => ['modern'],
+            $software === 'pumpkin' => ['modern', 'legacy'],
             default => [],
         };
     }
@@ -46,6 +49,12 @@ final class ProxyForwarding
         throw_if($mode === 'modern' && ($secret === null || $secret === ''), RuntimeException::class, 'The proxy has no forwarding secret.');
 
         $files = ServerFiles::for($this->server);
+
+        if ($software === 'pumpkin') {
+            $this->setPumpkin($mode, $secret);
+
+            return;
+        }
 
         if (in_array($software, self::FABRIC, true)) {
             $this->installFabricProxyLite();
@@ -70,6 +79,12 @@ final class ProxyForwarding
         $files = ServerFiles::for($this->server);
         $software = $this->info['software'];
 
+        if ($software === 'pumpkin') {
+            $this->setPumpkin(null, null);
+
+            return;
+        }
+
         if (in_array($software, self::FABRIC, true)) {
             $mods = $files->list('mods');
             $jars = array_values(array_filter(array_keys($mods), static fn (string $name): bool => (bool) preg_match('/^fabricproxy-lite.*\.jar$/i', $name)));
@@ -83,6 +98,23 @@ final class ProxyForwarding
         }
 
         $this->setProperties($files, ['online-mode' => 'true']);
+    }
+
+    /** Pumpkin: one forwarding table on, or with a null mode all off and account checks back on. */
+    private function setPumpkin(?string $mode, ?string $secret): void
+    {
+        $properties = ServerProperties::load($this->server, $this->info);
+        $config = $properties->pumpkin();
+        throw_if($config === null, RuntimeException::class, 'pumpkin.toml was not found. Start the server once first.');
+
+        $config->setRaw('networking.proxy', 'enabled', $mode !== null ? 'true' : 'false');
+        $config->setRaw('networking.proxy.velocity', 'enabled', $mode === 'modern' ? 'true' : 'false');
+        $config->setRaw('networking.proxy.bungeecord', 'enabled', $mode === 'legacy' ? 'true' : 'false');
+        if ($mode === 'modern') {
+            $config->setRaw('networking.proxy.velocity', 'secret', TomlLines::string((string) $secret));
+        }
+
+        $properties->set('online-mode', $mode !== null ? 'false' : 'true')->save();
     }
 
     private function setPaperVelocity(ServerFiles $files, bool $enabled, ?string $secret): void

@@ -7,6 +7,9 @@ import JobProgress from './JobProgress';
 interface CrossplayStatus {
     supported: boolean;
     software: string | null;
+    /** Pumpkin speaks Bedrock itself: no Geyser, just a switch. */
+    native?: boolean;
+    enabled?: boolean;
     geyser?: string | null;
     floodgate?: string | null;
     configured?: boolean;
@@ -48,6 +51,10 @@ export default function CrossplayPanel({ server }: { server: string }) {
                 </p>
             </TitledGreyBox>
         );
+    }
+
+    if (data.native) {
+        return <NativeCrossplay server={server} enabled={!!data.enabled} port={data.port ?? null} onChanged={() => queryClient.invalidateQueries({ queryKey: key })} />;
     }
 
     const enabled = !!data.geyser;
@@ -120,6 +127,45 @@ export default function CrossplayPanel({ server }: { server: string }) {
             <Dialog.Confirm open={confirmOff} onClose={() => setConfirmOff(false)} title={'Turn off crossplay?'} confirm={'Remove Geyser and Floodgate'} pending={busy} onConfirmed={disable}>
                 The Geyser and Floodgate files are deleted; their config folders are kept. Bedrock players can no longer join after the next restart.
             </Dialog.Confirm>
+        </TitledGreyBox>
+    );
+}
+
+/** Pumpkin's own Bedrock support, switched on in pumpkin.toml and the egg's variables. */
+function NativeCrossplay({ server, enabled, port, onChanged }: { server: string; enabled: boolean; port: number | null; onChanged: () => void }) {
+    const [busy, setBusy] = useState(false);
+
+    const toggle = async (checked: boolean) => {
+        setBusy(true);
+        try {
+            await (checked ? http.post(`${base(server)}/crossplay`) : http.delete(`${base(server)}/crossplay`));
+            toast.success(checked ? 'Bedrock is switched on. Restart the server to apply.' : 'Bedrock is switched off. Restart the server to apply.');
+            onChanged();
+        } catch (error) {
+            toast.error(httpErrorToHuman(error));
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <TitledGreyBox title={'Crossplay'}>
+            <div className={'mcs:flex mcs:flex-col mcs:gap-4'}>
+                <div className={'mcs:flex mcs:items-start mcs:gap-3'}>
+                    <Switch
+                        checked={enabled}
+                        disabled={busy}
+                        onChange={toggle}
+                        label={'Let Bedrock players join'}
+                        description={`Phones, consoles and Windows players connect to the same address${port ? ` and port ${port}` : ''}, over UDP.`}
+                    />
+                    {busy && <Spinner size={'small'} />}
+                </div>
+                <div className={'mcs:divide-y mcs:divide-border mcs:rounded-md mcs:border mcs:border-border mcs:px-3'}>
+                    <Row ok label={'Built into Pumpkin'} detail={'No Geyser or Floodgate needed'} />
+                    <Row ok={enabled} label={'Same port as Java'} detail={enabled && port ? `UDP ${port}` : 'Off'} />
+                </div>
+            </div>
         </TitledGreyBox>
     );
 }

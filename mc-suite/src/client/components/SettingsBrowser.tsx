@@ -4,7 +4,10 @@ import { categories, definitionsFor, managedKeys, validate, type PropertyDefinit
 import McText from './McText';
 
 interface Props {
-    edition: 'java' | 'bedrock';
+    /** The schema edition: java, bedrock, or pumpkin for Pumpkin's own key set. */
+    edition: string;
+    /** The file the values live in, named in the header. */
+    file?: string;
     values: Record<string, string>;
     onSave: (values: Record<string, string>) => Promise<void>;
     /** The MOTD editor, shown in place of the rows while the MOTD category is open. */
@@ -39,7 +42,7 @@ const otherDefinition = (key: string): PropertyDefinition => ({
 /** Categories that hold a tool instead of properties, shown only when that tool is passed in. */
 const PANEL_ONLY = ['crossplay', 'proxy'];
 
-export default function SettingsBrowser({ edition, values, onSave, motdEditor, panels = {}, eggBindings = {} }: Props) {
+export default function SettingsBrowser({ edition, file = 'server.properties', values, onSave, motdEditor, panels = {}, eggBindings = {} }: Props) {
     const [category, setCategory] = useState('motd');
     const [search, setSearch] = useState('');
 
@@ -76,7 +79,7 @@ export default function SettingsBrowser({ edition, values, onSave, motdEditor, p
         <div className={'mcs:flex mcs:flex-col mcs:gap-3'}>
             <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:justify-between mcs:gap-3'}>
                 <p className={'mcs:text-sm mcs:text-muted-foreground'}>
-                    {Object.keys(values).length} values in server.properties. Every change is written straight away and takes effect after the next restart.
+                    {Object.keys(values).length} values in {file}. Every change is written straight away and takes effect after the next restart.
                 </p>
                 <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={'Find a setting or key…'} className={'mcs:max-w-72'} />
             </div>

@@ -35,6 +35,10 @@ export function definitionsFor(edition: string): PropertyDefinition[] {
 export interface PropertiesResponse {
     exists: boolean;
     edition: 'java' | 'bedrock';
+    /** Which property definitions apply: the edition, or pumpkin on Pumpkin servers. */
+    schema: 'java' | 'bedrock' | 'pumpkin';
+    /** server.properties, or pumpkin.toml on Pumpkin. */
+    file: string;
     software: string | null;
     values: Record<string, string>;
     icon: string | null;

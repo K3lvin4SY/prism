@@ -334,6 +334,8 @@ function BuildsDialog({
     const javaMismatch = version.java !== null && currentJava !== null && currentJava < version.java;
     const matchingImage = Object.entries(overview.dockerImages).find(([, image]) => imageJava(image) === version.java);
     const switchingSoftware = info.mcjarsType !== null && info.mcjarsType !== type;
+    // The Pumpkin egg starts a binary, the Java eggs a jar: only the egg can cross between them.
+    const wrongEgg = (type === 'PUMPKIN') !== overview.pumpkinEgg;
     const chosen: BuildSummary | undefined = builds.data?.find((entry) => entry.id === build) ?? builds.data?.[0];
 
     const install = async () => {
@@ -344,7 +346,7 @@ function BuildsDialog({
                 await setImage.mutateAsync({ image: matchingImage[1] });
             }
 
-            onStarted(await installBuild(identifier, chosen.id, start));
+            onStarted(await installBuild(identifier, chosen.id, start, type));
         } catch (error) {
             toast.error(httpErrorToHuman(error));
         } finally {
@@ -355,7 +357,20 @@ function BuildsDialog({
     return (
         <Dialog open onClose={onClose} title={`${typeName} ${version.id}`} description={`${version.builds} builds${version.java ? ` · needs Java ${version.java}` : ''}`}>
             <div className={'mcs:flex mcs:flex-col mcs:gap-3'}>
-                {switchingSoftware && (
+                {wrongEgg && (
+                    <Alert type={'danger'}>
+                        {type === 'PUMPKIN'
+                            ? 'Pumpkin is a native program, not a jar, so it needs the Pumpkin egg. Ask an administrator to change the egg.'
+                            : 'This server uses the Pumpkin egg, which can only start Pumpkin. Ask an administrator to change the egg to run Java server software.'}
+                    </Alert>
+                )}
+                {type === 'PUMPKIN' && !wrongEgg && info.software === 'pumpkin' && chosen && info.build !== chosen.name && (
+                    <Alert type={'warning'}>
+                        Pumpkin refuses to open a world saved by a newer build. Going from Nightly or Canary back to a release, or to an older release, can leave the world
+                        unloadable until you switch back.
+                    </Alert>
+                )}
+                {switchingSoftware && !wrongEgg && (
                     <Alert type={'warning'}>
                         This replaces the server software. Plugins and mods made for the old software may stop working, and worlds cannot be moved back to an older Minecraft version.
                     </Alert>
@@ -411,7 +426,7 @@ function BuildsDialog({
             </div>
             <Dialog.Footer>
                 <Button.Text onClick={onClose}>Cancel</Button.Text>
-                <Button isLoading={busy} disabled={!chosen} onClick={install}>
+                <Button isLoading={busy} disabled={!chosen || wrongEgg} onClick={install}>
                     Install {chosen?.name ?? ''}
                 </Button>
             </Dialog.Footer>
