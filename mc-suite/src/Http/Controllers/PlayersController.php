@@ -7,6 +7,8 @@ namespace McSuite\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use McSuite\Support\BedrockNbt;
+use McSuite\Support\LevelDb;
 use McSuite\Support\MinecraftPing;
 use McSuite\Support\PlayerData;
 use McSuite\Support\PropertiesFile;
@@ -237,6 +239,47 @@ class PlayersController extends Controller
             'dat' => $dat !== null ? base64_encode($dat) : null,
             'stats' => $stats['stats'] ?? null,
             'advancements' => $done,
+            'version' => $info['version'],
+        ]);
+    }
+
+    /**
+     * One Bedrock player's saved data, from the world's LevelDB database. A `player_<id>`
+     * record names the player's xuid (MsaId) and the `player_server_<uuid>` key of their data.
+     */
+    public function bedrock(Request $request, Server $server, string $xuid): JsonResponse
+    {
+        $info = $this->authorizeFeature($request, $server, 'players', 'players-view');
+        abort_unless($info['edition'] === 'bedrock', 404);
+        abort_unless(preg_match('/^\d{1,20}$/', $xuid) === 1, 422, 'Invalid player.');
+
+        $data = PlayerData::for($server, 'bedrock');
+        $database = new LevelDb($data->files(), 'worlds/'.$data->levelName().'/db');
+        $records = $database->scan('player_');
+
+        $serverKey = null;
+        foreach ($records as $key => $value) {
+            if (str_starts_with($key, 'player_server_')) {
+                continue;
+            }
+
+            try {
+                $index = BedrockNbt::topLevelStrings($value);
+            } catch (Throwable) {
+                continue;
+            }
+
+            if (($index['MsaId'] ?? null) === $xuid && isset($index['ServerId'])) {
+                $serverKey = $index['ServerId'];
+                break;
+            }
+        }
+
+        $player = $serverKey !== null ? ($records[$serverKey] ?? null) : null;
+
+        return new JsonResponse([
+            'xuid' => $xuid,
+            'dat' => $player !== null ? base64_encode($player) : null,
             'version' => $info['version'],
         ]);
     }

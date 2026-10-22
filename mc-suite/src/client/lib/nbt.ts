@@ -15,7 +15,11 @@ class Reader {
     private offset = 0;
     private readonly view: DataView;
 
-    constructor(private readonly bytes: Uint8Array) {
+    /** Java files are big-endian; Bedrock files are little-endian. */
+    constructor(
+        private readonly bytes: Uint8Array,
+        private readonly little = false
+    ) {
         this.view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     }
 
@@ -24,42 +28,42 @@ class Reader {
     }
 
     short(): number {
-        const value = this.view.getInt16(this.offset);
+        const value = this.view.getInt16(this.offset, this.little);
         this.offset += 2;
 
         return value;
     }
 
     int(): number {
-        const value = this.view.getInt32(this.offset);
+        const value = this.view.getInt32(this.offset, this.little);
         this.offset += 4;
 
         return value;
     }
 
     long(): bigint {
-        const value = this.view.getBigInt64(this.offset);
+        const value = this.view.getBigInt64(this.offset, this.little);
         this.offset += 8;
 
         return value;
     }
 
     float(): number {
-        const value = this.view.getFloat32(this.offset);
+        const value = this.view.getFloat32(this.offset, this.little);
         this.offset += 4;
 
         return value;
     }
 
     double(): number {
-        const value = this.view.getFloat64(this.offset);
+        const value = this.view.getFloat64(this.offset, this.little);
         this.offset += 8;
 
         return value;
     }
 
     string(): string {
-        const length = this.view.getUint16(this.offset);
+        const length = this.view.getUint16(this.offset, this.little);
         this.offset += 2;
         // Java writes modified UTF-8; ordinary text decodes the same as UTF-8.
         const value = decoder.decode(this.bytes.subarray(this.offset, this.offset + length));
@@ -137,8 +141,8 @@ class Reader {
     }
 }
 
-export function readNbt(bytes: Uint8Array): NbtCompound {
-    return new Reader(bytes).root();
+export function readNbt(bytes: Uint8Array, littleEndian = false): NbtCompound {
+    return new Reader(bytes, littleEndian).root();
 }
 
 async function inflate(bytes: Uint8Array, format: 'gzip' | 'deflate'): Promise<Uint8Array> {

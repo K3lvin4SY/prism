@@ -163,6 +163,90 @@ export function readPlayer(root: NbtCompound): PlayerState {
     };
 }
 
+/** Bedrock stores enchantments by number. */
+const BEDROCK_ENCHANTMENTS = [
+    'protection', 'fire_protection', 'feather_falling', 'blast_protection', 'projectile_protection', 'thorns', 'respiration', 'depth_strider',
+    'aqua_affinity', 'sharpness', 'smite', 'bane_of_arthropods', 'knockback', 'fire_aspect', 'looting', 'efficiency', 'silk_touch', 'unbreaking',
+    'fortune', 'power', 'punch', 'flame', 'infinity', 'luck_of_the_sea', 'lure', 'frost_walker', 'mending', 'binding_curse', 'vanishing_curse',
+    'impaling', 'riptide', 'loyalty', 'channeling', 'multishot', 'piercing', 'quick_charge', 'soul_speed', 'swift_sneak', 'wind_burst', 'density', 'breach',
+];
+
+const BEDROCK_GAME_MODES: Record<number, PlayerState['gameMode']> = { 0: 'survival', 1: 'creative', 2: 'adventure', 6: 'spectator' };
+const BEDROCK_DIMENSIONS = ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'];
+
+function readBedrockItem(value: NbtValue | undefined, slot: number): Item | null {
+    const item = nbt.compound(value);
+    const id = item ? nbt.str(item.Name) : null;
+    if (!item || !id || id === '' || id === 'minecraft:air' || nbt.num(item.Count, 0) === 0) return null;
+
+    const tag = nbt.compound(item.tag);
+    const display = tag ? nbt.compound(tag.display) : null;
+    const enchantments = nbt.list(tag?.ench).flatMap((entry) => {
+        const enchantment = nbt.compound(entry);
+        const name = enchantment ? BEDROCK_ENCHANTMENTS[nbt.num(enchantment.id, -1)] : undefined;
+
+        return name ? [{ id: `minecraft:${name}`, level: nbt.num(enchantment!.lvl, 1) }] : [];
+    });
+
+    return {
+        id,
+        count: nbt.num(item.Count, 1),
+        slot: item.Slot !== undefined ? nbt.num(item.Slot) : slot,
+        name: nbt.str(display?.Name),
+        lore: nbt.list(display?.Lore).map((line) => nbt.str(line) ?? ''),
+        enchantments: id === 'minecraft:enchanted_book' ? [] : enchantments,
+        stored: id === 'minecraft:enchanted_book' ? enchantments : [],
+        damage: nbt.num(tag?.Damage ?? item.Damage, 0),
+        maxDamage: maxDurability(id),
+        unbreakable: nbt.num(tag?.Unbreakable, 0) === 1,
+    };
+}
+
+/** Reads a Bedrock player record (little-endian NBT from the world database) into the same shape. */
+export function readBedrockPlayer(root: NbtCompound): PlayerState {
+    const attribute = (name: string, fallback: number) => {
+        const entry = nbt.list(root.Attributes).map(nbt.compound).find((value) => value && nbt.str(value.Name) === name);
+
+        return entry ? nbt.num(entry.Current, fallback) : fallback;
+    };
+    const items = (value: NbtValue | undefined) =>
+        nbt.list(value).flatMap((entry, index) => {
+            const item = readBedrockItem(entry, index);
+
+            return item ? [item] : [];
+        });
+
+    const armour = nbt.list(root.Armor);
+    const equipment: PlayerState['equipment'] = {};
+    (['head', 'chest', 'legs', 'feet'] as const).forEach((part, index) => {
+        const item = readBedrockItem(armour[index], index);
+        if (item) equipment[part] = item;
+    });
+    const offhand = readBedrockItem(nbt.list(root.Offhand)[0], 0);
+    if (offhand) equipment.offhand = offhand;
+
+    const position = nbt.list(root.Pos).map((value) => nbt.num(value));
+
+    return {
+        gameMode: BEDROCK_GAME_MODES[nbt.num(root.PlayerGameMode, 0)] ?? 'survival',
+        dimension: BEDROCK_DIMENSIONS[nbt.num(root.DimensionId, 0)] ?? 'minecraft:overworld',
+        position: position.length === 3 ? [position[0], position[1], position[2]] : null,
+        health: attribute('minecraft:health', 20),
+        maxHealth: 20,
+        food: attribute('minecraft:player.hunger', 20),
+        saturation: attribute('minecraft:player.saturation', 5),
+        xpLevel: nbt.num(root.PlayerLevel, 0),
+        xpProgress: nbt.num(root.PlayerLevelProgress, 0),
+        xpTotal: 0,
+        selectedSlot: nbt.num(root.SelectedInventorySlot, 0),
+        inventory: items(root.Inventory).filter((item) => item.slot >= 0 && item.slot < 36),
+        equipment,
+        enderChest: items(root.EnderChestInventory),
+        firstPlayed: null,
+        lastPlayed: null,
+    };
+}
+
 const TOOL_DURABILITY: Record<string, number> = { wooden: 59, stone: 131, iron: 250, golden: 32, diamond: 1561, netherite: 2031 };
 const ARMOUR_DURABILITY: Record<string, [number, number, number, number]> = {
     leather: [55, 80, 75, 65],

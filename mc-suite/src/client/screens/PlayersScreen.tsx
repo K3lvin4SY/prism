@@ -138,7 +138,7 @@ export default function PlayersScreen() {
                     ) : (
                         <div className={'mcs:flex mcs:flex-col mcs:gap-2'}>
                             {shown.map((player) => (
-                                <PlayerRow key={player.uuid ?? player.name} identifier={identifier} player={player} linkable={!isBedrock && !!player.uuid} />
+                                <PlayerRow key={player.uuid ?? player.name} identifier={identifier} player={player} linkable={!!player.uuid} />
                             ))}
                         </div>
                     )}

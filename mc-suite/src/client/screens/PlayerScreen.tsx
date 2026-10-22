@@ -15,7 +15,7 @@ import {
     toast,
     type ScreenComponentProps,
 } from '@pterodactyl/sdk';
-import { getPlayer, getPlayers, playerAction, playerKeys, useSkin, type PlayerSummary, type Skin } from '../api/players';
+import { getBedrockPlayer, getPlayer, getPlayers, playerAction, playerKeys, useSkin, type PlayerSummary, type Skin } from '../api/players';
 import ControlPanel from '../components/players/ControlPanel';
 import Hud from '../components/players/Hud';
 import WorldMap from '../components/players/WorldMap';
@@ -24,11 +24,11 @@ import PlayerHead from '../components/players/PlayerHead';
 import SkinViewer from '../components/players/SkinViewer';
 import { useMcInfo } from '../hooks/useMcInfo';
 import { armouredSkin } from '../lib/armour';
-import { base64ToBytes, readNbtFile } from '../lib/nbt';
-import { formatTicks, prettyId, readPlayer, type PlayerState } from '../lib/player';
+import { base64ToBytes, readNbt, readNbtFile } from '../lib/nbt';
+import { formatTicks, prettyId, readBedrockPlayer, readPlayer, type PlayerState } from '../lib/player';
 
 
-function usePlayerState(dat: string | null | undefined) {
+function usePlayerState(dat: string | null | undefined, bedrock: boolean) {
     const [state, setState] = useState<{ player: PlayerState | null; error: string | null }>({ player: null, error: null });
 
     useEffect(() => {
@@ -39,14 +39,15 @@ function usePlayerState(dat: string | null | undefined) {
             return;
         }
 
-        readNbtFile(base64ToBytes(dat))
-            .then((root) => !cancelled && setState({ player: readPlayer(root), error: null }))
+        // Bedrock records are plain little-endian NBT; Java player files are gzipped big-endian NBT.
+        (bedrock ? Promise.resolve(readNbt(base64ToBytes(dat), true)).then(readBedrockPlayer) : readNbtFile(base64ToBytes(dat)).then(readPlayer))
+            .then((player) => !cancelled && setState({ player, error: null }))
             .catch((error: Error) => !cancelled && setState({ player: null, error: error.message }));
 
         return () => {
             cancelled = true;
         };
-    }, [dat]);
+    }, [dat, bedrock]);
 
     return state;
 }
@@ -73,9 +74,15 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
     const [saving, setSaving] = useState(false);
 
     const list = useQuery({ queryKey: playerKeys.list(identifier), queryFn: () => getPlayers(identifier), refetchInterval: 15_000 });
-    const detail = useQuery({ queryKey: playerKeys.detail(identifier, uuid), queryFn: () => getPlayer(identifier, uuid), refetchInterval: 30_000 });
+    const bedrock = info?.edition === 'bedrock';
+    const detail = useQuery({
+        queryKey: playerKeys.detail(identifier, uuid),
+        queryFn: () => (bedrock ? getBedrockPlayer(identifier, uuid) : getPlayer(identifier, uuid)),
+        enabled: info !== undefined,
+        refetchInterval: 30_000,
+    });
     const skin = useSkin(identifier, uuid);
-    const { player, error } = usePlayerState(detail.data?.dat);
+    const { player, error } = usePlayerState(detail.data?.dat, bedrock);
     const [model, setModel] = useState<Skin | null>(null);
 
     // The model wears the armour from the last save.
@@ -195,6 +202,8 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                         <Fact icon={'sparkles'} label={'Total XP'}>
                                             {player.xpTotal.toLocaleString()}
                                         </Fact>
+                                        {!bedrock && (
+                                            <>
                                         <Fact icon={'clock'} label={'Play time'}>
                                             {formatTicks(custom('play_time') || custom('play_one_minute'))}
                                         </Fact>
@@ -207,6 +216,8 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                         <Fact icon={'cake'} label={'First joined'}>
                                             {player.firstPlayed ? formatDate(new Date(player.firstPlayed), 'MMM D, YYYY') : 'Not recorded'}
                                         </Fact>
+                                            </>
+                                        )}
                                     </div>
                                 ) : (
                                     <Alert type={error ? 'danger' : 'info'}>
@@ -232,7 +243,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                                 ['ender', 'Ender Chest', 'box'],
                                                 ['map', 'Map', 'map'],
                                             ] as const
-                                        ).map(([value, label, icon]) => (
+                                        ).filter(([value]) => !(bedrock && value === 'map')).map(([value, label, icon]) => (
                                             <button
                                                 key={value}
                                                 type={'button'}
@@ -266,7 +277,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                         {list.data?.canManage && summary && (
                             <ControlPanel identifier={identifier} player={summary} state={player} running={list.data.running} onDone={refresh} />
                         )}
-                        <Advancements items={detail.data?.advancements ?? []} />
+                        {!bedrock && <Advancements items={detail.data?.advancements ?? []} />}
                     </div>
                 </div>
             </div>

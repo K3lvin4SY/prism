@@ -77,6 +77,13 @@ export async function getPlayers(server: string): Promise<PlayersResponse> {
     return (await http.get<PlayersResponse>(`${base(server)}/players`)).data;
 }
 
+/** A Bedrock player's record from the world database, by xuid. */
+export async function getBedrockPlayer(server: string, xuid: string): Promise<PlayerDetails> {
+    const { data } = await http.get<{ xuid: string; dat: string | null; version: string | null }>(`${base(server)}/players/bedrock/${xuid}`);
+
+    return { uuid: data.xuid, dat: data.dat, stats: null, advancements: [], version: data.version };
+}
+
 export async function getPlayer(server: string, uuid: string): Promise<PlayerDetails> {
     return (await http.get<PlayerDetails>(`${base(server)}/players/${uuid}`)).data;
 }

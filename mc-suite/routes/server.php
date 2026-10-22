@@ -49,6 +49,7 @@ Route::get('/players', [PlayersController::class, 'index'])->name('players');
 Route::post('/players/action', [PlayersController::class, 'action'])->name('players.action');
 Route::put('/players/whitelist', [PlayersController::class, 'whitelist'])->name('players.whitelist');
 Route::get('/players/skins/{key}', [PlayersController::class, 'skin'])->where('key', '[A-Za-z0-9_.*-]{1,40}')->name('players.skin');
+Route::get('/players/bedrock/{xuid}', [PlayersController::class, 'bedrock'])->where('xuid', '[0-9]{1,20}')->name('players.bedrock');
 Route::get('/players/{player}', [PlayersController::class, 'show'])->where('player', '[0-9a-fA-F-]{36}')->name('players.show');
 
 Route::get('/map/{dimension}', [MapController::class, 'regions'])->where('dimension', 'overworld|the_nether|the_end')->name('map.regions');
