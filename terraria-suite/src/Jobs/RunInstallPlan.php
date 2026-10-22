@@ -193,6 +193,44 @@ class RunInstallPlan implements ShouldQueue
 
                 return true;
 
+            case 'collect':
+                // Moves every file with the extension out of an unpacked archive, however deep,
+                // and records which ones were moved so they can be removed together later.
+                $moved = [];
+                $existing = $files->list($step['to']);
+                $walk = function (string $directory, int $depth) use (&$walk, &$moved, &$existing, $files, $step): void {
+                    foreach ($files->list($directory) as $name => $entry) {
+                        $path = ServerFiles::join($directory, $name);
+                        if (! $entry['file']) {
+                            if ($depth < 4) {
+                                $walk($path, $depth + 1);
+                            }
+
+                            continue;
+                        }
+
+                        if (! str_ends_with(strtolower($name), '.'.$step['extension']) || in_array($name, $step['keep'] ?? [], true) || in_array($name, $moved, true)) {
+                            continue;
+                        }
+
+                        if (isset($existing[$name])) {
+                            $files->delete($step['to'], [$name]);
+                        }
+
+                        $files->rename('', $path, ServerFiles::join($step['to'], $name));
+                        $existing[$name] = true;
+                        $moved[] = $name;
+                    }
+                };
+                $walk(ServerFiles::normalize($step['from']), 0);
+                throw_if($moved === [], RuntimeException::class, 'The download had no .'.$step['extension'].' files in it.');
+
+                if (isset($step['record'])) {
+                    Settings::server($server)->set($step['record']['key'], [...$step['record']['value'], 'files' => $moved]);
+                }
+
+                return true;
+
             case 'unzip':
                 $files->decompress($step['dir'], $step['file']);
 
@@ -379,6 +417,7 @@ class RunInstallPlan implements ShouldQueue
             'pull', 'pulls' => isset($step['files']) ? sprintf('Downloading files (%d of %d).', count($state['pending']['done'] ?? []), count($step['files'])) : 'Downloading '.($step['file'] ?? 'files').'.',
             'unzip' => 'Extracting '.($step['file'] ?? 'archive').'.',
             'move-contents', 'chmod' => 'Putting the new server files in place.',
+            'collect' => 'Moving the plugin into ServerPlugins.',
             'verify' => 'Checking '.basename((string) ($step['path'] ?? 'the download')).'.',
             'wait-file' => 'Starting the server once so it writes its config.',
             'reinstall', 'wait-installed' => 'The egg is reinstalling the server.',

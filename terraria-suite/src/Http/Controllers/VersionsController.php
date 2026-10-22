@@ -12,6 +12,7 @@ use TerrariaSuite\Support\Detector;
 use TerrariaSuite\Support\InstallPlan;
 use TerrariaSuite\Support\Releases;
 use TerrariaSuite\Support\Worlds;
+use TerrariaSuite\Support\WorkshopMods;
 
 class VersionsController extends Controller
 {
@@ -93,6 +94,11 @@ class VersionsController extends Controller
             $plan->add('variable', ['env' => Detector::VERSION_VARIABLES[$kind], 'value' => $release['id']])
                 ->add('reinstall')
                 ->add('wait-installed');
+
+            // The reinstall writes the egg's own tModLoaderServer, which knows nothing of Workshop mods.
+            if ($kind === 'tmodloader' && WorkshopMods::for($server)->wanted() !== []) {
+                WorkshopMods::addWrapperSteps($plan->add('write', ['path' => '.trs/tml-version', 'content' => base64_encode(ltrim($release['id'], 'v')."\n")]));
+            }
         }
 
         $plan->add('record', ['key' => 'software', 'value' => [

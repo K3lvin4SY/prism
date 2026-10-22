@@ -6,7 +6,7 @@ import EggTypeField from './EggTypeField';
 import { useFeatureVisible } from './hooks/useTerrariaInfo';
 
 /** Tabs whose screens are built. The rest stay hidden until their phase ships. */
-const READY = new Set<Feature>(['players', 'properties', 'versions']);
+const READY = new Set<Feature>(['players', 'properties', 'versions', 'mods', 'plugins']);
 
 /** A visibility predicate: runs as a component, so it can ask the backend what the server runs. */
 const showFor = (feature: Feature) =>
@@ -26,9 +26,9 @@ export default definePterodactylExtension({
         screens.register('versions', () => import('./screens/VersionsScreen'), { visible: showFor('versions') });
         screens.register('properties', () => import('./screens/SettingsScreen'), { visible: showFor('properties') });
         // The Panel needs every screen in extension.json to be registered, or it loads none of them.
-        // Tabs still being built register a placeholder and stay hidden until they are in READY.
+        // The World tab is still being built: it registers a placeholder and stays hidden until it is in READY.
         screens.register('world', () => import('./screens/ComingSoonScreen'), { visible: showFor('world') });
-        screens.register('mods', () => import('./screens/ComingSoonScreen'), { visible: showFor('mods') });
-        screens.register('plugins', () => import('./screens/ComingSoonScreen'), { visible: showFor('plugins') });
+        screens.register('mods', () => import('./screens/ModsScreen'), { visible: showFor('mods') });
+        screens.register('plugins', () => import('./screens/PluginsScreen'), { visible: showFor('plugins') });
     },
 });
