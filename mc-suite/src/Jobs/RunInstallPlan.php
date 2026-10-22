@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use McSuite\Support\Detector;
 use McSuite\Support\InstallPlan;
 use McSuite\Support\Mrpack;
+use McSuite\Support\PropertiesFile;
 use McSuite\Support\Relay;
 use McSuite\Support\ServerFiles;
 use McSuite\Support\Settings;
@@ -199,6 +200,57 @@ class RunInstallPlan implements ShouldQueue
 
                 return true;
 
+            case 'verify':
+                // Checks a downloaded file against the hash its publisher gave.
+                $content = $files->read($step['path'], 80 * 1024 * 1024);
+                throw_if($content === null, RuntimeException::class, basename($step['path']).' was not downloaded.');
+                $hash = hash($step['algorithm'], $content);
+                unset($content);
+                if (! hash_equals(strtolower((string) $step['hash']), $hash)) {
+                    $files->delete(dirname($step['path']) === '.' ? '' : dirname($step['path']), [basename($step['path'])]);
+                    throw new RuntimeException(basename($step['path']).' did not match its published checksum and was removed.');
+                }
+
+                return true;
+
+            case 'property':
+                $properties = new PropertiesFile($files->read('server.properties', 256_000) ?? '', true);
+                $properties->set($step['key'], (string) $step['value']);
+                $files->write('server.properties', $properties->toString());
+
+                return true;
+
+            case 'wait-file':
+                $state['pending'] ??= ['since' => time()];
+                foreach ($step['candidates'] as $candidate) {
+                    if ($files->size($candidate) !== null) {
+                        return true;
+                    }
+                }
+
+                throw_if(time() - $state['pending']['since'] > ($step['timeout'] ?? 300), RuntimeException::class, 'The server did not create '.basename($step['candidates'][0]).' in time. Check the console for errors.');
+
+                return false;
+
+            case 'yaml-set':
+                // Sets top-level-looking keys wherever they are indented; the first match wins.
+                foreach ($step['candidates'] as $candidate) {
+                    $yaml = $files->read($candidate, 512_000);
+                    if ($yaml === null) {
+                        continue;
+                    }
+
+                    foreach ($step['values'] as $key => $value) {
+                        $yaml = (string) preg_replace('/^(\s*'.preg_quote((string) $key, '/').':)[ \t]*[^\r\n#]*/m', '$1 '.$value, $yaml, 1);
+                    }
+
+                    $files->write($candidate, $yaml);
+
+                    return true;
+                }
+
+                throw new RuntimeException('The config file to change was not found.');
+
             case 'variable':
                 // Sets an egg variable for this server, as an administrator would.
                 $variable = $server->egg->variables()->where('env_variable', $step['env'])->first();
@@ -370,6 +422,11 @@ class RunInstallPlan implements ShouldQueue
             'mrpack' => 'Downloading and reading the modpack.',
             'archive-write' => sprintf('Writing config files (%d of %d).', $state['pending']['index'] ?? 0, $step['count'] ?? 0),
             'relay' => 'Downloading through the Panel.',
+            'verify' => 'Checking '.basename((string) ($step['path'] ?? 'the download')).'.',
+            'property' => 'Updating server.properties.',
+            'wait-file' => 'Starting the server once so it writes its config.',
+            'yaml-set' => 'Changing the config.',
+            'reinstall', 'wait-installed' => 'The egg is reinstalling the server.',
             'write' => 'Writing '.($step['path'] ?? 'files').'.',
             'delete', 'rename' => 'Moving old files aside.',
             default => 'Working.',

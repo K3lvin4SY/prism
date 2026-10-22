@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, ServerContentBlock, Spinner, httpErrorToHuman } from '@pterodactyl/sdk';
 import { keys } from '../api/client';
 import { getProperties, updateProperties, type PropertiesResponse } from '../api/properties';
+import CrossplayPanel from '../components/CrossplayPanel';
 import MotdEditor from '../components/MotdEditor';
 import SettingsBrowser from '../components/SettingsBrowser';
 import { useMcInfo } from '../hooks/useMcInfo';
@@ -53,6 +54,7 @@ export default function PropertiesScreen() {
                     values={data.values}
                     onSave={save}
                     eggBindings={data.eggBindings}
+                    panels={edition === 'java' ? { crossplay: <CrossplayPanel server={identifier} /> } : {}}
                     motdEditor={
                         edition === 'java' ? (
                             <MotdEditor

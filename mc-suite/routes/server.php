@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use McSuite\Http\Controllers\ContentController;
+use McSuite\Http\Controllers\CrossplayController;
 use McSuite\Http\Controllers\InfoController;
 use McSuite\Http\Controllers\MapController;
 use McSuite\Http\Controllers\ModpacksController;
@@ -52,3 +53,7 @@ Route::get('/players/{player}', [PlayersController::class, 'show'])->where('play
 
 Route::get('/map/{dimension}', [MapController::class, 'regions'])->where('dimension', 'overworld|the_nether|the_end')->name('map.regions');
 Route::get('/map/{dimension}/{x}/{z}', [MapController::class, 'region'])->where(['dimension' => 'overworld|the_nether|the_end', 'x' => '-?\d+', 'z' => '-?\d+'])->name('map.region');
+
+Route::get('/crossplay', [CrossplayController::class, 'show'])->name('crossplay');
+Route::post('/crossplay', [CrossplayController::class, 'enable'])->name('crossplay.enable');
+Route::delete('/crossplay', [CrossplayController::class, 'disable'])->name('crossplay.disable');

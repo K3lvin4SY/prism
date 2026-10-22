@@ -6,6 +6,7 @@
         { "id": "world", "label": "World", "icon": "globe" },
         { "id": "performance", "label": "Performance", "icon": "gauge" },
         { "id": "players", "label": "Players", "icon": "users" },
+        { "id": "crossplay", "label": "Crossplay", "icon": "gamepad-2" },
         { "id": "other", "label": "Other", "icon": "ellipsis" }
     ],
     "managed": ["server-port", "server-ip", "query.port", "rcon.port", "server-portv6", "management-server-port", "management-server-host"],

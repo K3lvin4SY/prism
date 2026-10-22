@@ -9,6 +9,8 @@ interface Props {
     onSave: (values: Record<string, string>) => Promise<void>;
     /** The MOTD editor, shown in place of the rows while the MOTD category is open. */
     motdEditor?: ReactNode;
+    /** Other categories drawn by a component instead of rows, such as Crossplay. */
+    panels?: Record<string, ReactNode>;
     /** Keys the egg rewrites on start: the startup variable they come from, or null when fixed. */
     eggBindings?: Record<string, string | null>;
 }
@@ -34,7 +36,7 @@ const otherDefinition = (key: string): PropertyDefinition => ({
  * Every property, sorted into categories, with its real key next to a short explanation.
  * Each row saves on its own as soon as its value is valid.
  */
-export default function SettingsBrowser({ edition, values, onSave, motdEditor, eggBindings = {} }: Props) {
+export default function SettingsBrowser({ edition, values, onSave, motdEditor, panels = {}, eggBindings = {} }: Props) {
     const [category, setCategory] = useState('motd');
     const [search, setSearch] = useState('');
 
@@ -78,7 +80,7 @@ export default function SettingsBrowser({ edition, values, onSave, motdEditor, e
             <div className={'mcs:grid mcs:gap-4 mcs:md:grid-cols-[220px_1fr]'}>
                 <nav className={'mcs:flex mcs:md:flex-col mcs:gap-1 mcs:overflow-x-auto'} aria-label={'Categories'}>
                     {categories
-                        .filter((entry) => entry.id !== 'other' || counts.other > 0)
+                        .filter((entry) => (entry.id === 'crossplay' ? entry.id in panels : entry.id !== 'other' || counts.other > 0))
                         .map((entry) => (
                             <button
                                 key={entry.id}
@@ -94,12 +96,14 @@ export default function SettingsBrowser({ edition, values, onSave, motdEditor, e
                             >
                                 <NamedIcon name={entry.icon} size={16} />
                                 <span className={'mcs:flex-1'}>{entry.label}</span>
-                                <span className={'mcs:text-xs mcs:opacity-70'}>{counts[entry.id]}</span>
+                                {!(entry.id in panels) && <span className={'mcs:text-xs mcs:opacity-70'}>{counts[entry.id]}</span>}
                             </button>
                         ))}
                 </nav>
                 {term === '' && category === 'motd' && motdEditor ? (
                     <div className={'mcs:min-w-0'}>{motdEditor}</div>
+                ) : term === '' && panels[category] ? (
+                    <div className={'mcs:min-w-0'}>{panels[category]}</div>
                 ) : (
                     <TitledGreyBox title={term !== '' ? `Results for “${search.trim()}”` : current?.label ?? ''}>
                         {visible.length === 0 ? (
