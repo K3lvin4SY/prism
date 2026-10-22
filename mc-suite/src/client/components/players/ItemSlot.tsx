@@ -3,7 +3,7 @@ import { Tooltip, cn } from '@pterodactyl/sdk';
 import { itemIconUrls } from '../../lib/items';
 import { enchantmentLabel, prettyId, type Item } from '../../lib/player';
 
-function ItemIcon({ item, version }: { item: Item; version: string | null }) {
+export function ItemIcon({ item, version }: { item: Item; version: string | null }) {
     const urls = itemIconUrls(item.id, version);
     const [attempt, setAttempt] = useState(0);
 
@@ -18,7 +18,7 @@ function ItemIcon({ item, version }: { item: Item; version: string | null }) {
     return <img src={urls[attempt]} alt={''} loading={'lazy'} onError={() => setAttempt(attempt + 1)} className={'mcs-pixelated mcs:size-full mcs:object-contain'} />;
 }
 
-function ItemTooltip({ item }: { item: Item }) {
+export function ItemTooltip({ item }: { item: Item }) {
     const enchanted = item.enchantments.length > 0 || item.stored.length > 0;
 
     return (

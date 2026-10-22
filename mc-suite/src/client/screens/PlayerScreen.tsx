@@ -4,13 +4,10 @@ import {
     Alert,
     Badge,
     Button,
-    Dialog,
-    Input,
     NamedIcon,
     PanelLink,
     ServerContentBlock,
     Spinner,
-    Switch,
     TitledGreyBox,
     cn,
     formatDate,
@@ -18,8 +15,10 @@ import {
     toast,
     type ScreenComponentProps,
 } from '@pterodactyl/sdk';
-import { getPlayer, getPlayers, playerAction, playerKeys, useSkin, type PlayerAction, type PlayerSummary, type Skin } from '../api/players';
-import { EnderChestView, InventoryView, StatusBars } from '../components/players/Inventory';
+import { getPlayer, getPlayers, playerAction, playerKeys, useSkin, type PlayerSummary, type Skin } from '../api/players';
+import ControlPanel from '../components/players/ControlPanel';
+import Hud from '../components/players/Hud';
+import { EnderChestView, InventoryView } from '../components/players/Inventory';
 import PlayerHead from '../components/players/PlayerHead';
 import SkinViewer from '../components/players/SkinViewer';
 import { useMcInfo } from '../hooks/useMcInfo';
@@ -27,12 +26,6 @@ import { armouredSkin } from '../lib/armour';
 import { base64ToBytes, readNbtFile } from '../lib/nbt';
 import { formatTicks, prettyId, readPlayer, type PlayerState } from '../lib/player';
 
-const GAME_MODES = [
-    { value: 'survival', label: 'Survival', icon: 'sword' },
-    { value: 'creative', label: 'Creative', icon: 'box' },
-    { value: 'adventure', label: 'Adventure', icon: 'map' },
-    { value: 'spectator', label: 'Spectator', icon: 'circle-dot' },
-] as const;
 
 function usePlayerState(dat: string | null | undefined) {
     const [state, setState] = useState<{ player: PlayerState | null; error: string | null }>({ player: null, error: null });
@@ -224,7 +217,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
 
                         {player && (
                             <div className={'mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:flex mcs:justify-center mcs:overflow-x-auto'}>
-                                <StatusBars player={player} version={version} />
+                                <Hud player={player} version={version} />
                             </div>
                         )}
 
@@ -274,178 +267,6 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                 </div>
             </div>
         </ServerContentBlock>
-    );
-}
-
-function ControlPanel({
-    identifier,
-    player,
-    state,
-    running,
-    onDone,
-}: {
-    identifier: string;
-    player: PlayerSummary;
-    state: PlayerState | null;
-    running: boolean;
-    onDone: () => void;
-}) {
-    const [busy, setBusy] = useState<string | null>(null);
-    const [levels, setLevels] = useState(String(state?.xpLevel ?? 0));
-    const [reason, setReason] = useState('');
-    const [message, setMessage] = useState('');
-    const [confirmClear, setConfirmClear] = useState(false);
-    const online = player.online;
-
-    useEffect(() => setLevels(String(state?.xpLevel ?? 0)), [state?.xpLevel]);
-
-    const run = async (action: PlayerAction, input: { value?: string | number; reason?: string } = {}, success?: string) => {
-        setBusy(action);
-        try {
-            const applied = await playerAction(identifier, action, { name: player.name, uuid: player.uuid, ...input });
-            if (success) toast.success(applied === 'file' ? `${success} It applies when the server starts.` : success);
-            if (applied === 'command' && online) {
-                // Save so the change shows up in the player file right away.
-                await playerAction(identifier, 'save');
-                await new Promise((resolve) => window.setTimeout(resolve, 1500));
-            }
-            onDone();
-        } catch (error) {
-            toast.error(httpErrorToHuman(error));
-        } finally {
-            setBusy(null);
-        }
-    };
-
-    const needsOnline = !online ? 'The player has to be online.' : undefined;
-
-    return (
-        <TitledGreyBox title={'Control'}>
-            <div className={'mcs:flex mcs:flex-col mcs:gap-4'}>
-                {!online && <p className={'mcs:text-xs mcs:text-muted-foreground'}>{player.name} is offline. Game mode, XP and the other in-game actions work while they are online.</p>}
-
-                <div>
-                    <p className={'mcs:text-xs mcs:uppercase mcs:tracking-wide mcs:text-muted-foreground mcs:mb-1.5'}>Game mode</p>
-                    <div className={'mcs:grid mcs:grid-cols-2 mcs:gap-1.5'}>
-                        {GAME_MODES.map((mode) => (
-                            <Button
-                                key={mode.value}
-                                size={'small'}
-                                isSecondary={state?.gameMode !== mode.value}
-                                disabled={!online || busy !== null}
-                                title={needsOnline}
-                                onClick={() => run('gamemode', { value: mode.value })}
-                            >
-                                <NamedIcon name={mode.icon} size={14} /> {mode.label}
-                            </Button>
-                        ))}
-                    </div>
-                </div>
-
-                <div>
-                    <p className={'mcs:text-xs mcs:uppercase mcs:tracking-wide mcs:text-muted-foreground mcs:mb-1.5'}>Experience levels</p>
-                    <div className={'mcs:flex mcs:gap-1.5'}>
-                        <Input value={levels} inputMode={'numeric'} onChange={(event) => setLevels(event.target.value.replace(/[^\d]/g, ''))} className={'mcs:flex-1 mcs:min-w-0'} disabled={!online} />
-                        <Button size={'small'} isSecondary disabled={!online || busy !== null} onClick={() => run('xp-add', { value: -1 })} aria-label={'One level less'}>
-                            −
-                        </Button>
-                        <Button size={'small'} disabled={!online || busy !== null || levels === ''} onClick={() => run('xp-set', { value: Number(levels) })}>
-                            Set
-                        </Button>
-                        <Button size={'small'} isSecondary disabled={!online || busy !== null} onClick={() => run('xp-add', { value: 1 })} aria-label={'One level more'}>
-                            +
-                        </Button>
-                    </div>
-                </div>
-
-                <div className={'mcs:grid mcs:grid-cols-2 mcs:gap-1.5'}>
-                    {(
-                        [
-                            ['heal', 'Heal', 'heart'],
-                            ['feed', 'Feed', 'drumstick'],
-                            ['starve', 'Starve', 'utensils'],
-                            ['kill', 'Kill', 'skull'],
-                        ] as const
-                    ).map(([action, label, icon]) => (
-                        <Button key={action} size={'small'} isSecondary disabled={!online || busy !== null} isLoading={busy === action} title={needsOnline} onClick={() => run(action)}>
-                            <NamedIcon name={icon} size={14} /> {label}
-                        </Button>
-                    ))}
-                </div>
-
-                <div>
-                    <p className={'mcs:text-xs mcs:uppercase mcs:tracking-wide mcs:text-muted-foreground mcs:mb-1.5'}>Access</p>
-                    <div className={'mcs:flex mcs:flex-col mcs:divide-y mcs:divide-border mcs:rounded-md mcs:border mcs:border-border mcs:px-3'}>
-                        <div className={'mcs:py-2'}>
-                            <Switch
-                                label={'Operator'}
-                                checked={player.op !== null}
-                                disabled={busy !== null}
-                                onChange={(checked) => run(checked ? 'op' : 'deop', {}, checked ? `${player.name} is now an operator.` : `${player.name} is no longer an operator.`)}
-                            />
-                        </div>
-                        <div className={'mcs:py-2'}>
-                            <Switch
-                                label={'Whitelisted'}
-                                checked={player.whitelisted}
-                                disabled={busy !== null}
-                                onChange={(checked) => run(checked ? 'whitelist-add' : 'whitelist-remove', {}, checked ? `${player.name} is whitelisted.` : `${player.name} was removed from the whitelist.`)}
-                            />
-                        </div>
-                        <div className={'mcs:py-2'}>
-                            <Switch
-                                label={'Banned'}
-                                checked={player.banned !== null}
-                                disabled={busy !== null}
-                                onChange={(checked) => run(checked ? 'ban' : 'pardon', { reason }, checked ? `${player.name} is banned.` : `${player.name} is unbanned.`)}
-                            />
-                        </div>
-                    </div>
-                    <Input value={reason} onChange={(event) => setReason(event.target.value)} placeholder={'Reason, used for kicks and bans'} maxLength={200} className={'mcs:mt-2 mcs:w-full'} />
-                </div>
-
-                <div className={'mcs:grid mcs:grid-cols-2 mcs:gap-1.5'}>
-                    <Button size={'small'} isSecondary disabled={!online || busy !== null} isLoading={busy === 'kick'} onClick={() => run('kick', { reason }, `${player.name} was kicked.`)}>
-                        <NamedIcon name={'log-out'} size={14} /> Kick
-                    </Button>
-                    <Button.Danger size={'small'} isSecondary disabled={!online || busy !== null} onClick={() => setConfirmClear(true)}>
-                        <NamedIcon name={'eraser'} size={14} /> Clear inventory
-                    </Button.Danger>
-                </div>
-
-                <div>
-                    <p className={'mcs:text-xs mcs:uppercase mcs:tracking-wide mcs:text-muted-foreground mcs:mb-1.5'}>Message</p>
-                    <form
-                        className={'mcs:flex mcs:gap-1.5'}
-                        onSubmit={(event) => {
-                            event.preventDefault();
-                            if (message.trim()) run('message', { value: message.trim() }, 'Message sent.').then(() => setMessage(''));
-                        }}
-                    >
-                        <Input value={message} onChange={(event) => setMessage(event.target.value)} placeholder={'Private message to the player'} maxLength={256} disabled={!online} className={'mcs:flex-1 mcs:min-w-0'} />
-                        <Button type={'submit'} size={'small'} disabled={!online || busy !== null || !message.trim()}>
-                            <NamedIcon name={'send'} size={14} /> Send
-                        </Button>
-                    </form>
-                </div>
-
-                {!running && <p className={'mcs:text-xs mcs:text-muted-foreground'}>The server is offline: operator, whitelist and ban changes are written to its files.</p>}
-            </div>
-
-            <Dialog.Confirm
-                open={confirmClear}
-                onClose={() => setConfirmClear(false)}
-                title={'Clear inventory'}
-                confirm={'Clear inventory'}
-                pending={busy === 'clear'}
-                onConfirmed={() => {
-                    setConfirmClear(false);
-                    run('clear', {}, `${player.name}'s inventory was cleared.`);
-                }}
-            >
-                Clear the whole inventory of {player.name}? This cannot be undone.
-            </Dialog.Confirm>
-        </TitledGreyBox>
     );
 }
 

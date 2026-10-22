@@ -204,6 +204,34 @@ export function maxDurability(id: string): number | null {
     return null;
 }
 
+/** Armour points per piece: helmet, chestplate, leggings, boots. */
+const ARMOUR_POINTS: Record<string, [number, number, number, number]> = {
+    leather: [1, 3, 2, 1],
+    chainmail: [2, 5, 4, 1],
+    iron: [2, 6, 5, 2],
+    golden: [2, 5, 3, 1],
+    copper: [2, 4, 3, 1],
+    diamond: [3, 8, 6, 3],
+    netherite: [3, 8, 6, 3],
+};
+
+/** The armour bar value, 0–20, from the worn pieces' vanilla defence. */
+export function armourPoints(equipment: PlayerState['equipment']): number {
+    let points = 0;
+    for (const item of [equipment.head, equipment.chest, equipment.legs, equipment.feet]) {
+        if (!item) continue;
+        if (item.id === 'minecraft:turtle_helmet') {
+            points += 2;
+            continue;
+        }
+
+        const match = item.id.match(/^minecraft:([a-z]+)_(helmet|chestplate|leggings|boots)$/);
+        if (match && ARMOUR_POINTS[match[1]]) points += ARMOUR_POINTS[match[1]][['helmet', 'chestplate', 'leggings', 'boots'].indexOf(match[2])];
+    }
+
+    return Math.min(20, points);
+}
+
 /** "minecraft:netherite_sword" → "Netherite Sword" */
 export function prettyId(id: string): string {
     return id
