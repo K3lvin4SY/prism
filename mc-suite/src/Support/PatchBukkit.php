@@ -53,14 +53,19 @@ final class PatchBukkit
                 continue;
             }
 
-            // [plugins] directory, relative to the config's folder.
+            // [plugins] directory: the default sits in PatchBukkit's folder, any other relative
+            // name in the folder above it, as PatchBukkit resolves it.
             $config = $files->read($home.'/patchbukkit.config.toml', 64_000) ?? '';
             $directory = TomlLines::scalar(TomlLines::get($config, 'plugins', 'directory')) ?? 'patchbukkit-plugins';
             if (str_contains($directory, '..') || str_contains($directory, "\0")) {
                 return $home.'/patchbukkit-plugins';
             }
 
-            $directory = ServerFiles::normalize(str_starts_with($directory, '/home/container/') ? substr($directory, 16) : $home.'/'.$directory);
+            $directory = ServerFiles::normalize(match (true) {
+                str_starts_with($directory, '/home/container/') => substr($directory, 16),
+                $directory === 'patchbukkit-plugins' => $home.'/'.$directory,
+                default => (dirname($home) === '.' ? '' : dirname($home).'/').$directory,
+            });
 
             return $directory !== '' ? $directory : $home.'/patchbukkit-plugins';
         }

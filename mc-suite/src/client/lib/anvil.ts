@@ -28,6 +28,11 @@ interface Section {
     bits: number;
 }
 
+/** Whether a chunk with this status has its blocks placed: features and every stage after. */
+export function hasSurface(status: string): boolean {
+    return /full|postprocessed|fullchunk|features|light|spawn|heightmaps/.test(status);
+}
+
 /** Surface data being collected for one region. */
 export class SurfaceBuilder {
     readonly names = ['minecraft:air'];
@@ -183,7 +188,7 @@ export async function readRegion(buffer: ArrayBuffer, dimension: string, onProgr
 
         if (!root) continue;
         const status = nbt.str(root.Status) ?? nbt.str(nbt.compound(root.Level)?.Status);
-        if (status && !/full|postprocessed|fullchunk/.test(status)) continue;
+        if (status && !hasSurface(status)) continue;
 
         const { sections, minY } = sectionsOf(root);
         if (sections.size === 0) continue;

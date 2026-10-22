@@ -1,11 +1,15 @@
 import { decompress as zstd } from 'fzstd';
-import { SurfaceBuilder, packed, type RegionSurface } from './anvil';
-import { nbt, readNbtFile } from './nbt';
+import { SurfaceBuilder, hasSurface, packed, type RegionSurface } from './anvil';
+import { nbt, readNbt, readNbtFile } from './nbt';
 import table from './pumpkinBlocks.json';
 
 /**
- * Pumpkin's own region format (.pump), read from its source:
+ * Pumpkin's own region format (.pump), read from its source. It has had two layouts.
  *
+ * Pumpkin 0.2.0 and older: one unnamed NBT compound {x, z, chunks}, where chunks maps the slot
+ * (x + z * 32) to a zstd-compressed chunk in Anvil's NBT layout.
+ *
+ * Newer builds:
  *  region  256-byte superblock ("PUMP" + version 1, region x and z), then 1024 entries of
  *          (sector offset u32, byte length u32) with 256-byte sectors.
  *  chunk   uncompressed length u32 and XXH64 u64, then a zstd frame. Inside, either NBT like
@@ -22,9 +26,20 @@ const VOLUME = 4096;
 const LIGHT = 2048;
 
 export function isPumpRegion(buffer: ArrayBuffer): boolean {
+    return isSectorPump(buffer) || isNbtPump(buffer);
+}
+
+function isSectorPump(buffer: ArrayBuffer): boolean {
     const bytes = new Uint8Array(buffer, 0, Math.min(8, buffer.byteLength));
 
     return bytes.length === 8 && SIGNATURE.every((byte, i) => bytes[i] === byte);
+}
+
+/** A compound tag first: an Anvil file starts with its location table, never with 0x0a. */
+function isNbtPump(buffer: ArrayBuffer): boolean {
+    const bytes = new Uint8Array(buffer, 0, Math.min(2, buffer.byteLength));
+
+    return bytes.length === 2 && bytes[0] === 10 && bytes[1] >= 1 && bytes[1] <= 12;
 }
 
 /** The block name of a global block-state id, from Pumpkin's block list. */
@@ -162,8 +177,8 @@ export function readPumpChunk(bytes: Uint8Array): PumpChunk | null {
     const flags = reader.u8();
     reader.skip(8); // inhabited time
 
-    // Only finished chunks (status 9, "full") have their final surface.
-    if (status !== 9) return null;
+    // From features (5) on, the blocks are placed.
+    if (status < 5) return null;
 
     let surface: BigInt64Array | null = null;
     for (const bit of [1, 2, 3]) {
@@ -194,7 +209,38 @@ function blockAt(chunk: PumpChunk, x: number, y: number, z: number): string {
     return stateName(section[(((y - chunk.minY) & 15) << 8) | (z << 4) | x]);
 }
 
+/** Pumpkin 0.2.0's layout: NBT around zstd-compressed NBT chunks. */
+async function readNbtPumpRegion(buffer: ArrayBuffer, dimension: string, onProgress?: (fraction: number) => void): Promise<RegionSurface> {
+    const builder = new SurfaceBuilder(dimension);
+    const chunks = nbt.compound(readNbt(new Uint8Array(buffer), false, false).chunks) ?? {};
+    const entries = Object.entries(chunks);
+
+    for (const [index, [key, value]] of entries.entries()) {
+        if (index % 32 === 0) {
+            onProgress?.(index / Math.max(1, entries.length));
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+
+        const slot = Number(key);
+        if (!Number.isInteger(slot) || slot < 0 || slot > 1023 || !(value instanceof Int8Array)) continue;
+
+        try {
+            const raw = zstd(new Uint8Array(value.buffer, value.byteOffset, value.byteLength));
+            const chunk = readRegionChunkNbt(readNbt(raw));
+            if (chunk) builder.addChunk(slot & 31, slot >> 5, chunk.minY, chunk.surface, chunk.blockAt);
+        } catch {
+            // A damaged chunk is left blank.
+        }
+    }
+
+    onProgress?.(1);
+
+    return builder.result();
+}
+
 export async function readPumpRegion(buffer: ArrayBuffer, dimension: string, onProgress?: (fraction: number) => void): Promise<RegionSurface> {
+    if (isNbtPump(buffer)) return readNbtPumpRegion(buffer, dimension, onProgress);
+
     const bytes = new Uint8Array(buffer);
     const view = new DataView(buffer);
     const builder = new SurfaceBuilder(dimension);
@@ -243,7 +289,7 @@ export async function readPumpRegion(buffer: ArrayBuffer, dimension: string, onP
 /** An NBT chunk inside a pump file, read the way anvil.ts reads its chunks. */
 function readRegionChunkNbt(root: Awaited<ReturnType<typeof readNbtFile>>) {
     const status = nbt.str(root.Status);
-    if (status && !/full/.test(status)) return null;
+    if (status && !hasSurface(status)) return null;
 
     const palettes = new Map<number, { palette: string[]; data: BigInt64Array | null; bits: number }>();
     for (const entry of nbt.list(root.sections)) {

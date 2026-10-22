@@ -132,17 +132,18 @@ class Reader {
         }
     }
 
-    root(): NbtCompound {
+    root(named = true): NbtCompound {
         const type = this.byte();
         if (type !== 10) throw new Error('The file does not start with a compound tag.');
-        this.string();
+        if (named) this.string();
 
         return this.payload(10, 0) as NbtCompound;
     }
 }
 
-export function readNbt(bytes: Uint8Array, littleEndian = false): NbtCompound {
-    return new Reader(bytes, littleEndian).root();
+/** `named` false reads network-style NBT, whose root compound has no name. */
+export function readNbt(bytes: Uint8Array, littleEndian = false, named = true): NbtCompound {
+    return new Reader(bytes, littleEndian).root(named);
 }
 
 async function inflate(bytes: Uint8Array, format: 'gzip' | 'deflate'): Promise<Uint8Array> {
