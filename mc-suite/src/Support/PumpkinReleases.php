@@ -7,6 +7,7 @@ namespace McSuite\Support;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
+use Throwable;
 
 /**
  * Pumpkin builds from its GitHub releases, shaped like mcjars versions and builds so the
@@ -19,6 +20,8 @@ final class PumpkinReleases
     public const string TYPE = 'PUMPKIN';
 
     private const string API = 'https://api.github.com/repos/Pumpkin-MC/Pumpkin/releases?per_page=30';
+
+    private const string SOURCE = 'https://raw.githubusercontent.com/Pumpkin-MC/Pumpkin/';
 
     public const string ICON = 'https://avatars.githubusercontent.com/u/193089026?s=128&v=4';
 
@@ -73,9 +76,35 @@ final class PumpkinReleases
     public static function builds(string $version): array
     {
         return array_values(array_map(
-            self::summarize(...),
+            static fn (array $release): array => [...self::summarize($release), 'worldDataVersions' => self::worldRange($release['tag'])],
             array_filter(self::all(), static fn (array $release): bool => $release['minecraft'] === $version),
         ));
+    }
+
+    /**
+     * The world data versions a build opens, from its source at that tag. Pumpkin refuses any
+     * world outside this range, such as one a newer build saved; null when it cannot be read.
+     *
+     * @return array{0: int, 1: int}|null
+     */
+    public static function worldRange(string $tag): ?array
+    {
+        $rolling = in_array($tag, ['nightly', 'canary'], true);
+
+        return Cache::remember('ext:mc-suite:pumpkin:world:'.$tag, $rolling ? 3600 : 86400, static function () use ($tag): ?array {
+            try {
+                $source = Http::withUserAgent(McJars::USER_AGENT)->timeout(10)
+                    ->get(self::SOURCE.rawurlencode($tag).'/crates/pumpkin-world/src/world_info/mod.rs')->body();
+            } catch (Throwable) {
+                return null;
+            }
+
+            if (preg_match('/MINIMUM_SUPPORTED_WORLD_DATA_VERSION: i32 = (\d+)/', $source, $min) && preg_match('/MAXIMUM_SUPPORTED_WORLD_DATA_VERSION: i32 = (\d+)/', $source, $max)) {
+                return [(int) $min[1], (int) $max[1]];
+            }
+
+            return null;
+        });
     }
 
     /** @return array<string, mixed>|null */

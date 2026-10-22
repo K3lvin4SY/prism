@@ -14,6 +14,7 @@ use McSuite\Support\McJars;
 use McSuite\Support\McJarsInstaller;
 use McSuite\Support\PatchBukkit;
 use McSuite\Support\PumpkinReleases;
+use McSuite\Support\WorldVersion;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Models\Server;
 use Throwable;
@@ -42,6 +43,8 @@ class VersionsController extends Controller
             'types' => $info['edition'] === 'java' ? $this->types() : null,
             // Pumpkin and the Java servers start differently, so only the egg can switch between them.
             'pumpkinEgg' => $this->hasPumpkinEgg($server),
+            // What the world was last saved as: Pumpkin refuses worlds newer than a build knows.
+            'worldDataVersion' => $info['software'] === 'pumpkin' ? WorldVersion::dataVersion($server) : null,
             'job' => InstallPlan::current($server),
             'dockerImage' => $server->image,
             'dockerImages' => $server->egg?->docker_images ?? [],
@@ -85,6 +88,7 @@ class VersionsController extends Controller
         $data = $request->validate([
             'build' => ['required_without:bedrock', 'integer', 'min:1'],
             'type' => ['sometimes', 'string', 'max:32'],
+            'newWorld' => ['sometimes', 'boolean'],
             'bedrock' => ['required_without:build', 'string', 'regex:/^\d+\.\d+\.\d+\.\d+$/'],
             'preview' => ['sometimes', 'boolean'],
             'start' => ['sometimes', 'boolean'],
@@ -99,7 +103,7 @@ class VersionsController extends Controller
         abort_unless(isset($data['build']), 422, 'Pick a build.');
 
         if (strtoupper($data['type'] ?? '') === PumpkinReleases::TYPE) {
-            return $this->installPumpkin($request, $server, (int) $data['build'], (bool) ($data['start'] ?? false));
+            return $this->installPumpkin($request, $server, (int) $data['build'], (bool) ($data['start'] ?? false), (bool) ($data['newWorld'] ?? false));
         }
 
         abort_if($this->hasPumpkinEgg($server), 422, 'This server uses the Pumpkin egg, which only starts Pumpkin. Ask an administrator to change the egg to switch to Java server software.');
@@ -193,16 +197,33 @@ class VersionsController extends Controller
      * Pumpkin builds come from the egg's own install script: the version variable picks the
      * release, and a reinstall downloads it. The world and pumpkin.toml are left alone.
      */
-    private function installPumpkin(Request $request, Server $server, int $id, bool $start): JsonResponse
+    private function installPumpkin(Request $request, Server $server, int $id, bool $start, bool $newWorld): JsonResponse
     {
         $release = PumpkinReleases::find($id);
         abort_if($release === null, 422, 'Unknown Pumpkin build.');
         abort_unless($this->hasPumpkinEgg($server), 422, 'Pumpkin needs the Pumpkin egg, which starts the Pumpkin binary instead of a jar. Ask an administrator to change the egg.');
         abort_unless($server->canBeReinstalled(), 409, 'The server is busy. Try again in a moment.');
 
-        $plan = InstallPlan::for($server, 'Installing Pumpkin '.$release['name'])
-            ->stopServer()
-            ->add('variable', ['env' => Detector::PUMPKIN_VARIABLE, 'value' => $release['tag']]);
+        // A world saved by a newer build does not open on an older one, and the server would not start.
+        $range = PumpkinReleases::worldRange($release['tag']);
+        $world = WorldVersion::dataVersion($server);
+        $opens = $range === null || $world === null || ($world >= $range[0] && $world <= $range[1]);
+        abort_if(! $opens && ! $newWorld, 422, sprintf(
+            'This world was saved as data version %d, and Pumpkin %s opens %d to %d. Pick a build that opens it, or start a new world.',
+            $world, $release['name'], $range[0] ?? 0, $range[1] ?? 0,
+        ));
+
+        $plan = InstallPlan::for($server, 'Installing Pumpkin '.$release['name'])->stopServer();
+
+        if (! $opens) {
+            // The old world is kept next to the new one, under a name of its own.
+            $level = WorldVersion::levelName($server);
+            $backup = $level.'-backup-'.now()->format('Ymd-His');
+            $plan->add('rename', ['dir' => dirname($level) === '.' ? '' : dirname($level), 'from' => basename($level), 'to' => basename($backup)])
+                ->onFailure('rename', ['dir' => dirname($level) === '.' ? '' : dirname($level), 'from' => basename($backup), 'to' => basename($level), 'optional' => true, 'ifMissing' => true]);
+        }
+
+        $plan->add('variable', ['env' => Detector::PUMPKIN_VARIABLE, 'value' => $release['tag']]);
 
         // With PatchBukkit, Pumpkin has to be the glibc build, which the egg only installs from
         // a download URL. A URL an administrator set by hand is left alone.

@@ -26,6 +26,7 @@ import {
     getVersions,
     imageJava,
     installBedrock,
+    opensWorld,
     installBuild,
     type BuildSummary,
     type SoftwareType,
@@ -262,8 +263,10 @@ function CurrentCard({
     const info = overview.info;
     const current = versions.find((version) => version.id === info.version);
     const newestStable = versions.find((version) => version.type === 'RELEASE');
-    const canUpdateBuild = current && info.buildId && current.latest.id !== info.buildId;
-    const canUpgrade = newestStable && info.version && newestStable.id !== info.version && versions.indexOf(newestStable) < versions.findIndex((version) => version.id === info.version);
+    // Pumpkin's Nightly and Canary are newer than any release: a release would be a step back.
+    const rolling = info.mcjarsType === 'PUMPKIN' && (info.build === 'Nightly' || info.build === 'Canary' || info.build === 'nightly' || info.build === 'canary');
+    const canUpdateBuild = !rolling && current && info.buildId && current.latest.id !== info.buildId;
+    const canUpgrade = !rolling && newestStable && info.version && newestStable.id !== info.version && versions.indexOf(newestStable) < versions.findIndex((version) => version.id === info.version);
 
 
     return (
@@ -326,6 +329,7 @@ function BuildsDialog({
     const builds = useQuery({ queryKey: keys.builds(identifier, type, version.id), queryFn: () => getBuilds(identifier, type, version.id), staleTime: 300_000 });
     const [build, setBuild] = useState<number | null>(initialBuild);
     const [start, setStart] = useState(true);
+    const [newWorld, setNewWorld] = useState(false);
     const [busy, setBusy] = useState(false);
     const setImage = useSetServerDockerImage(server.attributes.uuid);
     const info = overview.info;
@@ -337,6 +341,7 @@ function BuildsDialog({
     // The Pumpkin egg starts a binary, the Java eggs a jar: only the egg can cross between them.
     const wrongEgg = (type === 'PUMPKIN') !== overview.pumpkinEgg;
     const chosen: BuildSummary | undefined = builds.data?.find((entry) => entry.id === build) ?? builds.data?.[0];
+    const worldBlocked = !!chosen && !opensWorld(chosen, overview.worldDataVersion);
 
     const install = async () => {
         if (!chosen) return;
@@ -346,7 +351,7 @@ function BuildsDialog({
                 await setImage.mutateAsync({ image: matchingImage[1] });
             }
 
-            onStarted(await installBuild(identifier, chosen.id, start, type));
+            onStarted(await installBuild(identifier, chosen.id, start, type, worldBlocked ? { newWorld } : {}));
         } catch (error) {
             toast.error(httpErrorToHuman(error));
         } finally {
@@ -364,7 +369,20 @@ function BuildsDialog({
                             : 'This server uses the Pumpkin egg, which can only start Pumpkin. Ask an administrator to change the egg to run Java server software.'}
                     </Alert>
                 )}
-                {type === 'PUMPKIN' && !wrongEgg && info.software === 'pumpkin' && chosen && info.build !== chosen.name && (
+                {worldBlocked && chosen?.worldDataVersions && (
+                    <Alert type={'danger'}>
+                        <div className={'mcs:flex mcs:flex-col mcs:gap-2'}>
+                            <span>
+                                The world was saved by a newer Pumpkin (data version {overview.worldDataVersion}), and {chosen.name} only opens worlds up to {chosen.worldDataVersions[1]}. The
+                                server would not start with it.
+                            </span>
+                            <label className={'mcs:flex mcs:items-center mcs:gap-2'}>
+                                <Checkbox checked={newWorld} onChange={setNewWorld} /> Start a new world. The current one is kept as a backup folder next to it.
+                            </label>
+                        </div>
+                    </Alert>
+                )}
+                {type === 'PUMPKIN' && !wrongEgg && info.software === 'pumpkin' && chosen && info.build !== chosen.name && !chosen.worldDataVersions && (
                     <Alert type={'warning'}>
                         Pumpkin refuses to open a world saved by a newer build. Going from Nightly or Canary back to a release, or to an older release, can leave the world
                         unloadable until you switch back.
@@ -409,6 +427,11 @@ function BuildsDialog({
                                                 Experimental
                                             </Badge>
                                         )}
+                                        {!opensWorld(entry, overview.worldDataVersion) && (
+                                            <Badge size={'sm'} tone={'danger'}>
+                                                Older world format
+                                            </Badge>
+                                        )}
                                         {info.buildId === entry.id && (
                                             <Badge size={'sm'} tone={'success'}>
                                                 Installed
@@ -426,7 +449,7 @@ function BuildsDialog({
             </div>
             <Dialog.Footer>
                 <Button.Text onClick={onClose}>Cancel</Button.Text>
-                <Button isLoading={busy} disabled={!chosen || wrongEgg} onClick={install}>
+                <Button isLoading={busy} disabled={!chosen || wrongEgg || (worldBlocked && !newWorld)} onClick={install}>
                     Install {chosen?.name ?? ''}
                 </Button>
             </Dialog.Footer>
