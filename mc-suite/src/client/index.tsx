@@ -6,7 +6,7 @@ import EggTypeField from './EggTypeField';
 import { useFeatureVisible } from './hooks/useMcInfo';
 
 /** Tabs whose screens are built. The rest stay hidden until their phase ships. */
-const READY = new Set<Feature>(['versions', 'properties', 'plugins', 'mods', 'modpacks']);
+const READY = new Set<Feature>(['players', 'versions', 'properties', 'plugins', 'mods', 'modpacks']);
 
 /** A visibility predicate: runs as a component, so it can ask the backend what the server runs. */
 const showFor = (feature: Feature) =>
@@ -21,8 +21,8 @@ export default definePterodactylExtension({
         setConfig(config);
         forms.extend('admin.egg', EggTypeField);
 
-        screens.register('players', () => import('./screens/ComingSoonScreen'), { visible: showFor('players') });
-        screens.register('player', () => import('./screens/ComingSoonScreen'), { visible: showFor('players') });
+        screens.register('players', () => import('./screens/PlayersScreen'), { visible: showFor('players') });
+        screens.register('player', () => import('./screens/PlayerScreen'), { visible: showFor('players') });
         screens.register('versions', () => import('./screens/VersionsScreen'), { visible: showFor('versions') });
         screens.register('properties', () => import('./screens/PropertiesScreen'), { visible: showFor('properties') });
         screens.register('plugins', () => import('./screens/PluginsScreen'), { visible: showFor('plugins') });

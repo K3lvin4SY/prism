@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use McSuite\Http\Controllers\ContentController;
 use McSuite\Http\Controllers\InfoController;
 use McSuite\Http\Controllers\ModpacksController;
+use McSuite\Http\Controllers\PlayersController;
 use McSuite\Http\Controllers\PropertiesController;
 use McSuite\Http\Controllers\VersionsController;
 
@@ -41,3 +42,9 @@ Route::prefix('/content/{kind}')->where(['kind' => 'plugins|mods'])->group(funct
 
 Route::get('/modpacks', [ModpacksController::class, 'current'])->name('modpacks');
 Route::post('/modpacks/install', [ModpacksController::class, 'install'])->name('modpacks.install');
+
+Route::get('/players', [PlayersController::class, 'index'])->name('players');
+Route::post('/players/action', [PlayersController::class, 'action'])->name('players.action');
+Route::put('/players/whitelist', [PlayersController::class, 'whitelist'])->name('players.whitelist');
+Route::get('/players/skins/{key}', [PlayersController::class, 'skin'])->where('key', '[A-Za-z0-9_.*-]{1,40}')->name('players.skin');
+Route::get('/players/{player}', [PlayersController::class, 'show'])->where('player', '[0-9a-fA-F-]{36}')->name('players.show');
