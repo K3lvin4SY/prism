@@ -89,6 +89,7 @@ class VersionsController extends Controller
             'build' => ['required_without:bedrock', 'integer', 'min:1'],
             'type' => ['sometimes', 'string', 'max:32'],
             'newWorld' => ['sometimes', 'boolean'],
+            'keepBackup' => ['sometimes', 'boolean'],
             'bedrock' => ['required_without:build', 'string', 'regex:/^\d+\.\d+\.\d+\.\d+$/'],
             'preview' => ['sometimes', 'boolean'],
             'start' => ['sometimes', 'boolean'],
@@ -103,7 +104,7 @@ class VersionsController extends Controller
         abort_unless(isset($data['build']), 422, 'Pick a build.');
 
         if (strtoupper($data['type'] ?? '') === PumpkinReleases::TYPE) {
-            return $this->installPumpkin($request, $server, (int) $data['build'], (bool) ($data['start'] ?? false), (bool) ($data['newWorld'] ?? false));
+            return $this->installPumpkin($request, $server, (int) $data['build'], (bool) ($data['start'] ?? false), (bool) ($data['newWorld'] ?? false), (bool) ($data['keepBackup'] ?? true));
         }
 
         abort_if($this->hasPumpkinEgg($server), 422, 'This server uses the Pumpkin egg, which only starts Pumpkin. Ask an administrator to change the egg to switch to Java server software.');
@@ -197,7 +198,7 @@ class VersionsController extends Controller
      * Pumpkin builds come from the egg's own install script: the version variable picks the
      * release, and a reinstall downloads it. The world and pumpkin.toml are left alone.
      */
-    private function installPumpkin(Request $request, Server $server, int $id, bool $start, bool $newWorld): JsonResponse
+    private function installPumpkin(Request $request, Server $server, int $id, bool $start, bool $newWorld, bool $keepBackup = true): JsonResponse
     {
         $release = PumpkinReleases::find($id);
         abort_if($release === null, 422, 'Unknown Pumpkin build.');
@@ -215,12 +216,14 @@ class VersionsController extends Controller
 
         $plan = InstallPlan::for($server, 'Installing Pumpkin '.$release['name'])->stopServer();
 
+        $backup = null;
         if (! $opens) {
-            // The old world is kept next to the new one, under a name of its own.
+            // The old world moves aside under a name of its own; if anything fails, it comes back.
             $level = WorldVersion::levelName($server);
-            $backup = $level.'-backup-'.now()->format('Ymd-His');
-            $plan->add('rename', ['dir' => dirname($level) === '.' ? '' : dirname($level), 'from' => basename($level), 'to' => basename($backup)])
-                ->onFailure('rename', ['dir' => dirname($level) === '.' ? '' : dirname($level), 'from' => basename($backup), 'to' => basename($level), 'optional' => true, 'ifMissing' => true]);
+            $folder = dirname($level) === '.' ? '' : dirname($level);
+            $backup = ['dir' => $folder, 'name' => basename($level).'-backup-'.now()->format('Ymd-His')];
+            $plan->add('rename', ['dir' => $folder, 'from' => basename($level), 'to' => $backup['name']])
+                ->onFailure('rename', ['dir' => $folder, 'from' => $backup['name'], 'to' => basename($level), 'optional' => true, 'ifMissing' => true]);
         }
 
         $plan->add('variable', ['env' => Detector::PUMPKIN_VARIABLE, 'value' => $release['tag']]);
@@ -246,6 +249,11 @@ class VersionsController extends Controller
                 'installed' => now()->toAtomString(),
             ]])
             ->add('refresh');
+
+        // Without a backup, the old world goes only once the new build is in place.
+        if ($backup !== null && ! $keepBackup) {
+            $plan->add('delete', ['dir' => $backup['dir'], 'files' => [$backup['name']]]);
+        }
 
         if ($start) {
             $plan->add('power', ['action' => 'start']);

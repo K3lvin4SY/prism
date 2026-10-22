@@ -330,6 +330,7 @@ function BuildsDialog({
     const [build, setBuild] = useState<number | null>(initialBuild);
     const [start, setStart] = useState(true);
     const [newWorld, setNewWorld] = useState(false);
+    const [keepBackup, setKeepBackup] = useState(true);
     const [busy, setBusy] = useState(false);
     const setImage = useSetServerDockerImage(server.attributes.uuid);
     const info = overview.info;
@@ -351,7 +352,7 @@ function BuildsDialog({
                 await setImage.mutateAsync({ image: matchingImage[1] });
             }
 
-            onStarted(await installBuild(identifier, chosen.id, start, type, worldBlocked ? { newWorld } : {}));
+            onStarted(await installBuild(identifier, chosen.id, start, type, worldBlocked ? { newWorld, keepBackup } : {}));
         } catch (error) {
             toast.error(httpErrorToHuman(error));
         } finally {
@@ -377,8 +378,16 @@ function BuildsDialog({
                                 server would not start with it.
                             </span>
                             <label className={'mcs:flex mcs:items-center mcs:gap-2'}>
-                                <Checkbox checked={newWorld} onChange={setNewWorld} /> Start a new world. The current one is kept as a backup folder next to it.
+                                <Checkbox checked={newWorld} onChange={setNewWorld} /> Start a new world with this build
                             </label>
+                            <label className={cn('mcs:flex mcs:items-center mcs:gap-2 mcs:pl-6', !newWorld && 'mcs:opacity-50')}>
+                                <Checkbox checked={keepBackup} disabled={!newWorld} onChange={setKeepBackup} /> Keep a backup of the current world
+                            </label>
+                            <span className={'mcs:pl-6 mcs:text-xs mcs:opacity-80'}>
+                                {keepBackup
+                                    ? 'It is renamed to world-backup-<date> next to the new world. Switch back to a newer build and rename it to bring it back.'
+                                    : 'The current world is deleted once the new build is installed. This cannot be undone.'}
+                            </span>
                         </div>
                     </Alert>
                 )}
