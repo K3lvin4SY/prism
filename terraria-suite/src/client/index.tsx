@@ -25,5 +25,10 @@ export default definePterodactylExtension({
         screens.register('player', () => import('./screens/PlayerScreen'), { visible: showFor('players') });
         screens.register('versions', () => import('./screens/VersionsScreen'), { visible: showFor('versions') });
         screens.register('properties', () => import('./screens/SettingsScreen'), { visible: showFor('properties') });
+        // The Panel needs every screen in extension.json to be registered, or it loads none of them.
+        // Tabs still being built register a placeholder and stay hidden until they are in READY.
+        screens.register('world', () => import('./screens/ComingSoonScreen'), { visible: showFor('world') });
+        screens.register('mods', () => import('./screens/ComingSoonScreen'), { visible: showFor('mods') });
+        screens.register('plugins', () => import('./screens/ComingSoonScreen'), { visible: showFor('plugins') });
     },
 });

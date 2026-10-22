@@ -26,13 +26,13 @@ export default function SettingsScreen() {
     };
 
     return (
-        <ServerContentBlock title={'Settings'}>
+        <ServerContentBlock title={'Properties'}>
             {query.isLoading || !info ? (
                 <Spinner centered />
             ) : query.isError || !query.data ? (
                 <Alert type={'danger'}>{httpErrorToHuman(query.error)}</Alert>
             ) : !query.data.exists ? (
-                <Alert type={'info'}>Start the server once so TShock writes its config files. Its settings can be changed here after that.</Alert>
+                <Alert type={'info'}>Start the server once so TShock writes its config files. They can be changed here after that.</Alert>
             ) : (
                 <SettingsBrowser
                     kind={query.data.kind}

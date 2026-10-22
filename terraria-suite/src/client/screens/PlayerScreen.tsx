@@ -151,7 +151,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                         </div>
 
                         {!character ? (
-                            <Alert type={'info'}>This account has no server-side character. Turn on server-side characters in Settings; the character is saved the next time they play.</Alert>
+                            <Alert type={'info'}>This account has no server-side character. Turn on server-side characters in Properties; the character is saved the next time they play.</Alert>
                         ) : (
                             <TitledGreyBox title={'Character'}>
                                 <div className={'trs:flex trs:flex-col trs:gap-4'}>

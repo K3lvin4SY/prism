@@ -143,7 +143,7 @@ export default function PlayersScreen() {
                             ) : (
                                 <div className={'trs:flex trs:flex-col trs:gap-1'}>
                                     {!data.ssc && (
-                                        <p className={'trs:mb-2 trs:text-xs trs:text-muted-foreground'}>Server-side characters are off, so inventories are not kept. Turn them on in Settings.</p>
+                                        <p className={'trs:mb-2 trs:text-xs trs:text-muted-foreground'}>Server-side characters are off, so inventories are not kept. Turn them on in Properties.</p>
                                     )}
                                     {(data.accounts ?? []).map((account) => (
                                         <ListRow key={account.id} destination={{ extension: 'terraria-suite', screen: 'player', params: { id: identifier, player: String(account.id) } }} interactive>

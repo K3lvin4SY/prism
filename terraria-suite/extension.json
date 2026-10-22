@@ -43,8 +43,8 @@
             {
                 "id": "properties",
                 "area": "server",
-                "path": "terraria-settings",
-                "nav": { "label": "Settings", "icon": "sliders-horizontal", "order": 3 },
+                "path": "terraria-properties",
+                "nav": { "label": "Properties", "icon": "sliders-horizontal", "order": 3 },
                 "permission": ["ext.terraria-suite.properties"],
                 "when": { "runtime": true }
             },
