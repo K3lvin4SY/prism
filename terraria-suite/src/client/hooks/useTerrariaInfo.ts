@@ -2,13 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useCurrentServerRequired, type SdkServer } from '@pterodactyl/sdk';
 import { getInfo, keys, type Feature, type TerrariaInfo } from '../api/client';
 
-/** Only servers whose egg could be Terraria ask the backend: tagged TRIA, or named after it. */
+/** Terraria Suite only works on servers whose egg has the Terraria tag (slug "TRIA" or "terraria"). */
 export function mightBeTerraria(server: SdkServer | undefined): boolean {
-    const attributes = server?.attributes;
-    const tags = (attributes?.egg_tags ?? []).map((tag) => tag.toLowerCase());
-    const text = `${attributes?.invocation ?? ''}`.toLowerCase();
-
-    return tags.includes('tria') || tags.includes('terraria') || /terraria|tshock|tmodloader/.test(text);
+    return (server?.attributes.egg_tags ?? []).some((tag) => ['tria', 'terraria'].includes(tag.toLowerCase()));
 }
 
 export function useTerrariaInfoFor(server: SdkServer | undefined) {

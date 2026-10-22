@@ -53,9 +53,6 @@ final class Detector
         'bedrock' => 'bedrock',
     ];
 
-    /** Egg tags of other games: a server tagged only with these is never Minecraft. */
-    private const array OTHER_GAMES = ['srcds', 'rust', 'garrysmod', 'fivem', 'voice'];
-
     public function __construct(private readonly Server $server) {}
 
     public static function for(Server $server): self
@@ -92,6 +89,11 @@ final class Detector
         $record = Settings::server($this->server)->get('software');
         $record = is_array($record) ? $record : null;
 
+        // Only servers whose egg carries the Minecraft tag are MC Suite's; every other game is left alone.
+        if (! in_array('minecraft', $tags, true)) {
+            return $this->result(null, 'egg');
+        }
+
         if ($override === 'off') {
             return $this->result(null, 'override');
         }
@@ -107,10 +109,6 @@ final class Detector
 
         if (in_array('bedrock', $tags, true)) {
             return $this->result('bedrock', 'egg', $record);
-        }
-
-        if (! in_array('minecraft', $tags, true) && array_intersect($tags, self::OTHER_GAMES) !== []) {
-            return $this->result(null, 'egg');
         }
 
         if (is_string($record['software'] ?? null) && isset(self::SOFTWARE[$record['software']])) {

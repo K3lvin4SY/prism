@@ -2,13 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useCurrentServerRequired, type SdkServer } from '@pterodactyl/sdk';
 import { getInfo, keys, type Feature, type McInfo } from '../api/client';
 
-/** Egg tags of other games: a server tagged only with these never asks the backend. */
-const OTHER_GAMES = ['srcds', 'rust', 'garrysmod', 'fivem', 'voice'];
-
+/** MC Suite only works on servers whose egg has the Minecraft tag. */
 export function mightBeMinecraft(server: SdkServer | undefined): boolean {
-    const tags = (server?.attributes.egg_tags ?? []).map((tag) => tag.toLowerCase());
-
-    return tags.includes('minecraft') || tags.includes('bedrock') || !tags.some((tag) => OTHER_GAMES.includes(tag));
+    return (server?.attributes.egg_tags ?? []).some((tag) => tag.toLowerCase() === 'minecraft');
 }
 
 export function useMcInfoFor(server: SdkServer | undefined) {

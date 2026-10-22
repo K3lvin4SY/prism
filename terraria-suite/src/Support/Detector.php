@@ -57,6 +57,15 @@ final class Detector
     private function detect(): array
     {
         $egg = $this->server->egg;
+
+        // Only servers whose egg carries the Terraria tag are Terraria Suite's; every other game is left alone.
+        $tagged = $egg !== null && $egg->tags->contains(
+            static fn ($tag): bool => strcasecmp((string) $tag->name, 'terraria') === 0 || in_array(strtolower((string) $tag->slug), ['terraria', 'tria'], true),
+        );
+        if (! $tagged) {
+            return $this->result(null, 'egg');
+        }
+
         $override = Settings::eggType($egg);
         if ($override === 'off') {
             return $this->result(null, 'override');
