@@ -1,0 +1,11 @@
+{
+    "description": "Your own favicon and logo for the panel.",
+    "autoload": {
+        "psr-4": {
+            "PrismBranding\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismBrandingExtension"
+    }
+}

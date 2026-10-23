@@ -1,0 +1,56 @@
+@import 'tailwindcss/theme.css' layer(theme) prefix(pbr);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(pbr);
+@import '@pterodactyl/sdk/theme.css';
+@source './**/*.{ts,tsx}';
+
+/*
+ * Global rules, outside the Tailwind layers. Branding.apply() sets the tokens and the
+ * data-pbr-* attributes on <html>.
+ */
+
+/* The logo in the top bar, at the admin's height. */
+html[data-pbr-logo] #logo img {
+    height: var(--pbr-logo-height, 2rem);
+    width: auto;
+    max-width: 100%;
+}
+
+/* "Beside the name": the company name follows the logo. */
+html[data-pbr-logo='beside'] #logo a:has(> img) {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+html[data-pbr-logo='beside'] #logo a:has(> img)::after {
+    content: var(--pbr-name, '');
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The sign-in pages: the logo, or nothing, in place of the Pterodactyl mascot. */
+html[data-pbr-login='logo'] svg[aria-label='Pterodactyl'],
+html[data-pbr-login='none'] div:has(> svg[aria-label='Pterodactyl']) {
+    display: none;
+}
+
+html[data-pbr-login='logo'] div:has(> svg[aria-label='Pterodactyl']) {
+    width: var(--pbr-login-size, 10rem);
+    height: var(--pbr-login-size, 10rem);
+    max-width: 100%;
+    margin-inline: auto;
+    background: var(--brand-logo) center / contain no-repeat;
+}
+
+@media (min-width: 768px) {
+    html[data-pbr-login='logo'] div:has(> svg[aria-label='Pterodactyl']) {
+        margin-inline: 3rem;
+    }
+
+    /* The card leaves no left padding for the mascot; put some back when it is gone. */
+    html[data-pbr-login='none'] div:has(> div > svg[aria-label='Pterodactyl']) {
+        padding-left: 1.5rem;
+    }
+}

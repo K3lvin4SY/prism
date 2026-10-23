@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Input, NamedIcon, NumberInput, PageContentBlock, Select, Spinner, TextArea, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
-import { PRISM, getSettings, saveSettings, settingsKey, type PrismExtension, type PrismId, type SettingField } from './api';
+import { PRISM, getSettings, refresh, saveSettings, setSettingFile, settingsKey, type PrismExtension, type PrismId, type SettingField } from './api';
+import BrandingPreview from './BrandingPreview';
 import { HighlightsEditor, KeybindsEditor, LinesEditor, QuickCommandsEditor, ToggleRow } from './editors';
 import { HINTS, type Hint } from './hints';
 
@@ -26,7 +27,7 @@ export default function PropertiesScreen() {
                 {loading && installed.length === 0 ? (
                     <Spinner centered />
                 ) : installed.length === 0 ? (
-                    <Alert type={'info'}>No Prism extensions are installed and enabled. Install PrismConsole, Prism File Browser or Prism Database Manager to change their settings here.</Alert>
+                    <Alert type={'info'}>No Prism extensions are installed and enabled. Install PrismConsole, Prism File Browser, Prism Database Manager or Prism Branding to change their settings here.</Alert>
                 ) : (
                     <>
                         {installed.length > 1 && (
@@ -78,6 +79,7 @@ function ExtensionSettings({ extension, schema }: { extension: PrismExtension; s
         setSaving(true);
         try {
             const fresh = await saveSettings(extension.id, draft);
+            await refresh(extension.id);
             queryClient.setQueryData(settingsKey(extension.id), fresh);
             setDraft({});
             toast.success(`${extension.name} settings saved. People see them the next time they load a page.`);
@@ -116,13 +118,19 @@ function ExtensionSettings({ extension, schema }: { extension: PrismExtension; s
                 ))}
             </div>
 
+            {extension.id === 'prism-branding' && <BrandingPreview schema={schema} draft={draft} tab={tab} />}
+
             {sections.map((section) => (
                 <section key={section.title} className={'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
                     <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>{section.title}</h3>
                     <div className={'ppx:flex ppx:flex-col ppx:divide-y ppx:divide-border'}>
                         {section.fields.map((field) => (
                             <div key={field.input} className={'ppx:px-4 ppx:py-3'}>
-                                <Field field={field} hint={hints[field.input] ?? {}} value={value(field)} onChange={(next) => change(field, next)} />
+                                {field.field === 'file' ? (
+                                    <FileField extension={extension} field={field} onSchema={(fresh) => queryClient.setQueryData(settingsKey(extension.id), fresh)} />
+                                ) : (
+                                    <Field field={field} hint={hints[field.input] ?? {}} value={value(field)} onChange={(next) => change(field, next)} />
+                                )}
                             </div>
                         ))}
                     </div>
@@ -160,6 +168,47 @@ function Label({ field, aside }: { field: SettingField; aside?: React.ReactNode 
             </div>
             {aside}
         </div>
+    );
+}
+
+/** A file setting: uploaded or removed straight away, outside the unsaved changes. */
+function FileField({ extension, field, onSchema }: { extension: PrismExtension; field: SettingField; onSchema: (schema: SettingField[]) => void }) {
+    const input = useRef<HTMLInputElement>(null);
+    const [busy, setBusy] = useState(false);
+    const current = typeof field.value === 'string' && field.value !== '' ? field.value : null;
+
+    const send = async (file: File | null) => {
+        setBusy(true);
+        try {
+            onSchema(await setSettingFile(extension.id, field.input, file));
+            await refresh(extension.id);
+            toast.success(file ? `${field.label} uploaded.` : `${field.label} removed.`);
+        } catch (error) {
+            toast.error(httpErrorToHuman(error));
+        } finally {
+            setBusy(false);
+            if (input.current) input.current.value = '';
+        }
+    };
+
+    return (
+        <>
+            <Label field={field} />
+            <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-3'}>
+                <div className={'ppx:flex ppx:h-16 ppx:min-w-16 ppx:max-w-64 ppx:items-center ppx:justify-center ppx:rounded-md ppx:border ppx:border-dashed ppx:border-border ppx:bg-muted/40 ppx:p-2'}>
+                    {current ? <img src={current} alt={field.label} className={'ppx:max-h-12 ppx:max-w-60 ppx:object-contain'} /> : <NamedIcon name={'image'} size={20} className={'ppx:text-muted-foreground'} />}
+                </div>
+                <input ref={input} type={'file'} accept={'image/*,.ico'} className={'ppx:hidden'} onChange={(event) => event.target.files?.[0] && void send(event.target.files[0])} />
+                <Button isSecondary size={'small'} isLoading={busy} onClick={() => input.current?.click()}>
+                    <NamedIcon name={'upload'} size={14} /> {current ? 'Replace' : 'Upload'}
+                </Button>
+                {current && (
+                    <Button.Danger isSecondary size={'small'} disabled={busy} onClick={() => void send(null)}>
+                        Remove
+                    </Button.Danger>
+                )}
+            </div>
+        </>
     );
 }
 
