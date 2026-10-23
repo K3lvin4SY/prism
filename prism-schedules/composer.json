@@ -1,0 +1,11 @@
+{
+    "description": "Better schedules with countdowns, triggers, conditions and run history.",
+    "autoload": {
+        "psr-4": {
+            "PrismSchedules\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismSchedulesExtension"
+    }
+}

@@ -74,6 +74,12 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         restore_max_mb: { slider: { min: 1, max: 20480, step: 1, unit: ' MB' } },
         cache_hours: { slider: { min: 1, max: 72, unit: ' h' } },
     },
+    'prism-schedules': {
+        default_view: { segmented: true },
+        max_schedules: { slider: { min: 1, max: 200 } },
+        max_steps: { slider: { min: 1, max: 200 } },
+        history_days: { slider: { min: 1, max: 90, unit: ' days' } },
+    },
 };
 
 /** PrismConsole's built-in highlight rules, in the order they are listed. */

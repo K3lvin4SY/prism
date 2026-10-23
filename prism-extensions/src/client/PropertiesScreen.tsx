@@ -27,7 +27,7 @@ export default function PropertiesScreen() {
                 {loading && installed.length === 0 ? (
                     <Spinner centered />
                 ) : installed.length === 0 ? (
-                    <Alert type={'info'}>No Prism extensions are installed and enabled. Install PrismConsole, Prism File Browser, Prism Database Manager, Prism Branding or Prism Backups to change their settings here.</Alert>
+                    <Alert type={'info'}>No Prism extensions are installed and enabled. Install PrismConsole, Prism File Browser, Prism Database Manager, Prism Branding, Prism Backups or Prism Schedules to change their settings here.</Alert>
                 ) : (
                     <>
                         {installed.length > 1 && (
@@ -232,7 +232,7 @@ function Field({ field, hint, value, onChange }: { field: SettingField; hint: Hi
                     value={number}
                     onChange={(event) => onChange(Number(event.target.value))}
                     className={'ppx:w-full ppx:cursor-pointer'}
-                    style={{ accentColor: 'var(--color-primary)' }}
+                    style={{ accentColor: 'var(--primary)' }}
                     aria-label={field.label}
                 />
             </>

@@ -1,0 +1,23 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-schedules",
+    "name": "Prism Schedules",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3"
+    },
+    "description": "Better schedules: countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets, a week calendar and run history with live progress.",
+    "author": "Donkare",
+    "icon": "calendar-clock",
+    "provider": "PrismSchedules\\PrismSchedulesProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "psc",
+        "views": [
+            "server.schedules"
+        ]
+    }
+}
