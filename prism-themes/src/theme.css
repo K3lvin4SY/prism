@@ -1,0 +1,439 @@
+/* The panel stylesheet with every class the panel uses, then Prism Themes'. Plain Tailwind: no prefix. */
+@import '@pterodactyl/sdk/theme-entry.css';
+@import './palettes.css';
+@source './**/*.{ts,tsx}';
+
+/*
+ * Colour. A palette sets --pt-h (hue) and --pt-c (strength); every role token is worked out from
+ * them, for dark and light. "Tint the greys" sets how much hue the neutral surfaces carry.
+ */
+:where(:root) {
+    --pt-h: 255;
+    --pt-c: 0.17;
+    --pt-n: calc(var(--pt-c) * 0.12);
+    --radius: var(--pt-radius, 10px);
+    --layout-sidebar-width: var(--pt-sidebar-width, 16rem);
+    --pt-card-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+}
+
+[data-pt-tint='none'] {
+    --pt-n: 0;
+}
+
+[data-pt-tint='strong'] {
+    --pt-n: calc(var(--pt-c) * 0.28);
+}
+
+/* Monochrome drops the colour everywhere but keeps the palette's hue in the greys. */
+[data-pt-look='mono'] {
+    --pt-c: 0;
+}
+
+.dark {
+    --background: oklch(0.165 var(--pt-n) var(--pt-h));
+    --foreground: oklch(0.95 calc(var(--pt-n) * 0.3) var(--pt-h));
+    --card: oklch(0.205 var(--pt-n) var(--pt-h));
+    --card-foreground: var(--foreground);
+    --popover: oklch(0.235 var(--pt-n) var(--pt-h));
+    --popover-foreground: var(--foreground);
+    --muted: oklch(0.25 var(--pt-n) var(--pt-h));
+    --muted-foreground: oklch(0.72 calc(var(--pt-n) * 1.2) var(--pt-h));
+    --secondary: oklch(0.28 var(--pt-n) var(--pt-h));
+    --secondary-foreground: var(--foreground);
+    --sunken: oklch(0.145 var(--pt-n) var(--pt-h));
+    --border: oklch(0.3 var(--pt-n) var(--pt-h));
+    --input: oklch(0.22 var(--pt-n) var(--pt-h));
+    --input-border: oklch(0.33 var(--pt-n) var(--pt-h));
+    --primary: oklch(0.64 var(--pt-c) var(--pt-h));
+    --primary-foreground: oklch(0.99 0 0);
+    --accent: oklch(0.74 var(--pt-c) var(--pt-h));
+    --accent-foreground: oklch(0.18 0.02 var(--pt-h));
+    --ring: oklch(0.64 var(--pt-c) var(--pt-h) / 0.6);
+    --sidebar: oklch(0.185 var(--pt-n) var(--pt-h));
+    --sidebar-foreground: var(--foreground);
+    --sidebar-border: var(--border);
+    --sidebar-accent: oklch(0.26 calc(var(--pt-n) + var(--pt-c) * 0.15) var(--pt-h));
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --terminal-background: oklch(0.13 var(--pt-n) var(--pt-h));
+    --pt-card-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+}
+
+.light {
+    --background: oklch(0.975 var(--pt-n) var(--pt-h));
+    --foreground: oklch(0.21 calc(var(--pt-n) * 0.6) var(--pt-h));
+    --card: oklch(1 0 0);
+    --card-foreground: var(--foreground);
+    --popover: oklch(1 0 0);
+    --popover-foreground: var(--foreground);
+    --muted: oklch(0.95 var(--pt-n) var(--pt-h));
+    --muted-foreground: oklch(0.5 calc(var(--pt-n) * 1.2) var(--pt-h));
+    --secondary: oklch(0.93 var(--pt-n) var(--pt-h));
+    --secondary-foreground: var(--foreground);
+    --sunken: oklch(0.955 var(--pt-n) var(--pt-h));
+    --border: oklch(0.9 var(--pt-n) var(--pt-h));
+    --input: oklch(1 0 0);
+    --input-border: oklch(0.86 var(--pt-n) var(--pt-h));
+    --primary: oklch(0.56 var(--pt-c) var(--pt-h));
+    --primary-foreground: oklch(0.99 0 0);
+    --accent: oklch(0.5 var(--pt-c) var(--pt-h));
+    --accent-foreground: oklch(0.99 0 0);
+    --ring: oklch(0.56 var(--pt-c) var(--pt-h) / 0.5);
+    --sidebar: oklch(0.96 var(--pt-n) var(--pt-h));
+    --sidebar-foreground: var(--foreground);
+    --sidebar-border: var(--border);
+    --sidebar-accent: oklch(0.92 calc(var(--pt-n) + var(--pt-c) * 0.2) var(--pt-h));
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --pt-card-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+
+/* Custom: the chosen colour as it is, with neutrals in its general direction. */
+[data-pt-palette='custom'] {
+    --pt-h: 265;
+    --pt-c: 0.12;
+}
+
+[data-pt-palette='custom'].dark {
+    --primary: var(--pt-accent, #6366f1);
+    --accent: color-mix(in oklab, var(--pt-accent, #6366f1) 75%, white);
+}
+
+[data-pt-palette='custom'].light {
+    --primary: var(--pt-accent, #6366f1);
+    --accent: color-mix(in oklab, var(--pt-accent, #6366f1) 85%, black);
+}
+
+/* #region looks */
+[data-pt-look='contrast'].dark {
+    --foreground: oklch(1 0 0);
+    --muted-foreground: oklch(0.86 0 0);
+    --border: oklch(0.62 var(--pt-n) var(--pt-h));
+    --input-border: oklch(0.7 var(--pt-n) var(--pt-h));
+    --background: oklch(0.08 0 0);
+    --card: oklch(0.13 0 0);
+    --sidebar: oklch(0.1 0 0);
+}
+
+[data-pt-look='contrast'].light {
+    --foreground: oklch(0 0 0);
+    --muted-foreground: oklch(0.3 0 0);
+    --border: oklch(0.45 0 0);
+    --input-border: oklch(0.4 0 0);
+}
+
+[data-pt-look='midnight'].dark {
+    --background: oklch(0.12 calc(var(--pt-n) + 0.02) var(--pt-h));
+    --card: oklch(0.16 calc(var(--pt-n) + 0.02) var(--pt-h));
+    --sidebar: oklch(0.1 calc(var(--pt-n) + 0.02) var(--pt-h));
+    --border: oklch(0.24 calc(var(--pt-n) + 0.02) var(--pt-h));
+}
+
+[data-pt-look='paper'] {
+    --pt-card-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 4px 16px rgb(0 0 0 / 0.08);
+}
+
+[data-pt-look='paper'].light {
+    --background: oklch(0.965 0.012 85);
+    --card: oklch(0.995 0.006 85);
+    --sidebar: oklch(0.945 0.015 85);
+    --border: oklch(0.88 0.015 85);
+}
+
+[data-pt-look='terminal'] {
+    --radius: 2px;
+    --font-sans: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    --font-header: var(--font-sans);
+}
+
+[data-pt-look='soft'] {
+    --pt-card-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
+}
+
+[data-pt-look='soft'] .pt-surface {
+    border-color: transparent;
+}
+
+[data-pt-look='neon'] .pt-surface {
+    border-color: color-mix(in oklab, var(--primary) 45%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 20%, transparent), 0 0 24px color-mix(in oklab, var(--primary) 18%, transparent);
+}
+
+[data-pt-look='studio_classic'] .pt-surface {
+    box-shadow: none;
+}
+/* #endregion looks */
+
+/* #region shape */
+[data-pt-density='compact'] {
+    --spacing: 0.21rem;
+}
+
+[data-pt-density='comfortable'] {
+    --spacing: 0.27rem;
+}
+
+[data-pt-width='wide'] {
+    --layout-content-width: 96rem;
+}
+
+[data-pt-width='full'] {
+    --layout-content-width: 100%;
+}
+
+[data-pt-font='system'] {
+    --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-header: var(--font-sans);
+}
+
+[data-pt-font='rounded'] {
+    --font-sans: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Varela Round', system-ui, sans-serif;
+    --font-header: var(--font-sans);
+}
+
+[data-pt-font='serif'] {
+    --font-sans: ui-serif, Georgia, 'Times New Roman', serif;
+    --font-header: var(--font-sans);
+}
+
+[data-pt-font='mono'] {
+    --font-sans: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    --font-header: var(--font-sans);
+}
+
+html {
+    font-size: var(--pt-font-size, 16px);
+}
+/* #endregion shape */
+
+/* #region surfaces */
+.pt-surface {
+    box-shadow: var(--pt-card-shadow);
+}
+
+[data-pt-glass='true'] .pt-surface,
+[data-pt-glass='true'] .pt-bar {
+    background-color: color-mix(in oklab, var(--card) 62%, transparent);
+    border-color: color-mix(in oklab, var(--foreground) 12%, transparent);
+    backdrop-filter: blur(var(--pt-blur, 14px)) saturate(1.35);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    [data-pt-glass='true'] .pt-surface,
+    [data-pt-glass='true'] .pt-bar {
+        background-color: var(--card);
+        backdrop-filter: none;
+    }
+}
+/* #endregion surfaces */
+
+/* #region background */
+body {
+    background: var(--background);
+}
+
+.pt-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+[data-pt-bg='gradient'] .pt-bg {
+    background:
+        radial-gradient(60rem 40rem at 0% -10%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 70%),
+        radial-gradient(50rem 30rem at 110% 0%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%);
+}
+
+[data-pt-bg='grid'] .pt-bg {
+    background-image:
+        linear-gradient(color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(ellipse at top, black 30%, transparent 80%);
+}
+
+[data-pt-bg='image'] .pt-bg {
+    background: var(--pt-bg-image, none) center / cover no-repeat;
+}
+
+[data-pt-bg='image'] .pt-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--background);
+    opacity: var(--pt-bg-dim, 55%);
+}
+
+/* Aurora: three slow blobs of the colour drifting about. */
+[data-pt-bg='aurora'] .pt-bg::before,
+[data-pt-bg='aurora'] .pt-bg::after,
+[data-pt-bg='aurora'] .pt-bg > i {
+    content: '';
+    position: absolute;
+    width: 60vmax;
+    height: 60vmax;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.32;
+    animation: pt-drift 28s ease-in-out infinite alternate;
+}
+
+[data-pt-bg='aurora'] .pt-bg::before {
+    background: var(--primary);
+    top: -25vmax;
+    left: -15vmax;
+}
+
+[data-pt-bg='aurora'] .pt-bg::after {
+    background: var(--accent);
+    bottom: -30vmax;
+    right: -20vmax;
+    animation-duration: 36s;
+    animation-direction: alternate-reverse;
+}
+
+[data-pt-bg='aurora'] .pt-bg > i {
+    background: oklch(0.6 var(--pt-c) calc(var(--pt-h) + 60));
+    top: 30%;
+    left: 40%;
+    width: 40vmax;
+    height: 40vmax;
+    opacity: 0.2;
+    animation-duration: 44s;
+}
+
+@keyframes pt-drift {
+    from {
+        transform: translate(0, 0) scale(1);
+    }
+    to {
+        transform: translate(12vmax, 8vmax) scale(1.15);
+    }
+}
+
+/* Waves: bands of colour rolling sideways along the bottom. */
+[data-pt-bg='waves'] .pt-bg::before,
+[data-pt-bg='waves'] .pt-bg::after {
+    content: '';
+    position: absolute;
+    left: -50%;
+    width: 200%;
+    height: 40vh;
+    bottom: -10vh;
+    background: radial-gradient(50% 60% at 50% 100%, color-mix(in oklab, var(--primary) 30%, transparent), transparent 70%);
+    border-radius: 45%;
+    animation: pt-wave 18s linear infinite;
+}
+
+[data-pt-bg='waves'] .pt-bg::after {
+    bottom: -18vh;
+    background: radial-gradient(50% 60% at 50% 100%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 70%);
+    animation-duration: 26s;
+    animation-direction: reverse;
+}
+
+@keyframes pt-wave {
+    from {
+        transform: translateX(0) rotate(0deg);
+    }
+    to {
+        transform: translateX(25%) rotate(360deg);
+    }
+}
+
+/* Stars: two layers of dots that twinkle out of step. */
+[data-pt-bg='stars'] .pt-bg::before,
+[data-pt-bg='stars'] .pt-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(1.5px 1.5px at 20% 30%, var(--foreground), transparent),
+        radial-gradient(1px 1px at 70% 20%, var(--foreground), transparent),
+        radial-gradient(1.2px 1.2px at 40% 80%, var(--foreground), transparent),
+        radial-gradient(1px 1px at 85% 65%, var(--foreground), transparent),
+        radial-gradient(1.4px 1.4px at 10% 75%, var(--accent), transparent),
+        radial-gradient(1px 1px at 55% 50%, var(--foreground), transparent);
+    background-size: 280px 280px;
+    opacity: 0.45;
+    animation: pt-twinkle 6s ease-in-out infinite alternate;
+}
+
+[data-pt-bg='stars'] .pt-bg::after {
+    background-size: 420px 420px;
+    background-position: 140px 90px;
+    animation-delay: -3s;
+}
+
+@keyframes pt-twinkle {
+    from {
+        opacity: 0.15;
+    }
+    to {
+        opacity: 0.55;
+    }
+}
+/* #endregion background */
+
+/* #region motion */
+[data-pt-motion='reduced'] .pt-bg *,
+[data-pt-motion='reduced'] .pt-bg::before,
+[data-pt-motion='reduced'] .pt-bg::after {
+    animation: none !important;
+}
+
+[data-pt-motion='none'] *,
+[data-pt-motion='none'] *::before,
+[data-pt-motion='none'] *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pt-bg::before,
+    .pt-bg::after,
+    .pt-bg > i {
+        animation: none !important;
+    }
+}
+/* #endregion motion */
+
+/* #region dock */
+.pt-dock-item {
+    transition: transform 150ms ease, margin 150ms ease;
+    transform-origin: bottom center;
+}
+
+[data-pt-magnify='true'] .pt-dock:hover .pt-dock-item:hover {
+    transform: scale(1.45) translateY(-6px);
+    margin: 0 10px;
+}
+
+[data-pt-magnify='true'] .pt-dock:hover .pt-dock-item:hover + .pt-dock-item,
+[data-pt-magnify='true'] .pt-dock:hover .pt-dock-item:has(+ .pt-dock-item:hover) {
+    transform: scale(1.2) translateY(-3px);
+    margin: 0 5px;
+}
+/* #endregion dock */
+
+/* #region cards */
+.pt-card-banner {
+    background:
+        linear-gradient(to bottom, transparent, var(--card)),
+        var(--pt-card-image, none) center / cover,
+        repeating-linear-gradient(135deg, color-mix(in oklab, var(--pt-egg, var(--primary)) 30%, transparent) 0 12px, color-mix(in oklab, var(--pt-egg, var(--primary)) 18%, transparent) 12px 24px);
+}
+
+.pt-card-neon {
+    border-color: color-mix(in oklab, var(--pt-egg, var(--primary)) 55%, transparent);
+    box-shadow: 0 0 22px color-mix(in oklab, var(--pt-egg, var(--primary)) 22%, transparent), inset 0 0 18px color-mix(in oklab, var(--pt-egg, var(--primary)) 8%, transparent);
+}
+
+.pt-card-tile {
+    background: linear-gradient(160deg, color-mix(in oklab, var(--pt-egg, var(--primary)) 16%, var(--card)), var(--card) 60%);
+}
+/* #endregion cards */

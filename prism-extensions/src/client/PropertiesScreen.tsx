@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useQueries, useQueryClient } from '@tanstack/react-query';
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Input, NamedIcon, NumberInput, PageContentBlock, Select, Spinner, TextArea, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { PRISM, getSettings, refresh, saveSettings, setSettingFile, settingsKey, type PrismExtension, type PrismId, type SettingField } from './api';
 import BrandingPreview from './BrandingPreview';
+import { THEME_ID, themeApi, themeKeys } from './themes/api';
+import ThemeEditor from './themes/ThemeEditor';
 import { HighlightsEditor, KeybindsEditor, LinesEditor, QuickCommandsEditor, ToggleRow } from './editors';
 import { HINTS, type Hint } from './hints';
 
@@ -17,8 +19,12 @@ export default function PropertiesScreen() {
     const installed = PRISM.map((extension, index) => ({ extension, query: results[index] })).filter(({ query }) => query.data);
     const loading = results.some((query) => query.isLoading);
     const failed = results.find((query) => query.isError);
-    const [selected, setSelected] = useState<PrismId | null>(null);
-    const current = installed.find(({ extension }) => extension.id === selected) ?? installed[0];
+    // Prism Themes is a theme, not an extension with settings, so it is found in the themes list.
+    const themes = useQuery({ queryKey: themeKeys.themes, queryFn: themeApi.themes, staleTime: 30_000 });
+    const hasTheme = !!themes.data?.themes.some((theme) => theme.id === THEME_ID && theme.enabled);
+    const [selected, setSelected] = useState<PrismId | typeof THEME_ID | null>(null);
+    const themeOpen = hasTheme && (selected === THEME_ID || installed.length === 0);
+    const current = themeOpen ? undefined : (installed.find(({ extension }) => extension.id === selected) ?? installed[0]);
 
     return (
         <PageContentBlock title={'Prism Properties'}>
@@ -26,19 +32,25 @@ export default function PropertiesScreen() {
                 {failed && <Alert type={'danger'}>{httpErrorToHuman(failed.error)}</Alert>}
                 {loading && installed.length === 0 ? (
                     <Spinner centered />
-                ) : installed.length === 0 ? (
-                    <Alert type={'info'}>No Prism extensions are installed and enabled. Install PrismConsole, Prism File Browser, Prism Database Manager, Prism Branding, Prism Backups or Prism Schedules to change their settings here.</Alert>
+                ) : installed.length === 0 && !hasTheme ? (
+                    <Alert type={'info'}>No Prism extensions are installed and enabled. Install PrismConsole, Prism File Browser, Prism Database Manager, Prism Branding, Prism Backups, Prism Schedules or Prism Themes to change their settings here.</Alert>
                 ) : (
                     <>
-                        {installed.length > 1 && (
+                        {installed.length + (hasTheme ? 1 : 0) > 1 && (
                             <div className={'ppx:flex ppx:flex-wrap ppx:gap-1 ppx:self-start ppx:rounded-full ppx:border ppx:border-border ppx:bg-card ppx:p-1'}>
                                 {installed.map(({ extension }) => (
-                                    <button key={extension.id} type={'button'} className={pill(current?.extension.id === extension.id)} onClick={() => setSelected(extension.id)}>
+                                    <button key={extension.id} type={'button'} className={pill(!themeOpen && current?.extension.id === extension.id)} onClick={() => setSelected(extension.id)}>
                                         <NamedIcon name={extension.icon} size={14} /> {extension.name}
                                     </button>
                                 ))}
+                                {hasTheme && (
+                                    <button type={'button'} className={pill(themeOpen)} onClick={() => setSelected(THEME_ID)}>
+                                        <NamedIcon name={'palette'} size={14} /> Prism Themes
+                                    </button>
+                                )}
                             </div>
                         )}
+                        {themeOpen && <ThemeEditor />}
                         {current && <ExtensionSettings key={current.extension.id} extension={current.extension} schema={current.query.data!} />}
                     </>
                 )}
