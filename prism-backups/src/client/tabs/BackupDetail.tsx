@@ -226,10 +226,10 @@ function Picker({ model, backup, entries, onRestored }: { model: Model; backup: 
                     <div className={'pbk:flex pbk:flex-wrap pbk:items-center pbk:gap-x-5 pbk:gap-y-2 pbk:text-sm'}>
                         <span className={'pbk:font-medium'}>Put them</span>
                         <label className={'pbk:flex pbk:cursor-pointer pbk:items-center pbk:gap-2'}>
-                            <input type={'radio'} checked={where === 'folder'} onChange={() => setWhere('folder')} style={{ accentColor: 'var(--color-primary)' }} /> into a folder
+                            <input type={'radio'} checked={where === 'folder'} onChange={() => setWhere('folder')} style={{ accentColor: 'var(--primary)' }} /> into a folder
                         </label>
                         <label className={'pbk:flex pbk:cursor-pointer pbk:items-center pbk:gap-2'}>
-                            <input type={'radio'} checked={where === 'original'} onChange={() => setWhere('original')} style={{ accentColor: 'var(--color-primary)' }} /> where they were, replacing what is there
+                            <input type={'radio'} checked={where === 'original'} onChange={() => setWhere('original')} style={{ accentColor: 'var(--primary)' }} /> where they were, replacing what is there
                         </label>
                     </div>
                     {where === 'folder' && <Input value={folder} onChange={(event) => setFolder(event.target.value)} className={'pbk:max-w-md pbk:font-mono'} aria-label={'Folder'} />}

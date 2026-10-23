@@ -21,7 +21,7 @@
 }
 
 .pcn-line-current {
-    background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+    background: color-mix(in oklab, var(--primary) 12%, transparent);
 }
 
 .pcn-match {

@@ -78,7 +78,7 @@ export default function SettingsDialog({ preferences, terminal, layout, onChange
                                 <span className={'pcn:flex pcn:justify-between'}>
                                     Text size <span className={'pcn:tabular-nums pcn:text-muted-foreground'}>{terminal.fontSize}px</span>
                                 </span>
-                                <input type={'range'} min={9} max={24} value={terminal.fontSize} onChange={(event) => setTerminal({ fontSize: Number(event.target.value) })} style={{ accentColor: 'var(--color-primary)' }} />
+                                <input type={'range'} min={9} max={24} value={terminal.fontSize} onChange={(event) => setTerminal({ fontSize: Number(event.target.value) })} style={{ accentColor: 'var(--primary)' }} />
                             </label>
                             <div className={'pcn:flex pcn:flex-col pcn:gap-1 pcn:text-sm'}>
                                 Line height

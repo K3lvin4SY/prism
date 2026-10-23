@@ -91,7 +91,7 @@ export default function BackupsTab({ database }: { database: PrismDatabase }) {
                             <Pills size={'sm'} value={schedule.interval} onChange={(interval) => saveSchedule({ ...schedule, interval })} options={INTERVALS.map((interval) => ({ value: interval.value, label: interval.label, disabled: interval.hours < fastest || !canUpdate }))} />
                             <label className={'pdb:flex pdb:flex-col pdb:gap-1 pdb:text-sm'}>
                                 <span>Keep the newest {schedule.keep}</span>
-                                <input type={'range'} min={1} max={config.backupMaxKeep} value={schedule.keep} disabled={!canUpdate} onChange={(event) => setSchedule({ ...schedule, keep: Number(event.target.value) })} onMouseUp={() => saveSchedule(schedule)} onTouchEnd={() => saveSchedule(schedule)} style={{ accentColor: 'var(--color-primary)' }} />
+                                <input type={'range'} min={1} max={config.backupMaxKeep} value={schedule.keep} disabled={!canUpdate} onChange={(event) => setSchedule({ ...schedule, keep: Number(event.target.value) })} onMouseUp={() => saveSchedule(schedule)} onTouchEnd={() => saveSchedule(schedule)} style={{ accentColor: 'var(--primary)' }} />
                             </label>
                             <p className={'pdb:text-xs pdb:text-muted-foreground'}>
                                 Older automatic and manual backups are removed. Locked backups are always kept.

@@ -66,7 +66,7 @@ export default function IgnoreTab() {
                     <div className={'pbk:flex pbk:flex-col pbk:gap-3'}>
                         <Input value={path} onChange={(event) => setPath(event.target.value)} placeholder={'world/region/r.0.0.mca'} className={'pbk:font-mono'} aria-label={'Path to test'} />
                         <label className={'pbk:flex pbk:cursor-pointer pbk:items-center pbk:gap-2 pbk:text-sm'}>
-                            <input type={'checkbox'} checked={folder} onChange={(event) => setFolder(event.target.checked)} style={{ accentColor: 'var(--color-primary)' }} /> It is a folder
+                            <input type={'checkbox'} checked={folder} onChange={(event) => setFolder(event.target.checked)} style={{ accentColor: 'var(--primary)' }} /> It is a folder
                         </label>
                         {decision && (
                             <div className={cn('pbk:flex pbk:items-start pbk:gap-3 pbk:rounded-lg pbk:p-3', decision.ignored ? 'pbk:bg-destructive/10' : 'pbk:bg-green-500/10')}>

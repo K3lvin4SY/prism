@@ -59,7 +59,7 @@ export function Check({ checked, partial, disabled, onChange, label }: { checked
             onChange={(event) => onChange(event.target.checked)}
             onClick={(event) => event.stopPropagation()}
             className={'pbk:size-4 pbk:shrink-0 pbk:cursor-pointer pbk:disabled:cursor-not-allowed'}
-            style={{ accentColor: 'var(--color-primary)' }}
+            style={{ accentColor: 'var(--primary)' }}
         />
     );
 }

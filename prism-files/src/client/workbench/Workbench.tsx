@@ -333,7 +333,7 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                                 title={tab.path}
                                 className={cn(
                                     'pfl:group pfl:flex pfl:shrink-0 pfl:cursor-pointer pfl:items-center pfl:gap-1.5 pfl:border-r pfl:border-border pfl:px-3 pfl:text-[13px]',
-                                    tab.path === state.active ? 'pfl:bg-[var(--editor-background,transparent)] pfl:shadow-[inset_0_2px_0_var(--color-primary)]' : 'pfl:text-muted-foreground pfl:hover:bg-muted/40'
+                                    tab.path === state.active ? 'pfl:bg-[var(--editor-background,transparent)] pfl:shadow-[inset_0_2px_0_var(--primary)]' : 'pfl:text-muted-foreground pfl:hover:bg-muted/40'
                                 )}
                             >
                                 <NamedIcon name={icon.icon} size={14} className={icon.colour} />
@@ -563,7 +563,7 @@ function ActivityButton({ icon, label, active, onClick }: { icon: string; label:
             title={label}
             aria-label={label}
             onClick={onClick}
-            className={cn('pfl:flex pfl:size-9 pfl:items-center pfl:justify-center pfl:rounded-md pfl:cursor-pointer', active ? 'pfl:text-foreground pfl:shadow-[inset_2px_0_0_var(--color-primary)]' : 'pfl:text-muted-foreground pfl:hover:text-foreground')}
+            className={cn('pfl:flex pfl:size-9 pfl:items-center pfl:justify-center pfl:rounded-md pfl:cursor-pointer', active ? 'pfl:text-foreground pfl:shadow-[inset_2px_0_0_var(--primary)]' : 'pfl:text-muted-foreground pfl:hover:text-foreground')}
         >
             <NamedIcon name={icon} size={19} />
         </button>
