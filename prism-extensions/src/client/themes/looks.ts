@@ -21,9 +21,27 @@ export interface Look {
     name: string;
     description: string;
     settings: Record<string, unknown>;
+    /** Background, surface and accent colours for the picture, when they are fixed. */
+    swatch?: { base: string; surface: string; accent: string };
 }
 
-const base = { tint: 'subtle', bars: 'sidebar', cards: 'banner', radius: 10, density: 'cozy', width: 'normal', font: 'plex', background: 'gradient', glass: false, motion: 'full', status_style: 'badge', usage_style: 'bars' };
+export const CATPPUCCIN_FLAVOURS = { latte: 'Latte', frappe: 'Frappé', macchiato: 'Macchiato', mocha: 'Mocha' } as const;
+
+/** Catppuccin's official base, surface0 and mauve for each flavour. */
+export const CATPPUCCIN: Record<keyof typeof CATPPUCCIN_FLAVOURS, { base: string; surface: string; accent: string }> = {
+    latte: { base: '#eff1f5', surface: '#ccd0da', accent: '#8839ef' },
+    frappe: { base: '#303446', surface: '#414559', accent: '#ca9ee6' },
+    macchiato: { base: '#24273a', surface: '#363a4f', accent: '#c6a0f6' },
+    mocha: { base: '#1e1e2e', surface: '#313244', accent: '#cba6f7' },
+};
+
+/** Catppuccin Mocha's accents, for the accent picker. */
+export const CATPPUCCIN_ACCENTS: Record<string, string> = {
+    rosewater: '#f5e0dc', flamingo: '#f2cdcd', pink: '#f5c2e7', mauve: '#cba6f7', red: '#f38ba8', maroon: '#eba0ac', peach: '#fab387',
+    yellow: '#f9e2af', green: '#a6e3a1', teal: '#94e2d5', sky: '#89dceb', sapphire: '#74c7ec', blue: '#89b4fa', lavender: '#b4befe',
+};
+
+const base = { catppuccin: false, tint: 'subtle', bars: 'sidebar', cards: 'banner', radius: 10, density: 'cozy', width: 'normal', font: 'plex', background: 'gradient', glass: false, motion: 'full', status_style: 'badge', usage_style: 'bars' };
 
 /** A finished design: picking one sets the settings that make it, which can be changed after. */
 export const LOOKS: Look[] = [
@@ -43,4 +61,12 @@ export const LOOKS: Look[] = [
     { id: 'sunset', name: 'Sunset', description: 'Orange waves rolling along the bottom.', settings: { ...base, look: 'sunset', palette: 'orange', background: 'waves', tint: 'strong' } },
     { id: 'forest', name: 'Forest', description: 'Green tiles and a calm gradient.', settings: { ...base, look: 'forest', palette: 'forest', cards: 'tile', tint: 'strong' } },
     { id: 'ocean', name: 'Ocean', description: 'Blue waves under glass.', settings: { ...base, look: 'ocean', palette: 'ocean', background: 'waves', glass: true } },
+    { id: 'glassmorphism', name: 'Glassmorphism', description: 'See-through, blurred panels with light edges over a moving colour mesh.', settings: { ...base, look: 'glassmorphism', palette: 'violet', background: 'mesh', glass: true, blur: 20, radius: 18, cards: 'tile', bars: 'sidebar' } },
+    ...(['mocha', 'macchiato', 'frappe', 'latte'] as const).map((flavor) => ({
+        id: `catppuccin-${flavor}`,
+        name: `Catppuccin ${CATPPUCCIN_FLAVOURS[flavor]}`,
+        description: flavor === 'latte' ? 'The light flavour, in light and dark mode alike.' : `Catppuccin's official ${CATPPUCCIN_FLAVOURS[flavor]} colours; light mode uses Latte.`,
+        settings: { ...base, look: 'catppuccin', catppuccin: true, catppuccin_flavor: flavor, catppuccin_accent: 'mauve', palette: 'violet', background: 'plain', radius: 12, cards: 'tile' },
+        swatch: CATPPUCCIN[flavor],
+    })),
 ];

@@ -43,7 +43,9 @@
                     "terminal": "Terminal",
                     "sunset": "Sunset",
                     "forest": "Forest",
-                    "ocean": "Ocean"
+                    "ocean": "Ocean",
+                    "catppuccin": "Catppuccin",
+                    "glassmorphism": "Glassmorphism"
                 },
                 "default": "studio",
                 "attribute": "data-pt-look"
@@ -115,6 +117,51 @@
                 "help": "Lets people pick light or dark for themselves.",
                 "tab": "Colours",
                 "default": true
+            },
+            "catppuccin": {
+                "type": "toggle",
+                "label": "Use Catppuccin",
+                "help": "Catppuccin's official colours for every surface, text, the console and the editor, in place of the colour above.",
+                "tab": "Catppuccin",
+                "default": false,
+                "attribute": "data-pt-ctp"
+            },
+            "catppuccin_flavor": {
+                "type": "select",
+                "label": "Flavour in dark mode",
+                "help": "Light mode always uses Latte, the light flavour. Picking Latte here uses it in dark mode too.",
+                "tab": "Catppuccin",
+                "options": {
+                    "latte": "Latte",
+                    "frappe": "Frapp\u00e9",
+                    "macchiato": "Macchiato",
+                    "mocha": "Mocha"
+                },
+                "default": "mocha",
+                "attribute": "data-pt-ctp-flavor"
+            },
+            "catppuccin_accent": {
+                "type": "select",
+                "label": "Accent",
+                "tab": "Catppuccin",
+                "options": {
+                    "rosewater": "Rosewater",
+                    "flamingo": "Flamingo",
+                    "pink": "Pink",
+                    "mauve": "Mauve",
+                    "red": "Red",
+                    "maroon": "Maroon",
+                    "peach": "Peach",
+                    "yellow": "Yellow",
+                    "green": "Green",
+                    "teal": "Teal",
+                    "sky": "Sky",
+                    "sapphire": "Sapphire",
+                    "blue": "Blue",
+                    "lavender": "Lavender"
+                },
+                "default": "mauve",
+                "attribute": "data-pt-ctp-accent"
             },
             "bars": {
                 "type": "select",
@@ -293,6 +340,7 @@
                     "aurora": "Aurora (moving)",
                     "waves": "Waves (moving)",
                     "stars": "Stars (moving)",
+                    "mesh": "Colour mesh (moving)",
                     "grid": "Grid",
                     "image": "Picture"
                 },

@@ -1,6 +1,7 @@
 /* The panel stylesheet with every class the panel uses, then Prism Themes'. Plain Tailwind: no prefix. */
 @import '@pterodactyl/sdk/theme-entry.css';
 @import './palettes.css';
+@import './catppuccin.css';
 @source './**/*.{ts,tsx}';
 
 /*
@@ -163,6 +164,64 @@
 
 [data-pt-look='studio_classic'] .pt-surface {
     box-shadow: none;
+}
+[data-pt-look='catppuccin'] .pt-surface {
+    box-shadow: none;
+}
+
+/*
+ * Glassmorphism: every surface is see-through and blurred over a colourful background, with a thin
+ * light edge and a soft shadow. :root lets the see-through surfaces win over Catppuccin's.
+ */
+:root[data-pt-look='glassmorphism'].dark {
+    --card: rgb(255 255 255 / 0.06);
+    --sidebar: rgb(255 255 255 / 0.05);
+    --muted: rgb(255 255 255 / 0.08);
+    --secondary: rgb(255 255 255 / 0.12);
+    --input: rgb(255 255 255 / 0.06);
+    --input-border: rgb(255 255 255 / 0.2);
+    --border: rgb(255 255 255 / 0.14);
+    --sidebar-border: rgb(255 255 255 / 0.12);
+    --sidebar-accent: rgb(255 255 255 / 0.1);
+    --popover: color-mix(in oklab, var(--background) 82%, transparent);
+    --pt-glass-edge: rgb(255 255 255 / 0.18);
+    --pt-card-shadow: 0 8px 32px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.12);
+}
+
+:root[data-pt-look='glassmorphism'].light {
+    --card: rgb(255 255 255 / 0.45);
+    --sidebar: rgb(255 255 255 / 0.4);
+    --muted: rgb(255 255 255 / 0.4);
+    --secondary: rgb(255 255 255 / 0.55);
+    --input: rgb(255 255 255 / 0.55);
+    --input-border: rgb(255 255 255 / 0.8);
+    --border: rgb(255 255 255 / 0.65);
+    --sidebar-border: rgb(255 255 255 / 0.6);
+    --sidebar-accent: rgb(255 255 255 / 0.5);
+    --popover: color-mix(in oklab, white 85%, transparent);
+    --pt-glass-edge: rgb(255 255 255 / 0.75);
+    --pt-card-shadow: 0 8px 32px rgb(31 38 135 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.7);
+}
+
+[data-pt-look='glassmorphism'] .pt-surface,
+[data-pt-look='glassmorphism'] .pt-bar,
+[data-pt-look='glassmorphism'] .bg-card,
+[data-pt-look='glassmorphism'] .bg-popover,
+[data-pt-look='glassmorphism'] .bg-sidebar {
+    border-color: var(--pt-glass-edge);
+    backdrop-filter: blur(var(--pt-blur, 18px)) saturate(1.8);
+}
+
+[data-pt-look='glassmorphism'] .pt-surface {
+    box-shadow: var(--pt-card-shadow);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    :root[data-pt-look='glassmorphism'].dark,
+    :root[data-pt-look='glassmorphism'].light {
+        --card: var(--popover);
+        --sidebar: var(--popover);
+    }
 }
 /* #endregion looks */
 
@@ -345,6 +404,38 @@ body {
     }
 }
 
+/* Colour mesh: four soft blobs in colours around the wheel, slowly shifting; made for glass. */
+[data-pt-bg='mesh'] .pt-bg {
+    background:
+        radial-gradient(42vmax 42vmax at 12% 25%, oklch(0.62 0.22 var(--pt-h) / 0.85), transparent 62%),
+        radial-gradient(36vmax 36vmax at 88% 12%, oklch(0.68 0.2 calc(var(--pt-h) + 70) / 0.7), transparent 62%),
+        radial-gradient(46vmax 46vmax at 72% 88%, oklch(0.6 0.22 calc(var(--pt-h) - 80) / 0.7), transparent 62%),
+        radial-gradient(34vmax 34vmax at 4% 92%, oklch(0.7 0.17 calc(var(--pt-h) + 150) / 0.6), transparent 62%),
+        var(--background);
+    background-size: 140% 140%;
+    animation: pt-mesh 30s ease-in-out infinite alternate;
+}
+
+/* With Catppuccin the blobs are its own accents. */
+[data-pt-ctp='true'][data-pt-bg='mesh'] .pt-bg {
+    background:
+        radial-gradient(40vmax 40vmax at 15% 20%, color-mix(in srgb, var(--ctp-mauve) 80%, transparent), transparent 62%),
+        radial-gradient(35vmax 35vmax at 85% 15%, color-mix(in srgb, var(--ctp-blue) 70%, transparent), transparent 62%),
+        radial-gradient(45vmax 45vmax at 70% 85%, color-mix(in srgb, var(--ctp-pink) 65%, transparent), transparent 62%),
+        radial-gradient(35vmax 35vmax at 10% 90%, color-mix(in srgb, var(--ctp-teal) 55%, transparent), transparent 62%),
+        var(--background);
+    background-size: 140% 140%;
+}
+
+@keyframes pt-mesh {
+    from {
+        background-position: 0% 0%;
+    }
+    to {
+        background-position: 100% 100%;
+    }
+}
+
 /* Stars: two layers of dots that twinkle out of step. */
 [data-pt-bg='stars'] .pt-bg::before,
 [data-pt-bg='stars'] .pt-bg::after {
@@ -380,6 +471,7 @@ body {
 /* #endregion background */
 
 /* #region motion */
+[data-pt-motion='reduced'] .pt-bg,
 [data-pt-motion='reduced'] .pt-bg *,
 [data-pt-motion='reduced'] .pt-bg::before,
 [data-pt-motion='reduced'] .pt-bg::after {
@@ -394,6 +486,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .pt-bg,
     .pt-bg::before,
     .pt-bg::after,
     .pt-bg > i {

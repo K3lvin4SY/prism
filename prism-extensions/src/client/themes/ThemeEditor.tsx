@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Dialog, Input, NamedIcon, Select, Spinner, cn, http, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { ToggleRow } from '../editors';
 import { THEME_ID, optionsOf, themeApi, themeKeys, type ThemeSetting } from './api';
-import { LOOKS, PALETTES, swatch } from './looks';
+import { CATPPUCCIN_ACCENTS, LOOKS, PALETTES, swatch, type Look } from './looks';
 
 const PREVIEW = 'prism-themes:preview';
 const READY = 'prism-themes:ready';
@@ -202,9 +202,9 @@ export default function ThemeEditor() {
                                         key={look.id}
                                         type={'button'}
                                         onClick={() => applyLook(look.settings)}
-                                        className={cn('ppx:flex ppx:cursor-pointer ppx:flex-col ppx:overflow-hidden ppx:rounded-lg ppx:border ppx:text-left ppx:transition-colors', values.look === look.id ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary')}
+                                        className={cn('ppx:flex ppx:cursor-pointer ppx:flex-col ppx:overflow-hidden ppx:rounded-lg ppx:border ppx:text-left ppx:transition-colors', values.look === look.settings.look && (!look.settings.catppuccin || values.catppuccin_flavor === look.settings.catppuccin_flavor) && values.catppuccin === look.settings.catppuccin ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary')}
                                     >
-                                        <LookSwatch look={look.settings} />
+                                        <LookSwatch look={look.settings} colours={look.swatch} />
                                         <span className={'ppx:px-2.5 ppx:pt-2 ppx:text-sm ppx:font-medium'}>{look.name}</span>
                                         <span className={'ppx:px-2.5 ppx:pb-2 ppx:text-xs ppx:text-muted-foreground'}>{look.description}</span>
                                     </button>
@@ -348,19 +348,20 @@ export default function ThemeEditor() {
 }
 
 /** A small picture of a look: its colour, bars and cards. */
-function LookSwatch({ look }: { look: Record<string, unknown> }) {
-    const colour = swatch(String(look.palette));
+function LookSwatch({ look, colours }: { look: Record<string, unknown>; colours?: Look['swatch'] }) {
+    const colour = colours?.accent ?? swatch(String(look.palette));
+    const card = colours ? colours.surface : look.cards === 'outline' ? 'none' : '#ffffff18';
     const bars = String(look.bars);
     const side = bars === 'sidebar' || bars === 'sidebar_top' ? 18 : bars === 'rail' || bars === 'rail_top' ? 7 : 0;
     const top = bars === 'top' || bars.endsWith('_top') || bars === 'top_dock';
     const dock = bars === 'dock' || bars === 'top_dock';
 
     return (
-        <svg viewBox={'0 0 100 56'} className={'ppx:h-16 ppx:w-full'} aria-hidden style={{ background: look.palette === 'stone' ? '#f4efe6' : '#141821' }}>
+        <svg viewBox={'0 0 100 56'} className={'ppx:h-16 ppx:w-full'} aria-hidden style={{ background: colours?.base ?? (look.background === 'mesh' ? 'radial-gradient(circle at 20% 20%, #8b5cf6aa, transparent 60%), radial-gradient(circle at 80% 80%, #ec4899aa, transparent 60%), #141821' : look.palette === 'stone' ? '#f4efe6' : '#141821') }}>
             {side > 0 && <rect x={0} y={0} width={side} height={56} fill={'#ffffff10'} />}
             {top && <rect x={side} y={0} width={100 - side} height={8} fill={'#ffffff14'} />}
             {[0, 1, 2].map((index) => (
-                <rect key={index} x={side + 6 + index * ((94 - side) / 3)} y={top ? 14 : 8} width={(94 - side) / 3 - 4} height={look.cards === 'rows' || look.cards === 'compact' ? 12 : 22} rx={Math.min(6, Number(look.radius ?? 8) / 3)} fill={look.cards === 'outline' ? 'none' : '#ffffff18'} stroke={look.cards === 'outline' || look.cards === 'neon' ? colour : 'none'} />
+                <rect key={index} x={side + 6 + index * ((94 - side) / 3)} y={top ? 14 : 8} width={(94 - side) / 3 - 4} height={look.cards === 'rows' || look.cards === 'compact' ? 12 : 22} rx={Math.min(6, Number(look.radius ?? 8) / 3)} fill={card} stroke={look.cards === 'outline' || look.cards === 'neon' ? colour : 'none'} />
             ))}
             <rect x={side + 6} y={top ? 14 : 8} width={14} height={4} rx={1} fill={colour} />
             {dock && <rect x={30} y={47} width={40} height={6} rx={3} fill={'#ffffff26'} />}
@@ -406,6 +407,21 @@ function Field({ setting, value, onChange, onSchema }: { setting: ThemeSetting; 
         }
         case 'select': {
             const options = optionsOf(setting);
+            if (setting.key === 'catppuccin_accent') {
+                return (
+                    <>
+                        {label}
+                        <div className={'ppx:grid ppx:grid-cols-7 ppx:gap-1.5'}>
+                            {options.map((option) => (
+                                <button key={option.value} type={'button'} title={option.label} onClick={() => onChange(option.value)} className={cn('ppx:h-8 ppx:cursor-pointer ppx:rounded-md ppx:border-2', value === option.value ? 'ppx:border-foreground' : 'ppx:border-transparent')} style={{ background: CATPPUCCIN_ACCENTS[option.value] }}>
+                                    <span className={'ppx:sr-only'}>{option.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                        <p className={'ppx:mt-1 ppx:text-xs ppx:text-muted-foreground'}>{options.find((option) => option.value === value)?.label}</p>
+                    </>
+                );
+            }
             if (setting.key === 'palette') {
                 return (
                     <>
