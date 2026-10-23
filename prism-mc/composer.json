@@ -1,0 +1,11 @@
+{
+    "description": "Players, versions, properties, plugins, mods and modpacks for Minecraft servers.",
+    "autoload": {
+        "psr-4": {
+            "PrismMc\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismMcExtension"
+    }
+}

@@ -1,0 +1,3 @@
+# Backups hold encrypted API keys and other panel data; they stay on this machine.
+*
+!.gitignore

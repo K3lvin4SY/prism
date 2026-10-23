@@ -18,6 +18,6 @@ for (let i = 1; i < blocks.length; i++) {
     if (blocks[i].start !== blocks[i - 1].end + 1) throw new Error(`state ids are not contiguous at ${blocks[i].name}`);
 }
 
-const out = new URL('../mc-suite/src/client/lib/pumpkinBlocks.json', import.meta.url);
+const out = new URL('../prism-mc/src/client/lib/pumpkinBlocks.json', import.meta.url);
 writeFileSync(out, JSON.stringify({ version, states: blocks.at(-1).end + 1, starts: blocks.map((block) => block.start), names: blocks.map((block) => block.name.slice('minecraft:'.length)) }) + '\n');
 console.log(`${blocks.length} blocks, ${blocks.at(-1).end + 1} states`);

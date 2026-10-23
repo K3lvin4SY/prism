@@ -1,0 +1,11 @@
+{
+    "description": "Players, versions, properties, worlds, mods and plugins for Terraria, TShock and tModLoader servers.",
+    "autoload": {
+        "psr-4": {
+            "PrismTerraria\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismTerrariaExtension"
+    }
+}

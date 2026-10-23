@@ -10,7 +10,7 @@ import { exec, put } from './portainer.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
 // The folder of the extension to deploy; its id is the same as the folder name.
-const id = argv.includes('--ext') ? argv[argv.indexOf('--ext') + 1] : 'mc-suite';
+const id = argv.includes('--ext') ? argv[argv.indexOf('--ext') + 1] : 'prism-mc';
 if (!/^[a-z0-9-]+$/.test(id)) throw new Error(`Invalid extension folder: ${id}`);
 const extension = join(root, id);
 const args = new Set(argv);

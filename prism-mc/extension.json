@@ -1,0 +1,77 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-mc",
+    "name": "Prism MC",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3"
+    },
+    "description": "Players, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.",
+    "author": "Donkare",
+    "icon": "blocks",
+    "provider": "PrismMc\\PrismMcProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "mcs",
+        "screens": [
+            {
+                "id": "players",
+                "area": "server",
+                "path": "players",
+                "nav": { "label": "Players", "icon": "users", "order": 1 },
+                "permission": ["ext.prism-mc.players-view"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "player",
+                "area": "server",
+                "path": "players/$player",
+                "permission": ["ext.prism-mc.players-view"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "versions",
+                "area": "server",
+                "path": "versions",
+                "nav": { "label": "Versions", "icon": "layers", "order": 2 },
+                "permission": ["ext.prism-mc.versions"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "properties",
+                "area": "server",
+                "path": "properties",
+                "nav": { "label": "Properties", "icon": "sliders-horizontal", "order": 3 },
+                "permission": ["ext.prism-mc.properties"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "plugins",
+                "area": "server",
+                "path": "plugins",
+                "nav": { "label": "Plugins", "icon": "plug", "order": 4 },
+                "permission": ["ext.prism-mc.plugins"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "mods",
+                "area": "server",
+                "path": "mods",
+                "nav": { "label": "Mods", "icon": "puzzle", "order": 5 },
+                "permission": ["ext.prism-mc.mods"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "modpacks",
+                "area": "server",
+                "path": "modpacks",
+                "nav": { "label": "Modpacks", "icon": "package", "order": 6 },
+                "permission": ["ext.prism-mc.modpacks"],
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}

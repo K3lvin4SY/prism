@@ -80,6 +80,13 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         max_steps: { slider: { min: 1, max: 200 } },
         history_days: { slider: { min: 1, max: 90, unit: ' days' } },
     },
+    'prism-mc': {
+        modpack_max_mb: { slider: { min: 10, max: 4000, step: 10, unit: ' MB' } },
+        ping_timeout: { slider: { min: 0.5, max: 10, step: 0.5, unit: ' s' } },
+    },
+    'prism-terraria': {
+        max_world_mb: { slider: { min: 4, max: 512, step: 4, unit: ' MB' } },
+    },
 };
 
 /** PrismConsole's built-in highlight rules, in the order they are listed. */

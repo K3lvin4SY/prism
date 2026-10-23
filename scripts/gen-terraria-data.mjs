@@ -14,7 +14,7 @@ if (!source) {
 }
 
 const read = (file) => JSON.parse(readFileSync(join(source, file), 'utf8'));
-const out = new URL('../terraria-suite/src/client/lib/data/', import.meta.url);
+const out = new URL('../prism-terraria/src/client/lib/data/', import.meta.url);
 mkdirSync(out, { recursive: true });
 
 // Dense arrays indexed by id: smaller than objects keyed by number.

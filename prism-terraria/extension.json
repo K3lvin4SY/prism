@@ -1,0 +1,77 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-terraria",
+    "name": "Prism Terraria",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3"
+    },
+    "description": "Players, settings, versions, world map, tModLoader mods and TShock plugins for Terraria servers.",
+    "author": "Donkare",
+    "icon": "pickaxe",
+    "provider": "PrismTerraria\\PrismTerrariaProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "trs",
+        "screens": [
+            {
+                "id": "players",
+                "area": "server",
+                "path": "terraria-players",
+                "nav": { "label": "Players", "icon": "users", "order": 1 },
+                "permission": ["ext.prism-terraria.players-view"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "player",
+                "area": "server",
+                "path": "terraria-players/$player",
+                "permission": ["ext.prism-terraria.players-view"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "versions",
+                "area": "server",
+                "path": "terraria-versions",
+                "nav": { "label": "Versions", "icon": "layers", "order": 2 },
+                "permission": ["ext.prism-terraria.versions"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "properties",
+                "area": "server",
+                "path": "terraria-properties",
+                "nav": { "label": "Properties", "icon": "sliders-horizontal", "order": 3 },
+                "permission": ["ext.prism-terraria.properties"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "world",
+                "area": "server",
+                "path": "terraria-world",
+                "nav": { "label": "World", "icon": "map", "order": 4 },
+                "permission": ["ext.prism-terraria.world"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "mods",
+                "area": "server",
+                "path": "terraria-mods",
+                "nav": { "label": "Mods", "icon": "package", "order": 5 },
+                "permission": ["ext.prism-terraria.mods"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "plugins",
+                "area": "server",
+                "path": "terraria-plugins",
+                "nav": { "label": "Plugins", "icon": "plug", "order": 6 },
+                "permission": ["ext.prism-terraria.plugins"],
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}

@@ -12,7 +12,7 @@ export interface SettingField {
     value: unknown;
 }
 
-export type PrismId = 'prism-console' | 'prism-files' | 'prism-database' | 'prism-branding' | 'prism-backups' | 'prism-schedules';
+export type PrismId = 'prism-console' | 'prism-files' | 'prism-database' | 'prism-branding' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria';
 
 export interface PrismExtension {
     id: PrismId;
@@ -29,6 +29,8 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-branding', name: 'Prism Branding', icon: 'image', description: 'Your own favicon and logo: beside or instead of the company name, and on the sign-in pages in place of the mascot.' },
     { id: 'prism-backups', name: 'Prism Backups', icon: 'archive', description: 'Backup profiles, browsing inside backups, restoring single files and a .pteroignore editor.' },
     { id: 'prism-schedules', name: 'Prism Schedules', icon: 'calendar-clock', description: 'Schedules with countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets and a calendar.' },
+    { id: 'prism-mc', name: 'Prism MC', icon: 'blocks', description: 'Players, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.' },
+    { id: 'prism-terraria', name: 'Prism Terraria', icon: 'pickaxe', description: 'Players, settings, versions, the world map, tModLoader mods and TShock plugins for Terraria servers.' },
 ];
 
 export const settingsKey = (id: PrismId) => ['prism-extensions', 'settings', id] as const;

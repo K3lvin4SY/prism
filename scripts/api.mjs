@@ -1,4 +1,4 @@
-// Calls the Panel client API as the test user. Usage: MCS_KEY=ptlc_... node scripts/api.mjs GET <server>/extensions/mc-suite/info ['{"json":1}']
+// Calls the Panel client API as the test user. Usage: MCS_KEY=ptlc_... node scripts/api.mjs GET <server>/extensions/prism-mc/info ['{"json":1}']
 const [method, path, body] = process.argv.slice(2);
 const base = process.env.PANEL_URL ?? 'https://panel.donkare.se';
 const url = path.startsWith('api/') ? `${base}/${path}` : `${base}/api/client/servers/${path}`;
