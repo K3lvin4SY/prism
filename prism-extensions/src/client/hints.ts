@@ -68,6 +68,12 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         login_mark: { segmented: true },
         login_logo_size: { slider: { min: 48, max: 320, step: 4, unit: 'px' } },
     },
+    'prism-backups': {
+        max_profiles: { slider: { min: 1, max: 50 } },
+        browse_max_mb: { slider: { min: 10, max: 102400, step: 10, unit: ' MB' } },
+        restore_max_mb: { slider: { min: 1, max: 20480, step: 1, unit: ' MB' } },
+        cache_hours: { slider: { min: 1, max: 72, unit: ' h' } },
+    },
 };
 
 /** PrismConsole's built-in highlight rules, in the order they are listed. */

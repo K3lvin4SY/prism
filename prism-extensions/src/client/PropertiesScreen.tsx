@@ -27,7 +27,7 @@ export default function PropertiesScreen() {
                 {loading && installed.length === 0 ? (
                     <Spinner centered />
                 ) : installed.length === 0 ? (
-                    <Alert type={'info'}>No Prism extensions are installed and enabled. Install PrismConsole, Prism File Browser, Prism Database Manager or Prism Branding to change their settings here.</Alert>
+                    <Alert type={'info'}>No Prism extensions are installed and enabled. Install PrismConsole, Prism File Browser, Prism Database Manager, Prism Branding or Prism Backups to change their settings here.</Alert>
                 ) : (
                     <>
                         {installed.length > 1 && (

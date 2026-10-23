@@ -1,0 +1,11 @@
+{
+    "description": "Better backups: profiles, browsing inside backups and restoring single files.",
+    "autoload": {
+        "psr-4": {
+            "PrismBackups\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismBackupsExtension"
+    }
+}
