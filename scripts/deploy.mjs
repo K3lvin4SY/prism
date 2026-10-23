@@ -45,7 +45,7 @@ try {
         await step('doctor', `cd /app && php artisan p:extension:doctor ${remote}/${id}`);
     }
     await step('install', `cd /app && php artisan p:extension:install ${remote}/${id} --enable --replace --no-interaction`);
-    await step('permissions', `chown -R nginx:nginx /app/extensions/${id} /app/public/assets/extensions/${id} && rm -rf ${remote}`);
+    await step('permissions', `chown -R nginx:nginx /app/extensions/${id} && { [ ! -d /app/public/assets/extensions/${id} ] || chown -R nginx:nginx /app/public/assets/extensions/${id}; } && rm -rf ${remote}`);
     await step('state', `cd /app && php artisan p:extension:list | grep -E "ID|${id}"`);
 } finally {
     rmSync(work, { recursive: true, force: true });

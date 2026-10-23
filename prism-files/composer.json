@@ -1,0 +1,11 @@
+{
+    "description": "A better file manager: VS Code style editor, tabs, trash bin, bulk actions, previews and an upload queue.",
+    "autoload": {
+        "psr-4": {
+            "PrismFiles\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismFilesExtension"
+    }
+}

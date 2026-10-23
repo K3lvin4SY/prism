@@ -1,0 +1,23 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-database",
+    "name": "Prism Database Manager",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3"
+    },
+    "description": "Browse and edit tables, run SQL, import and export, back up on a schedule and share a database between servers.",
+    "author": "Donkare",
+    "icon": "database",
+    "provider": "PrismDatabase\\PrismDatabaseProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "pdb",
+        "views": [
+            "server.databases"
+        ]
+    }
+}

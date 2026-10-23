@@ -1,0 +1,86 @@
+import type { PrismId } from './api';
+
+/**
+ * How Prism Properties draws each setting beyond what the schema says: slider ranges, the
+ * section a field sits in, and the structured editors for settings stored as JSON.
+ */
+export interface Hint {
+    /** A heading the field is grouped under inside its tab. */
+    section?: string;
+    slider?: { min: number; max: number; step?: number; unit?: string };
+    editor?: 'highlights' | 'quickCommands' | 'lines' | 'keybinds';
+    /** Draw a select as buttons side by side. */
+    segmented?: boolean;
+}
+
+export const HINTS: Record<PrismId, Record<string, Hint>> = {
+    'prism-console': {
+        enabled: { section: 'The console' },
+        full_width: { section: 'The console' },
+        keep_header: { section: 'The console' },
+        floating_progress: { section: 'The console' },
+        max_lines: { section: 'Limits', slider: { min: 200, max: 20000, step: 100 } },
+        history_limit: { section: 'Limits', slider: { min: 10, max: 500, step: 5 } },
+        allow_terminal_settings: { section: 'What people may change' },
+        allow_layouts: { section: 'What people may change' },
+        allow_highlights: { section: 'What people may change' },
+        allow_quick_commands: { section: 'What people may change' },
+        default_layout: { segmented: true },
+        default_font_size: { slider: { min: 9, max: 24, unit: 'px' } },
+        default_line_height: { segmented: true },
+        highlights: { editor: 'highlights' },
+        quick_commands: { editor: 'quickCommands' },
+    },
+    'prism-files': {
+        enabled: { section: 'Features' },
+        workbench: { section: 'Features' },
+        monaco_edit_page: { section: 'Features' },
+        trash: { section: 'Features' },
+        open_on: { section: 'Defaults', segmented: true },
+        default_view: { section: 'Defaults', segmented: true },
+        editor_theme: { segmented: true },
+        editor_font_size: { slider: { min: 9, max: 24, unit: 'px' } },
+        editor_tab_size: { slider: { min: 1, max: 8 } },
+        editor_autosave: { segmented: true },
+        trash_days: { slider: { min: 1, max: 90, unit: ' days' } },
+        max_edit_mb: { slider: { min: 1, max: 50, unit: ' MB' } },
+        max_upload_mb: { slider: { min: 1, max: 10240, step: 1, unit: ' MB' } },
+        parallel_uploads: { slider: { min: 1, max: 8 } },
+        hidden_paths: { editor: 'lines' },
+        protected_paths: { editor: 'lines' },
+        keybinds: { editor: 'keybinds' },
+    },
+    'prism-database': {
+        max_rows_page: { slider: { min: 10, max: 1000, step: 10 } },
+        sql_max_rows: { slider: { min: 10, max: 10000, step: 10 } },
+        sql_timeout: { slider: { min: 1, max: 300, unit: ' s' } },
+        import_max_mb: { slider: { min: 1, max: 2048, unit: ' MB' } },
+        export_keep_hours: { slider: { min: 1, max: 168, unit: ' h' } },
+        backup_fastest: { segmented: true },
+        backup_max_keep: { slider: { min: 1, max: 200 } },
+        backup_max_mb: { slider: { min: 10, max: 102400, step: 10, unit: ' MB' } },
+    },
+};
+
+/** PrismConsole's built-in highlight rules, in the order they are listed. */
+export const BUILTIN_HIGHLIGHTS: { key: string; label: string; colour: string }[] = [
+    { key: 'errors', label: 'Errors', colour: '#f87171' },
+    { key: 'warnings', label: 'Warnings', colour: '#fbbf24' },
+    { key: 'joins', label: 'Player joins and leaves', colour: '#4ade80' },
+    { key: 'chat', label: 'Chat', colour: '#93c5fd' },
+    { key: 'ready', label: 'Server ready', colour: '#34d399' },
+    { key: 'info', label: 'Info lines', colour: '#cbd5e1' },
+    { key: 'debug', label: 'Debug lines', colour: '#94a3b8' },
+    { key: 'ips', label: 'IP addresses', colour: '#c084fc' },
+];
+
+export const KEYBIND_ACTIONS: Record<string, string> = {
+    save: 'Save',
+    saveAll: 'Save all',
+    quickOpen: 'Quick open',
+    commandPalette: 'Command palette',
+    closeTab: 'Close tab',
+    reopenTab: 'Reopen closed tab',
+    toggleExplorer: 'Show or hide the explorer',
+    goToLine: 'Go to line',
+};

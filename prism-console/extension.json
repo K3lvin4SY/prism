@@ -1,0 +1,24 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-console",
+    "name": "PrismConsole",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3"
+    },
+    "description": "A better console for every server: layouts, history, search, highlights, filters, exports and image pull progress.",
+    "author": "Donkare",
+    "icon": "terminal",
+    "provider": "PrismConsole\\PrismConsoleProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "pcn",
+        "views": [
+            "page.server.console",
+            "layout.server"
+        ]
+    }
+}

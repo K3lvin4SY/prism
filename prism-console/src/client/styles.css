@@ -1,0 +1,37 @@
+@import 'tailwindcss/theme.css' layer(theme) prefix(pcn);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(pcn);
+@import '@pterodactyl/sdk/theme.css';
+@source './**/*.{ts,tsx}';
+
+/* The terminal follows the panel's terminal tokens, so it matches the theme. */
+.pcn-terminal {
+    background: var(--terminal-background);
+    color: var(--terminal-foreground);
+}
+
+.pcn-terminal ::selection {
+    background: var(--terminal-selection);
+    color: var(--terminal-selection-foreground);
+}
+
+.pcn-line {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 1.4em;
+    min-height: 1em;
+}
+
+.pcn-line-current {
+    background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+.pcn-match {
+    background: color-mix(in oklab, #facc15 45%, transparent);
+    color: inherit;
+    border-radius: 2px;
+}
+
+.pcn-match-current {
+    background: #f97316;
+    color: #000;
+    border-radius: 2px;
+}

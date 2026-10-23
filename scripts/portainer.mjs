@@ -8,7 +8,19 @@ const CONTAINER = process.env.PANEL_CONTAINER ?? 'e449f86e3c203212c0d52595e4161d
 const USER = process.env.PORTAINER_USER ?? 'claude';
 const PASS = process.env.PORTAINER_PASS;
 
-async function login() {
+// One login per process: Portainer refuses logins that come too often.
+let session = null;
+
+function login() {
+    session ??= authenticate().catch((error) => {
+        session = null;
+        throw error;
+    });
+
+    return session;
+}
+
+async function authenticate() {
     if (!PASS) throw new Error('Set PORTAINER_PASS.');
     const res = await fetch(`${BASE}/api/auth`, {
         method: 'POST',

@@ -1,0 +1,11 @@
+{
+    "description": "Browse and edit tables, run SQL, import, export, back up and share databases.",
+    "autoload": {
+        "psr-4": {
+            "PrismDatabase\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismDatabaseExtension"
+    }
+}

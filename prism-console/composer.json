@@ -1,0 +1,11 @@
+{
+    "description": "A better console: layouts, search, highlights, filters, history, quick commands and exports.",
+    "autoload": {
+        "psr-4": {
+            "PrismConsole\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismConsoleExtension"
+    }
+}

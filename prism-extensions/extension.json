@@ -1,0 +1,26 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-extensions",
+    "name": "Prism Extensions",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0"
+    },
+    "description": "Prism Properties: one admin page for the settings of PrismConsole, Prism File Browser and Prism Database Manager.",
+    "author": "Donkare",
+    "icon": "sparkles",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "ppx",
+        "screens": [
+            {
+                "id": "properties",
+                "area": "admin",
+                "path": "prism",
+                "nav": { "label": "Prism Properties", "icon": "sparkles" }
+            }
+        ]
+    }
+}
