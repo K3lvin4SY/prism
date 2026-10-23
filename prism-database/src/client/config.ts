@@ -40,6 +40,15 @@ export function setConfig(raw: ExtensionConfig): void {
     config = read(raw);
 }
 
+let applied: unknown = null;
+
+/** Takes the admin's current settings from the backend, so changes show without a reload. */
+export function applyConfig(raw: unknown): void {
+    if (!raw || raw === applied || typeof raw !== 'object' || Array.isArray(raw)) return;
+    applied = raw;
+    config = read(raw as ExtensionConfig);
+}
+
 export function getConfig(): DatabaseConfig {
     return config;
 }

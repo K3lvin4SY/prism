@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from 'react';
 import { Alert, ServerContentBlock, cn } from '@pterodactyl/sdk';
 import { Slot, View, type ViewProps } from '@pterodactyl/sdk/theme';
-import { usePreferences, type Area, type WidgetId } from '../api';
+import { useConsoleData, usePreferences, type Area, type WidgetId } from '../api';
 import SettingsDialog from '../components/SettingsDialog';
 import TerminalWidget from '../components/TerminalWidget';
 import { Charts, Info, PullCard, QuickCommands, Tiles } from '../components/Widgets';
-import { getConfig, type TerminalSettings } from '../config';
+import { applyConfig, getConfig, type TerminalSettings } from '../config';
 import { LAYOUTS, normaliseCustom } from '../layouts';
 import { storeFor, useStore } from '../store';
 
@@ -17,6 +17,8 @@ const NOTICES = {
 
 /** PrismConsole: the console as a grid of widgets in the layout each person picks. */
 export default function ConsolePage({ model, active, Default }: ViewProps<'page.server.console'>) {
+    const data = useConsoleData(model.server.attributes.identifier);
+    applyConfig(data.data?.config);
     const config = getConfig();
     if (!config.enabled) return <Default />;
 
@@ -62,7 +64,7 @@ function PrismConsole({ model, active }: Pick<ViewProps<'page.server.console'>, 
             case 'power':
                 return <View name={'server.power'} />;
             case 'tiles':
-                return <Tiles server={server} store={store} vertical={vertical} compact={preset.compact && layoutId !== 'custom'} />;
+                return <Tiles server={server} store={store} vertical={vertical} compact={preset.compact && layoutId !== 'custom'} sparklines={!showsCharts} />;
             case 'charts':
                 return config.features.charts ? <Charts server={server} store={store} vertical={vertical} /> : null;
             case 'info':
@@ -72,6 +74,8 @@ function PrismConsole({ model, active }: Pick<ViewProps<'page.server.console'>, 
         }
     };
 
+    // With the chart cards on screen, the tiles leave out their own small graphs.
+    const showsCharts = config.features.charts && widgets.some((entry) => entry.widget === 'charts' && entry.area !== 'hidden');
     const area = (name: Area) => widgets.filter((entry) => entry.area === name).map((entry) => <div key={entry.widget}>{render(entry.widget, name)}</div>);
     const side = area('side');
     const bottom = area('bottom');

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
-import { Alert, Button, NamedIcon, Spinner, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Dialog, NamedIcon, Spinner, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { readFile, type FileEntry } from '../api';
 import { useFileActions, useFilePermissions, useIsProtected, validName } from '../actions';
 import ContextMenu from '../components/ContextMenu';
@@ -159,14 +159,26 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
         for (const path of [...state.dirty]) await save(path);
     }, [save, state.dirty]);
 
-    const close = useCallback(
+    // Tabs waiting to close; unsaved ones ask in the panel's own dialog, one at a time.
+    const [closing, setClosing] = useState<string[]>([]);
+    const [closingBusy, setClosingBusy] = useState(false);
+    const discard = useCallback(
         (path: string) => {
-            if (state.dirty.has(path) && !window.confirm(`${basename(path)} has unsaved changes. Close it anyway? A draft is kept in this browser.`)) return;
             state.close(path);
             documents.close(path);
         },
         [documents, state]
     );
+    const close = useCallback(
+        (...paths: string[]) => {
+            const unsaved = paths.filter((path) => state.dirty.has(path));
+            paths.filter((path) => !state.dirty.has(path)).forEach(discard);
+            if (unsaved.length > 0) setClosing((current) => [...current, ...unsaved.filter((path) => !current.includes(path))]);
+        },
+        [discard, state]
+    );
+    const asking = closing[0] ?? null;
+    const [deleting, setDeleting] = useState<FileEntry | null>(null);
 
     const commands: Command[] = [
         { id: 'save', label: 'File: Save', keys: keybinds.save, run: () => save() },
@@ -178,8 +190,8 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
         { id: 'copyPath', label: 'File: Copy path', run: () => state.active && navigator.clipboard.writeText(state.active) },
         { id: 'reveal', label: 'File: Reveal in the file list', run: () => onRevealInFiles(state.active ? dirname(state.active) : '/') },
         { id: 'closeTab', label: 'View: Close tab', keys: keybinds.closeTab, run: () => state.active && close(state.active) },
-        { id: 'closeOthers', label: 'View: Close other tabs', run: () => state.active && state.closeOthers(state.active).forEach((path) => documents.close(path)) },
-        { id: 'closeAll', label: 'View: Close all tabs', run: () => state.tabs.map((tab) => tab.path).forEach(close) },
+        { id: 'closeOthers', label: 'View: Close other tabs', run: () => state.active && close(...state.tabs.map((tab) => tab.path).filter((path) => path !== state.active)) },
+        { id: 'closeAll', label: 'View: Close all tabs', run: () => close(...state.tabs.map((tab) => tab.path)) },
         { id: 'reopen', label: 'View: Reopen closed tab', keys: keybinds.reopenTab, run: () => state.reopen() },
         { id: 'explorer', label: 'View: Toggle explorer', keys: keybinds.toggleExplorer, run: () => ((state.explorer = !state.explorer), state.changed()) },
         { id: 'goToLine', label: 'Go to line', keys: keybinds.goToLine, run: () => editorRef.current?.getAction('editor.action.gotoLine')?.run() },
@@ -438,15 +450,10 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                                 icon: 'trash-2',
                                 label: getConfig().trash ? 'Move to trash' : 'Delete',
                                 danger: true,
-                                run: async () => {
+                                run: () => {
                                     const entry = menu.entry!;
                                     if (isProtected(entry.path)) return toast.error(`${entry.path} is protected.`);
-                                    if (!getConfig().trash && !window.confirm(`Delete ${entry.name} for good?`)) return;
-                                    await actions.remove(dirname(entry.path), [entry.name]);
-                                    if (state.tabs.some((tab) => tab.path === entry.path)) {
-                                        state.close(entry.path);
-                                        documents.close(entry.path);
-                                    }
+                                    setDeleting(entry);
                                 },
                             },
                     ]}
@@ -473,6 +480,59 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                     }}
                 />
             )}
+
+            {asking && (
+                <Dialog open onClose={() => setClosing([])} title={`Save changes to ${basename(asking)}?`}>
+                    <p className={'pfl:text-sm'}>
+                        {basename(asking)} has changes that are not saved yet. If you close it without saving, they stay as a draft in this browser and come back the next time you open the file.
+                    </p>
+                    {closing.length > 1 && <p className={'pfl:mt-2 pfl:text-xs pfl:text-muted-foreground'}>{closing.length - 1} more unsaved {closing.length === 2 ? 'file' : 'files'} after this one.</p>}
+                    <Dialog.Footer>
+                        <Button.Text onClick={() => setClosing([])} disabled={closingBusy}>
+                            Cancel
+                        </Button.Text>
+                        <Button
+                            isSecondary
+                            disabled={closingBusy}
+                            onClick={() => {
+                                discard(asking);
+                                setClosing((current) => current.slice(1));
+                            }}
+                        >
+                            Don&apos;t save
+                        </Button>
+                        <Button
+                            isLoading={closingBusy}
+                            onClick={async () => {
+                                setClosingBusy(true);
+                                await save(asking);
+                                setClosingBusy(false);
+                                // A save that failed or hit a conflict leaves the tab open.
+                                if (state.dirty.has(asking)) return setClosing([]);
+                                discard(asking);
+                                setClosing((current) => current.slice(1));
+                            }}
+                        >
+                            Save
+                        </Button>
+                    </Dialog.Footer>
+                </Dialog>
+            )}
+
+            <Dialog.Confirm
+                open={deleting !== null}
+                onClose={() => setDeleting(null)}
+                title={getConfig().trash ? `Move ${deleting?.name} to the trash?` : `Delete ${deleting?.name} for good?`}
+                confirm={getConfig().trash ? 'Move to trash' : 'Delete'}
+                onConfirmed={async () => {
+                    const entry = deleting!;
+                    setDeleting(null);
+                    await actions.remove(dirname(entry.path), [entry.name]).catch(() => undefined);
+                    if (state.tabs.some((tab) => tab.path === entry.path)) discard(entry.path);
+                }}
+            >
+                {getConfig().trash ? `It can be restored from the trash for ${getConfig().trashDays} days.` : 'It cannot be restored.'}
+            </Dialog.Confirm>
 
             {conflict && documents.get(conflict.path) && (
                 <DiffView

@@ -30,10 +30,13 @@ function uptime(milliseconds: number): string {
 /** Network bytes per second from the last two samples. */
 function rate(samples: StatsSample[], key: 'rx' | 'tx'): number[] {
     const values: number[] = [];
-    // Over two samples: the node updates its network counters less often than it sends stats.
-    for (let i = 2; i < samples.length; i++) {
-        const seconds = Math.max(1, (samples[i].time - samples[i - 2].time) / 1000);
-        values.push(Math.max(0, (samples[i][key] - samples[i - 2][key]) / seconds));
+    // Over five samples: the node updates its network counters less often than it sends stats,
+    // so neighbouring readings alternate between zero and twice the real rate.
+    const window = 5;
+    for (let i = 1; i < samples.length; i++) {
+        const from = samples[Math.max(0, i - window)];
+        const seconds = Math.max(1, (samples[i].time - from.time) / 1000);
+        values.push(Math.max(0, (samples[i][key] - from[key]) / seconds));
     }
 
     return values;
@@ -59,7 +62,7 @@ function useUsage(server: SdkServer, store: ServerConsoleStore) {
 }
 
 /** CPU, memory, disk, network and uptime, in a row or a column. */
-export function Tiles({ server, store, vertical, compact }: { server: SdkServer; store: ServerConsoleStore; vertical?: boolean; compact?: boolean }) {
+export function Tiles({ server, store, vertical, compact, sparklines = true }: { server: SdkServer; store: ServerConsoleStore; vertical?: boolean; compact?: boolean; sparklines?: boolean }) {
     const usage = useUsage(server, store);
     const offline = usage.state === 'offline';
     const network = usage.rx[usage.rx.length - 1] ?? 0;
@@ -86,7 +89,7 @@ export function Tiles({ server, store, vertical, compact }: { server: SdkServer;
                             <div className={cn('pcn:h-full pcn:rounded-full', tile.fraction > 0.9 ? 'pcn:bg-red-500' : tile.fraction > 0.75 ? 'pcn:bg-amber-500' : 'pcn:bg-primary')} style={{ width: `${Math.min(100, tile.fraction * 100)}%` }} />
                         </div>
                     )}
-                    {tile.spark && !compact && <Sparkline values={tile.spark} className={'pcn:pointer-events-none pcn:absolute pcn:bottom-0 pcn:right-0 pcn:h-8 pcn:w-1/2 pcn:opacity-60'} />}
+                    {tile.spark && sparklines && !compact && <Sparkline values={tile.spark} className={'pcn:pointer-events-none pcn:absolute pcn:bottom-0 pcn:right-0 pcn:h-8 pcn:w-1/2 pcn:opacity-60'} />}
                 </div>
             ))}
         </div>

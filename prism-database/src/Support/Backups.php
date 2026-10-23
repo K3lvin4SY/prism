@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PrismDatabase\Support;
 
-use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use PrismDatabase\Jobs\RunDatabaseFile;
 use PrismDatabase\Models\DatabaseFile;
@@ -76,7 +76,7 @@ final class Backups
         $file->delete();
     }
 
-    public static function nextRun(string $interval, ?Carbon $from = null): Carbon
+    public static function nextRun(string $interval, ?CarbonInterface $from = null): CarbonInterface
     {
         return ($from ?? now())->copy()->addHours(self::INTERVALS[$interval] ?? 24);
     }

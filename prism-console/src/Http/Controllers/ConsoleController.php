@@ -26,6 +26,8 @@ class ConsoleController
         return new JsonResponse([
             'preferences' => $this->store($request)->get('preferences', (object) []),
             'history' => $this->history($request, $server),
+            // The admin's current settings, so a change in Prism Properties shows without a reload.
+            'config' => (object) (app(ExtensionSettingsRegistry::class)->get('prism-console')?->frontendConfig() ?? []),
         ]);
     }
 

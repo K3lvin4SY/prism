@@ -252,21 +252,35 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
                                     }}
                                     className={cn('pfl:grid pfl:cursor-pointer pfl:select-none pfl:grid-cols-[2rem_minmax(0,1fr)_6rem_9rem_2rem] pfl:items-center pfl:gap-2 pfl:px-3 pfl:py-1.5 pfl:text-sm', isSelected ? 'pfl:bg-primary/15' : 'pfl:hover:bg-muted/50')}
                                 >
-                                    <span onClick={(event) => event.stopPropagation()}>
+                                    {/* The checkbox only toggles; quick clicks on it never reach the row's double-click. */}
+                                    <span className={'pfl:-my-1.5 pfl:flex pfl:self-stretch pfl:items-center'} onClick={(event) => event.stopPropagation()} onDoubleClick={(event) => event.stopPropagation()}>
                                         <Checkbox checked={isSelected} onChange={(checked) => setSelected((current) => new Set(checked ? [...current, entry.name] : [...current].filter((name) => name !== entry.name)))} />
                                     </span>
-                                    <button type={'button'} onClick={(event) => (event.stopPropagation(), openEntry(entry))} className={'pfl:flex pfl:min-w-0 pfl:items-center pfl:gap-2 pfl:text-left pfl:cursor-pointer'}>
-                                        <NamedIcon name={icon.icon} size={17} className={cn('pfl:shrink-0', icon.colour)} />
-                                        <span className={'pfl:truncate pfl:hover:underline'}>{entry.name}</span>
+                                    <div className={'pfl:flex pfl:min-w-0 pfl:items-center pfl:gap-2'}>
+                                        {/* Only the icon and the name open the entry; the rest of the cell selects the row. */}
+                                        <button
+                                            type={'button'}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                if (event.ctrlKey || event.metaKey || event.shiftKey) select(entry, event);
+                                                else openEntry(entry);
+                                            }}
+                                            onDoubleClick={(event) => event.stopPropagation()}
+                                            className={'pfl:inline-flex pfl:min-w-0 pfl:max-w-full pfl:items-center pfl:gap-2 pfl:text-left pfl:cursor-pointer'}
+                                        >
+                                            <NamedIcon name={icon.icon} size={17} className={cn('pfl:shrink-0', icon.colour)} />
+                                            <span className={'pfl:truncate pfl:hover:underline'}>{entry.name}</span>
+                                        </button>
                                         {isProtected(entry.path) && <NamedIcon name={'lock'} size={12} className={'pfl:shrink-0 pfl:text-amber-400'} />}
                                         {entry.symlink && <NamedIcon name={'link'} size={12} className={'pfl:shrink-0 pfl:text-muted-foreground'} />}
-                                    </button>
+                                    </div>
                                     <span className={'pfl:text-right pfl:text-xs pfl:text-muted-foreground pfl:tabular-nums'}>{entry.directory ? '—' : bytesToString(entry.size)}</span>
                                     <span className={'pfl:hidden pfl:text-xs pfl:text-muted-foreground pfl:sm:block'} title={new Date(entry.modified).toLocaleString()}>
                                         {fromNow(entry.modified)}
                                     </span>
                                     <button
                                         type={'button'}
+                                        onDoubleClick={(event) => event.stopPropagation()}
                                         aria-label={`Actions for ${entry.name}`}
                                         onClick={(event) => {
                                             event.stopPropagation();

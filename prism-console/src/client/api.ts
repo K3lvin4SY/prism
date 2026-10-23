@@ -31,8 +31,10 @@ export const consoleKey = (server: string) => ['prism-console', server, 'console
 export function useConsoleData(server: string) {
     return useQuery({
         queryKey: consoleKey(server),
-        queryFn: async () => (await http.get<{ preferences: Preferences | []; history: History }>(`${base(server)}/console`)).data,
-        staleTime: Infinity,
+        queryFn: async () => (await http.get<{ preferences: Preferences | []; history: History; config: Record<string, unknown> }>(`${base(server)}/console`)).data,
+        staleTime: 60_000,
+        // Fetched again each time the console opens, for the admin's current settings.
+        refetchOnMount: 'always',
         retry: 1,
     });
 }

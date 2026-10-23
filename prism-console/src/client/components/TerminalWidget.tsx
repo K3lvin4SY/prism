@@ -117,7 +117,13 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
 
     // Follows new output unless the reader scrolled up.
     useEffect(() => {
-        if (stick && scroller.current) scroller.current.scrollTop = scroller.current.scrollHeight;
+        const element = scroller.current;
+        if (!stick || !element) return;
+        element.scrollTop = element.scrollHeight;
+        // Lines off screen are sized as they come into view, which can move the bottom once more.
+        const frame = requestAnimationFrame(() => (element.scrollTop = element.scrollHeight));
+
+        return () => cancelAnimationFrame(frame);
     }, [store.version, stick, visible.length, settings]);
 
     useEffect(() => {
@@ -132,8 +138,14 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
             if (!widget.current || widget.current.offsetParent === null) return;
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f' && config.features.search) {
                 event.preventDefault();
-                setSearching(true);
-                setTimeout(() => document.getElementById(`pcn-search-${uuid}`)?.focus(), 0);
+                // An open search box takes focus at once; a new one focuses itself as it mounts.
+                const open = document.getElementById(`pcn-search-${uuid}`) as HTMLInputElement | null;
+                if (open) {
+                    open.focus();
+                    open.select();
+                } else {
+                    setSearching(true);
+                }
             }
             if (event.ctrlKey && event.key.toLowerCase() === 'r' && canSend) {
                 event.preventDefault();
@@ -287,6 +299,7 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                     <NamedIcon name={'search'} size={14} className={'pcn:opacity-60'} />
                     <input
                         id={`pcn-search-${uuid}`}
+                        autoFocus
                         value={search.query}
                         onChange={(event) => {
                             setSearch({ ...search, query: event.target.value });

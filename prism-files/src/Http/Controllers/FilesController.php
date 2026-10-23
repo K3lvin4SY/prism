@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Models\Server;
 use Pterodactyl\Services\Extensions\ExtensionSettings;
+use Pterodactyl\Services\Extensions\ExtensionSettingsRegistry;
 use PrismFiles\Support\Paths;
 use PrismFiles\Support\ServerFiles;
 use PrismFiles\Support\Trash;
@@ -27,6 +28,8 @@ class FilesController
         return new JsonResponse([
             'trash' => ['items' => $trash->items(), 'ignored' => $trash->ignoredInBackups()],
             'preferences' => (new ExtensionSettings('prism-files'))->forUser($request->user())->get('preferences', (object) []),
+            // The admin's current settings, so a change in Prism Properties shows without a reload.
+            'config' => (object) (app(ExtensionSettingsRegistry::class)->get('prism-files')?->frontendConfig() ?? []),
         ]);
     }
 

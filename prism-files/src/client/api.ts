@@ -98,7 +98,7 @@ export async function pull(server: string, url: string, directory: string): Prom
 
 // Prism's own routes check protected paths and conflicts first.
 
-export async function getState(server: string): Promise<{ trash: { items: TrashItem[]; ignored: boolean }; preferences: Preferences | [] }> {
+export async function getState(server: string): Promise<{ trash: { items: TrashItem[]; ignored: boolean }; preferences: Preferences | []; config: Record<string, unknown> }> {
     return (await http.get(`${prism(server)}/state`)).data;
 }
 

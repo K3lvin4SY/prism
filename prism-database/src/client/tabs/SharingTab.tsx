@@ -42,7 +42,8 @@ export default function SharingTab({ database }: { database: PrismDatabase }) {
                     <p className={'pdb:text-sm pdb:text-muted-foreground'}>There are no other servers you can share it with.</p>
                 ) : (
                     <div className={'pdb:flex pdb:flex-wrap pdb:gap-2'}>
-                        <div className={'pdb:min-w-64 pdb:flex-1'}>
+                        {/* Remounted when the list changes, so a server just shared with is no longer shown as picked. */}
+                        <div key={available.map((server) => server.identifier).join()} className={'pdb:min-w-64 pdb:flex-1'}>
                             <Select value={target} onChange={(value) => setTarget(String(value))} options={[{ value: '', label: 'Find one of your servers…' }, ...available.map((server) => ({ value: server.identifier, label: server.name }))]} />
                         </div>
                         <Button disabled={!target} isLoading={busy} onClick={() => act(() => api.share(identifier, database.id, target), 'Shared.')}>

@@ -22,7 +22,6 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'tiles', area: 'side' },
             { widget: 'info', area: 'side' },
             { widget: 'quick', area: 'side' },
-            { widget: 'charts', area: 'bottom' },
         ],
     },
     dashboard: {
@@ -34,7 +33,6 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'power', area: 'side' },
             { widget: 'info', area: 'side' },
             { widget: 'quick', area: 'side' },
-            { widget: 'charts', area: 'bottom' },
         ],
     },
     side: {
@@ -46,7 +44,6 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'info', area: 'side' },
             { widget: 'tiles', area: 'side' },
             { widget: 'quick', area: 'side' },
-            { widget: 'charts', area: 'side' },
         ],
     },
     monitor: {

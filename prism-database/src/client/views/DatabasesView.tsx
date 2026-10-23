@@ -4,7 +4,7 @@ import { Alert, Button, Dialog, Input, NamedIcon, Spinner, cn, httpErrorToHuman,
 import type { ViewProps } from '@pterodactyl/sdk/theme';
 import { api, keys, type PrismDatabase } from '../api';
 import { Pills } from '../components/ui';
-import { getConfig } from '../config';
+import { applyConfig, getConfig } from '../config';
 import BackupsTab from '../tabs/BackupsTab';
 import OverviewTab from '../tabs/OverviewTab';
 import SharingTab from '../tabs/SharingTab';
@@ -23,6 +23,10 @@ function readHash(): { id: number | null; tab: Tab } {
 
 /** Prism Database Manager in place of the panel's Databases page. */
 export default function DatabasesView({ model, Default }: ViewProps<'server.databases'>) {
+    const identifier = useCurrentServerRequired().attributes.identifier;
+    // Fetched again each time the page opens, for the admin's current settings.
+    const list = useQuery({ queryKey: keys.list(identifier), queryFn: () => api.list(identifier), refetchOnMount: 'always' });
+    applyConfig(list.data?.config);
     if (!getConfig().enabled) return <Default />;
 
     return <PrismDatabases model={model} />;
@@ -56,7 +60,7 @@ function PrismDatabases({ model }: Pick<ViewProps<'server.databases'>, 'model'>)
     if (list.isLoading || model.loading) return <Spinner centered />;
     if (list.isError) return <Alert type={'danger'}>{httpErrorToHuman(list.error)}</Alert>;
 
-    const databases = list.data ?? [];
+    const databases = list.data?.databases ?? [];
     const open = databases.find((database) => database.id === location.id);
 
     if (open) return <DatabaseDetail database={open} tab={location.tab} onTab={(tab) => go(open.id, tab)} onBack={() => go(null)} model={model} />;

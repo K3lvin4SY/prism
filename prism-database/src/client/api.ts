@@ -113,7 +113,7 @@ export const keys = {
 };
 
 export const api = {
-    list: async (server: string) => (await http.get<{ databases: PrismDatabase[] }>(`${base(server)}/databases`)).data.databases,
+    list: async (server: string) => (await http.get<{ databases: PrismDatabase[]; config: Record<string, unknown> }>(`${base(server)}/databases`)).data,
     overview: async (server: string, id: number) => (await http.get<Overview>(`${db(server, id)}/overview`)).data,
     tables: async (server: string, id: number) => (await http.get<{ tables: Table[] }>(`${db(server, id)}/tables`)).data.tables,
     rows: async (server: string, id: number, name: string, params: { page: number; perPage: number; sort?: string; direction?: string; search?: string; column?: string }) =>

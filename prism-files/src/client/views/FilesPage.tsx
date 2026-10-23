@@ -6,7 +6,7 @@ import { fileKeys, getState, savePreferences, type Preferences } from '../api';
 import FileBrowser from '../components/FileBrowser';
 import TrashView from '../components/TrashView';
 import UploadPanel from '../components/UploadPanel';
-import { getConfig, type EditorSettings, type Keybinds } from '../config';
+import { applyConfig, getConfig, type EditorSettings, type Keybinds } from '../config';
 import { normalize } from '../lib/paths';
 import { UploadQueue } from '../lib/uploads';
 import { useWorkbench, workbenchFor } from '../workbench/store';
@@ -30,7 +30,9 @@ export function usePrismFiles() {
     const server = useCurrentServerRequired();
     const identifier = server.attributes.identifier;
     const queryClient = useQueryClient();
-    const state = useQuery({ queryKey: fileKeys.state(identifier), queryFn: () => getState(identifier), staleTime: 30_000 });
+    // Fetched again each time the page opens, for the trash and the admin's current settings.
+    const state = useQuery({ queryKey: fileKeys.state(identifier), queryFn: () => getState(identifier), staleTime: 30_000, refetchOnMount: 'always' });
+    applyConfig(state.data?.config);
     const [local, setLocal] = useState<Preferences>({});
     const preferences: Preferences = { ...(Array.isArray(state.data?.preferences) ? {} : state.data?.preferences), ...local };
     const timer = useRef<number>(undefined);
@@ -57,6 +59,9 @@ export function usePrismFiles() {
 
 /** Prism File Browser: Files, Editor and Trash in one page. */
 export default function FilesPage({ Default }: ViewProps<'page.server.files'>) {
+    const identifier = useCurrentServerRequired().attributes.identifier;
+    const state = useQuery({ queryKey: fileKeys.state(identifier), queryFn: () => getState(identifier), staleTime: 30_000 });
+    applyConfig(state.data?.config);
     const config = getConfig();
     if (!config.enabled) return <Default />;
 

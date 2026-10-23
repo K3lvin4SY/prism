@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Pterodactyl\Models\Database;
 use Pterodactyl\Models\Server;
+use Pterodactyl\Services\Extensions\ExtensionSettingsRegistry;
 use PrismDatabase\Support\Access;
 use PrismDatabase\Support\Inspector;
 use RuntimeException;
@@ -28,6 +29,8 @@ class DatabasesController
 
         return new JsonResponse([
             'databases' => $databases->map(fn (Database $database): array => $this->present($database, $server, $shares->where('database_id', $database->id)->values()->all()))->values(),
+            // The admin's current settings, so a change in Prism Properties shows without a reload.
+            'config' => (object) (app(ExtensionSettingsRegistry::class)->get('prism-database')?->frontendConfig() ?? []),
         ]);
     }
 
