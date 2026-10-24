@@ -20,12 +20,18 @@ function Brand({ model, compact }: { model: AppLayoutModel; compact?: boolean })
     const settings = useSettings();
     const beside = settings.logo_mode === 'beside';
     const logo = settings.logo_mode === 'name' ? null : model.brand.logoUrl;
-    const square = getComputedStyle(document.documentElement).getPropertyValue('--brand-logo-square').trim();
 
     if (compact) {
-        return (
-            <PanelLink destination={{ to: '/' }} aria-label={model.brand.name} className='pla:flex pla:size-10 pla:items-center pla:justify-center pla:rounded-lg pla:bg-primary/15 pla:font-semibold pla:text-primary pla:no-underline' style={square ? { background: `${square} center / contain no-repeat` } : undefined}>
-                {!square && model.brand.name.charAt(0).toUpperCase()}
+        // The square logo where there is one, else the logo itself; the letter only without either.
+        const mark = settings.logo_mode === 'name' ? null : (settings.logo_square ?? settings.logo);
+
+        return mark ? (
+            <PanelLink destination={{ to: '/' }} aria-label={model.brand.name} className='pla:flex pla:size-10 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-lg pla:no-underline'>
+                <img src={mark} alt='' className='pla:max-h-10 pla:max-w-10 pla:rounded-md pla:object-contain' />
+            </PanelLink>
+        ) : (
+            <PanelLink destination={{ to: '/' }} aria-label={model.brand.name} className='pla:flex pla:size-10 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-lg pla:bg-primary/15 pla:font-semibold pla:text-primary pla:no-underline'>
+                {model.brand.name.charAt(0).toUpperCase()}
             </PanelLink>
         );
     }
@@ -164,12 +170,13 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     const top = (
         <header className='pt-bar pla:sticky pla:top-0 pla:z-30 pla:border-b pla:border-border pla:bg-sidebar'>
             <div className='pla:mx-auto pla:flex pla:h-14 pla:w-full pla:max-w-panel pla:items-center pla:gap-3 pla:px-3'>
+                {/* Leftmost on wide screens; the menu button takes its place on narrow ones. */}
+                {collapseButton}
                 {(has.sidebar(bars) || has.rail(bars)) && (
                     <button type='button' onClick={() => setDrawer(!drawer)} className={cn(itemClass('icons'), 'pla:lg:hidden')} aria-label='Menu' aria-expanded={drawer}>
                         <NamedIcon name='menu' size={18} />
                     </button>
                 )}
-                {collapseButton}
                 <div className={cn('pla:min-w-0', brandSide && 'pla:lg:hidden')}>
                     <Brand model={model} />
                 </div>

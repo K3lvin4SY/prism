@@ -78,14 +78,14 @@ function FilterPanel() {
                     className='pla:w-full pla:rounded-md pla:border pla:border-input-border pla:bg-input pla:py-1.5 pla:pr-2 pla:pl-8 pla:text-sm pla:outline-none pla:focus:border-primary'
                 />
             </div>
-            <div className='pla:flex pla:gap-1 pla:rounded-lg pla:bg-muted/50 pla:p-0.5' role='group' aria-label='Status'>
+            <div className='prism-switch pla:flex pla:gap-1 pla:rounded-lg pla:bg-muted/50 pla:p-0.5' role='group' aria-label='Status'>
                 {(['all', 'online', 'offline'] as const).map((status) => (
                     <button
                         key={status}
                         type='button'
                         aria-pressed={filters.status === status}
                         onClick={() => setFilters({ status })}
-                        className={cn('pla:flex-1 pla:cursor-pointer pla:rounded-md pla:py-1 pla:text-xs pla:capitalize', filters.status === status ? 'pla:bg-card pla:font-semibold pla:text-foreground pla:shadow-sm' : 'pla:text-muted-foreground pla:hover:text-foreground')}
+                        className={cn('prism-switch-item pla:flex-1 pla:cursor-pointer pla:rounded-md pla:py-1 pla:text-xs pla:capitalize', filters.status === status ? 'pla:bg-card pla:font-semibold pla:text-foreground pla:shadow-sm' : 'pla:text-muted-foreground pla:hover:text-foreground')}
                     >
                         {status}
                     </button>
