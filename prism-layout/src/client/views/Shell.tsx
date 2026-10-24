@@ -82,8 +82,6 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     const [drawer, setDrawer] = useState(false);
     const [palette, setPalette] = useState(false);
     const [collapsed, setCollapsed] = useState(readCollapsed);
-    // Only animate the width after a toggle, not on every page load.
-    const [moved, setMoved] = useState(false);
     const area = model.area;
 
     useEffect(() => setDrawer(false), [pathname]);
@@ -94,12 +92,13 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     // Off, or in an admin area kept as it was: the panel's own frame, with the logo choice.
     if (!settings.enabled || (area.kind === 'admin' && !settings.admin_styled)) return <PanelFrame model={model} Default={Default} />;
 
-    // A collapsed sidebar is drawn as the icon rail.
+    // A collapsible sidebar is one element that narrows into a rail, so nothing jumps.
     const collapsible = settings.sidebar_collapse && has.sidebar(settings.bars);
     const folded = collapsible && collapsed;
-    const bars: Bars = folded ? (settings.bars === 'sidebar_top' ? 'rail_top' : 'rail') : settings.bars;
+    // The phone drawer always opens wide.
+    const narrow = folded && !drawer;
+    const bars: Bars = settings.bars;
     const toggle = () => {
-        setMoved(true);
         setCollapsed(!collapsed);
         writeCollapsed(!collapsed);
     };
@@ -121,7 +120,7 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     const dashboard = settings.dashboard_panel && area.kind === 'dashboard';
 
     const sidebar = (
-        <aside className={cn('pt-bar pla:flex-col pla:gap-4 pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:p-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-sidebar pla:lg:shrink-0', moved && 'pla-grow', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-72' : 'pla:hidden')}>
+        <aside className={cn('pt-bar pla:flex-col pla:gap-4 pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:p-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-sidebar pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-72' : 'pla:hidden')}>
             {(brandInSide || (collapseButton && !has.top(bars))) && (
                 <div className='pla:flex pla:items-center pla:gap-1'>
                     {brandInSide && (
@@ -148,7 +147,7 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     );
 
     const rail = (
-        <aside className={cn('pt-bar pla:flex-col pla:items-center pla:gap-3 pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-16 pla:lg:shrink-0', moved && folded && 'pla-shrink', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-16 pla:overflow-y-auto' : 'pla:hidden')}>
+        <aside className={cn('pt-bar pla:flex-col pla:items-center pla:gap-3 pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-16 pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-16 pla:overflow-y-auto' : 'pla:hidden')}>
             {brandInSide && <Brand model={model} compact />}
             {!has.top(bars) && collapseButton}
             {!has.top(bars) && (
@@ -163,6 +162,46 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
             <div className='pla:mt-auto pla:flex pla:flex-col pla:items-center pla:gap-1'>
                 <FooterLinks links={links} variant='icons' />
                 {!has.top(bars) && <User model={model} compact onPalette={openPalette} />}
+            </div>
+        </aside>
+    );
+
+    /*
+     * The folding sidebar: its width eases between the sidebar's and the rail's (styles.css,
+     * .pla-fold). Every icon keeps its place, labels fade and headings become lines, so the
+     * pages line up in both widths.
+     */
+    const foldSidebar = (
+        <aside data-folded={narrow} className={cn('pt-bar pla-fold pla:flex-col pla:gap-3 pla:overflow-x-hidden pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-72' : 'pla:hidden')}>
+            {(brandInSide || !has.top(bars)) && (
+                <>
+                    <div className={cn('pla:flex pla:h-10 pla:shrink-0 pla:items-center pla:gap-1', narrow && 'pla:justify-center')}>
+                        {brandInSide &&
+                            (narrow ? (
+                                <Brand model={model} compact />
+                            ) : (
+                                <div className='pla:min-w-0 pla:flex-1'>
+                                    <Brand model={model} />
+                                </div>
+                            ))}
+                        {!has.top(bars) && (!narrow || !brandInSide) && collapseButton}
+                    </div>
+                    {/* Folded with no top bar, the button has its own row under the logo. */}
+                    {!has.top(bars) && narrow && brandInSide && <div className='pla:flex pla:h-10 pla:shrink-0 pla:justify-center'>{collapseButton}</div>}
+                    <div className='pla:mx-2 pla:h-px pla:shrink-0 pla:bg-border' />
+                </>
+            )}
+            {!has.top(bars) && (
+                <nav aria-label='Main' className='pla:flex pla:flex-col pla:gap-0.5'>
+                    <MainLinks model={model} variant='fold' />
+                </nav>
+            )}
+            {settings.server_card && area.kind === 'server' && <ServerCard area={area} folded={narrow} />}
+            {dashboard && <DashboardPanel variant={narrow ? 'icons' : 'list'} />}
+            <AreaNav area={area} variant='fold' grouped={settings.group_nav} />
+            <div className='pla:mt-auto pla:flex pla:flex-col pla:gap-2'>
+                <FooterLinks links={links} variant='fold' />
+                {!has.top(bars) && <User model={model} compact={narrow} onPalette={openPalette} />}
             </div>
         </aside>
     );
@@ -234,7 +273,7 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
         <div className='pla:flex pla:min-h-dvh'>
             <SpinnerOverlay visible={model.signingOut} fixed />
             {drawer && <button type='button' aria-label='Close the menu' className='pla:fixed pla:inset-0 pla:z-30 pla:bg-black/40 pla:lg:hidden' onClick={() => setDrawer(false)} />}
-            {has.sidebar(bars) && sidebar}
+            {has.sidebar(bars) && (collapsible ? foldSidebar : sidebar)}
             {has.rail(bars) && rail}
             <div className='pla:flex pla:min-w-0 pla:flex-1 pla:flex-col'>
                 {has.top(bars) ? top : bars === 'dock' ? smallHeader : <MobileBar model={model} onMenu={() => setDrawer(!drawer)} open={drawer} />}

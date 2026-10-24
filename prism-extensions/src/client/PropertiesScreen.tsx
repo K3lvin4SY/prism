@@ -135,6 +135,37 @@ export default function PropertiesScreen() {
     );
 }
 
+/**
+ * How far down a bar fixed or stuck to the top of the page reaches, such as Prism Layout's top
+ * bar, so the sidebar sticks under it rather than behind it. Works with any layout and theme.
+ */
+function useStickyTop(): number {
+    const [top, setTop] = useState(0);
+
+    useEffect(() => {
+        const measure = () => {
+            let bottom = 0;
+            for (const header of document.querySelectorAll('header')) {
+                const style = getComputedStyle(header);
+                const box = header.getBoundingClientRect();
+                if ((style.position === 'sticky' || style.position === 'fixed') && box.top <= 1 && box.height > 0) bottom = Math.max(bottom, box.bottom);
+            }
+            setTop(Math.round(bottom));
+        };
+        measure();
+        const observer = new ResizeObserver(measure);
+        document.querySelectorAll('header').forEach((header) => observer.observe(header));
+        window.addEventListener('resize', measure);
+
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('resize', measure);
+        };
+    }, []);
+
+    return top;
+}
+
 function Sidebar({ entries, current, section, dirty, search, onSearch, onGo }: { entries: Entry[]; current: Entry; section: string; dirty: Partial<Record<Target, boolean>>; search: string; onSearch: (value: string) => void; onGo: (id: Target, section?: string, key?: string) => void }) {
     const query = search.trim().toLowerCase();
     const matches = useMemo(() => {
@@ -148,9 +179,13 @@ function Sidebar({ entries, current, section, dirty, search, onSearch, onGo }: {
         return found.slice(0, 60);
     }, [entries, query]);
     const total = entries.reduce((sum, entry) => sum + entry.settings.length, 0);
+    const topOffset = useStickyTop();
 
     return (
-        <aside className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:lg:sticky ppx:lg:top-4 ppx:lg:max-h-[calc(100dvh-2rem)] ppx:lg:self-start ppx:lg:overflow-y-auto'}>
+        <aside
+            className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:lg:sticky ppx:lg:top-[calc(var(--ppx-top)+1rem)] ppx:lg:max-h-[calc(100dvh-var(--ppx-top)-2rem)] ppx:lg:self-start ppx:lg:overflow-y-auto'}
+            style={{ '--ppx-top': `${topOffset}px` } as React.CSSProperties}
+        >
             <div className={'ppx:relative'}>
                 <NamedIcon name={'search'} size={14} className={'ppx:pointer-events-none ppx:absolute ppx:top-1/2 ppx:left-3 ppx:-translate-y-1/2 ppx:text-muted-foreground'} />
                 <Input value={search} onChange={(event) => onSearch(event.target.value)} placeholder={`Search ${total} settings`} aria-label={'Search the settings'} className={'ppx:w-full ppx:pl-8'} />

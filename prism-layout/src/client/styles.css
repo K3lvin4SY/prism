@@ -86,36 +86,55 @@ html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:has(+ .pla-dock-ite
 }
 /* #endregion dock */
 
-/* #region collapsing the sidebar: the width slides between the sidebar and the rail */
+/* #region the folding sidebar: one element easing between the sidebar's width and the rail's */
 @media (min-width: 1024px) {
-    .pla-grow {
-        animation: pla-grow 180ms ease-out;
+    .pla-fold {
+        width: var(--pla-sidebar-width, 16rem);
+        transition: width 200ms ease;
     }
 
-    .pla-shrink {
-        animation: pla-shrink 180ms ease-out;
-    }
-}
-
-@keyframes pla-grow {
-    from {
+    .pla-fold[data-folded='true'] {
         width: 4rem;
     }
-}
 
-@keyframes pla-shrink {
-    from {
-        width: var(--pla-sidebar-width, 16rem);
+    .pla-fold-label {
+        transition: opacity 150ms ease;
+        white-space: nowrap;
+    }
+
+    .pla-fold[data-folded='true'] .pla-fold-label {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* A heading keeps its height when folded, as a line, so the pages under it stay put. */
+    .pla-fold-heading {
+        transition: color 150ms ease;
+    }
+
+    .pla-fold[data-folded='true'] .pla-fold-heading {
+        color: transparent;
+    }
+
+    .pla-fold[data-folded='true'] .pla-fold-heading::before {
+        content: '';
+        position: absolute;
+        right: 0.5rem;
+        bottom: 0.6rem;
+        left: 0.5rem;
+        height: 1px;
+        background: var(--border);
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .pla-grow,
-    .pla-shrink {
-        animation: none;
+    .pla-fold,
+    .pla-fold-label,
+    .pla-fold-heading {
+        transition: none;
     }
 }
-/* #endregion collapsing */
+/* #endregion the folding sidebar */
 
 /* #region server cards; --pla-egg is the card's game colour */
 .pla-card-banner {
