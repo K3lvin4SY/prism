@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Badge, Input, NamedIcon, Select, Spinner, Switch, TitledGreyBox, cn, httpErrorToHuman, useDebouncedCallback } from '@pterodactyl/sdk';
+import { useMemo, useState, type ReactNode } from 'react';
+import { Badge, Input, NamedIcon, Select, Switch, TitledGreyBox, cn } from '@pterodactyl/sdk';
 import { categories, definitionsFor, managedKeys, validate, type SettingDefinition } from '../api/settings';
 
 interface Props {
@@ -8,7 +8,9 @@ interface Props {
     /** The files the values live in, named in the header. */
     files: string[];
     values: Record<string, string>;
-    onSave: (values: Record<string, string>) => Promise<void>;
+    /** The unsaved values by key; the screen saves them together. */
+    draft: Record<string, string>;
+    onChange: (key: string, value: string) => void;
     /** Keys the egg sets on start: the startup variable they come from, or null when fixed. */
     eggBindings?: Record<string, string | null>;
     /** Shown above the rows of one category, for notes such as where spread is controlled. */
@@ -23,10 +25,10 @@ interface Row {
 
 /**
  * Every setting Prism Terraria describes, sorted into categories, with its real key next to a
- * short explanation. Each row saves on its own as soon as its value is valid. Keys it does not
+ * short explanation. Changes are kept as a draft until the save bar saves them together. Keys it does not
  * describe, such as TShock's database passwords, are left out and left alone.
  */
-export default function SettingsBrowser({ kind, files, values, onSave, eggBindings = {}, notes = {} }: Props) {
+export default function SettingsBrowser({ kind, files, values, draft, onChange, eggBindings = {}, notes = {} }: Props) {
     const [category, setCategory] = useState(() => categories.find((entry) => definitionsFor(kind).some((definition) => definition.category === entry.id))?.id ?? categories[0].id);
     const [search, setSearch] = useState('');
 
@@ -53,7 +55,7 @@ export default function SettingsBrowser({ kind, files, values, onSave, eggBindin
         <div className={'trs:flex trs:flex-col trs:gap-3'}>
             <div className={'trs:flex trs:flex-wrap trs:items-center trs:justify-between trs:gap-3'}>
                 <p className={'trs:text-sm trs:text-muted-foreground'}>
-                    {rows.length} settings in {files.join(' and ')}. Every change is written straight away and takes effect after the next restart.
+                    {rows.length} settings in {files.join(' and ')}. Changes are saved together when you press Save, and take effect after the next restart.
                 </p>
                 <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={'Find a setting or key…'} className={'trs:max-w-72'} />
             </div>
@@ -92,7 +94,9 @@ export default function SettingsBrowser({ kind, files, values, onSave, eggBindin
                                         key={`${row.definition.key}-${row.definition.category}`}
                                         row={row}
                                         binding={row.definition.key in eggBindings ? eggBindings[row.definition.key] : undefined}
-                                        onSave={onSave}
+                                        value={draft[row.definition.key] ?? row.value}
+                                        changed={row.definition.key in draft}
+                                        onChange={(value) => onChange(row.definition.key, value)}
                                     />
                                 ))}
                             </div>
@@ -106,38 +110,21 @@ export default function SettingsBrowser({ kind, files, values, onSave, eggBindin
 
 function SettingRow({
     row,
-    onSave,
+    value: draft,
+    changed,
+    onChange,
     binding,
 }: {
     row: Row;
-    onSave: Props['onSave'];
+    value: string;
+    changed: boolean;
+    onChange: (value: string) => void;
     /** undefined: the egg leaves it alone; null: fixed by the egg; string: from that startup variable. */
     binding: string | null | undefined;
 }) {
     const { definition } = row;
-    const [draft, setDraft] = useState(row.value);
-    const [state, setState] = useState<'idle' | 'saving' | 'error'>('idle');
-    const [error, setError] = useState<string | null>(null);
+    const error = changed ? validate(definition, draft) : null;
     const managed = managedKeys.includes(definition.key) || binding === null;
-
-    useEffect(() => setDraft(row.value), [row.value]);
-
-    const save = async (value: string) => {
-        const problem = validate(definition, value);
-        setError(problem);
-        if (problem !== null || value === row.value) return;
-
-        setState('saving');
-        try {
-            await onSave({ [definition.key]: value });
-            setState('idle');
-        } catch (exception) {
-            setState('error');
-            setError(httpErrorToHuman(exception));
-        }
-    };
-
-    const saveLater = useDebouncedCallback(save, 700);
 
     const control = () => {
         if (managed) {
@@ -150,11 +137,7 @@ function SettingRow({
                     <Switch
                         checked={draft === 'true'}
                         aria-label={definition.label}
-                        onChange={(checked) => {
-                            const value = checked ? 'true' : 'false';
-                            setDraft(value);
-                            save(value);
-                        }}
+                        onChange={(checked) => onChange(checked ? 'true' : 'false')}
                     />
                 );
             case 'enum':
@@ -162,10 +145,7 @@ function SettingRow({
                     <div className={'trs:w-56'}>
                         <Select
                             value={draft}
-                            onChange={(value) => {
-                                setDraft(String(value));
-                                save(String(value));
-                            }}
+                            onChange={(value) => onChange(String(value))}
                             options={(definition.options ?? []).map((option) => ({ value: option, label: definition.optionLabels?.[option] ?? option }))}
                         />
                     </div>
@@ -178,11 +158,7 @@ function SettingRow({
                         inputMode={definition.type === 'int' ? 'numeric' : undefined}
                         $hasError={error !== null}
                         className={definition.type === 'int' ? 'trs:w-36' : 'trs:w-64'}
-                        onChange={(event) => {
-                            setDraft(event.target.value);
-                            saveLater(event.target.value);
-                        }}
-                        onBlur={() => saveLater.flush()}
+                        onChange={(event) => onChange(event.target.value)}
                     />
                 );
         }
@@ -196,7 +172,7 @@ function SettingRow({
                     <Badge size={'sm'} variant={'soft'} className={'trs:font-mono trs:normal-case'}>
                         {definition.key}
                     </Badge>
-                    {state === 'saving' && <Spinner size={'small'} />}
+                    {changed && <span className={'trs:size-2 trs:rounded-full trs:bg-warning'} title={'Unsaved'} />}
                 </div>
                 <p className={'trs:text-xs trs:text-muted-foreground trs:mt-1'}>{managedKeys.includes(definition.key)
                         ? 'Set by the panel: the allocation, or the egg.'

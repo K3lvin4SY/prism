@@ -183,7 +183,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                                 type={'button'}
                                                 onClick={() => setStorage(value)}
                                                 className={cn(
-                                                    'trs:rounded-md trs:px-3 trs:py-1.5 trs:text-sm trs:cursor-pointer',
+                                                    'prism-switch-item trs:rounded-md trs:px-3 trs:py-1.5 trs:text-sm trs:cursor-pointer',
                                                     storage === value ? 'trs:bg-primary trs:text-primary-foreground' : 'trs:hover:bg-muted'
                                                 )}
                                             >

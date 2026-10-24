@@ -1,7 +1,9 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, ServerContentBlock, Spinner, httpErrorToHuman } from '@pterodactyl/sdk';
+import { Alert, ServerContentBlock, Spinner, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { keys } from '../api/client';
-import { getSettings, updateSettings, type SettingsResponse } from '../api/settings';
+import { categories, definitionsFor, getSettings, updateSettings, validate, type SettingsResponse } from '../api/settings';
+import SaveBar, { describeValue } from '../components/SaveBar';
 import SettingsBrowser from '../components/SettingsBrowser';
 import { useTerrariaInfo } from '../hooks/useTerrariaInfo';
 
@@ -18,11 +20,57 @@ export default function SettingsScreen() {
     const queryClient = useQueryClient();
     const query = useQuery({ queryKey: keys.settings(identifier), queryFn: () => getSettings(identifier) });
 
-    const save = async (values: Record<string, string>) => {
-        const changed = await updateSettings(identifier, values);
-        queryClient.setQueryData<SettingsResponse>(keys.settings(identifier), (current) =>
-            current ? { ...current, values: { ...current.values, ...values, ...changed } } : current
-        );
+    const [draft, setDraft] = useState<Record<string, string>>({});
+    const [saving, setSaving] = useState(false);
+    const dirty = Object.keys(draft).length > 0;
+
+    // Leaving with unsaved changes asks first.
+    useEffect(() => {
+        if (!dirty) return;
+        const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+        window.addEventListener('beforeunload', warn);
+
+        return () => window.removeEventListener('beforeunload', warn);
+    }, [dirty]);
+
+    const definitions = useMemo(() => definitionsFor(query.data?.kind ?? ''), [query.data?.kind]);
+    const saved = query.data?.values ?? {};
+    const current = (key: string) => saved[key] ?? String(definitions.find((definition) => definition.key === key)?.default ?? '');
+
+    const change = (key: string, value: string) =>
+        setDraft((now) => {
+            const next = { ...now };
+            if (value === current(key)) delete next[key];
+            else next[key] = value;
+
+            return next;
+        });
+
+    const changes = Object.entries(draft).map(([key, value]) => {
+        const definition = definitions.find((item) => item.key === key);
+        const options = definition?.options?.map((option) => ({ value: option, label: definition.optionLabels?.[option] ?? option }));
+
+        return { key, label: definition?.label ?? key, section: categories.find((entry) => entry.id === definition?.category)?.label, from: describeValue(current(key), options), to: describeValue(value, options) };
+    });
+    const problems = Object.entries(draft).flatMap(([key, value]) => {
+        const definition = definitions.find((item) => item.key === key);
+        const problem = definition ? validate(definition, value) : null;
+
+        return problem ? [`${definition?.label ?? key}: ${problem}`] : [];
+    });
+
+    const save = async () => {
+        setSaving(true);
+        try {
+            const changed = await updateSettings(identifier, draft);
+            queryClient.setQueryData<SettingsResponse>(keys.settings(identifier), (now) => (now ? { ...now, values: { ...now.values, ...draft, ...changed } } : now));
+            setDraft({});
+            toast.success('Saved. The changes take effect after the next restart.');
+        } catch (exception) {
+            toast.error(httpErrorToHuman(exception));
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -34,14 +82,31 @@ export default function SettingsScreen() {
             ) : !query.data.exists ? (
                 <Alert type={'info'}>Start the server once so TShock writes its config files. They can be changed here after that.</Alert>
             ) : (
-                <SettingsBrowser
-                    kind={query.data.kind}
-                    files={query.data.files}
-                    values={query.data.values}
-                    onSave={save}
-                    eggBindings={query.data.eggBindings}
-                    notes={info.kind === 'tshock' ? {} : { journey: SPREAD_NOTE }}
-                />
+                <div className={'trs:flex trs:flex-col trs:gap-4'}>
+                    <SettingsBrowser
+                        kind={query.data.kind}
+                        files={query.data.files}
+                        values={query.data.values}
+                        draft={draft}
+                        onChange={change}
+                        eggBindings={query.data.eggBindings}
+                        notes={info.kind === 'tshock' ? {} : { journey: SPREAD_NOTE }}
+                    />
+                    <SaveBar
+                        changes={changes}
+                        problems={problems}
+                        saving={saving}
+                        onSave={save}
+                        onDiscard={() => setDraft({})}
+                        onUndo={(key) =>
+                            setDraft((now) => {
+                                const { [key]: _undone, ...rest } = now;
+
+                                return rest;
+                            })
+                        }
+                    />
+                </div>
             )}
         </ServerContentBlock>
     );
