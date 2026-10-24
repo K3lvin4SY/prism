@@ -169,22 +169,24 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
 
     const top = (
         <header className='pt-bar pla:sticky pla:top-0 pla:z-30 pla:border-b pla:border-border pla:bg-sidebar'>
-            <div className='pla:mx-auto pla:flex pla:h-14 pla:w-full pla:max-w-panel pla:items-center pla:gap-3 pla:px-3'>
-                {/* Leftmost on wide screens; the menu button takes its place on narrow ones. */}
-                {collapseButton}
-                {(has.sidebar(bars) || has.rail(bars)) && (
-                    <button type='button' onClick={() => setDrawer(!drawer)} className={cn(itemClass('icons'), 'pla:lg:hidden')} aria-label='Menu' aria-expanded={drawer}>
-                        <NamedIcon name='menu' size={18} />
-                    </button>
-                )}
-                <div className={cn('pla:min-w-0', brandSide && 'pla:lg:hidden')}>
-                    <Brand model={model} />
+            <div className='pla:flex pla:h-14 pla:items-center'>
+                {/* At the bar's own left edge, beside the sidebar, outside the centred content; the menu button takes its place on narrow screens. */}
+                {collapseButton && <div className='pla:hidden pla:shrink-0 pla:items-center pla:pl-3 pla:lg:flex'>{collapseButton}</div>}
+                <div className='pla:mx-auto pla:flex pla:h-14 pla:w-full pla:min-w-0 pla:max-w-panel pla:items-center pla:gap-3 pla:px-3'>
+                    {(has.sidebar(bars) || has.rail(bars)) && (
+                        <button type='button' onClick={() => setDrawer(!drawer)} className={cn(itemClass('icons'), 'pla:lg:hidden')} aria-label='Menu' aria-expanded={drawer}>
+                            <NamedIcon name='menu' size={18} />
+                        </button>
+                    )}
+                    <div className={cn('pla:min-w-0', brandSide && 'pla:lg:hidden')}>
+                        <Brand model={model} />
+                    </div>
+                    <nav aria-label='Main' className='pla:flex pla:min-w-0 pla:flex-1 pla:items-center pla:gap-1 pla:overflow-x-auto'>
+                        <MainLinks model={model} variant={bars === 'top' || bars === 'top_dock' ? 'list' : 'icons'} />
+                    </nav>
+                    {bars !== 'top' && <FooterLinks links={has.sidebar(bars) ? [] : links} variant='icons' />}
+                    <User model={model} onPalette={openPalette} />
                 </div>
-                <nav aria-label='Main' className='pla:flex pla:min-w-0 pla:flex-1 pla:items-center pla:gap-1 pla:overflow-x-auto'>
-                    <MainLinks model={model} variant={bars === 'top' || bars === 'top_dock' ? 'list' : 'icons'} />
-                </nav>
-                {bars !== 'top' && <FooterLinks links={has.sidebar(bars) ? [] : links} variant='icons' />}
-                <User model={model} onPalette={openPalette} />
             </div>
             {bars === 'top' && area.kind !== 'dashboard' && (
                 <div className='pla:border-t pla:border-border'>

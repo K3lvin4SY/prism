@@ -9,13 +9,13 @@ import { contrast, normaliseColour, toHex, toOklch } from './colour';
 import { asSettings, generatePalette, type Tint } from './generate';
 import { BUILT_IN, ROLES, isLook, lookOf, matches, newId, readCustom, writeCustom, type Mode, type Preset, type Values } from './presets';
 
-const SECTIONS = ['Presets', 'Colours', 'Type and shape', 'Surfaces', 'Background', 'Motion'];
+const SECTIONS = ['Presets', 'Colors', 'Type and shape', 'Surfaces', 'Background', 'Motion'];
 
 /** The editor's sections, as Prism Properties lists them. */
 export const themeSections = (_list?: ThemeSetting[]) => SECTIONS;
 
-/** The section a setting is edited in: both colour tabs are the one Colours section. */
-export const sectionOf = (setting: Pick<ThemeSetting, 'tab'>) => (setting.tab === 'Dark colours' || setting.tab === 'Light colours' ? 'Colours' : (setting.tab ?? 'Presets'));
+/** The section a setting is edited in: both color tabs are the one Colors section. */
+export const sectionOf = (setting: Pick<ThemeSetting, 'tab'>) => (setting.tab === 'Dark colors' || setting.tab === 'Light colors' ? 'Colors' : (setting.tab ?? 'Presets'));
 
 const box = 'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card';
 const MODES: [Mode, string][] = [
@@ -24,7 +24,7 @@ const MODES: [Mode, string][] = [
 ];
 
 /**
- * Prism Themes' tool: a theme is built from colours for dark and light, type and shape,
+ * Prism Themes' tool: a theme is built from colors for dark and light, type and shape,
  * surfaces, background and motion. Presets are the same values with a name, built in or your own.
  */
 export default function ThemeEditor({ section, focus, onDirty }: { section: string; focus?: string | null; onDirty?: (dirty: boolean) => void }) {
@@ -101,7 +101,7 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
                 <div className={'ppx:min-w-56 ppx:flex-1'}>
                     <h2 className={'ppx:text-lg ppx:font-semibold'}>Prism Themes</h2>
                     <p className={'ppx:text-sm ppx:text-muted-foreground'}>
-                        Build the look from colours, type, surfaces and a background, or start from a preset. {live ? 'Active for everyone.' : previewing ? 'Not active. You are previewing it; only you see it.' : 'Not active. Preview it for yourself, or activate it for everyone.'}
+                        Build the look from colors, type, surfaces and a background, or start from a preset. {live ? 'Active for everyone.' : previewing ? 'Not active. You are previewing it; only you see it.' : 'Not active. Preview it for yourself, or activate it for everyone.'}
                         {info?.problem && ` ${info.problem}`}
                     </p>
                 </div>
@@ -132,8 +132,8 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
                 <div className={'ppx:flex ppx:min-w-0 ppx:flex-col ppx:gap-3'}>
                     {section === 'Presets' ? (
                         <Presets values={values} apply={apply} />
-                    ) : section === 'Colours' ? (
-                        <Colours values={values} apply={apply} focus={focus ?? null} />
+                    ) : section === 'Colors' ? (
+                        <Colors values={values} apply={apply} focus={focus ?? null} />
                     ) : (
                         <section className={box}>
                             <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>{section}</h3>
@@ -277,21 +277,14 @@ function Presets({ values, apply }: { values: Values; apply: (changes: Values) =
                     </span>
                     <span className={'ppx:px-2.5 ppx:pb-1 ppx:text-xs ppx:text-muted-foreground'}>{preset.description ?? 'Your preset.'}</span>
                 </button>
-                <div className={'ppx:mt-auto ppx:flex ppx:flex-wrap ppx:gap-x-2 ppx:px-1.5 ppx:pb-1.5'}>
-                    <Button.Text size={'small'} onClick={() => store([...own, { id: newId(), name: `${preset.name} copy`, values: { ...preset.values } }])}>
-                        Duplicate
-                    </Button.Text>
+                <div className={'ppx:mt-auto ppx:flex ppx:gap-1 ppx:border-t ppx:border-border ppx:px-1.5 ppx:py-1.5'}>
+                    <IconAction icon={'copy'} label={`Duplicate ${preset.name}`} onClick={() => store([...own, { id: newId(), name: `${preset.name} copy`, values: { ...preset.values } }])} />
                     {!preset.builtIn && (
                         <>
-                            <Button.Text size={'small'} onClick={() => setNaming({ id: preset.id, name: preset.name })}>
-                                Rename
-                            </Button.Text>
-                            <Button.Text size={'small'} title={'Replace this preset with the values set now'} onClick={() => store(own.map((item) => (item.id === preset.id ? { ...item, values: lookOf(values) } : item)))}>
-                                Update
-                            </Button.Text>
-                            <Button.Text size={'small'} onClick={() => store(own.filter((item) => item.id !== preset.id))}>
-                                Delete
-                            </Button.Text>
+                            <IconAction icon={'pencil'} label={`Rename ${preset.name}`} onClick={() => setNaming({ id: preset.id, name: preset.name })} />
+                            <IconAction icon={'refresh-cw'} label={`Update ${preset.name} to the look set now`} onClick={() => store(own.map((item) => (item.id === preset.id ? { ...item, values: lookOf(values) } : item)))} />
+                            <span className={'ppx:flex-1'} />
+                            <IconAction icon={'trash-2'} label={`Delete ${preset.name}`} danger onClick={() => store(own.filter((item) => item.id !== preset.id))} />
                         </>
                     )}
                 </div>
@@ -327,32 +320,41 @@ function Presets({ values, apply }: { values: Values; apply: (changes: Values) =
                 )}
                 <div className={'ppx:p-4'}>
                     {own.length === 0 ? (
-                        <p className={'ppx:text-sm ppx:text-muted-foreground'}>None yet. Change the colours and the rest, then save the look here; or duplicate a built-in preset to start from it.</p>
+                        <p className={'ppx:text-sm ppx:text-muted-foreground'}>None yet. Change the colors and the rest, then save the look here; or duplicate a built-in preset to start from it.</p>
                     ) : (
-                        <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-3 ppx:md:grid-cols-3 ppx:xl:grid-cols-4'}>{own.map(card)}</div>
+                        <div className={'ppx:grid ppx:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))] ppx:gap-3'}>{own.map(card)}</div>
                     )}
                 </div>
             </section>
             <section className={box}>
                 <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>Built-in presets</h3>
-                <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-3 ppx:p-4 ppx:md:grid-cols-3 ppx:xl:grid-cols-4'}>{BUILT_IN.map(card)}</div>
+                <div className={'ppx:grid ppx:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))] ppx:gap-3 ppx:p-4'}>{BUILT_IN.map(card)}</div>
                 <p className={'ppx:border-t ppx:border-border ppx:px-4 ppx:py-3 ppx:text-xs ppx:text-muted-foreground'}>
-                    A preset sets every colour, the type, surfaces, background and motion. Change anything after; it stays unsaved until you save.
+                    A preset sets every color, the type, surfaces, background and motion. Change anything after; it stays unsaved until you save.
                 </p>
             </section>
         </>
     );
 }
 
+/** A small icon button; its label shows as a tooltip and is read out. */
+function IconAction({ icon, label, danger = false, onClick }: { icon: string; label: string; danger?: boolean; onClick: () => void }) {
+    return (
+        <button type={'button'} onClick={onClick} title={label} aria-label={label} className={cn('ppx:flex ppx:size-8 ppx:cursor-pointer ppx:items-center ppx:justify-center ppx:rounded-md ppx:text-muted-foreground ppx:transition-colors', danger ? 'ppx:hover:bg-destructive/15 ppx:hover:text-destructive' : 'ppx:hover:bg-muted ppx:hover:text-foreground')}>
+            <NamedIcon name={icon} size={15} />
+        </button>
+    );
+}
+
 /* #endregion Presets */
 
-/* #region Colours */
+/* #region Colors */
 
 const GROUPS = [...new Set(ROLES.map((role) => role.group))];
 /** Which roles show a contrast hint, against which background. */
 const AGAINST: Record<string, string> = { text: 'background', muted_text: 'background', on_primary: 'primary' };
 
-function Colours({ values, apply, focus }: { values: Values; apply: (changes: Values) => void; focus: string | null }) {
+function Colors({ values, apply, focus }: { values: Values; apply: (changes: Values) => void; focus: string | null }) {
     const [mode, setMode] = useState<Mode>(() => (focus?.startsWith('l_') ? 'l' : 'd'));
     const [seed, setSeed] = useState(() => toHex(String(values.d_primary)));
     const [tint, setTint] = useState<Tint>('subtle');
@@ -374,7 +376,7 @@ function Colours({ values, apply, focus }: { values: Values; apply: (changes: Va
         <>
             <section className={box}>
                 <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-3 ppx:border-b ppx:border-border ppx:px-4 ppx:py-3'}>
-                    <h3 className={'ppx:flex-1 ppx:text-sm ppx:font-semibold'}>Colours</h3>
+                    <h3 className={'ppx:flex-1 ppx:text-sm ppx:font-semibold'}>Colors</h3>
                     <div className={'prism-switch ppx:flex ppx:gap-1 ppx:rounded-lg ppx:bg-muted/40 ppx:p-1'} role={'group'} aria-label={'Mode'}>
                         {MODES.map(([value, label]) => (
                             <button key={value} type={'button'} aria-pressed={mode === value} onClick={() => setMode(value)} className={cn('prism-switch-item ppx:flex ppx:cursor-pointer ppx:items-center ppx:gap-1.5 ppx:rounded-md ppx:px-3 ppx:py-1 ppx:text-sm', mode === value ? 'ppx:bg-card ppx:font-semibold ppx:shadow-sm' : 'ppx:text-muted-foreground ppx:hover:text-foreground')}>
@@ -389,19 +391,19 @@ function Colours({ values, apply, focus }: { values: Values; apply: (changes: Va
 
                 <div className={'ppx:flex ppx:flex-wrap ppx:items-end ppx:gap-3 ppx:border-b ppx:border-border ppx:bg-muted/20 ppx:px-4 ppx:py-3'}>
                     <div className={'ppx:min-w-48 ppx:flex-1'}>
-                        <p className={'ppx:text-sm ppx:font-medium'}>Make a palette from one colour</p>
-                        <p className={'ppx:text-xs ppx:text-muted-foreground'}>Fills every {mode === 'd' ? 'dark' : 'light'} colour from it. Fine-tune them below afterwards.</p>
+                        <p className={'ppx:text-sm ppx:font-medium'}>Make a palette from one color</p>
+                        <p className={'ppx:text-xs ppx:text-muted-foreground'}>Fills every {mode === 'd' ? 'dark' : 'light'} color from it. Fine-tune them below afterwards.</p>
                     </div>
-                    <input type={'color'} value={seed} onChange={(event) => setSeed(event.target.value)} aria-label={'The colour to start from'} className={'ppx:h-9 ppx:w-12 ppx:cursor-pointer ppx:rounded ppx:border ppx:border-border ppx:bg-transparent'} />
+                    <input type={'color'} value={seed} onChange={(event) => setSeed(event.target.value)} aria-label={'The color to start from'} className={'ppx:h-9 ppx:w-12 ppx:cursor-pointer ppx:rounded ppx:border ppx:border-border ppx:bg-transparent'} />
                     <div className={'prism-switch ppx:flex ppx:gap-1 ppx:rounded-lg ppx:bg-muted/40 ppx:p-1'} role={'group'} aria-label={'Tint the greys'}>
                         {(['none', 'subtle', 'strong'] as Tint[]).map((value) => (
-                            <button key={value} type={'button'} aria-pressed={tint === value} title={'How much of the colour the greys take on'} onClick={() => setTint(value)} className={cn('prism-switch-item ppx:cursor-pointer ppx:rounded-md ppx:px-2.5 ppx:py-1 ppx:text-xs ppx:capitalize', tint === value ? 'ppx:bg-card ppx:font-semibold ppx:shadow-sm' : 'ppx:text-muted-foreground')}>
+                            <button key={value} type={'button'} aria-pressed={tint === value} title={'How much of the color the greys take on'} onClick={() => setTint(value)} className={cn('prism-switch-item ppx:cursor-pointer ppx:rounded-md ppx:px-2.5 ppx:py-1 ppx:text-xs ppx:capitalize', tint === value ? 'ppx:bg-card ppx:font-semibold ppx:shadow-sm' : 'ppx:text-muted-foreground')}>
                                 {value === 'none' ? 'Plain greys' : `${value} tint`}
                             </button>
                         ))}
                     </div>
                     <Button size={'small'} onClick={generate}>
-                        <NamedIcon name={'wand-sparkles'} size={14} /> Fill {mode === 'd' ? 'dark' : 'light'} colours
+                        <NamedIcon name={'wand-sparkles'} size={14} /> Fill {mode === 'd' ? 'dark' : 'light'} colors
                     </Button>
                 </div>
 
@@ -509,7 +511,7 @@ function MiniPanel({ get }: { get: (role: string) => string }) {
     );
 }
 
-/* #endregion Colours */
+/* #endregion Colors */
 
 function Label({ setting }: { setting: ThemeSetting }) {
     return (

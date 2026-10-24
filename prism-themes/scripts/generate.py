@@ -1,7 +1,7 @@
 # Writes extension.json (the theme settings) and the built-in presets for Prism Properties
 # (prism-extensions/src/client/themes/builtins.json). Run from prism-themes: python scripts/generate.py .
 #
-# A theme is one set of values for the settings below: two colour palettes (dark and light) of
+# A theme is one set of values for the settings below: two color palettes (dark and light) of
 # the same roles, type and shape, surfaces, background and motion. A preset is a named set of
 # those values, so built-in presets and people's own are made with the same tool.
 import json, os, sys
@@ -20,7 +20,7 @@ ROLES = {
     'text': ('Text', None, 'Lines and text'),
     'muted_text': ('Quiet text', 'Descriptions and hints.', 'Lines and text'),
     'primary': ('Primary', 'Buttons, links, the active page.', 'Brand'),
-    'on_primary': ('Text on colour', 'Text on primary and the status colours.', 'Brand'),
+    'on_primary': ('Text on color', 'Text on primary and the status colors.', 'Brand'),
     'success': ('Success', None, 'Status'),
     'warning': ('Warning', None, 'Status'),
     'danger': ('Danger', None, 'Status'),
@@ -45,7 +45,7 @@ def ok(l, c, h):
 
 
 def generated(hue, chroma, tint='subtle'):
-    """A palette from one colour, by the formulas the old Colour setting used."""
+    """A palette from one color, by the formulas the old Color setting used."""
     n = {'none': 0, 'subtle': chroma * 0.12, 'strong': chroma * 0.28}[tint]
     dark = {
         'background': ok(.165, n, hue), 'surface': ok(.205, n, hue), 'sidebar': ok(.185, n, hue), 'raised': ok(.25, n, hue), 'deep': ok(.145, n, hue),
@@ -84,19 +84,19 @@ def catppuccin(flavour):
     }
 
 
-def colours(dark, light):
+def colors(dark, light):
     return {**{f'd_{role}': value for role, value in dark.items()}, **{f'l_{role}': value for role, value in light.items()}}
 
 
 BASE = {'radius': 10, 'font': 'plex', 'font_size': 16, 'switches': 'rounded', 'surface_style': 'raised', 'blur': 14, 'opacity': 70, 'background': 'gradient', 'background_dim': 55, 'motion': 'full'}
 
 PRESETS = [
-    {'id': 'studio', 'name': 'Studio', 'description': 'Blue, with soft shadows and a gradient behind.', 'values': {**colours(*generated(255, .17)), **BASE}},
-    {'id': 'studio-classic', 'name': 'Studio classic', 'description': 'Indigo and flat, close to the panel you know.', 'values': {**colours(*generated(270, .17)), **BASE, 'radius': 6, 'surface_style': 'flat', 'background': 'plain'}},
-    {'id': 'terminal', 'name': 'Terminal', 'description': 'Green on black, monospace and square.', 'values': {**colours(*generated(145, .17, 'strong')), **BASE, 'radius': 2, 'font': 'mono', 'surface_style': 'outlined', 'background': 'grid', 'switches': 'square'}},
+    {'id': 'studio', 'name': 'Studio', 'description': 'Blue, with soft shadows and a gradient behind.', 'values': {**colors(*generated(255, .17)), **BASE}},
+    {'id': 'studio-classic', 'name': 'Studio classic', 'description': 'Indigo and flat, close to the panel you know.', 'values': {**colors(*generated(270, .17)), **BASE, 'radius': 6, 'surface_style': 'flat', 'background': 'plain'}},
+    {'id': 'terminal', 'name': 'Terminal', 'description': 'Green on black, monospace and square.', 'values': {**colors(*generated(145, .17, 'strong')), **BASE, 'radius': 2, 'font': 'mono', 'surface_style': 'outlined', 'background': 'grid', 'switches': 'square'}},
     *[
         {'id': f'catppuccin-{flavour}', 'name': f'Catppuccin {label}', 'description': 'The light flavour in light and dark mode.' if flavour == 'latte' else f'Catppuccin {label} in dark mode, Latte in light mode.',
-         'values': {**colours(catppuccin(flavour), catppuccin('latte')), **BASE, 'radius': 12, 'surface_style': 'flat', 'background': 'plain'}}
+         'values': {**colors(catppuccin(flavour), catppuccin('latte')), **BASE, 'radius': 12, 'surface_style': 'flat', 'background': 'plain'}}
         for flavour, label in [('mocha', 'Mocha'), ('macchiato', 'Macchiato'), ('frappe', 'Frappé'), ('latte', 'Latte')]
     ],
 ]
@@ -113,7 +113,7 @@ def add(key, **kw):
 
 for mode, mode_label in MODES.items():
     for role, (label, help_text, group) in ROLES.items():
-        add(f'{mode}_{role}', type='color', label=f'{label} ({mode_label.lower()})', help=help_text, tab=f'{mode_label} colours', default=STUDIO[f'{mode}_{role}'], token=f"--pt-{mode}-{role.replace('_', '-')}")
+        add(f'{mode}_{role}', type='color', label=f'{label} ({mode_label.lower()})', help=help_text, tab=f'{mode_label} colors', default=STUDIO[f'{mode}_{role}'], token=f"--pt-{mode}-{role.replace('_', '-')}")
 
 add('radius', type='number', label='Corner rounding', tab='Type and shape', default=STUDIO['radius'], min=0, max=24, step=1, unit='px', token='--pt-radius')
 add('font', type='select', label='Font', tab='Type and shape', options={'plex': 'IBM Plex Sans', 'system': 'System', 'rounded': 'Rounded', 'serif': 'Serif', 'mono': 'Monospace'}, default=STUDIO['font'], attribute='data-pt-font')
@@ -122,9 +122,9 @@ add('switches', type='select', label='Switches', help='The shape of every Prism 
 
 add('surface_style', type='select', label='Cards and bars', help='How cards, menus and bars stand out from the background.', tab='Surfaces', options={'flat': 'Flat', 'raised': 'Soft shadow', 'outlined': 'Outlined', 'glow': 'Glow', 'glass': 'Glass'}, default=STUDIO['surface_style'], attribute='data-pt-surface')
 add('blur', type='number', label='Glass blur', help='For Glass.', tab='Surfaces', default=STUDIO['blur'], min=0, max=40, step=2, unit='px', token='--pt-blur')
-add('opacity', type='number', label='Glass solidity', help='For Glass: how much of the card colour covers what is behind.', tab='Surfaces', default=STUDIO['opacity'], min=30, max=100, step=5, unit='%', token='--pt-opacity')
+add('opacity', type='number', label='Glass solidity', help='For Glass: how much of the card color covers what is behind.', tab='Surfaces', default=STUDIO['opacity'], min=30, max=100, step=5, unit='%', token='--pt-opacity')
 
-add('background', type='select', label='Background', tab='Background', options={'plain': 'Plain', 'gradient': 'Gradient', 'aurora': 'Aurora (moving)', 'waves': 'Waves (moving)', 'stars': 'Stars (moving)', 'mesh': 'Colour mesh (moving)', 'grid': 'Grid', 'image': 'Picture'}, default=STUDIO['background'], attribute='data-pt-bg')
+add('background', type='select', label='Background', tab='Background', options={'plain': 'Plain', 'gradient': 'Gradient', 'aurora': 'Aurora (moving)', 'waves': 'Waves (moving)', 'stars': 'Stars (moving)', 'mesh': 'Color mesh (moving)', 'grid': 'Grid', 'image': 'Picture'}, default=STUDIO['background'], attribute='data-pt-bg')
 add('background_image', type='image', label='Background picture', help='Used when the background is Picture.', tab='Background', token='--pt-bg-image')
 add('background_dim', type='number', label='Darken the picture', tab='Background', default=STUDIO['background_dim'], min=0, max=95, step=5, unit='%', token='--pt-bg-dim')
 
@@ -137,7 +137,7 @@ add('presets', type='text', label='Your presets', help='Presets made in Prism Pr
 manifest = {
     '$schema': './node_modules/@pterodactyl/sdk/manifest.schema.json',
     'id': 'prism-themes', 'type': 'theme', 'name': 'Prism Themes', 'version': '0.2.0',
-    'description': 'One theme tool: colours for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.',
+    'description': 'One theme tool: colors for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.',
     'author': 'Donkare', 'icon': 'palette',
     'requires': {'panel': '^2.0.0-dev', 'sdk': '>=2.0.0-beta.6 <3.0'},
     'ui': {'entry': 'dist/client.js'},

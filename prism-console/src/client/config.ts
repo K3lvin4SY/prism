@@ -55,7 +55,7 @@ export function read(raw: ExtensionConfig): ConsoleConfig {
 
     return {
         enabled: bool(get('enabled'), true),
-        fullWidth: bool(get('full_width'), true),
+        fullWidth: bool(get('full_width'), false),
         keepHeader: bool(get('keep_header'), false),
         floatingProgress: bool(get('floating_progress'), true),
         maxLines: Math.max(200, num(get('max_lines'), 1000)),

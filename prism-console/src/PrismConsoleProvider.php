@@ -29,7 +29,7 @@ class PrismConsoleProvider extends ExtensionProvider
         $this->registerSettings(new ExtensionSettingsDefinition($this->settings(), [
             // General
             Setting::make('enabled', 'enabled', true, ['required', 'boolean'])->label('Use Prism Console')->help('Off puts the panel\'s own console back for everyone.')->tab('General')->field('toggle')->frontend(),
-            Setting::make('full_width', 'full_width', true, ['required', 'boolean'])->label('Full width')->help('Let the console use the whole page instead of the panel\'s column.')->tab('General')->field('toggle')->frontend(),
+            Setting::make('full_width', 'full_width', false, ['required', 'boolean'])->label('Always full width')->help('Off, the console follows the page width like every other page (set in Prism Layout). On, it always uses the whole page.')->tab('General')->field('toggle')->frontend(),
             Setting::make('keep_header', 'keep_header', false, ['required', 'boolean'])->label('Keep the panel\'s header')->help('Keeps the server name and description above Prism Console.')->tab('General')->field('toggle')->frontend(),
             Setting::make('floating_progress', 'floating_progress', true, ['required', 'boolean'])->label('Floating progress card')->help('Shows image pull and install progress on other server pages while it runs.')->tab('General')->field('toggle')->frontend(),
             Setting::make('max_lines', 'max_lines', 1000, ['required', 'integer', 'min:200', 'max:20000'])->label('Lines kept in the browser')->help('Older lines are dropped as new ones arrive.')->tab('General')->field('number')->frontend(),

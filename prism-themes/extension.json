@@ -4,7 +4,7 @@
     "type": "theme",
     "name": "Prism Themes",
     "version": "0.2.0",
-    "description": "One theme tool: colours for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.",
+    "description": "One theme tool: colors for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.",
     "author": "Donkare",
     "icon": "palette",
     "requires": {
@@ -26,7 +26,7 @@
                 "type": "color",
                 "label": "Background (dark)",
                 "help": "Behind everything.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.165 0.0204 255)",
                 "token": "--pt-d-background"
             },
@@ -34,7 +34,7 @@
                 "type": "color",
                 "label": "Cards (dark)",
                 "help": "Cards, panels and dialogs.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.205 0.0204 255)",
                 "token": "--pt-d-surface"
             },
@@ -42,7 +42,7 @@
                 "type": "color",
                 "label": "Sidebar and bars (dark)",
                 "help": "The navigation and top bars.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.185 0.0204 255)",
                 "token": "--pt-d-sidebar"
             },
@@ -50,7 +50,7 @@
                 "type": "color",
                 "label": "Raised (dark)",
                 "help": "Menus, hovered rows and quiet fills.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.25 0.0204 255)",
                 "token": "--pt-d-raised"
             },
@@ -58,7 +58,7 @@
                 "type": "color",
                 "label": "Deep (dark)",
                 "help": "Wells: the console, code and sunken areas.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.145 0.0204 255)",
                 "token": "--pt-d-deep"
             },
@@ -66,14 +66,14 @@
                 "type": "color",
                 "label": "Borders (dark)",
                 "help": "Lines between things.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.3 0.0204 255)",
                 "token": "--pt-d-border"
             },
             "d_text": {
                 "type": "color",
                 "label": "Text (dark)",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.95 0.0061 255)",
                 "token": "--pt-d-text"
             },
@@ -81,7 +81,7 @@
                 "type": "color",
                 "label": "Quiet text (dark)",
                 "help": "Descriptions and hints.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.72 0.0245 255)",
                 "token": "--pt-d-muted-text"
             },
@@ -89,36 +89,36 @@
                 "type": "color",
                 "label": "Primary (dark)",
                 "help": "Buttons, links, the active page.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.64 0.17 255)",
                 "token": "--pt-d-primary"
             },
             "d_on_primary": {
                 "type": "color",
-                "label": "Text on colour (dark)",
-                "help": "Text on primary and the status colours.",
-                "tab": "Dark colours",
+                "label": "Text on color (dark)",
+                "help": "Text on primary and the status colors.",
+                "tab": "Dark colors",
                 "default": "oklch(0.99 0 0)",
                 "token": "--pt-d-on-primary"
             },
             "d_success": {
                 "type": "color",
                 "label": "Success (dark)",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.72 0.17 150)",
                 "token": "--pt-d-success"
             },
             "d_warning": {
                 "type": "color",
                 "label": "Warning (dark)",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.8 0.15 80)",
                 "token": "--pt-d-warning"
             },
             "d_danger": {
                 "type": "color",
                 "label": "Danger (dark)",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.65 0.2 25)",
                 "token": "--pt-d-danger"
             },
@@ -126,7 +126,7 @@
                 "type": "color",
                 "label": "Red (dark)",
                 "help": "Errors in the console.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.7 0.17 25)",
                 "token": "--pt-d-red"
             },
@@ -134,7 +134,7 @@
                 "type": "color",
                 "label": "Green (dark)",
                 "help": "Strings and good news.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.76 0.15 145)",
                 "token": "--pt-d-green"
             },
@@ -142,7 +142,7 @@
                 "type": "color",
                 "label": "Yellow (dark)",
                 "help": "Types and warnings.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.86 0.13 95)",
                 "token": "--pt-d-yellow"
             },
@@ -150,7 +150,7 @@
                 "type": "color",
                 "label": "Blue (dark)",
                 "help": "Functions.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.72 0.13 250)",
                 "token": "--pt-d-blue"
             },
@@ -158,7 +158,7 @@
                 "type": "color",
                 "label": "Magenta (dark)",
                 "help": "Keywords.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.72 0.17 330)",
                 "token": "--pt-d-magenta"
             },
@@ -166,7 +166,7 @@
                 "type": "color",
                 "label": "Cyan (dark)",
                 "help": "Operators and info.",
-                "tab": "Dark colours",
+                "tab": "Dark colors",
                 "default": "oklch(0.78 0.11 200)",
                 "token": "--pt-d-cyan"
             },
@@ -174,7 +174,7 @@
                 "type": "color",
                 "label": "Background (light)",
                 "help": "Behind everything.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.975 0.0204 255)",
                 "token": "--pt-l-background"
             },
@@ -182,7 +182,7 @@
                 "type": "color",
                 "label": "Cards (light)",
                 "help": "Cards, panels and dialogs.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(1 0 0)",
                 "token": "--pt-l-surface"
             },
@@ -190,7 +190,7 @@
                 "type": "color",
                 "label": "Sidebar and bars (light)",
                 "help": "The navigation and top bars.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.96 0.0204 255)",
                 "token": "--pt-l-sidebar"
             },
@@ -198,7 +198,7 @@
                 "type": "color",
                 "label": "Raised (light)",
                 "help": "Menus, hovered rows and quiet fills.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.95 0.0204 255)",
                 "token": "--pt-l-raised"
             },
@@ -206,7 +206,7 @@
                 "type": "color",
                 "label": "Deep (light)",
                 "help": "Wells: the console, code and sunken areas.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.955 0.0204 255)",
                 "token": "--pt-l-deep"
             },
@@ -214,14 +214,14 @@
                 "type": "color",
                 "label": "Borders (light)",
                 "help": "Lines between things.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.9 0.0204 255)",
                 "token": "--pt-l-border"
             },
             "l_text": {
                 "type": "color",
                 "label": "Text (light)",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.21 0.0122 255)",
                 "token": "--pt-l-text"
             },
@@ -229,7 +229,7 @@
                 "type": "color",
                 "label": "Quiet text (light)",
                 "help": "Descriptions and hints.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.5 0.0245 255)",
                 "token": "--pt-l-muted-text"
             },
@@ -237,36 +237,36 @@
                 "type": "color",
                 "label": "Primary (light)",
                 "help": "Buttons, links, the active page.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.56 0.17 255)",
                 "token": "--pt-l-primary"
             },
             "l_on_primary": {
                 "type": "color",
-                "label": "Text on colour (light)",
-                "help": "Text on primary and the status colours.",
-                "tab": "Light colours",
+                "label": "Text on color (light)",
+                "help": "Text on primary and the status colors.",
+                "tab": "Light colors",
                 "default": "oklch(0.99 0 0)",
                 "token": "--pt-l-on-primary"
             },
             "l_success": {
                 "type": "color",
                 "label": "Success (light)",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.55 0.15 150)",
                 "token": "--pt-l-success"
             },
             "l_warning": {
                 "type": "color",
                 "label": "Warning (light)",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.68 0.15 70)",
                 "token": "--pt-l-warning"
             },
             "l_danger": {
                 "type": "color",
                 "label": "Danger (light)",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.55 0.21 25)",
                 "token": "--pt-l-danger"
             },
@@ -274,7 +274,7 @@
                 "type": "color",
                 "label": "Red (light)",
                 "help": "Errors in the console.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.55 0.2 25)",
                 "token": "--pt-l-red"
             },
@@ -282,7 +282,7 @@
                 "type": "color",
                 "label": "Green (light)",
                 "help": "Strings and good news.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.55 0.15 145)",
                 "token": "--pt-l-green"
             },
@@ -290,7 +290,7 @@
                 "type": "color",
                 "label": "Yellow (light)",
                 "help": "Types and warnings.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.62 0.13 85)",
                 "token": "--pt-l-yellow"
             },
@@ -298,7 +298,7 @@
                 "type": "color",
                 "label": "Blue (light)",
                 "help": "Functions.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.52 0.15 255)",
                 "token": "--pt-l-blue"
             },
@@ -306,7 +306,7 @@
                 "type": "color",
                 "label": "Magenta (light)",
                 "help": "Keywords.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.55 0.2 330)",
                 "token": "--pt-l-magenta"
             },
@@ -314,7 +314,7 @@
                 "type": "color",
                 "label": "Cyan (light)",
                 "help": "Operators and info.",
-                "tab": "Light colours",
+                "tab": "Light colors",
                 "default": "oklch(0.58 0.1 200)",
                 "token": "--pt-l-cyan"
             },
@@ -396,7 +396,7 @@
             "opacity": {
                 "type": "number",
                 "label": "Glass solidity",
-                "help": "For Glass: how much of the card colour covers what is behind.",
+                "help": "For Glass: how much of the card color covers what is behind.",
                 "tab": "Surfaces",
                 "default": 70,
                 "min": 30,
@@ -415,7 +415,7 @@
                     "aurora": "Aurora (moving)",
                     "waves": "Waves (moving)",
                     "stars": "Stars (moving)",
-                    "mesh": "Colour mesh (moving)",
+                    "mesh": "Color mesh (moving)",
                     "grid": "Grid",
                     "image": "Picture"
                 },

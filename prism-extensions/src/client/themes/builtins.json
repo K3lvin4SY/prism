@@ -56,8 +56,8 @@
     },
     {
       "key": "on_primary",
-      "label": "Text on colour",
-      "help": "Text on primary and the status colours.",
+      "label": "Text on color",
+      "help": "Text on primary and the status colors.",
       "group": "Brand"
     },
     {
