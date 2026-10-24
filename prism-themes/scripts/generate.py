@@ -47,6 +47,7 @@ add('catppuccin_accent', type='select', label='Accent', tab='Catppuccin', option
 add('radius', type='number', label='Corner rounding', tab='Shape', default=10, min=0, max=24, step=1, unit='px', token='--pt-radius')
 add('font', type='select', label='Font', tab='Shape', options={'plex': 'IBM Plex Sans', 'system': 'System', 'rounded': 'Rounded', 'serif': 'Serif', 'mono': 'Monospace'}, default='plex', attribute='data-pt-font')
 add('font_size', type='number', label='Text size', tab='Shape', default=16, min=13, max=18, step=1, unit='px', token='--pt-font-size')
+add('switches', type='select', label='Switches', help='The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding above.', tab='Shape', options={'rounded': 'Rounded', 'square': 'Square'}, default='rounded', attribute='data-pt-switches')
 
 add('background', type='select', label='Background', tab='Background', options={'plain': 'Plain', 'gradient': 'Gradient', 'aurora': 'Aurora (moving)', 'waves': 'Waves (moving)', 'stars': 'Stars (moving)', 'mesh': 'Colour mesh (moving)', 'grid': 'Grid', 'image': 'Picture'}, default='gradient', attribute='data-pt-bg')
 add('background_image', type='image', label='Background picture', help='Used when the background is Picture.', tab='Background', token='--pt-bg-image')

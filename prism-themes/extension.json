@@ -192,6 +192,18 @@
                 "unit": "px",
                 "token": "--pt-font-size"
             },
+            "switches": {
+                "type": "select",
+                "label": "Switches",
+                "help": "The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding above.",
+                "tab": "Shape",
+                "options": {
+                    "rounded": "Rounded",
+                    "square": "Square"
+                },
+                "default": "rounded",
+                "attribute": "data-pt-switches"
+            },
             "background": {
                 "type": "select",
                 "label": "Background",

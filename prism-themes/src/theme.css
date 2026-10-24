@@ -248,6 +248,20 @@
 html {
     font-size: var(--pt-font-size, 16px);
 }
+
+/* Every Prism extension marks its single-choice switches; their shape is chosen here. */
+[data-pt-switches='rounded'] .prism-switch,
+[data-pt-switches='rounded'] .prism-switch-item {
+    border-radius: 9999px;
+}
+
+[data-pt-switches='square'] .prism-switch {
+    border-radius: calc(var(--radius) * 0.8);
+}
+
+[data-pt-switches='square'] .prism-switch-item {
+    border-radius: calc(var(--radius) * 0.6);
+}
 /* #endregion shape */
 
 /* #region surfaces */
