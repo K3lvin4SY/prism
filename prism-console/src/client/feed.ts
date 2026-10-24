@@ -15,7 +15,7 @@ interface WingsStats {
 
 /**
  * Listens to the server's websocket and fills its console store. The panel's own socket is
- * shared; PrismConsole only listens, and sends commands and power signals over the API.
+ * shared; Prism Console only listens, and sends commands and power signals over the API.
  */
 export function useConsoleFeed(server: SdkServer): ServerConsoleStore {
     const store = storeFor(server.attributes.uuid, getConfig().maxLines);

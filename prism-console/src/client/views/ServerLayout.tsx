@@ -6,7 +6,7 @@ import { useConsoleFeed } from '../feed';
 import { useStore } from '../store';
 
 /**
- * Keeps the server's console feed running on every server page, so PrismConsole has the
+ * Keeps the server's console feed running on every server page, so Prism Console has the
  * output when it opens, and shows image pull progress as a floating card away from the console.
  */
 export default function ServerLayout({ Default }: ViewProps<'layout.server'>) {

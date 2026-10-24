@@ -1,7 +1,7 @@
 {
     "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
     "id": "prism-console",
-    "name": "PrismConsole",
+    "name": "Prism Console",
     "version": "0.1.0",
     "requires": {
         "panel": "^2.0.0-dev",

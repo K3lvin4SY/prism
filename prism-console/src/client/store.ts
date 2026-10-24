@@ -13,7 +13,7 @@ export interface StatsSample {
 }
 
 /**
- * Everything PrismConsole keeps for one server while the person stays in the panel: the
+ * Everything Prism Console keeps for one server while the person stays in the panel: the
  * console lines, the resource samples for the charts, and image pull progress. The feed in the
  * server layout fills it, so it keeps collecting while another server page shows.
  */

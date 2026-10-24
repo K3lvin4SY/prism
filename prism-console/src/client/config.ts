@@ -19,7 +19,7 @@ export interface TerminalSettings {
     timestamps: boolean;
 }
 
-/** The admin's PrismConsole settings, from Prism Properties. */
+/** The admin's Prism Console settings, from Prism Properties. */
 export interface ConsoleConfig {
     enabled: boolean;
     fullWidth: boolean;

@@ -15,7 +15,7 @@ const NOTICES = {
     transferring: 'The server is moving to another node.',
 };
 
-/** PrismConsole: the console as a grid of widgets in the layout each person picks. */
+/** Prism Console: the console as a grid of widgets in the layout each person picks. */
 export default function ConsolePage({ model, active, Default }: ViewProps<'page.server.console'>) {
     const data = useConsoleData(model.server.attributes.identifier);
     applyConfig(data.data?.config);
