@@ -8,7 +8,7 @@ export interface Hint {
     /** A heading the field is grouped under inside its tab. */
     section?: string;
     slider?: { min: number; max: number; step?: number; unit?: string };
-    editor?: 'highlights' | 'quickCommands' | 'lines' | 'keybinds';
+    editor?: 'highlights' | 'quickCommands' | 'lines' | 'keybinds' | 'datetime';
     /** Draw a select as buttons side by side. */
     segmented?: boolean;
 }
@@ -23,6 +23,9 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         server_card: { section: 'In the navigation' },
         scheme_switch: { section: 'In the navigation' },
         admin_styled: { section: 'Admin area' },
+        dashboard_panel: { section: 'In the navigation' },
+        sidebar_collapse: { section: 'Bars' },
+        brand_place: { section: 'Top bar', segmented: true },
         width: { segmented: true },
         density: { segmented: true },
         status_style: { segmented: true },
@@ -40,6 +43,9 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         announce_level: { segmented: true },
         announce_style: { segmented: true },
         announce_audience: { segmented: true },
+        announce_from: { section: 'When', editor: 'datetime' },
+        announce_until: { section: 'When', editor: 'datetime' },
+        announce_dismiss: { section: 'When' },
     },
     'prism-console': {
         enabled: { section: 'The console' },
@@ -108,7 +114,7 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
     },
 };
 
-/** PrismConsole's built-in highlight rules, in the order they are listed. */
+/** Prism Console's built-in highlight rules, in the order they are listed. */
 export const BUILTIN_HIGHLIGHTS: { key: string; label: string; colour: string }[] = [
     { key: 'errors', label: 'Errors', colour: '#f87171' },
     { key: 'warnings', label: 'Warnings', colour: '#fbbf24' },

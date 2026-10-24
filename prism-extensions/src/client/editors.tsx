@@ -24,7 +24,7 @@ interface Highlights {
     custom: CustomRule[];
 }
 
-/** PrismConsole's highlight rules: the built-in ones switched on or off, and custom ones. */
+/** Prism Console's highlight rules: the built-in ones switched on or off, and custom ones. */
 export function HighlightsEditor({ value, onChange }: { value: unknown; onChange: (value: string) => void }) {
     const data = parse<Highlights>(value, { builtin: {}, custom: [] });
     const builtin = data.builtin ?? {};
@@ -83,7 +83,7 @@ interface QuickCommand {
     tags: string[];
 }
 
-/** PrismConsole's quick command buttons. */
+/** Prism Console's quick command buttons. */
 export function QuickCommandsEditor({ value, onChange }: { value: unknown; onChange: (value: string) => void }) {
     const commands = parse<QuickCommand[]>(value, []);
     const list = Array.isArray(commands) ? commands : [];

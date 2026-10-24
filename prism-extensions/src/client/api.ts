@@ -24,7 +24,7 @@ export interface PrismExtension {
 /** The Prism extensions this page knows; only the installed and enabled ones are shown. */
 export const PRISM: PrismExtension[] = [
     { id: 'prism-layout', name: 'Prism Layout', icon: 'layout-dashboard', description: 'Navigation layouts, page width, server cards, your logo and favicon, the sign-in page, announcements and the Ctrl+K palette. Works with any theme.' },
-    { id: 'prism-console', name: 'PrismConsole', icon: 'terminal', description: 'A better console for every server: layouts, history, search, highlights, exports and image pull progress.' },
+    { id: 'prism-console', name: 'Prism Console', icon: 'terminal', description: 'A better console for every server: layouts, history, search, highlights, exports and image pull progress.' },
     { id: 'prism-files', name: 'Prism File Browser', icon: 'folder-open', description: 'A better file manager for every server: an editor workbench with tabs, a trash bin, bulk actions and previews.' },
     { id: 'prism-database', name: 'Prism Database Manager', icon: 'database', description: 'Browse and edit tables, run SQL, import and export, back up on a schedule and share databases between servers.' },
     { id: 'prism-backups', name: 'Prism Backups', icon: 'archive', description: 'Backup profiles, browsing inside backups, restoring single files and a .pteroignore editor.' },

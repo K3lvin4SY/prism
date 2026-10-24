@@ -7,7 +7,7 @@
         "panel": "^2.0.0-dev",
         "sdk": ">=2.0.0-beta.6 <3.0"
     },
-    "description": "Prism Properties: one admin page for the settings of PrismConsole, Prism File Browser and Prism Database Manager.",
+    "description": "Prism Properties: one admin page for the settings of Prism Console, Prism File Browser and Prism Database Manager.",
     "author": "Donkare",
     "icon": "sparkles",
     "ui": {

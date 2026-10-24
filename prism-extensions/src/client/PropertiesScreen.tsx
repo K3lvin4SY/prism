@@ -3,6 +3,8 @@ import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Input, NamedIcon, NumberInput, PageContentBlock, Select, Spinner, TextArea, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { PRISM, getSettings, refresh, saveSettings, setSettingFile, settingsKey, type PrismExtension, type PrismId, type SettingField } from './api';
 import BrandingPreview from './BrandingPreview';
+import DateTimeField from './DateTimeField';
+import EggPictures from './EggPictures';
 import LayoutPresets from './LayoutPresets';
 import { PreviewControls, closePreview, usePreviewDraft } from './preview';
 import { THEME_ID, themeApi, themeKeys } from './themes/api';
@@ -95,7 +97,7 @@ export default function PropertiesScreen() {
                 {loading && entries.length === 0 ? (
                     <Spinner centered />
                 ) : !current ? (
-                    <Alert type={'info'}>No Prism extensions are installed and enabled. Install a Prism extension, such as PrismConsole, Prism MC or Prism Layout, to change its settings here.</Alert>
+                    <Alert type={'info'}>No Prism extensions are installed and enabled. Install a Prism extension, such as Prism Console, Prism MC or Prism Layout, to change its settings here.</Alert>
                 ) : (
                     <div className={'ppx:grid ppx:gap-6 ppx:lg:grid-cols-[15rem_minmax(0,1fr)]'}>
                         <Sidebar entries={entries} current={current} section={sectionFor(current)} dirty={dirty} search={search} onSearch={setSearch} onGo={go} />
@@ -329,6 +331,8 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
                 </section>
             ))}
 
+            {layout && tab === 'Server cards' && <EggPictures />}
+
             {extension.id === 'prism-files' && tab === 'Paths' && (
                 <Alert type={'info'}>Protected paths are enforced by Prism File Browser. Someone using the panel&apos;s file API directly, such as an API key or SFTP, is not stopped by them.</Alert>
             )}
@@ -496,6 +500,15 @@ function Field({ field, hint, value, onChange }: { field: SettingField; hint: Hi
             <>
                 <Label field={field} />
                 {editor}
+            </>
+        );
+    }
+
+    if (hint.editor === 'datetime') {
+        return (
+            <>
+                <Label field={field} />
+                <DateTimeField value={value} onChange={onChange} />
             </>
         );
     }
