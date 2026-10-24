@@ -12,7 +12,7 @@ export interface SettingField {
     value: unknown;
 }
 
-export type PrismId = 'prism-console' | 'prism-files' | 'prism-database' | 'prism-branding' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria';
+export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria';
 
 export interface PrismExtension {
     id: PrismId;
@@ -23,10 +23,10 @@ export interface PrismExtension {
 
 /** The Prism extensions this page knows; only the installed and enabled ones are shown. */
 export const PRISM: PrismExtension[] = [
+    { id: 'prism-layout', name: 'Prism Layout', icon: 'layout-dashboard', description: 'Navigation layouts, page width, server cards, your logo and favicon, the sign-in page, announcements and the Ctrl+K palette. Works with any theme.' },
     { id: 'prism-console', name: 'PrismConsole', icon: 'terminal', description: 'A better console for every server: layouts, history, search, highlights, exports and image pull progress.' },
     { id: 'prism-files', name: 'Prism File Browser', icon: 'folder-open', description: 'A better file manager for every server: an editor workbench with tabs, a trash bin, bulk actions and previews.' },
     { id: 'prism-database', name: 'Prism Database Manager', icon: 'database', description: 'Browse and edit tables, run SQL, import and export, back up on a schedule and share databases between servers.' },
-    { id: 'prism-branding', name: 'Prism Branding', icon: 'image', description: 'Your own favicon and logo: beside or instead of the company name, and on the sign-in pages in place of the mascot.' },
     { id: 'prism-backups', name: 'Prism Backups', icon: 'archive', description: 'Backup profiles, browsing inside backups, restoring single files and a .pteroignore editor.' },
     { id: 'prism-schedules', name: 'Prism Schedules', icon: 'calendar-clock', description: 'Schedules with countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets and a calendar.' },
     { id: 'prism-mc', name: 'Prism MC', icon: 'blocks', description: 'Players, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.' },
@@ -68,7 +68,7 @@ export async function setSettingFile(id: PrismId, input: string, file: File | nu
 }
 
 /** Extensions with settings the panel caches, such as head tags, offer this to drop the cache after a save. */
-export const REFRESHES: PrismId[] = ['prism-branding'];
+export const REFRESHES: PrismId[] = ['prism-layout'];
 
 export async function refresh(id: PrismId): Promise<void> {
     if (REFRESHES.includes(id)) await http.post(`/api/admin/extensions/${id}/refresh`).catch(() => undefined);

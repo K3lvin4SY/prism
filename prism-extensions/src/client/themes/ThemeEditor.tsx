@@ -1,40 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Dialog, Input, NamedIcon, Select, Spinner, cn, http, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Dialog, Input, NamedIcon, Select, Spinner, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { ToggleRow } from '../editors';
+import { PreviewControls, reloadPreview, usePreviewDraft } from '../preview';
 import { THEME_ID, optionsOf, themeApi, themeKeys, type ThemeSetting } from './api';
 import { CATPPUCCIN_ACCENTS, LOOKS, PALETTES, swatch, type Look } from './looks';
 
-const PREVIEW = 'prism-themes:preview';
-const READY = 'prism-themes:ready';
-const WINDOW = 'prism-themes-preview';
-
-type Device = 'desktop' | 'tablet' | 'phone';
-const SIZES: Record<Device, [number, number]> = { desktop: [1366, 860], tablet: [820, 1180], phone: [390, 844] };
-type Page = 'dashboard' | 'server' | 'admin' | 'account';
-
-const pill = (active: boolean) =>
-    cn('ppx:inline-flex ppx:items-center ppx:gap-1.5 ppx:rounded-full ppx:px-3 ppx:py-1 ppx:text-xs ppx:font-medium ppx:cursor-pointer', active ? 'ppx:bg-primary ppx:text-primary-foreground' : 'ppx:text-muted-foreground ppx:hover:bg-muted ppx:hover:text-foreground');
+/** The editor's sections, as Prism Properties lists them: the looks, then each settings tab. */
+export const themeSections = (list: ThemeSetting[]) => ['Looks', ...new Set(list.map((setting) => setting.tab ?? 'General').filter((name) => name !== 'Look'))];
 
 /**
- * Prism Themes' live editor: the settings, and a preview window of the real panel that shows each
- * change before it is saved. The panel refuses to be shown in a frame, so the preview is a window.
+ * Prism Themes' live editor: the settings of one section, and the preview window of the real panel
+ * that shows each change before it is saved.
  */
-export default function ThemeEditor() {
+export default function ThemeEditor({ section, focus, onDirty }: { section: string; focus?: string | null; onDirty?: (dirty: boolean) => void }) {
     const queryClient = useQueryClient();
     const themes = useQuery({ queryKey: themeKeys.themes, queryFn: themeApi.themes });
     const settings = useQuery({ queryKey: themeKeys.settings, queryFn: themeApi.settings });
-    const firstServer = useQuery({ queryKey: ['prism-extensions', 'first-server'], queryFn: async () => (await http.get<{ data: { attributes: { identifier: string } }[] }>('/api/client', { params: { per_page: 1 } })).data.data[0]?.attributes.identifier ?? null });
     const [draft, setDraft] = useState<Record<string, unknown>>({});
-    const [tab, setTab] = useState('Looks');
-    const [search, setSearch] = useState('');
-    const [device, setDevice] = useState<Device>('desktop');
-    const [turned, setTurned] = useState(false);
-    const [page, setPage] = useState<Page>('dashboard');
     const [saving, setSaving] = useState(false);
     const [activating, setActivating] = useState(false);
-    const preview = useRef<Window | null>(null);
-    const [open, setOpen] = useState(false);
     const importer = useRef<HTMLInputElement>(null);
 
     const list = settings.data ?? [];
@@ -43,22 +28,18 @@ export default function ThemeEditor() {
     const info = themes.data?.themes.find((theme) => theme.id === THEME_ID);
     const live = themes.data?.active === THEME_ID;
     const previewing = themes.data?.preview === THEME_ID;
-    const tabs = ['Looks', ...new Set(list.map((setting) => setting.tab ?? 'General').filter((name) => name !== 'Look'))];
 
-    // The frame gets every value whenever one changes, and again when it says it is ready.
-    const send = () => {
-        const target = preview.current;
-        if (target && !target.closed) target.postMessage({ type: PREVIEW, settings: values }, window.location.origin);
-    };
-    useEffect(send, [values]);
+    usePreviewDraft(THEME_ID, values);
+    useEffect(() => onDirty?.(dirty), [dirty, onDirty]);
+
+    // Leaving with unsaved changes asks first.
     useEffect(() => {
-        const listener = (event: MessageEvent) => {
-            if (event.origin === window.location.origin && event.source === preview.current && (event.data as { type?: string })?.type === READY) send();
-        };
-        window.addEventListener('message', listener);
+        if (!dirty) return;
+        const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+        window.addEventListener('beforeunload', warn);
 
-        return () => window.removeEventListener('message', listener);
-    });
+        return () => window.removeEventListener('beforeunload', warn);
+    }, [dirty]);
 
     const change = (key: string, value: unknown) =>
         setDraft((current) => {
@@ -87,35 +68,9 @@ export default function ThemeEditor() {
         }
     };
 
-    // Notices the preview window being closed.
-    useEffect(() => {
-        if (!open) return;
-        const timer = window.setInterval(() => preview.current?.closed && setOpen(false), 1000);
-
-        return () => window.clearInterval(timer);
-    }, [open]);
-
-    const show = (next: { page?: Page; device?: Device; turned?: boolean } = {}) => {
-        const where = next.page ?? page;
-        const size = SIZES[next.device ?? device];
-        const [w, h] = (next.turned ?? turned) ? [size[1], size[0]] : size;
-        const url = where === 'dashboard' ? '/' : where === 'admin' ? '/panel' : where === 'account' ? '/account' : firstServer.data ? `/server/${firstServer.data}` : '/';
-        const target = preview.current && !preview.current.closed ? preview.current : null;
-        if (target && !next.device && next.turned === undefined) {
-            target.location.href = url;
-            target.focus();
-        } else {
-            target?.close();
-            preview.current = window.open(url, WINDOW, `popup=yes,width=${Math.min(w, window.screen.availWidth)},height=${Math.min(h, window.screen.availHeight)}`);
-        }
-        setOpen(!!preview.current);
-    };
-
-    useEffect(() => () => preview.current?.close(), []);
-
     const refreshThemes = async () => {
         await queryClient.invalidateQueries({ queryKey: themeKeys.themes });
-        if (preview.current && !preview.current.closed) preview.current.location.reload();
+        reloadPreview();
     };
 
     const exportLook = () => {
@@ -142,8 +97,7 @@ export default function ThemeEditor() {
     if (themes.isLoading || settings.isLoading) return <Spinner centered />;
     if (themes.isError || settings.isError) return <Alert type={'danger'}>{httpErrorToHuman(themes.error ?? settings.error)}</Alert>;
 
-    const query = search.trim().toLowerCase();
-    const shown = query ? list.filter((setting) => `${setting.label} ${setting.help ?? ''} ${setting.tab ?? ''}`.toLowerCase().includes(query)) : list.filter((setting) => (setting.tab ?? 'General') === tab);
+    const shown = list.filter((setting) => (setting.tab ?? 'General') === section);
 
     return (
         <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
@@ -154,7 +108,7 @@ export default function ThemeEditor() {
                 <div className={'ppx:min-w-56 ppx:flex-1'}>
                     <h2 className={'ppx:text-lg ppx:font-semibold'}>Prism Themes</h2>
                     <p className={'ppx:text-sm ppx:text-muted-foreground'}>
-                        {live ? 'Active for everyone.' : previewing ? 'Not active. You are previewing it; only you see it.' : 'Not active. Preview it for yourself, or activate it for everyone.'}
+                        The look: colours, Catppuccin, fonts, glass and backgrounds. {live ? 'Active for everyone.' : previewing ? 'Not active. You are previewing it; only you see it.' : 'Not active. Preview it for yourself, or activate it for everyone.'}
                         {info?.problem && ` ${info.problem}`}
                     </p>
                 </div>
@@ -181,47 +135,39 @@ export default function ThemeEditor() {
                 )}
             </div>
 
-            <div className={'ppx:grid ppx:gap-4 ppx:xl:grid-cols-[26rem_minmax(0,1fr)]'}>
+            <div className={'ppx:grid ppx:gap-4 ppx:2xl:grid-cols-[minmax(0,1fr)_22rem]'}>
                 <div className={'ppx:flex ppx:min-w-0 ppx:flex-col ppx:gap-3'}>
-                    <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={`Search ${list.length} settings`} />
-                    {!query && (
-                        <div className={'ppx:flex ppx:flex-wrap ppx:gap-1 ppx:rounded-xl ppx:border ppx:border-border ppx:bg-card ppx:p-1'}>
-                            {tabs.map((name) => (
-                                <button key={name} type={'button'} className={pill(name === tab)} onClick={() => setTab(name)}>
-                                    {name}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    <div className={'ppx:flex ppx:max-h-[70vh] ppx:flex-col ppx:gap-3 ppx:overflow-y-auto ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
-                        {!query && tab === 'Looks' ? (
-                            <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-2'}>
-                                {LOOKS.map((look) => (
-                                    <button
-                                        key={look.id}
-                                        type={'button'}
-                                        onClick={() => applyLook(look.settings)}
-                                        className={cn('ppx:flex ppx:cursor-pointer ppx:flex-col ppx:overflow-hidden ppx:rounded-lg ppx:border ppx:text-left ppx:transition-colors', values.look === look.settings.look && (!look.settings.catppuccin || values.catppuccin_flavor === look.settings.catppuccin_flavor) && values.catppuccin === look.settings.catppuccin ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary')}
-                                    >
-                                        <LookSwatch look={look.settings} colours={look.swatch} />
-                                        <span className={'ppx:px-2.5 ppx:pt-2 ppx:text-sm ppx:font-medium'}>{look.name}</span>
-                                        <span className={'ppx:px-2.5 ppx:pb-2 ppx:text-xs ppx:text-muted-foreground'}>{look.description}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        ) : shown.length === 0 ? (
-                            <p className={'ppx:text-sm ppx:text-muted-foreground'}>No setting matches.</p>
-                        ) : (
-                            shown.map((setting) => (
-                                <div key={setting.key} className={'ppx:border-b ppx:border-border ppx:pb-3 ppx:last:border-b-0'}>
-                                    <Field setting={setting} value={values[setting.key]} onChange={(value) => change(setting.key, value)} onSchema={(fresh) => queryClient.setQueryData(themeKeys.settings, fresh)} />
+                    <section className={'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
+                        <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>{section}</h3>
+                        <div className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:p-4'}>
+                            {section === 'Looks' ? (
+                                <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-2 ppx:md:grid-cols-3 ppx:xl:grid-cols-4'}>
+                                    {LOOKS.map((look) => (
+                                        <button
+                                            key={look.id}
+                                            type={'button'}
+                                            onClick={() => applyLook(look.settings)}
+                                            className={cn('ppx:flex ppx:cursor-pointer ppx:flex-col ppx:overflow-hidden ppx:rounded-lg ppx:border ppx:text-left ppx:transition-colors', values.look === look.settings.look && (!look.settings.catppuccin || values.catppuccin_flavor === look.settings.catppuccin_flavor) && values.catppuccin === look.settings.catppuccin ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary')}
+                                        >
+                                            <LookSwatch look={look.settings} colours={look.swatch} />
+                                            <span className={'ppx:px-2.5 ppx:pt-2 ppx:text-sm ppx:font-medium'}>{look.name}</span>
+                                            <span className={'ppx:px-2.5 ppx:pb-2 ppx:text-xs ppx:text-muted-foreground'}>{look.description}</span>
+                                        </button>
+                                    ))}
                                 </div>
-                            ))
-                        )}
-                    </div>
+                            ) : shown.length === 0 ? (
+                                <p className={'ppx:text-sm ppx:text-muted-foreground'}>Nothing to set here.</p>
+                            ) : (
+                                shown.map((setting) => (
+                                    <div key={setting.key} id={`ppx-setting-${THEME_ID}-${setting.key}`} className={cn('ppx:scroll-mt-24 ppx:rounded-md ppx:border-b ppx:border-border ppx:pb-3 ppx:last:border-b-0', focus === setting.key && 'ppx:ring-2 ppx:ring-primary ppx:ring-offset-4 ppx:ring-offset-card')}>
+                                        <Field setting={setting} value={values[setting.key]} onChange={(value) => change(setting.key, value)} onSchema={(fresh) => queryClient.setQueryData(themeKeys.settings, fresh)} />
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </section>
 
-                    <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2'}>
+                    <div className={'ppx:sticky ppx:bottom-4 ppx:z-10 ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-3 ppx:shadow-lg'}>
                         <input ref={importer} type={'file'} accept={'.json,application/json'} className={'ppx:hidden'} onChange={(event) => event.target.files?.[0] && void importLook(event.target.files[0])} />
                         <Button.Text size={'small'} onClick={() => importer.current?.click()}>
                             <NamedIcon name={'upload'} size={14} /> Import
@@ -240,69 +186,11 @@ export default function ThemeEditor() {
                 </div>
 
                 <div className={'ppx:flex ppx:min-w-0 ppx:flex-col ppx:gap-3'}>
-                    <div className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
-                        <p className={'ppx:text-sm ppx:font-semibold'}>Live preview</p>
-                        <p className={'ppx:text-sm ppx:text-muted-foreground'}>The real panel in its own window, sized like the device you pick. Each change shows there at once; nobody else sees anything until you save.</p>
-                        <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2'}>
-                            <div className={'ppx:flex ppx:gap-1 ppx:rounded-full ppx:border ppx:border-border ppx:p-1'}>
-                                {(['dashboard', 'server', 'admin', 'account'] as Page[]).map((name) => (
-                                    <button
-                                        key={name}
-                                        type={'button'}
-                                        className={pill(page === name)}
-                                        onClick={() => {
-                                            setPage(name);
-                                            if (open) show({ page: name });
-                                        }}
-                                    >
-                                        {name.charAt(0).toUpperCase() + name.slice(1)}
-                                    </button>
-                                ))}
-                            </div>
-                            <div className={'ppx:flex ppx:gap-1 ppx:rounded-full ppx:border ppx:border-border ppx:p-1'}>
-                                {(['desktop', 'tablet', 'phone'] as Device[]).map((name) => (
-                                    <button
-                                        key={name}
-                                        type={'button'}
-                                        className={pill(device === name)}
-                                        title={name}
-                                        onClick={() => {
-                                            setDevice(name);
-                                            if (open) show({ device: name });
-                                        }}
-                                    >
-                                        <NamedIcon name={name === 'desktop' ? 'monitor' : name === 'tablet' ? 'tablet' : 'smartphone'} size={13} />
-                                    </button>
-                                ))}
-                                <button
-                                    type={'button'}
-                                    className={pill(turned)}
-                                    title={'Turn sideways'}
-                                    onClick={() => {
-                                        setTurned(!turned);
-                                        if (open) show({ turned: !turned });
-                                    }}
-                                >
-                                    <NamedIcon name={'rotate-cw-square'} size={13} />
-                                </button>
-                            </div>
-                        </div>
-                        <div className={'ppx:flex ppx:flex-wrap ppx:gap-2'}>
-                            <Button onClick={() => show()}>
-                                <NamedIcon name={'app-window'} size={14} /> {open ? 'Show the preview window' : 'Open preview window'}
-                            </Button>
-                            {open && (
-                                <Button.Text onClick={() => preview.current?.location.reload()}>
-                                    <NamedIcon name={'refresh-cw'} size={14} /> Reload it
-                                </Button.Text>
-                            )}
-                        </div>
-                        {!live && !previewing && <Alert type={'info'}>The window shows the active theme until you choose Preview for me. Only you see a preview.</Alert>}
-                    </div>
+                    <PreviewControls>{!live && !previewing && <Alert type={'info'}>The window shows the active theme until you choose Preview for me. Only you see a preview.</Alert>}</PreviewControls>
                     <div className={'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
                         <p className={'ppx:mb-2 ppx:text-sm ppx:font-semibold'}>Now set</p>
                         <dl className={'ppx:grid ppx:grid-cols-2 ppx:gap-x-4 ppx:gap-y-1 ppx:text-sm'}>
-                            {(['look', 'palette', 'bars', 'cards', 'background', 'font'] as const).map((key) => {
+                            {(['look', 'palette', 'background', 'font', 'motion'] as const).map((key) => {
                                 const setting = list.find((item) => item.key === key);
                                 const label = setting ? (optionsOf(setting).find((option) => option.value === values[key])?.label ?? String(values[key])) : '';
 
@@ -347,24 +235,31 @@ export default function ThemeEditor() {
     );
 }
 
-/** A small picture of a look: its colour, bars and cards. */
+/** A small picture of a look: its background, surfaces, colour and corners. */
 function LookSwatch({ look, colours }: { look: Record<string, unknown>; colours?: Look['swatch'] }) {
     const colour = colours?.accent ?? swatch(String(look.palette));
-    const card = colours ? colours.surface : look.cards === 'outline' ? 'none' : '#ffffff18';
-    const bars = String(look.bars);
-    const side = bars === 'sidebar' || bars === 'sidebar_top' ? 18 : bars === 'rail' || bars === 'rail_top' ? 7 : 0;
-    const top = bars === 'top' || bars.endsWith('_top') || bars === 'top_dock';
-    const dock = bars === 'dock' || bars === 'top_dock';
+    const card = colours ? colours.surface : look.look === 'mono' || look.look === 'contrast' || look.look === 'terminal' ? 'none' : '#ffffff18';
+    const radius = Math.min(6, Number(look.radius ?? 8) / 3);
+    const backdrop =
+        colours?.base ??
+        (look.background === 'mesh'
+            ? 'radial-gradient(circle at 20% 20%, #8b5cf6aa, transparent 60%), radial-gradient(circle at 80% 80%, #ec4899aa, transparent 60%), #141821'
+            : look.background === 'aurora' || look.background === 'gradient'
+              ? `radial-gradient(circle at 0% 0%, color-mix(in oklab, ${colour} 35%, transparent), transparent 60%), ${look.palette === 'stone' ? '#f4efe6' : '#141821'}`
+              : look.palette === 'stone'
+                ? '#f4efe6'
+                : '#141821');
 
     return (
-        <svg viewBox={'0 0 100 56'} className={'ppx:h-16 ppx:w-full'} aria-hidden style={{ background: colours?.base ?? (look.background === 'mesh' ? 'radial-gradient(circle at 20% 20%, #8b5cf6aa, transparent 60%), radial-gradient(circle at 80% 80%, #ec4899aa, transparent 60%), #141821' : look.palette === 'stone' ? '#f4efe6' : '#141821') }}>
-            {side > 0 && <rect x={0} y={0} width={side} height={56} fill={'#ffffff10'} />}
-            {top && <rect x={side} y={0} width={100 - side} height={8} fill={'#ffffff14'} />}
+        <svg viewBox={'0 0 100 56'} className={'ppx:h-16 ppx:w-full'} aria-hidden style={{ background: backdrop }}>
+            <rect x={0} y={0} width={18} height={56} fill={'#ffffff10'} />
             {[0, 1, 2].map((index) => (
-                <rect key={index} x={side + 6 + index * ((94 - side) / 3)} y={top ? 14 : 8} width={(94 - side) / 3 - 4} height={look.cards === 'rows' || look.cards === 'compact' ? 12 : 22} rx={Math.min(6, Number(look.radius ?? 8) / 3)} fill={card} stroke={look.cards === 'outline' || look.cards === 'neon' ? colour : 'none'} />
+                <rect key={index} x={24 + index * 25} y={8} width={21} height={22} rx={radius} fill={card} stroke={card === 'none' || look.look === 'neon' ? colour : 'none'} />
             ))}
-            <rect x={side + 6} y={top ? 14 : 8} width={14} height={4} rx={1} fill={colour} />
-            {dock && <rect x={30} y={47} width={40} height={6} rx={3} fill={'#ffffff26'} />}
+            <rect x={24} y={8} width={14} height={4} rx={1} fill={colour} />
+            <rect x={24} y={36} width={46} height={12} rx={radius} fill={card === 'none' ? '#ffffff10' : card} />
+            {look.background === 'stars' && [12, 40, 66, 88].map((x, index) => <circle key={x} cx={x} cy={index % 2 ? 48 : 50} r={0.8} fill={'#fff'} opacity={0.7} />)}
+            {look.background === 'waves' && <path d={'M0 50 Q25 42 50 50 T100 50 V56 H0 Z'} fill={colour} opacity={0.3} />}
             {look.glass === true && <circle cx={80} cy={45} r={14} fill={colour} opacity={0.25} />}
         </svg>
     );

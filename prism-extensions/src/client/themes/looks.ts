@@ -41,32 +41,32 @@ export const CATPPUCCIN_ACCENTS: Record<string, string> = {
     yellow: '#f9e2af', green: '#a6e3a1', teal: '#94e2d5', sky: '#89dceb', sapphire: '#74c7ec', blue: '#89b4fa', lavender: '#b4befe',
 };
 
-const base = { catppuccin: false, tint: 'subtle', bars: 'sidebar', cards: 'banner', radius: 10, density: 'cozy', width: 'normal', font: 'plex', background: 'gradient', glass: false, motion: 'full', status_style: 'badge', usage_style: 'bars' };
+const base = { catppuccin: false, tint: 'subtle', radius: 10, font: 'plex', background: 'gradient', glass: false, motion: 'full' };
 
 /** A finished design: picking one sets the settings that make it, which can be changed after. */
 export const LOOKS: Look[] = [
-    { id: 'studio', name: 'Studio', description: 'Sidebar, banner cards, a soft gradient.', settings: { ...base, look: 'studio', palette: 'blue' } },
-    { id: 'studio_classic', name: 'Studio classic', description: 'A top bar and tiles, close to the panel you know.', settings: { ...base, look: 'studio_classic', palette: 'indigo', bars: 'top', cards: 'tile', radius: 6, background: 'plain' } },
-    { id: 'rail', name: 'Icon rail', description: 'A slim rail of icons and compact cards.', settings: { ...base, look: 'rail', palette: 'violet', bars: 'rail', cards: 'compact', radius: 12 } },
-    { id: 'wide', name: 'Wide and grouped', description: 'Grouped sidebar, a top bar and the whole width.', settings: { ...base, look: 'wide', palette: 'sky', bars: 'sidebar_top', width: 'wide', cards: 'rows', group_nav: true } },
-    { id: 'command', name: 'Command center', description: 'Dense: rail, top bar, small cards, full width.', settings: { ...base, look: 'command', palette: 'emerald', bars: 'rail_top', density: 'compact', cards: 'compact', font: 'system', width: 'full', usage_style: 'numbers', status_style: 'dot' } },
-    { id: 'mono', name: 'Monochrome', description: 'Greys only, outlined cards.', settings: { ...base, look: 'mono', palette: 'graphite', tint: 'none', cards: 'outline', background: 'plain' } },
-    { id: 'contrast', name: 'High contrast', description: 'Strong borders and text, for easy reading.', settings: { ...base, look: 'contrast', palette: 'yellow', tint: 'none', cards: 'outline', background: 'plain', status_style: 'badge' } },
-    { id: 'glass', name: 'Glass', description: 'Frosted panels over a moving aurora.', settings: { ...base, look: 'glass', palette: 'violet', glass: true, background: 'aurora', cards: 'tile', radius: 16 } },
-    { id: 'paper', name: 'Paper', description: 'Warm, light and quiet, with a serif font.', settings: { ...base, look: 'paper', palette: 'stone', tint: 'none', bars: 'top', cards: 'minimal', font: 'serif', background: 'plain' } },
+    { id: 'studio', name: 'Studio', description: 'The default: blue with a soft gradient.', settings: { ...base, look: 'studio', palette: 'blue' } },
+    { id: 'studio_classic', name: 'Studio classic', description: 'Indigo, plain and flatter, close to the panel you know.', settings: { ...base, look: 'studio_classic', palette: 'indigo', radius: 6, background: 'plain' } },
+    { id: 'rail', name: 'Icon rail', description: 'Violet with rounder corners.', settings: { ...base, look: 'rail', palette: 'violet', radius: 12 } },
+    { id: 'wide', name: 'Wide and grouped', description: 'Sky blue with a soft gradient.', settings: { ...base, look: 'wide', palette: 'sky' } },
+    { id: 'command', name: 'Command center', description: 'Emerald and the system font.', settings: { ...base, look: 'command', palette: 'emerald', font: 'system' } },
+    { id: 'mono', name: 'Monochrome', description: 'Greys only, on a plain background.', settings: { ...base, look: 'mono', palette: 'graphite', tint: 'none', background: 'plain' } },
+    { id: 'contrast', name: 'High contrast', description: 'Strong borders and text, for easy reading.', settings: { ...base, look: 'contrast', palette: 'yellow', tint: 'none', background: 'plain' } },
+    { id: 'glass', name: 'Glass', description: 'Frosted panels over a moving aurora.', settings: { ...base, look: 'glass', palette: 'violet', glass: true, background: 'aurora', radius: 16 } },
+    { id: 'paper', name: 'Paper', description: 'Warm, light and quiet, with a serif font.', settings: { ...base, look: 'paper', palette: 'stone', tint: 'none', font: 'serif', background: 'plain' } },
     { id: 'midnight', name: 'Midnight', description: 'Deep blue with twinkling stars.', settings: { ...base, look: 'midnight', palette: 'cobalt', background: 'stars', tint: 'strong' } },
-    { id: 'neon', name: 'Neon', description: 'Glowing cards on a grid, with a dock.', settings: { ...base, look: 'neon', palette: 'fuchsia', bars: 'dock', cards: 'neon', background: 'grid' } },
-    { id: 'soft', name: 'Soft', description: 'Round corners, a rounded font and plenty of room.', settings: { ...base, look: 'soft', palette: 'lavender', bars: 'top_dock', cards: 'tile', radius: 20, font: 'rounded', density: 'comfortable' } },
-    { id: 'terminal', name: 'Terminal', description: 'Monospace, square and green.', settings: { ...base, look: 'terminal', palette: 'green', font: 'mono', radius: 2, cards: 'outline', background: 'grid', tint: 'strong', status_style: 'dot', usage_style: 'numbers' } },
+    { id: 'neon', name: 'Neon', description: 'Glowing edges on a grid.', settings: { ...base, look: 'neon', palette: 'fuchsia', background: 'grid' } },
+    { id: 'soft', name: 'Soft', description: 'Round corners and a rounded font.', settings: { ...base, look: 'soft', palette: 'lavender', radius: 20, font: 'rounded' } },
+    { id: 'terminal', name: 'Terminal', description: 'Monospace, square and green.', settings: { ...base, look: 'terminal', palette: 'green', font: 'mono', radius: 2, background: 'grid', tint: 'strong' } },
     { id: 'sunset', name: 'Sunset', description: 'Orange waves rolling along the bottom.', settings: { ...base, look: 'sunset', palette: 'orange', background: 'waves', tint: 'strong' } },
-    { id: 'forest', name: 'Forest', description: 'Green tiles and a calm gradient.', settings: { ...base, look: 'forest', palette: 'forest', cards: 'tile', tint: 'strong' } },
+    { id: 'forest', name: 'Forest', description: 'Green, with a calm gradient.', settings: { ...base, look: 'forest', palette: 'forest', tint: 'strong' } },
     { id: 'ocean', name: 'Ocean', description: 'Blue waves under glass.', settings: { ...base, look: 'ocean', palette: 'ocean', background: 'waves', glass: true } },
-    { id: 'glassmorphism', name: 'Glassmorphism', description: 'See-through, blurred panels with light edges over a moving colour mesh.', settings: { ...base, look: 'glassmorphism', palette: 'violet', background: 'mesh', glass: true, blur: 20, radius: 18, cards: 'tile', bars: 'sidebar' } },
+    { id: 'glassmorphism', name: 'Glassmorphism', description: 'See-through, blurred panels with light edges over a moving colour mesh.', settings: { ...base, look: 'glassmorphism', palette: 'violet', background: 'mesh', glass: true, blur: 20, radius: 18 } },
     ...(['mocha', 'macchiato', 'frappe', 'latte'] as const).map((flavor) => ({
         id: `catppuccin-${flavor}`,
         name: `Catppuccin ${CATPPUCCIN_FLAVOURS[flavor]}`,
         description: flavor === 'latte' ? 'The light flavour, in light and dark mode alike.' : `Catppuccin's official ${CATPPUCCIN_FLAVOURS[flavor]} colours; light mode uses Latte.`,
-        settings: { ...base, look: 'catppuccin', catppuccin: true, catppuccin_flavor: flavor, catppuccin_accent: 'mauve', palette: 'violet', background: 'plain', radius: 12, cards: 'tile' },
+        settings: { ...base, look: 'catppuccin', catppuccin: true, catppuccin_flavor: flavor, catppuccin_accent: 'mauve', palette: 'violet', background: 'plain', radius: 12 },
         swatch: CATPPUCCIN[flavor],
     })),
 ];

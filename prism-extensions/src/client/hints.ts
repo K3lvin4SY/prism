@@ -14,6 +14,33 @@ export interface Hint {
 }
 
 export const HINTS: Record<PrismId, Record<string, Hint>> = {
+    'prism-layout': {
+        enabled: { section: 'Prism Layout' },
+        bars: { section: 'Bars' },
+        sidebar_width: { section: 'Bars', slider: { min: 12, max: 22, unit: ' rem' } },
+        dock_magnify: { section: 'Bars' },
+        group_nav: { section: 'In the navigation' },
+        server_card: { section: 'In the navigation' },
+        scheme_switch: { section: 'In the navigation' },
+        admin_styled: { section: 'Admin area' },
+        width: { segmented: true },
+        density: { segmented: true },
+        status_style: { segmented: true },
+        usage_style: { segmented: true },
+        logo: { section: 'Top bar' },
+        logo_mode: { section: 'Top bar', segmented: true },
+        logo_height: { section: 'Top bar', slider: { min: 16, max: 64, unit: 'px' } },
+        logo_square: { section: 'Narrow places' },
+        favicon: { section: 'Browser tab' },
+        login_style: { section: 'The page', segmented: true },
+        login_image: { section: 'The page' },
+        login_tagline: { section: 'The page' },
+        login_mark: { section: 'On the card', segmented: true },
+        login_logo_size: { section: 'On the card', slider: { min: 48, max: 320, step: 4, unit: 'px' } },
+        announce_level: { segmented: true },
+        announce_style: { segmented: true },
+        announce_audience: { segmented: true },
+    },
     'prism-console': {
         enabled: { section: 'The console' },
         full_width: { section: 'The console' },
@@ -59,14 +86,6 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         backup_fastest: { segmented: true },
         backup_max_keep: { slider: { min: 1, max: 200 } },
         backup_max_mb: { slider: { min: 10, max: 102400, step: 10, unit: ' MB' } },
-    },
-    'prism-branding': {
-        logo: { section: 'Top bar' },
-        logo_mode: { section: 'Top bar', segmented: true },
-        logo_height: { section: 'Top bar', slider: { min: 16, max: 64, unit: 'px' } },
-        logo_square: { section: 'Narrow places' },
-        login_mark: { segmented: true },
-        login_logo_size: { slider: { min: 48, max: 320, step: 4, unit: 'px' } },
     },
     'prism-backups': {
         max_profiles: { slider: { min: 1, max: 50 } },
