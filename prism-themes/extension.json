@@ -3,8 +3,8 @@
     "id": "prism-themes",
     "type": "theme",
     "name": "Prism Themes",
-    "version": "0.1.0",
-    "description": "16 looks, 30 colours, Catppuccin, light and dark, fonts, glass and moving backgrounds. The layout is Prism Layout. Edit it live in Prism Properties.",
+    "version": "0.2.0",
+    "description": "One theme tool: colours for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.",
     "author": "Donkare",
     "icon": "palette",
     "requires": {
@@ -22,144 +22,306 @@
             "light"
         ],
         "settings": {
-            "look": {
-                "type": "select",
-                "label": "Look",
-                "help": "The finished design the rest builds on. Prism Properties sets the other settings to match when you pick one.",
-                "tab": "Look",
-                "options": {
-                    "studio": "Studio",
-                    "studio_classic": "Studio classic",
-                    "rail": "Icon rail",
-                    "wide": "Wide and grouped",
-                    "command": "Command center",
-                    "mono": "Monochrome",
-                    "contrast": "High contrast",
-                    "glass": "Glass",
-                    "paper": "Paper",
-                    "midnight": "Midnight",
-                    "neon": "Neon",
-                    "soft": "Soft",
-                    "terminal": "Terminal",
-                    "sunset": "Sunset",
-                    "forest": "Forest",
-                    "ocean": "Ocean",
-                    "catppuccin": "Catppuccin",
-                    "glassmorphism": "Glassmorphism"
-                },
-                "default": "studio",
-                "attribute": "data-pt-look"
-            },
-            "palette": {
-                "type": "select",
-                "label": "Colour",
-                "tab": "Colours",
-                "options": {
-                    "blue": "Blue",
-                    "indigo": "Indigo",
-                    "violet": "Violet",
-                    "purple": "Purple",
-                    "fuchsia": "Fuchsia",
-                    "pink": "Pink",
-                    "rose": "Rose",
-                    "red": "Red",
-                    "crimson": "Crimson",
-                    "coral": "Coral",
-                    "orange": "Orange",
-                    "peach": "Peach",
-                    "amber": "Amber",
-                    "gold": "Gold",
-                    "yellow": "Yellow",
-                    "lime": "Lime",
-                    "green": "Green",
-                    "forest": "Forest",
-                    "emerald": "Emerald",
-                    "mint": "Mint",
-                    "teal": "Teal",
-                    "cyan": "Cyan",
-                    "sky": "Sky",
-                    "ocean": "Ocean",
-                    "cobalt": "Cobalt",
-                    "lavender": "Lavender",
-                    "slate": "Slate",
-                    "zinc": "Zinc",
-                    "stone": "Stone",
-                    "graphite": "Graphite",
-                    "custom": "Custom"
-                },
-                "default": "blue",
-                "attribute": "data-pt-palette"
-            },
-            "accent": {
+            "d_background": {
                 "type": "color",
-                "label": "Custom colour",
-                "help": "Used when the colour is Custom.",
-                "tab": "Colours",
-                "default": "#6366f1",
-                "token": "--pt-accent"
+                "label": "Background (dark)",
+                "help": "Behind everything.",
+                "tab": "Dark colours",
+                "default": "oklch(0.165 0.0204 255)",
+                "token": "--pt-d-background"
             },
-            "tint": {
-                "type": "select",
-                "label": "Tint the greys",
-                "help": "How much of the colour the backgrounds and borders take on.",
-                "tab": "Colours",
-                "options": {
-                    "none": "None",
-                    "subtle": "Subtle",
-                    "strong": "Strong"
-                },
-                "default": "subtle",
-                "attribute": "data-pt-tint"
+            "d_surface": {
+                "type": "color",
+                "label": "Cards (dark)",
+                "help": "Cards, panels and dialogs.",
+                "tab": "Dark colours",
+                "default": "oklch(0.205 0.0204 255)",
+                "token": "--pt-d-surface"
             },
-            "catppuccin": {
-                "type": "toggle",
-                "label": "Use Catppuccin",
-                "help": "Catppuccin's official colours for every surface, text, the console and the editor, in place of the colour above.",
-                "tab": "Catppuccin",
-                "default": false,
-                "attribute": "data-pt-ctp"
+            "d_sidebar": {
+                "type": "color",
+                "label": "Sidebar and bars (dark)",
+                "help": "The navigation and top bars.",
+                "tab": "Dark colours",
+                "default": "oklch(0.185 0.0204 255)",
+                "token": "--pt-d-sidebar"
             },
-            "catppuccin_flavor": {
-                "type": "select",
-                "label": "Flavour in dark mode",
-                "help": "Light mode always uses Latte, the light flavour. Picking Latte here uses it in dark mode too.",
-                "tab": "Catppuccin",
-                "options": {
-                    "latte": "Latte",
-                    "frappe": "Frapp\u00e9",
-                    "macchiato": "Macchiato",
-                    "mocha": "Mocha"
-                },
-                "default": "mocha",
-                "attribute": "data-pt-ctp-flavor"
+            "d_raised": {
+                "type": "color",
+                "label": "Raised (dark)",
+                "help": "Menus, hovered rows and quiet fills.",
+                "tab": "Dark colours",
+                "default": "oklch(0.25 0.0204 255)",
+                "token": "--pt-d-raised"
             },
-            "catppuccin_accent": {
-                "type": "select",
-                "label": "Accent",
-                "tab": "Catppuccin",
-                "options": {
-                    "rosewater": "Rosewater",
-                    "flamingo": "Flamingo",
-                    "pink": "Pink",
-                    "mauve": "Mauve",
-                    "red": "Red",
-                    "maroon": "Maroon",
-                    "peach": "Peach",
-                    "yellow": "Yellow",
-                    "green": "Green",
-                    "teal": "Teal",
-                    "sky": "Sky",
-                    "sapphire": "Sapphire",
-                    "blue": "Blue",
-                    "lavender": "Lavender"
-                },
-                "default": "mauve",
-                "attribute": "data-pt-ctp-accent"
+            "d_deep": {
+                "type": "color",
+                "label": "Deep (dark)",
+                "help": "Wells: the console, code and sunken areas.",
+                "tab": "Dark colours",
+                "default": "oklch(0.145 0.0204 255)",
+                "token": "--pt-d-deep"
+            },
+            "d_border": {
+                "type": "color",
+                "label": "Borders (dark)",
+                "help": "Lines between things.",
+                "tab": "Dark colours",
+                "default": "oklch(0.3 0.0204 255)",
+                "token": "--pt-d-border"
+            },
+            "d_text": {
+                "type": "color",
+                "label": "Text (dark)",
+                "tab": "Dark colours",
+                "default": "oklch(0.95 0.0061 255)",
+                "token": "--pt-d-text"
+            },
+            "d_muted_text": {
+                "type": "color",
+                "label": "Quiet text (dark)",
+                "help": "Descriptions and hints.",
+                "tab": "Dark colours",
+                "default": "oklch(0.72 0.0245 255)",
+                "token": "--pt-d-muted-text"
+            },
+            "d_primary": {
+                "type": "color",
+                "label": "Primary (dark)",
+                "help": "Buttons, links, the active page.",
+                "tab": "Dark colours",
+                "default": "oklch(0.64 0.17 255)",
+                "token": "--pt-d-primary"
+            },
+            "d_on_primary": {
+                "type": "color",
+                "label": "Text on colour (dark)",
+                "help": "Text on primary and the status colours.",
+                "tab": "Dark colours",
+                "default": "oklch(0.99 0 0)",
+                "token": "--pt-d-on-primary"
+            },
+            "d_success": {
+                "type": "color",
+                "label": "Success (dark)",
+                "tab": "Dark colours",
+                "default": "oklch(0.72 0.17 150)",
+                "token": "--pt-d-success"
+            },
+            "d_warning": {
+                "type": "color",
+                "label": "Warning (dark)",
+                "tab": "Dark colours",
+                "default": "oklch(0.8 0.15 80)",
+                "token": "--pt-d-warning"
+            },
+            "d_danger": {
+                "type": "color",
+                "label": "Danger (dark)",
+                "tab": "Dark colours",
+                "default": "oklch(0.65 0.2 25)",
+                "token": "--pt-d-danger"
+            },
+            "d_red": {
+                "type": "color",
+                "label": "Red (dark)",
+                "help": "Errors in the console.",
+                "tab": "Dark colours",
+                "default": "oklch(0.7 0.17 25)",
+                "token": "--pt-d-red"
+            },
+            "d_green": {
+                "type": "color",
+                "label": "Green (dark)",
+                "help": "Strings and good news.",
+                "tab": "Dark colours",
+                "default": "oklch(0.76 0.15 145)",
+                "token": "--pt-d-green"
+            },
+            "d_yellow": {
+                "type": "color",
+                "label": "Yellow (dark)",
+                "help": "Types and warnings.",
+                "tab": "Dark colours",
+                "default": "oklch(0.86 0.13 95)",
+                "token": "--pt-d-yellow"
+            },
+            "d_blue": {
+                "type": "color",
+                "label": "Blue (dark)",
+                "help": "Functions.",
+                "tab": "Dark colours",
+                "default": "oklch(0.72 0.13 250)",
+                "token": "--pt-d-blue"
+            },
+            "d_magenta": {
+                "type": "color",
+                "label": "Magenta (dark)",
+                "help": "Keywords.",
+                "tab": "Dark colours",
+                "default": "oklch(0.72 0.17 330)",
+                "token": "--pt-d-magenta"
+            },
+            "d_cyan": {
+                "type": "color",
+                "label": "Cyan (dark)",
+                "help": "Operators and info.",
+                "tab": "Dark colours",
+                "default": "oklch(0.78 0.11 200)",
+                "token": "--pt-d-cyan"
+            },
+            "l_background": {
+                "type": "color",
+                "label": "Background (light)",
+                "help": "Behind everything.",
+                "tab": "Light colours",
+                "default": "oklch(0.975 0.0204 255)",
+                "token": "--pt-l-background"
+            },
+            "l_surface": {
+                "type": "color",
+                "label": "Cards (light)",
+                "help": "Cards, panels and dialogs.",
+                "tab": "Light colours",
+                "default": "oklch(1 0 0)",
+                "token": "--pt-l-surface"
+            },
+            "l_sidebar": {
+                "type": "color",
+                "label": "Sidebar and bars (light)",
+                "help": "The navigation and top bars.",
+                "tab": "Light colours",
+                "default": "oklch(0.96 0.0204 255)",
+                "token": "--pt-l-sidebar"
+            },
+            "l_raised": {
+                "type": "color",
+                "label": "Raised (light)",
+                "help": "Menus, hovered rows and quiet fills.",
+                "tab": "Light colours",
+                "default": "oklch(0.95 0.0204 255)",
+                "token": "--pt-l-raised"
+            },
+            "l_deep": {
+                "type": "color",
+                "label": "Deep (light)",
+                "help": "Wells: the console, code and sunken areas.",
+                "tab": "Light colours",
+                "default": "oklch(0.955 0.0204 255)",
+                "token": "--pt-l-deep"
+            },
+            "l_border": {
+                "type": "color",
+                "label": "Borders (light)",
+                "help": "Lines between things.",
+                "tab": "Light colours",
+                "default": "oklch(0.9 0.0204 255)",
+                "token": "--pt-l-border"
+            },
+            "l_text": {
+                "type": "color",
+                "label": "Text (light)",
+                "tab": "Light colours",
+                "default": "oklch(0.21 0.0122 255)",
+                "token": "--pt-l-text"
+            },
+            "l_muted_text": {
+                "type": "color",
+                "label": "Quiet text (light)",
+                "help": "Descriptions and hints.",
+                "tab": "Light colours",
+                "default": "oklch(0.5 0.0245 255)",
+                "token": "--pt-l-muted-text"
+            },
+            "l_primary": {
+                "type": "color",
+                "label": "Primary (light)",
+                "help": "Buttons, links, the active page.",
+                "tab": "Light colours",
+                "default": "oklch(0.56 0.17 255)",
+                "token": "--pt-l-primary"
+            },
+            "l_on_primary": {
+                "type": "color",
+                "label": "Text on colour (light)",
+                "help": "Text on primary and the status colours.",
+                "tab": "Light colours",
+                "default": "oklch(0.99 0 0)",
+                "token": "--pt-l-on-primary"
+            },
+            "l_success": {
+                "type": "color",
+                "label": "Success (light)",
+                "tab": "Light colours",
+                "default": "oklch(0.55 0.15 150)",
+                "token": "--pt-l-success"
+            },
+            "l_warning": {
+                "type": "color",
+                "label": "Warning (light)",
+                "tab": "Light colours",
+                "default": "oklch(0.68 0.15 70)",
+                "token": "--pt-l-warning"
+            },
+            "l_danger": {
+                "type": "color",
+                "label": "Danger (light)",
+                "tab": "Light colours",
+                "default": "oklch(0.55 0.21 25)",
+                "token": "--pt-l-danger"
+            },
+            "l_red": {
+                "type": "color",
+                "label": "Red (light)",
+                "help": "Errors in the console.",
+                "tab": "Light colours",
+                "default": "oklch(0.55 0.2 25)",
+                "token": "--pt-l-red"
+            },
+            "l_green": {
+                "type": "color",
+                "label": "Green (light)",
+                "help": "Strings and good news.",
+                "tab": "Light colours",
+                "default": "oklch(0.55 0.15 145)",
+                "token": "--pt-l-green"
+            },
+            "l_yellow": {
+                "type": "color",
+                "label": "Yellow (light)",
+                "help": "Types and warnings.",
+                "tab": "Light colours",
+                "default": "oklch(0.62 0.13 85)",
+                "token": "--pt-l-yellow"
+            },
+            "l_blue": {
+                "type": "color",
+                "label": "Blue (light)",
+                "help": "Functions.",
+                "tab": "Light colours",
+                "default": "oklch(0.52 0.15 255)",
+                "token": "--pt-l-blue"
+            },
+            "l_magenta": {
+                "type": "color",
+                "label": "Magenta (light)",
+                "help": "Keywords.",
+                "tab": "Light colours",
+                "default": "oklch(0.55 0.2 330)",
+                "token": "--pt-l-magenta"
+            },
+            "l_cyan": {
+                "type": "color",
+                "label": "Cyan (light)",
+                "help": "Operators and info.",
+                "tab": "Light colours",
+                "default": "oklch(0.58 0.1 200)",
+                "token": "--pt-l-cyan"
             },
             "radius": {
                 "type": "number",
                 "label": "Corner rounding",
-                "tab": "Shape",
+                "tab": "Type and shape",
                 "default": 10,
                 "min": 0,
                 "max": 24,
@@ -170,7 +332,7 @@
             "font": {
                 "type": "select",
                 "label": "Font",
-                "tab": "Shape",
+                "tab": "Type and shape",
                 "options": {
                     "plex": "IBM Plex Sans",
                     "system": "System",
@@ -184,7 +346,7 @@
             "font_size": {
                 "type": "number",
                 "label": "Text size",
-                "tab": "Shape",
+                "tab": "Type and shape",
                 "default": 16,
                 "min": 13,
                 "max": 18,
@@ -195,14 +357,53 @@
             "switches": {
                 "type": "select",
                 "label": "Switches",
-                "help": "The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding above.",
-                "tab": "Shape",
+                "help": "The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding.",
+                "tab": "Type and shape",
                 "options": {
                     "rounded": "Rounded",
                     "square": "Square"
                 },
                 "default": "rounded",
                 "attribute": "data-pt-switches"
+            },
+            "surface_style": {
+                "type": "select",
+                "label": "Cards and bars",
+                "help": "How cards, menus and bars stand out from the background.",
+                "tab": "Surfaces",
+                "options": {
+                    "flat": "Flat",
+                    "raised": "Soft shadow",
+                    "outlined": "Outlined",
+                    "glow": "Glow",
+                    "glass": "Glass"
+                },
+                "default": "raised",
+                "attribute": "data-pt-surface"
+            },
+            "blur": {
+                "type": "number",
+                "label": "Glass blur",
+                "help": "For Glass.",
+                "tab": "Surfaces",
+                "default": 14,
+                "min": 0,
+                "max": 40,
+                "step": 2,
+                "unit": "px",
+                "token": "--pt-blur"
+            },
+            "opacity": {
+                "type": "number",
+                "label": "Glass solidity",
+                "help": "For Glass: how much of the card colour covers what is behind.",
+                "tab": "Surfaces",
+                "default": 70,
+                "min": 30,
+                "max": 100,
+                "step": 5,
+                "unit": "%",
+                "token": "--pt-opacity"
             },
             "background": {
                 "type": "select",
@@ -239,25 +440,6 @@
                 "unit": "%",
                 "token": "--pt-bg-dim"
             },
-            "glass": {
-                "type": "toggle",
-                "label": "Glass panels",
-                "help": "Cards and bars let the background show through, blurred.",
-                "tab": "Background",
-                "default": false,
-                "attribute": "data-pt-glass"
-            },
-            "blur": {
-                "type": "number",
-                "label": "Glass blur",
-                "tab": "Background",
-                "default": 14,
-                "min": 0,
-                "max": 40,
-                "step": 2,
-                "unit": "px",
-                "token": "--pt-blur"
-            },
             "motion": {
                 "type": "select",
                 "label": "Motion",
@@ -270,6 +452,22 @@
                 },
                 "default": "full",
                 "attribute": "data-pt-motion"
+            },
+            "preset": {
+                "type": "text",
+                "label": "Preset",
+                "help": "The preset these values came from.",
+                "tab": "Presets",
+                "default": "Studio",
+                "maxLength": 80
+            },
+            "presets": {
+                "type": "text",
+                "label": "Your presets",
+                "help": "Presets made in Prism Properties.",
+                "tab": "Presets",
+                "default": "[]",
+                "maxLength": 200000
             }
         }
     }

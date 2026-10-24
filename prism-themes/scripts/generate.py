@@ -1,200 +1,151 @@
-# Writes extension.json (the theme settings) and src/palettes.css. Run from prism-themes: python scripts/generate.py .
-import json, sys, os
+# Writes extension.json (the theme settings) and the built-in presets for Prism Properties
+# (prism-extensions/src/client/themes/builtins.json). Run from prism-themes: python scripts/generate.py .
+#
+# A theme is one set of values for the settings below: two colour palettes (dark and light) of
+# the same roles, type and shape, surfaces, background and motion. A preset is a named set of
+# those values, so built-in presets and people's own are made with the same tool.
+import json, os, sys
 
 root = sys.argv[1]
-# name: (label, hue, chroma)
-palettes = {
-    'blue': ('Blue', 255, .17), 'indigo': ('Indigo', 270, .17), 'violet': ('Violet', 287, .19), 'purple': ('Purple', 302, .2),
-    'fuchsia': ('Fuchsia', 322, .21), 'pink': ('Pink', 350, .18), 'rose': ('Rose', 12, .19), 'red': ('Red', 25, .2),
-    'crimson': ('Crimson', 18, .23), 'coral': ('Coral', 35, .15), 'orange': ('Orange', 52, .18), 'peach': ('Peach', 55, .1),
-    'amber': ('Amber', 72, .16), 'gold': ('Gold', 85, .13), 'yellow': ('Yellow', 98, .16), 'lime': ('Lime', 125, .18),
-    'green': ('Green', 145, .17), 'forest': ('Forest', 150, .1), 'emerald': ('Emerald', 162, .15), 'mint': ('Mint', 172, .1),
-    'teal': ('Teal', 185, .12), 'cyan': ('Cyan', 208, .12), 'sky': ('Sky', 232, .14), 'ocean': ('Ocean', 242, .12),
-    'cobalt': ('Cobalt', 264, .21), 'lavender': ('Lavender', 292, .1), 'slate': ('Slate', 255, .035), 'zinc': ('Zinc', 285, .012),
-    'stone': ('Stone', 60, .016), 'graphite': ('Graphite', 250, .004),
+extensions = os.path.join(root, '..', 'prism-extensions', 'src', 'client', 'themes')
+
+# role: (label, help, group)
+ROLES = {
+    'background': ('Background', 'Behind everything.', 'Surfaces'),
+    'surface': ('Cards', 'Cards, panels and dialogs.', 'Surfaces'),
+    'sidebar': ('Sidebar and bars', 'The navigation and top bars.', 'Surfaces'),
+    'raised': ('Raised', 'Menus, hovered rows and quiet fills.', 'Surfaces'),
+    'deep': ('Deep', 'Wells: the console, code and sunken areas.', 'Surfaces'),
+    'border': ('Borders', 'Lines between things.', 'Lines and text'),
+    'text': ('Text', None, 'Lines and text'),
+    'muted_text': ('Quiet text', 'Descriptions and hints.', 'Lines and text'),
+    'primary': ('Primary', 'Buttons, links, the active page.', 'Brand'),
+    'on_primary': ('Text on colour', 'Text on primary and the status colours.', 'Brand'),
+    'success': ('Success', None, 'Status'),
+    'warning': ('Warning', None, 'Status'),
+    'danger': ('Danger', None, 'Status'),
+    'red': ('Red', 'Errors in the console.', 'Code and console'),
+    'green': ('Green', 'Strings and good news.', 'Code and console'),
+    'yellow': ('Yellow', 'Types and warnings.', 'Code and console'),
+    'blue': ('Blue', 'Functions.', 'Code and console'),
+    'magenta': ('Magenta', 'Keywords.', 'Code and console'),
+    'cyan': ('Cyan', 'Operators and info.', 'Code and console'),
 }
-looks = {
-    'studio': 'Studio', 'studio_classic': 'Studio classic', 'rail': 'Icon rail', 'wide': 'Wide and grouped', 'command': 'Command center',
-    'mono': 'Monochrome', 'contrast': 'High contrast', 'glass': 'Glass', 'paper': 'Paper', 'midnight': 'Midnight', 'neon': 'Neon',
-    'soft': 'Soft', 'terminal': 'Terminal', 'sunset': 'Sunset', 'forest': 'Forest', 'ocean': 'Ocean',
-    'catppuccin': 'Catppuccin', 'glassmorphism': 'Glassmorphism',
+MODES = {'d': 'Dark', 'l': 'Light'}
+
+
+def num(value):
+    text = f'{value:.4f}'.rstrip('0').rstrip('.')
+
+    return text if text not in ('', '-0') else '0'
+
+
+def ok(l, c, h):
+    return f'oklch({num(l)} {num(c)} {num(h % 360)})'
+
+
+def generated(hue, chroma, tint='subtle'):
+    """A palette from one colour, by the formulas the old Colour setting used."""
+    n = {'none': 0, 'subtle': chroma * 0.12, 'strong': chroma * 0.28}[tint]
+    dark = {
+        'background': ok(.165, n, hue), 'surface': ok(.205, n, hue), 'sidebar': ok(.185, n, hue), 'raised': ok(.25, n, hue), 'deep': ok(.145, n, hue),
+        'border': ok(.3, n, hue), 'text': ok(.95, n * .3, hue), 'muted_text': ok(.72, n * 1.2, hue), 'primary': ok(.64, chroma, hue), 'on_primary': ok(.99, 0, 0),
+        'success': ok(.72, .17, 150), 'warning': ok(.8, .15, 80), 'danger': ok(.65, .2, 25),
+        'red': ok(.7, .17, 25), 'green': ok(.76, .15, 145), 'yellow': ok(.86, .13, 95), 'blue': ok(.72, .13, 250), 'magenta': ok(.72, .17, 330), 'cyan': ok(.78, .11, 200),
+    }
+    light = {
+        'background': ok(.975, n, hue), 'surface': ok(1, 0, 0), 'sidebar': ok(.96, n, hue), 'raised': ok(.95, n, hue), 'deep': ok(.955, n, hue),
+        'border': ok(.9, n, hue), 'text': ok(.21, n * .6, hue), 'muted_text': ok(.5, n * 1.2, hue), 'primary': ok(.56, chroma, hue), 'on_primary': ok(.99, 0, 0),
+        'success': ok(.55, .15, 150), 'warning': ok(.68, .15, 70), 'danger': ok(.55, .21, 25),
+        'red': ok(.55, .2, 25), 'green': ok(.55, .15, 145), 'yellow': ok(.62, .13, 85), 'blue': ok(.52, .15, 255), 'magenta': ok(.55, .2, 330), 'cyan': ok(.58, .1, 200),
+    }
+
+    return dark, light
+
+
+# Catppuccin's official palette, https://catppuccin.com/palette.
+CTP = {
+    'latte': {'pink': '#ea76cb', 'mauve': '#8839ef', 'red': '#d20f39', 'peach': '#fe640b', 'yellow': '#df8e1d', 'green': '#40a02b', 'teal': '#179299', 'blue': '#1e66f5', 'text': '#4c4f69', 'subtext0': '#6c6f85', 'surface0': '#ccd0da', 'surface1': '#bcc0cc', 'base': '#eff1f5', 'mantle': '#e6e9ef', 'crust': '#dce0e8'},
+    'frappe': {'pink': '#f4b8e4', 'mauve': '#ca9ee6', 'red': '#e78284', 'peach': '#ef9f76', 'yellow': '#e5c890', 'green': '#a6d189', 'teal': '#81c8be', 'blue': '#8caaee', 'text': '#c6d0f5', 'subtext0': '#a5adce', 'surface0': '#414559', 'surface1': '#51576d', 'base': '#303446', 'mantle': '#292c3c', 'crust': '#232634'},
+    'macchiato': {'pink': '#f5bde6', 'mauve': '#c6a0f6', 'red': '#ed8796', 'peach': '#f5a97f', 'yellow': '#eed49f', 'green': '#a6da95', 'teal': '#8bd5ca', 'blue': '#8aadf4', 'text': '#cad3f5', 'subtext0': '#a5adcb', 'surface0': '#363a4f', 'surface1': '#494d64', 'base': '#24273a', 'mantle': '#1e2030', 'crust': '#181926'},
+    'mocha': {'pink': '#f5c2e7', 'mauve': '#cba6f7', 'red': '#f38ba8', 'peach': '#fab387', 'yellow': '#f9e2af', 'green': '#a6e3a1', 'teal': '#94e2d5', 'blue': '#89b4fa', 'text': '#cdd6f4', 'subtext0': '#a6adc8', 'surface0': '#313244', 'surface1': '#45475a', 'base': '#1e1e2e', 'mantle': '#181825', 'crust': '#11111b'},
 }
 
-# Catppuccin's official palette, https://catppuccin.com/palette: every colour of each flavour.
-catppuccin = {
-    'latte': {'rosewater': '#dc8a78', 'flamingo': '#dd7878', 'pink': '#ea76cb', 'mauve': '#8839ef', 'red': '#d20f39', 'maroon': '#e64553', 'peach': '#fe640b', 'yellow': '#df8e1d', 'green': '#40a02b', 'teal': '#179299', 'sky': '#04a5e5', 'sapphire': '#209fb5', 'blue': '#1e66f5', 'lavender': '#7287fd', 'text': '#4c4f69', 'subtext1': '#5c5f77', 'subtext0': '#6c6f85', 'overlay2': '#7c7f93', 'overlay1': '#8c8fa1', 'overlay0': '#9ca0b0', 'surface2': '#acb0be', 'surface1': '#bcc0cc', 'surface0': '#ccd0da', 'base': '#eff1f5', 'mantle': '#e6e9ef', 'crust': '#dce0e8'},
-    'frappe': {'rosewater': '#f2d5cf', 'flamingo': '#eebebe', 'pink': '#f4b8e4', 'mauve': '#ca9ee6', 'red': '#e78284', 'maroon': '#ea999c', 'peach': '#ef9f76', 'yellow': '#e5c890', 'green': '#a6d189', 'teal': '#81c8be', 'sky': '#99d1db', 'sapphire': '#85c1dc', 'blue': '#8caaee', 'lavender': '#babbf1', 'text': '#c6d0f5', 'subtext1': '#b5bfe2', 'subtext0': '#a5adce', 'overlay2': '#949cbb', 'overlay1': '#838ba7', 'overlay0': '#737994', 'surface2': '#626880', 'surface1': '#51576d', 'surface0': '#414559', 'base': '#303446', 'mantle': '#292c3c', 'crust': '#232634'},
-    'macchiato': {'rosewater': '#f4dbd6', 'flamingo': '#f0c6c6', 'pink': '#f5bde6', 'mauve': '#c6a0f6', 'red': '#ed8796', 'maroon': '#ee99a0', 'peach': '#f5a97f', 'yellow': '#eed49f', 'green': '#a6da95', 'teal': '#8bd5ca', 'sky': '#91d7e3', 'sapphire': '#7dc4e4', 'blue': '#8aadf4', 'lavender': '#b7bdf8', 'text': '#cad3f5', 'subtext1': '#b8c0e0', 'subtext0': '#a5adcb', 'overlay2': '#939ab7', 'overlay1': '#8087a2', 'overlay0': '#6e738d', 'surface2': '#5b6078', 'surface1': '#494d64', 'surface0': '#363a4f', 'base': '#24273a', 'mantle': '#1e2030', 'crust': '#181926'},
-    'mocha': {'rosewater': '#f5e0dc', 'flamingo': '#f2cdcd', 'pink': '#f5c2e7', 'mauve': '#cba6f7', 'red': '#f38ba8', 'maroon': '#eba0ac', 'peach': '#fab387', 'yellow': '#f9e2af', 'green': '#a6e3a1', 'teal': '#94e2d5', 'sky': '#89dceb', 'sapphire': '#74c7ec', 'blue': '#89b4fa', 'lavender': '#b4befe', 'text': '#cdd6f4', 'subtext1': '#bac2de', 'subtext0': '#a6adc8', 'overlay2': '#9399b2', 'overlay1': '#7f849c', 'overlay0': '#6c7086', 'surface2': '#585b70', 'surface1': '#45475a', 'surface0': '#313244', 'base': '#1e1e2e', 'mantle': '#181825', 'crust': '#11111b'},
-}
-flavours = {'latte': 'Latte', 'frappe': 'Frappé', 'macchiato': 'Macchiato', 'mocha': 'Mocha'}
-accents = ['rosewater', 'flamingo', 'pink', 'mauve', 'red', 'maroon', 'peach', 'yellow', 'green', 'teal', 'sky', 'sapphire', 'blue', 'lavender']
+
+def catppuccin(flavour):
+    """Each role from the Catppuccin style guide: base behind, mantle and crust for panes."""
+    c = CTP[flavour]
+
+    return {
+        'background': c['base'], 'surface': c['mantle'], 'sidebar': c['crust'], 'raised': c['surface0'], 'deep': c['crust'],
+        'border': c['surface0'], 'text': c['text'], 'muted_text': c['subtext0'], 'primary': c['mauve'], 'on_primary': c['crust'],
+        'success': c['green'], 'warning': c['yellow'], 'danger': c['red'],
+        'red': c['red'], 'green': c['green'], 'yellow': c['yellow'], 'blue': c['blue'], 'magenta': c['pink'], 'cyan': c['teal'],
+    }
+
+
+def colours(dark, light):
+    return {**{f'd_{role}': value for role, value in dark.items()}, **{f'l_{role}': value for role, value in light.items()}}
+
+
+BASE = {'radius': 10, 'font': 'plex', 'font_size': 16, 'switches': 'rounded', 'surface_style': 'raised', 'blur': 14, 'opacity': 70, 'background': 'gradient', 'background_dim': 55, 'motion': 'full'}
+
+PRESETS = [
+    {'id': 'studio', 'name': 'Studio', 'description': 'Blue, with soft shadows and a gradient behind.', 'values': {**colours(*generated(255, .17)), **BASE}},
+    {'id': 'studio-classic', 'name': 'Studio classic', 'description': 'Indigo and flat, close to the panel you know.', 'values': {**colours(*generated(270, .17)), **BASE, 'radius': 6, 'surface_style': 'flat', 'background': 'plain'}},
+    {'id': 'terminal', 'name': 'Terminal', 'description': 'Green on black, monospace and square.', 'values': {**colours(*generated(145, .17, 'strong')), **BASE, 'radius': 2, 'font': 'mono', 'surface_style': 'outlined', 'background': 'grid', 'switches': 'square'}},
+    *[
+        {'id': f'catppuccin-{flavour}', 'name': f'Catppuccin {label}', 'description': 'The light flavour in light and dark mode.' if flavour == 'latte' else f'Catppuccin {label} in dark mode, Latte in light mode.',
+         'values': {**colours(catppuccin(flavour), catppuccin('latte')), **BASE, 'radius': 12, 'surface_style': 'flat', 'background': 'plain'}}
+        for flavour, label in [('mocha', 'Mocha'), ('macchiato', 'Macchiato'), ('frappe', 'Frappé'), ('latte', 'Latte')]
+    ],
+]
+
+STUDIO = PRESETS[0]['values']
 S = {}
 
+
 def add(key, **kw):
+    if kw.get('help') is None:
+        kw.pop('help', None)
     S[key] = kw
 
-add('look', type='select', label='Look', help='The finished design the rest builds on. Prism Properties sets the other settings to match when you pick one.', tab='Look', options=looks, default='studio', attribute='data-pt-look')
 
-add('palette', type='select', label='Colour', tab='Colours', options={**{k: v[0] for k, v in palettes.items()}, 'custom': 'Custom'}, default='blue', attribute='data-pt-palette')
-add('accent', type='color', label='Custom colour', help='Used when the colour is Custom.', tab='Colours', default='#6366f1', token='--pt-accent')
-add('tint', type='select', label='Tint the greys', help='How much of the colour the backgrounds and borders take on.', tab='Colours', options={'none': 'None', 'subtle': 'Subtle', 'strong': 'Strong'}, default='subtle', attribute='data-pt-tint')
+for mode, mode_label in MODES.items():
+    for role, (label, help_text, group) in ROLES.items():
+        add(f'{mode}_{role}', type='color', label=f'{label} ({mode_label.lower()})', help=help_text, tab=f'{mode_label} colours', default=STUDIO[f'{mode}_{role}'], token=f"--pt-{mode}-{role.replace('_', '-')}")
 
-add('catppuccin', type='toggle', label='Use Catppuccin', help="Catppuccin's official colours for every surface, text, the console and the editor, in place of the colour above.", tab='Catppuccin', default=False, attribute='data-pt-ctp')
-add('catppuccin_flavor', type='select', label='Flavour in dark mode', help='Light mode always uses Latte, the light flavour. Picking Latte here uses it in dark mode too.', tab='Catppuccin', options=flavours, default='mocha', attribute='data-pt-ctp-flavor')
-add('catppuccin_accent', type='select', label='Accent', tab='Catppuccin', options={a: a.capitalize() for a in accents}, default='mauve', attribute='data-pt-ctp-accent')
+add('radius', type='number', label='Corner rounding', tab='Type and shape', default=STUDIO['radius'], min=0, max=24, step=1, unit='px', token='--pt-radius')
+add('font', type='select', label='Font', tab='Type and shape', options={'plex': 'IBM Plex Sans', 'system': 'System', 'rounded': 'Rounded', 'serif': 'Serif', 'mono': 'Monospace'}, default=STUDIO['font'], attribute='data-pt-font')
+add('font_size', type='number', label='Text size', tab='Type and shape', default=STUDIO['font_size'], min=13, max=18, step=1, unit='px', token='--pt-font-size')
+add('switches', type='select', label='Switches', help='The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding.', tab='Type and shape', options={'rounded': 'Rounded', 'square': 'Square'}, default=STUDIO['switches'], attribute='data-pt-switches')
 
-add('radius', type='number', label='Corner rounding', tab='Shape', default=10, min=0, max=24, step=1, unit='px', token='--pt-radius')
-add('font', type='select', label='Font', tab='Shape', options={'plex': 'IBM Plex Sans', 'system': 'System', 'rounded': 'Rounded', 'serif': 'Serif', 'mono': 'Monospace'}, default='plex', attribute='data-pt-font')
-add('font_size', type='number', label='Text size', tab='Shape', default=16, min=13, max=18, step=1, unit='px', token='--pt-font-size')
-add('switches', type='select', label='Switches', help='The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding above.', tab='Shape', options={'rounded': 'Rounded', 'square': 'Square'}, default='rounded', attribute='data-pt-switches')
+add('surface_style', type='select', label='Cards and bars', help='How cards, menus and bars stand out from the background.', tab='Surfaces', options={'flat': 'Flat', 'raised': 'Soft shadow', 'outlined': 'Outlined', 'glow': 'Glow', 'glass': 'Glass'}, default=STUDIO['surface_style'], attribute='data-pt-surface')
+add('blur', type='number', label='Glass blur', help='For Glass.', tab='Surfaces', default=STUDIO['blur'], min=0, max=40, step=2, unit='px', token='--pt-blur')
+add('opacity', type='number', label='Glass solidity', help='For Glass: how much of the card colour covers what is behind.', tab='Surfaces', default=STUDIO['opacity'], min=30, max=100, step=5, unit='%', token='--pt-opacity')
 
-add('background', type='select', label='Background', tab='Background', options={'plain': 'Plain', 'gradient': 'Gradient', 'aurora': 'Aurora (moving)', 'waves': 'Waves (moving)', 'stars': 'Stars (moving)', 'mesh': 'Colour mesh (moving)', 'grid': 'Grid', 'image': 'Picture'}, default='gradient', attribute='data-pt-bg')
+add('background', type='select', label='Background', tab='Background', options={'plain': 'Plain', 'gradient': 'Gradient', 'aurora': 'Aurora (moving)', 'waves': 'Waves (moving)', 'stars': 'Stars (moving)', 'mesh': 'Colour mesh (moving)', 'grid': 'Grid', 'image': 'Picture'}, default=STUDIO['background'], attribute='data-pt-bg')
 add('background_image', type='image', label='Background picture', help='Used when the background is Picture.', tab='Background', token='--pt-bg-image')
-add('background_dim', type='number', label='Darken the picture', tab='Background', default=55, min=0, max=95, step=5, unit='%', token='--pt-bg-dim')
-add('glass', type='toggle', label='Glass panels', help='Cards and bars let the background show through, blurred.', tab='Background', default=False, attribute='data-pt-glass')
-add('blur', type='number', label='Glass blur', tab='Background', default=14, min=0, max=40, step=2, unit='px', token='--pt-blur')
+add('background_dim', type='number', label='Darken the picture', tab='Background', default=STUDIO['background_dim'], min=0, max=95, step=5, unit='%', token='--pt-bg-dim')
 
-add('motion', type='select', label='Motion', help='People who ask their system for less motion always get it.', tab='Motion', options={'full': 'Full', 'reduced': 'Reduced', 'none': 'None'}, default='full', attribute='data-pt-motion')
+add('motion', type='select', label='Motion', help='People who ask their system for less motion always get it.', tab='Motion', options={'full': 'Full', 'reduced': 'Reduced', 'none': 'None'}, default=STUDIO['motion'], attribute='data-pt-motion')
 
-for value in S.values():
-    if value.get('help') is None:
-        value.pop('help', None)
+# Bookkeeping for Prism Properties: written to nothing on the page.
+add('preset', type='text', label='Preset', help='The preset these values came from.', tab='Presets', default='Studio', maxLength=80)
+add('presets', type='text', label='Your presets', help='Presets made in Prism Properties.', tab='Presets', default='[]', maxLength=200000)
 
 manifest = {
     '$schema': './node_modules/@pterodactyl/sdk/manifest.schema.json',
-    'id': 'prism-themes', 'type': 'theme', 'name': 'Prism Themes', 'version': '0.1.0',
-    'description': '16 looks, 30 colours, Catppuccin, light and dark, fonts, glass and moving backgrounds. The layout is Prism Layout. Edit it live in Prism Properties.',
+    'id': 'prism-themes', 'type': 'theme', 'name': 'Prism Themes', 'version': '0.2.0',
+    'description': 'One theme tool: colours for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.',
     'author': 'Donkare', 'icon': 'palette',
     'requires': {'panel': '^2.0.0-dev', 'sdk': '>=2.0.0-beta.6 <3.0'},
     'ui': {'entry': 'dist/client.js'},
     'theme': {'extends': 'classic', 'stylesheet': 'dist/theme.css', 'schemes': ['dark', 'light'], 'settings': S},
 }
-open(os.path.join(root, 'extension.json'), 'w', encoding='utf8').write(json.dumps(manifest, indent=4) + '\n')
+open(os.path.join(root, 'extension.json'), 'w', encoding='utf8').write(json.dumps(manifest, indent=4, ensure_ascii=False) + '\n')
 
-css = ['/* Generated from the palette table in scripts/generate.py (python scripts/generate.py .): the hue and strength of each colour. */']
-for k, (label, h, c) in palettes.items():
-    css.append(f"[data-pt-palette='{k}'] {{ --pt-h: {h}; --pt-c: {c}; }}")
-open(os.path.join(root, 'src', 'palettes.css'), 'w', encoding='utf8').write('\n'.join(css) + '\n')
-ctp = ['/* Generated by scripts/generate.py from Catppuccin\'s official palette (https://catppuccin.com/palette). */']
-for flavour, colours in catppuccin.items():
-    body = ' '.join(f'--ctp-{name}: {value};' for name, value in colours.items())
-    if flavour == 'latte':
-        # Light mode is always Latte; dark mode is Latte only when it is picked.
-        ctp.append(f"[data-pt-ctp='true'].light, [data-pt-ctp='true'][data-pt-ctp-flavor='latte'].dark {{ {body} }}")
-    else:
-        ctp.append(f"[data-pt-ctp='true'][data-pt-ctp-flavor='{flavour}'].dark {{ {body} }}")
-for accent in accents:
-    ctp.append(f"[data-pt-ctp='true'][data-pt-ctp-accent='{accent}'] {{ --ctp-accent: var(--ctp-{accent}); }}")
-# The terminal's black and white follow the official ports: Latte inverts them.
-ctp.append("""
-[data-pt-ctp='true'].dark:not([data-pt-ctp-flavor='latte']) {
-    --ctp-term-black: var(--ctp-surface1);
-    --ctp-term-bright-black: var(--ctp-surface2);
-    --ctp-term-white: var(--ctp-subtext1);
-    --ctp-term-bright-white: var(--ctp-subtext0);
-}
+roles = [{'key': role, 'label': label, 'help': help_text, 'group': group} for role, (label, help_text, group) in ROLES.items()]
+open(os.path.join(extensions, 'builtins.json'), 'w', encoding='utf8').write(json.dumps({'roles': roles, 'presets': PRESETS}, indent=2, ensure_ascii=False) + '\n')
 
-[data-pt-ctp='true'].light,
-[data-pt-ctp='true'][data-pt-ctp-flavor='latte'].dark {
-    --ctp-term-black: var(--ctp-subtext1);
-    --ctp-term-bright-black: var(--ctp-subtext0);
-    --ctp-term-white: var(--ctp-surface2);
-    --ctp-term-bright-white: var(--ctp-surface1);
-}
-
-/* Each role of the panel, from the Catppuccin style guide: base behind, mantle and crust for panes.
-   :root makes these win over the looks, which come later in the stylesheet. */
-:root[data-pt-ctp='true'].dark,
-:root[data-pt-ctp='true'].light {
-    --background: var(--ctp-base);
-    --foreground: var(--ctp-text);
-    --card: var(--ctp-mantle);
-    --card-foreground: var(--ctp-text);
-    --popover: var(--ctp-surface0);
-    --popover-foreground: var(--ctp-text);
-    --muted: var(--ctp-surface0);
-    --muted-foreground: var(--ctp-subtext0);
-    --secondary: var(--ctp-surface1);
-    --secondary-foreground: var(--ctp-text);
-    --sunken: var(--ctp-crust);
-    --border: var(--ctp-surface0);
-    --input: var(--ctp-mantle);
-    --input-border: var(--ctp-surface1);
-    --primary: var(--ctp-accent);
-    --primary-foreground: var(--ctp-crust);
-    --accent: var(--ctp-accent);
-    --accent-foreground: var(--ctp-crust);
-    --ring: color-mix(in srgb, var(--ctp-accent) 60%, transparent);
-    --destructive: var(--ctp-red);
-    --destructive-foreground: var(--ctp-crust);
-    --success: var(--ctp-green);
-    --success-foreground: var(--ctp-crust);
-    --warning: var(--ctp-yellow);
-    --warning-foreground: var(--ctp-crust);
-    --caution: var(--ctp-peach);
-    --caution-foreground: var(--ctp-crust);
-    --chart-1: var(--ctp-blue);
-    --chart-2: var(--ctp-green);
-    --chart-3: var(--ctp-peach);
-    --chart-4: var(--ctp-mauve);
-    --chart-5: var(--ctp-teal);
-    --sidebar: var(--ctp-crust);
-    --sidebar-foreground: var(--ctp-text);
-    --sidebar-border: var(--ctp-surface0);
-    --sidebar-accent: var(--ctp-surface0);
-    --sidebar-accent-foreground: var(--ctp-text);
-    --sidebar-primary: var(--ctp-accent);
-    --sidebar-primary-foreground: var(--ctp-crust);
-    --selection: color-mix(in srgb, var(--ctp-overlay2) 30%, transparent);
-    --selection-foreground: var(--ctp-text);
-    --scrollbar-track: var(--ctp-crust);
-    --scrollbar-thumb: var(--ctp-surface1);
-    --scrollbar-thumb-fill: var(--ctp-surface2);
-    --terminal-background: var(--ctp-crust);
-    --terminal-foreground: var(--ctp-text);
-    --terminal-cursor: var(--ctp-rosewater);
-    --terminal-selection: color-mix(in srgb, var(--ctp-overlay2) 30%, transparent);
-    --terminal-selection-foreground: var(--ctp-text);
-    --terminal-ansi-black: var(--ctp-term-black);
-    --terminal-ansi-red: var(--ctp-red);
-    --terminal-ansi-green: var(--ctp-green);
-    --terminal-ansi-yellow: var(--ctp-yellow);
-    --terminal-ansi-blue: var(--ctp-blue);
-    --terminal-ansi-magenta: var(--ctp-pink);
-    --terminal-ansi-cyan: var(--ctp-teal);
-    --terminal-ansi-white: var(--ctp-term-white);
-    --terminal-ansi-bright-black: var(--ctp-term-bright-black);
-    --terminal-ansi-bright-red: var(--ctp-red);
-    --terminal-ansi-bright-green: var(--ctp-green);
-    --terminal-ansi-bright-yellow: var(--ctp-yellow);
-    --terminal-ansi-bright-blue: var(--ctp-blue);
-    --terminal-ansi-bright-magenta: var(--ctp-pink);
-    --terminal-ansi-bright-cyan: var(--ctp-teal);
-    --terminal-ansi-bright-white: var(--ctp-term-bright-white);
-    --editor-background: var(--ctp-base);
-    --editor-foreground: var(--ctp-text);
-    --editor-caret: var(--ctp-rosewater);
-    --editor-active-line: color-mix(in srgb, var(--ctp-surface0) 50%, transparent);
-    --editor-selection: color-mix(in srgb, var(--ctp-overlay2) 30%, transparent);
-    --editor-selected-foreground: var(--ctp-text);
-    --editor-muted: var(--ctp-overlay1);
-    --editor-border: var(--ctp-surface0);
-    --editor-tooltip: var(--ctp-surface0);
-    --editor-tooltip-border: var(--ctp-surface1);
-    --editor-search-match: color-mix(in srgb, var(--ctp-yellow) 30%, transparent);
-    --editor-search-match-selected: color-mix(in srgb, var(--ctp-peach) 45%, transparent);
-    --editor-syntax-keyword: var(--ctp-mauve);
-    --editor-syntax-string: var(--ctp-green);
-    --editor-syntax-function: var(--ctp-blue);
-    --editor-syntax-constant: var(--ctp-peach);
-    --editor-syntax-type: var(--ctp-yellow);
-    --editor-syntax-operator: var(--ctp-sky);
-    --editor-syntax-definition: var(--ctp-blue);
-    --editor-syntax-name: var(--ctp-lavender);
-    --editor-syntax-invalid: var(--ctp-red);
-}
-""")
-open(os.path.join(root, 'src', 'catppuccin.css'), 'w', encoding='utf8').write('\n'.join(ctp) + '\n')
-
-print(len(S), 'settings', len(palettes), 'palettes', len(looks), 'looks')
+print(len(S), 'settings,', len(PRESETS), 'presets')

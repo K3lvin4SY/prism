@@ -10,7 +10,8 @@ import ExportImport from './ExportImport';
 import LayoutPresets from './LayoutPresets';
 import { PreviewControls, closePreview, usePreviewDraft } from './preview';
 import { THEME_ID, themeApi, themeKeys } from './themes/api';
-import ThemeEditor, { themeSections } from './themes/ThemeEditor';
+import ThemeEditor, { sectionOf as themeSectionOf, themeSections } from './themes/ThemeEditor';
+import { isLook } from './themes/presets';
 import { HighlightsEditor, KeybindsEditor, LinesEditor, QuickCommandsEditor, ToggleRow } from './editors';
 import { HINTS, type Hint } from './hints';
 
@@ -48,7 +49,7 @@ export default function PropertiesScreen() {
         }));
         if (hasTheme) {
             const settings = themeSettings.data ?? [];
-            const theme: Entry = { id: THEME_ID, name: 'Prism Themes', icon: 'palette', sections: themeSections(settings), settings: settings.map((setting) => ({ key: setting.key, label: setting.label, help: setting.help, section: setting.tab ?? 'General' })) };
+            const theme: Entry = { id: THEME_ID, name: 'Prism Themes', icon: 'palette', sections: themeSections(settings), settings: settings.filter((setting) => isLook(setting.key)).map((setting) => ({ key: setting.key, label: setting.label, help: setting.help, section: themeSectionOf(setting) })) };
             // The look sits beside the layout.
             const layout = list.findIndex((entry) => entry.id === 'prism-layout');
             list.splice(layout + 1, 0, theme);

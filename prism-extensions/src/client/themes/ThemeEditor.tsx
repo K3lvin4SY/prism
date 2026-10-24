@@ -1,27 +1,39 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Dialog, Input, NamedIcon, Select, Spinner, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { ToggleRow } from '../editors';
 import { PreviewControls, reloadPreview, usePreviewDraft } from '../preview';
 import SaveBar, { describeValue } from '../SaveBar';
 import { THEME_ID, optionsOf, themeApi, themeKeys, type ThemeSetting } from './api';
-import { CATPPUCCIN_ACCENTS, LOOKS, PALETTES, swatch, type Look } from './looks';
+import { contrast, normaliseColour, toHex, toOklch } from './colour';
+import { asSettings, generatePalette, type Tint } from './generate';
+import { BUILT_IN, ROLES, isLook, lookOf, matches, newId, readCustom, writeCustom, type Mode, type Preset, type Values } from './presets';
 
-/** The editor's sections, as Prism Properties lists them: the looks, then each settings tab. */
-export const themeSections = (list: ThemeSetting[]) => ['Looks', ...new Set(list.map((setting) => setting.tab ?? 'General').filter((name) => name !== 'Look'))];
+const SECTIONS = ['Presets', 'Colours', 'Type and shape', 'Surfaces', 'Background', 'Motion'];
+
+/** The editor's sections, as Prism Properties lists them. */
+export const themeSections = (_list?: ThemeSetting[]) => SECTIONS;
+
+/** The section a setting is edited in: both colour tabs are the one Colours section. */
+export const sectionOf = (setting: Pick<ThemeSetting, 'tab'>) => (setting.tab === 'Dark colours' || setting.tab === 'Light colours' ? 'Colours' : (setting.tab ?? 'Presets'));
+
+const box = 'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card';
+const MODES: [Mode, string][] = [
+    ['d', 'Dark'],
+    ['l', 'Light'],
+];
 
 /**
- * Prism Themes' live editor: the settings of one section, and the preview window of the real panel
- * that shows each change before it is saved.
+ * Prism Themes' tool: a theme is built from colours for dark and light, type and shape,
+ * surfaces, background and motion. Presets are the same values with a name, built in or your own.
  */
 export default function ThemeEditor({ section, focus, onDirty }: { section: string; focus?: string | null; onDirty?: (dirty: boolean) => void }) {
     const queryClient = useQueryClient();
     const themes = useQuery({ queryKey: themeKeys.themes, queryFn: themeApi.themes });
     const settings = useQuery({ queryKey: themeKeys.settings, queryFn: themeApi.settings });
-    const [draft, setDraft] = useState<Record<string, unknown>>({});
+    const [draft, setDraft] = useState<Values>({});
     const [saving, setSaving] = useState(false);
     const [activating, setActivating] = useState(false);
-    const importer = useRef<HTMLInputElement>(null);
 
     const list = settings.data ?? [];
     const values = useMemo(() => Object.fromEntries(list.map((setting) => [setting.key, setting.key in draft ? draft[setting.key] : setting.value])), [list, draft]);
@@ -42,19 +54,20 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
         return () => window.removeEventListener('beforeunload', warn);
     }, [dirty]);
 
-    const change = (key: string, value: unknown) =>
+    /** Sets values as unsaved changes; a value back at its saved one is no change. */
+    const apply = (changes: Values) =>
         setDraft((current) => {
-            const original = list.find((setting) => setting.key === key)?.value;
             const next = { ...current };
-            if (JSON.stringify(original) === JSON.stringify(value)) delete next[key];
-            else next[key] = value;
+            for (const [key, value] of Object.entries(changes)) {
+                const setting = list.find((item) => item.key === key);
+                if (!setting) continue;
+                if (JSON.stringify(setting.value) === JSON.stringify(value)) delete next[key];
+                else next[key] = value;
+            }
 
             return next;
         });
-
-    const applyLook = (settings: Record<string, unknown>) => {
-        for (const [key, value] of Object.entries(settings)) if (list.some((setting) => setting.key === key)) change(key, value);
-    };
+    const change = (key: string, value: unknown) => apply({ [key]: value });
 
     const save = async () => {
         setSaving(true);
@@ -74,42 +87,21 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
         reloadPreview();
     };
 
-    const exportLook = () => {
-        const blob = new Blob([JSON.stringify({ prismTheme: 1, settings: Object.fromEntries(list.filter((setting) => setting.type !== 'image').map((setting) => [setting.key, values[setting.key]])) }, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `prism-look-${String(values.look ?? 'custom')}.json`;
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(url), 2000);
-    };
-
-    const importLook = async (file: File) => {
-        try {
-            const parsed = JSON.parse(await file.text()) as { settings?: Record<string, unknown> };
-            if (!parsed.settings || typeof parsed.settings !== 'object') throw new Error('This is not a Prism Themes export.');
-            applyLook(parsed.settings);
-            toast.success('Imported. Check the preview, then save.');
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'The file could not be read.');
-        }
-    };
-
     if (themes.isLoading || settings.isLoading) return <Spinner centered />;
     if (themes.isError || settings.isError) return <Alert type={'danger'}>{httpErrorToHuman(themes.error ?? settings.error)}</Alert>;
 
-    const shown = list.filter((setting) => (setting.tab ?? 'General') === section);
+    const fields = list.filter((setting) => isLook(setting.key) && sectionOf(setting) === section);
 
     return (
         <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
-            <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-3 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
+            <div className={cn(box, 'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-3 ppx:p-4')}>
                 <div className={'ppx:flex ppx:size-11 ppx:shrink-0 ppx:items-center ppx:justify-center ppx:rounded-lg ppx:bg-primary/15 ppx:text-primary'}>
                     <NamedIcon name={'palette'} size={22} />
                 </div>
                 <div className={'ppx:min-w-56 ppx:flex-1'}>
                     <h2 className={'ppx:text-lg ppx:font-semibold'}>Prism Themes</h2>
                     <p className={'ppx:text-sm ppx:text-muted-foreground'}>
-                        The look: colours, Catppuccin, fonts, glass and backgrounds. {live ? 'Active for everyone.' : previewing ? 'Not active. You are previewing it; only you see it.' : 'Not active. Preview it for yourself, or activate it for everyone.'}
+                        Build the look from colours, type, surfaces and a background, or start from a preset. {live ? 'Active for everyone.' : previewing ? 'Not active. You are previewing it; only you see it.' : 'Not active. Preview it for yourself, or activate it for everyone.'}
                         {info?.problem && ` ${info.problem}`}
                     </p>
                 </div>
@@ -138,41 +130,31 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
 
             <div className={'ppx:grid ppx:gap-4 ppx:2xl:grid-cols-[minmax(0,1fr)_22rem]'}>
                 <div className={'ppx:flex ppx:min-w-0 ppx:flex-col ppx:gap-3'}>
-                    <section className={'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
-                        <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>{section}</h3>
-                        <div className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:p-4'}>
-                            {section === 'Looks' ? (
-                                <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-2 ppx:md:grid-cols-3 ppx:xl:grid-cols-4'}>
-                                    {LOOKS.map((look) => (
-                                        <button
-                                            key={look.id}
-                                            type={'button'}
-                                            onClick={() => applyLook(look.settings)}
-                                            className={cn('ppx:flex ppx:cursor-pointer ppx:flex-col ppx:overflow-hidden ppx:rounded-lg ppx:border ppx:text-left ppx:transition-colors', values.look === look.settings.look && (!look.settings.catppuccin || values.catppuccin_flavor === look.settings.catppuccin_flavor) && values.catppuccin === look.settings.catppuccin ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary')}
-                                        >
-                                            <LookSwatch look={look.settings} colours={look.swatch} />
-                                            <span className={'ppx:px-2.5 ppx:pt-2 ppx:text-sm ppx:font-medium'}>{look.name}</span>
-                                            <span className={'ppx:px-2.5 ppx:pb-2 ppx:text-xs ppx:text-muted-foreground'}>{look.description}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : shown.length === 0 ? (
-                                <p className={'ppx:text-sm ppx:text-muted-foreground'}>Nothing to set here.</p>
-                            ) : (
-                                shown.map((setting) => (
-                                    <div key={setting.key} id={`ppx-setting-${THEME_ID}-${setting.key}`} className={cn('ppx:scroll-mt-24 ppx:rounded-md ppx:border-b ppx:border-border ppx:pb-3 ppx:last:border-b-0', focus === setting.key && 'ppx:ring-2 ppx:ring-primary ppx:ring-offset-4 ppx:ring-offset-card')}>
-                                        <Field setting={setting} value={values[setting.key]} onChange={(value) => change(setting.key, value)} onSchema={(fresh) => queryClient.setQueryData(themeKeys.settings, fresh)} />
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </section>
+                    {section === 'Presets' ? (
+                        <Presets values={values} apply={apply} />
+                    ) : section === 'Colours' ? (
+                        <Colours values={values} apply={apply} focus={focus ?? null} />
+                    ) : (
+                        <section className={box}>
+                            <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>{section}</h3>
+                            <div className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:p-4'}>
+                                {fields.length === 0 ? (
+                                    <p className={'ppx:text-sm ppx:text-muted-foreground'}>Nothing to set here.</p>
+                                ) : (
+                                    fields.map((setting) => (
+                                        <div key={setting.key} id={`ppx-setting-${THEME_ID}-${setting.key}`} className={cn('ppx:scroll-mt-24 ppx:rounded-md ppx:border-b ppx:border-border ppx:pb-3 ppx:last:border-b-0', focus === setting.key && 'ppx:ring-2 ppx:ring-primary ppx:ring-offset-4 ppx:ring-offset-card')}>
+                                            <Field setting={setting} value={values[setting.key]} onChange={(value) => change(setting.key, value)} onSchema={(fresh) => queryClient.setQueryData(themeKeys.settings, fresh)} />
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </section>
+                    )}
 
                     <SaveBar
-                        always
                         changes={list
                             .filter((setting) => setting.key in draft)
-                            .map((setting) => ({ key: setting.key, label: setting.label, section: setting.tab ?? 'General', from: describeValue(setting.value, optionsOf(setting)), to: describeValue(draft[setting.key], optionsOf(setting)) }))}
+                            .map((setting) => ({ key: setting.key, label: setting.key === 'presets' ? 'Your presets' : setting.label, section: sectionOf(setting), from: describeValue(setting.value, optionsOf(setting)), to: describeValue(draft[setting.key], optionsOf(setting)) }))}
                         saving={saving}
                         onSave={save}
                         onDiscard={() => setDraft({})}
@@ -183,40 +165,15 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
                                 return rest;
                             })
                         }
-                        extra={
-                            <>
-                                <input ref={importer} type={'file'} accept={'.json,application/json'} className={'ppx:hidden'} onChange={(event) => event.target.files?.[0] && void importLook(event.target.files[0])} />
-                                <Button.Text size={'small'} onClick={() => importer.current?.click()}>
-                                    <NamedIcon name={'upload'} size={14} /> Import
-                                </Button.Text>
-                                <Button.Text size={'small'} onClick={exportLook}>
-                                    <NamedIcon name={'download'} size={14} /> Export
-                                </Button.Text>
-                            </>
-                        }
                     />
                 </div>
 
                 <div className={'ppx:flex ppx:min-w-0 ppx:flex-col ppx:gap-3'}>
                     <PreviewControls>{!live && !previewing && <Alert type={'info'}>The window shows the active theme until you choose Preview for me. Only you see a preview.</Alert>}</PreviewControls>
-                    <div className={'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
-                        <p className={'ppx:mb-2 ppx:text-sm ppx:font-semibold'}>Now set</p>
-                        <dl className={'ppx:grid ppx:grid-cols-2 ppx:gap-x-4 ppx:gap-y-1 ppx:text-sm'}>
-                            {(['look', 'palette', 'background', 'font', 'motion'] as const).map((key) => {
-                                const setting = list.find((item) => item.key === key);
-                                const label = setting ? (optionsOf(setting).find((option) => option.value === values[key])?.label ?? String(values[key])) : '';
-
-                                return (
-                                    <div key={key} className={'ppx:contents'}>
-                                        <dt className={'ppx:text-muted-foreground'}>{setting?.label}</dt>
-                                        <dd className={'ppx:flex ppx:items-center ppx:gap-2'}>
-                                            {key === 'palette' && <span className={'ppx:size-3 ppx:rounded-full'} style={{ background: swatch(String(values.palette)) }} />}
-                                            {label}
-                                        </dd>
-                                    </div>
-                                );
-                            })}
-                        </dl>
+                    <div className={cn(box, 'ppx:flex ppx:flex-col ppx:gap-3 ppx:p-4')}>
+                        <p className={'ppx:text-sm ppx:font-semibold'}>Now</p>
+                        <Swatch values={values} />
+                        <p className={'ppx:text-sm ppx:text-muted-foreground'}>{currentName(values)}</p>
                     </div>
                 </div>
             </div>
@@ -247,62 +204,348 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
     );
 }
 
-/** A small picture of a look: its background, surfaces, colour and corners. */
-function LookSwatch({ look, colours }: { look: Record<string, unknown>; colours?: Look['swatch'] }) {
-    const colour = colours?.accent ?? swatch(String(look.palette));
-    const card = colours ? colours.surface : look.look === 'mono' || look.look === 'contrast' || look.look === 'terminal' ? 'none' : '#ffffff18';
-    const radius = Math.min(6, Number(look.radius ?? 8) / 3);
-    const backdrop =
-        colours?.base ??
-        (look.background === 'mesh'
-            ? 'radial-gradient(circle at 20% 20%, #8b5cf6aa, transparent 60%), radial-gradient(circle at 80% 80%, #ec4899aa, transparent 60%), #141821'
-            : look.background === 'aurora' || look.background === 'gradient'
-              ? `radial-gradient(circle at 0% 0%, color-mix(in oklab, ${colour} 35%, transparent), transparent 60%), ${look.palette === 'stone' ? '#f4efe6' : '#141821'}`
-              : look.palette === 'stone'
-                ? '#f4efe6'
-                : '#141821');
+/** Which preset the values are, or which they started from. */
+function currentName(values: Values): string {
+    const all = [...BUILT_IN, ...readCustom(values.presets)];
+    const exact = all.find((preset) => matches(preset, values));
+    if (exact) return `Preset: ${exact.name}`;
+
+    return typeof values.preset === 'string' && values.preset ? `Custom, based on ${values.preset}` : 'Custom';
+}
+
+/** A small picture of a theme: its dark half beside its light half. */
+function Swatch({ values, className }: { values: Values; className?: string }) {
+    const half = (mode: Mode, x: number) => {
+        const get = (role: string) => String(values[`${mode}_${role}`] ?? 'transparent');
+
+        return (
+            <g>
+                <rect x={x} y={0} width={50} height={56} fill={get('background')} />
+                <rect x={x} y={0} width={11} height={56} fill={get('sidebar')} />
+                <rect x={x + 15} y={7} width={31} height={22} rx={3} fill={get('surface')} stroke={get('border')} strokeWidth={0.6} />
+                <rect x={x + 19} y={11} width={14} height={3} rx={1} fill={get('text')} />
+                <rect x={x + 19} y={17} width={20} height={2} rx={1} fill={get('muted_text')} />
+                <rect x={x + 19} y={22} width={10} height={4} rx={1.5} fill={get('primary')} />
+                {['red', 'green', 'yellow', 'blue', 'magenta', 'cyan'].map((role, index) => (
+                    <circle key={role} cx={x + 18 + index * 5} cy={42} r={1.8} fill={get(role)} />
+                ))}
+                <rect x={x + 15} y={47} width={31} height={4} rx={1.5} fill={get('deep')} />
+            </g>
+        );
+    };
 
     return (
-        <svg viewBox={'0 0 100 56'} className={'ppx:h-16 ppx:w-full'} aria-hidden style={{ background: backdrop }}>
-            <rect x={0} y={0} width={18} height={56} fill={'#ffffff10'} />
-            {[0, 1, 2].map((index) => (
-                <rect key={index} x={24 + index * 25} y={8} width={21} height={22} rx={radius} fill={card} stroke={card === 'none' || look.look === 'neon' ? colour : 'none'} />
-            ))}
-            <rect x={24} y={8} width={14} height={4} rx={1} fill={colour} />
-            <rect x={24} y={36} width={46} height={12} rx={radius} fill={card === 'none' ? '#ffffff10' : card} />
-            {look.background === 'stars' && [12, 40, 66, 88].map((x, index) => <circle key={x} cx={x} cy={index % 2 ? 48 : 50} r={0.8} fill={'#fff'} opacity={0.7} />)}
-            {look.background === 'waves' && <path d={'M0 50 Q25 42 50 50 T100 50 V56 H0 Z'} fill={colour} opacity={0.3} />}
-            {look.glass === true && <circle cx={80} cy={45} r={14} fill={colour} opacity={0.25} />}
+        <svg viewBox={'0 0 100 56'} className={cn('ppx:h-20 ppx:w-full ppx:overflow-hidden ppx:rounded-md', className)} aria-hidden>
+            {half('d', 0)}
+            {half('l', 50)}
         </svg>
     );
 }
 
-function Field({ setting, value, onChange, onSchema }: { setting: ThemeSetting; value: unknown; onChange: (value: unknown) => void; onSchema: (schema: ThemeSetting[]) => void }) {
-    const upload = useRef<HTMLInputElement>(null);
-    const label = (
+/* #region Presets */
+
+function Presets({ values, apply }: { values: Values; apply: (changes: Values) => void }) {
+    const own = readCustom(values.presets);
+    const [naming, setNaming] = useState<{ id: string | null; name: string } | null>(null);
+    const store = (next: Preset[]) => apply({ presets: writeCustom(next) });
+
+    const use = (preset: Preset) => apply({ ...preset.values, preset: preset.name });
+    const saveName = () => {
+        if (!naming) return;
+        const name = naming.name.trim();
+        if (!name) return;
+        if (naming.id === null) {
+            store([...own, { id: newId(), name, values: lookOf(values) }]);
+            apply({ preset: name });
+            toast.success(`"${name}" is in your presets. Save to keep it.`);
+        } else {
+            store(own.map((preset) => (preset.id === naming.id ? { ...preset, name } : preset)));
+        }
+        setNaming(null);
+    };
+
+    const card = (preset: Preset) => {
+        const active = matches(preset, values);
+
+        return (
+            <div key={preset.id} className={cn('ppx:flex ppx:flex-col ppx:overflow-hidden ppx:rounded-lg ppx:border ppx:transition-colors', active ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border')}>
+                <button type={'button'} onClick={() => use(preset)} className={'ppx:flex ppx:cursor-pointer ppx:flex-col ppx:text-left ppx:hover:bg-muted/40'} aria-pressed={active}>
+                    <Swatch values={preset.values} className={'ppx:rounded-none'} />
+                    <span className={'ppx:flex ppx:items-center ppx:gap-1.5 ppx:px-2.5 ppx:pt-2 ppx:text-sm ppx:font-medium'}>
+                        {preset.name}
+                        {active && <NamedIcon name={'check'} size={13} className={'ppx:text-primary'} />}
+                    </span>
+                    <span className={'ppx:px-2.5 ppx:pb-1 ppx:text-xs ppx:text-muted-foreground'}>{preset.description ?? 'Your preset.'}</span>
+                </button>
+                <div className={'ppx:mt-auto ppx:flex ppx:flex-wrap ppx:gap-x-2 ppx:px-1.5 ppx:pb-1.5'}>
+                    <Button.Text size={'small'} onClick={() => store([...own, { id: newId(), name: `${preset.name} copy`, values: { ...preset.values } }])}>
+                        Duplicate
+                    </Button.Text>
+                    {!preset.builtIn && (
+                        <>
+                            <Button.Text size={'small'} onClick={() => setNaming({ id: preset.id, name: preset.name })}>
+                                Rename
+                            </Button.Text>
+                            <Button.Text size={'small'} title={'Replace this preset with the values set now'} onClick={() => store(own.map((item) => (item.id === preset.id ? { ...item, values: lookOf(values) } : item)))}>
+                                Update
+                            </Button.Text>
+                            <Button.Text size={'small'} onClick={() => store(own.filter((item) => item.id !== preset.id))}>
+                                Delete
+                            </Button.Text>
+                        </>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <>
+            <section className={box}>
+                <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-3 ppx:border-b ppx:border-border ppx:px-4 ppx:py-3'}>
+                    <h3 className={'ppx:flex-1 ppx:text-sm ppx:font-semibold'}>Your presets</h3>
+                    <Button size={'small'} onClick={() => setNaming({ id: null, name: '' })}>
+                        <NamedIcon name={'plus'} size={14} /> Save the current look as a preset
+                    </Button>
+                </div>
+                {naming && (
+                    <form
+                        className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2 ppx:border-b ppx:border-border ppx:px-4 ppx:py-3'}
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            saveName();
+                        }}
+                    >
+                        <Input autoFocus value={naming.name} onChange={(event) => setNaming({ ...naming, name: event.target.value })} placeholder={'Name, such as Night shift'} maxLength={40} aria-label={'Preset name'} className={'ppx:max-w-xs ppx:flex-1'} />
+                        <Button type={'submit'} size={'small'} disabled={!naming.name.trim()}>
+                            {naming.id === null ? 'Add' : 'Rename'}
+                        </Button>
+                        <Button.Text size={'small'} onClick={() => setNaming(null)}>
+                            Cancel
+                        </Button.Text>
+                    </form>
+                )}
+                <div className={'ppx:p-4'}>
+                    {own.length === 0 ? (
+                        <p className={'ppx:text-sm ppx:text-muted-foreground'}>None yet. Change the colours and the rest, then save the look here; or duplicate a built-in preset to start from it.</p>
+                    ) : (
+                        <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-3 ppx:md:grid-cols-3 ppx:xl:grid-cols-4'}>{own.map(card)}</div>
+                    )}
+                </div>
+            </section>
+            <section className={box}>
+                <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>Built-in presets</h3>
+                <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-3 ppx:p-4 ppx:md:grid-cols-3 ppx:xl:grid-cols-4'}>{BUILT_IN.map(card)}</div>
+                <p className={'ppx:border-t ppx:border-border ppx:px-4 ppx:py-3 ppx:text-xs ppx:text-muted-foreground'}>
+                    A preset sets every colour, the type, surfaces, background and motion. Change anything after; it stays unsaved until you save.
+                </p>
+            </section>
+        </>
+    );
+}
+
+/* #endregion Presets */
+
+/* #region Colours */
+
+const GROUPS = [...new Set(ROLES.map((role) => role.group))];
+/** Which roles show a contrast hint, against which background. */
+const AGAINST: Record<string, string> = { text: 'background', muted_text: 'background', on_primary: 'primary' };
+
+function Colours({ values, apply, focus }: { values: Values; apply: (changes: Values) => void; focus: string | null }) {
+    const [mode, setMode] = useState<Mode>(() => (focus?.startsWith('l_') ? 'l' : 'd'));
+    const [seed, setSeed] = useState(() => toHex(String(values.d_primary)));
+    const [tint, setTint] = useState<Tint>('subtle');
+    const other: Mode = mode === 'd' ? 'l' : 'd';
+    const get = (role: string) => String(values[`${mode}_${role}`] ?? '');
+
+    useEffect(() => {
+        if (focus?.startsWith('l_')) setMode('l');
+        else if (focus?.startsWith('d_')) setMode('d');
+    }, [focus]);
+
+    const generate = () => {
+        const { h, c } = toOklch(seed);
+        apply(asSettings(mode, generatePalette(mode, h, Math.max(0.02, Math.min(0.3, c)), tint)));
+    };
+    const copy = () => apply(Object.fromEntries(ROLES.map((role) => [`${other}_${role.key}`, values[`${mode}_${role.key}`]])));
+
+    return (
+        <>
+            <section className={box}>
+                <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-3 ppx:border-b ppx:border-border ppx:px-4 ppx:py-3'}>
+                    <h3 className={'ppx:flex-1 ppx:text-sm ppx:font-semibold'}>Colours</h3>
+                    <div className={'prism-switch ppx:flex ppx:gap-1 ppx:rounded-lg ppx:bg-muted/40 ppx:p-1'} role={'group'} aria-label={'Mode'}>
+                        {MODES.map(([value, label]) => (
+                            <button key={value} type={'button'} aria-pressed={mode === value} onClick={() => setMode(value)} className={cn('prism-switch-item ppx:flex ppx:cursor-pointer ppx:items-center ppx:gap-1.5 ppx:rounded-md ppx:px-3 ppx:py-1 ppx:text-sm', mode === value ? 'ppx:bg-card ppx:font-semibold ppx:shadow-sm' : 'ppx:text-muted-foreground ppx:hover:text-foreground')}>
+                                <NamedIcon name={value === 'd' ? 'moon' : 'sun'} size={13} /> {label}
+                            </button>
+                        ))}
+                    </div>
+                    <Button.Text size={'small'} onClick={copy}>
+                        <NamedIcon name={'copy'} size={13} /> Copy {mode === 'd' ? 'dark to light' : 'light to dark'}
+                    </Button.Text>
+                </div>
+
+                <div className={'ppx:flex ppx:flex-wrap ppx:items-end ppx:gap-3 ppx:border-b ppx:border-border ppx:bg-muted/20 ppx:px-4 ppx:py-3'}>
+                    <div className={'ppx:min-w-48 ppx:flex-1'}>
+                        <p className={'ppx:text-sm ppx:font-medium'}>Make a palette from one colour</p>
+                        <p className={'ppx:text-xs ppx:text-muted-foreground'}>Fills every {mode === 'd' ? 'dark' : 'light'} colour from it. Fine-tune them below afterwards.</p>
+                    </div>
+                    <input type={'color'} value={seed} onChange={(event) => setSeed(event.target.value)} aria-label={'The colour to start from'} className={'ppx:h-9 ppx:w-12 ppx:cursor-pointer ppx:rounded ppx:border ppx:border-border ppx:bg-transparent'} />
+                    <div className={'prism-switch ppx:flex ppx:gap-1 ppx:rounded-lg ppx:bg-muted/40 ppx:p-1'} role={'group'} aria-label={'Tint the greys'}>
+                        {(['none', 'subtle', 'strong'] as Tint[]).map((value) => (
+                            <button key={value} type={'button'} aria-pressed={tint === value} title={'How much of the colour the greys take on'} onClick={() => setTint(value)} className={cn('prism-switch-item ppx:cursor-pointer ppx:rounded-md ppx:px-2.5 ppx:py-1 ppx:text-xs ppx:capitalize', tint === value ? 'ppx:bg-card ppx:font-semibold ppx:shadow-sm' : 'ppx:text-muted-foreground')}>
+                                {value === 'none' ? 'Plain greys' : `${value} tint`}
+                            </button>
+                        ))}
+                    </div>
+                    <Button size={'small'} onClick={generate}>
+                        <NamedIcon name={'wand-sparkles'} size={14} /> Fill {mode === 'd' ? 'dark' : 'light'} colours
+                    </Button>
+                </div>
+
+                <div className={'ppx:grid ppx:gap-4 ppx:p-4 ppx:xl:grid-cols-[minmax(0,1fr)_16rem]'}>
+                    <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
+                        {GROUPS.map((group) => (
+                            <div key={group} className={'ppx:flex ppx:flex-col ppx:gap-1'}>
+                                <p className={'ppx:text-[11px] ppx:font-semibold ppx:tracking-wider ppx:text-muted-foreground ppx:uppercase'}>{group}</p>
+                                {ROLES.filter((role) => role.group === group).map((role) => (
+                                    <RoleRow key={`${mode}-${role.key}`} id={`${mode}_${role.key}`} label={role.label} help={role.help} value={get(role.key)} against={AGAINST[role.key] ? get(AGAINST[role.key]) : null} focused={focus === `${mode}_${role.key}`} onChange={(value) => apply({ [`${mode}_${role.key}`]: value })} />
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                    <MiniPanel get={get} />
+                </div>
+            </section>
+        </>
+    );
+}
+
+function RoleRow({ id, label, help, value, against, focused, onChange }: { id: string; label: string; help: string | null; value: string; against: string | null; focused: boolean; onChange: (value: string) => void }) {
+    const [text, setText] = useState(value);
+    const [bad, setBad] = useState(false);
+    useEffect(() => {
+        setText(value);
+        setBad(false);
+    }, [value]);
+    const ratio = against ? contrast(value, against) : null;
+    const commit = () => {
+        const normal = normaliseColour(text);
+        if (normal) {
+            setBad(false);
+            if (normal !== value) onChange(normal);
+        } else setBad(true);
+    };
+
+    return (
+        <div id={`ppx-setting-${THEME_ID}-${id}`} className={cn('ppx:flex ppx:scroll-mt-24 ppx:flex-wrap ppx:items-center ppx:gap-3 ppx:rounded-md ppx:px-2 ppx:py-1.5 ppx:hover:bg-muted/30', focused && 'ppx:ring-2 ppx:ring-primary')}>
+            <input type={'color'} value={toHex(value)} onChange={(event) => onChange(event.target.value)} aria-label={label} className={'ppx:h-8 ppx:w-10 ppx:shrink-0 ppx:cursor-pointer ppx:rounded ppx:border ppx:border-border ppx:bg-transparent'} />
+            <div className={'ppx:min-w-36 ppx:flex-1'}>
+                <p className={'ppx:text-sm'}>{label}</p>
+                {help && <p className={'ppx:text-xs ppx:text-muted-foreground'}>{help}</p>}
+            </div>
+            {ratio !== null && (
+                <span className={cn('ppx:rounded ppx:px-1.5 ppx:py-0.5 ppx:font-mono ppx:text-xs', ratio >= 4.5 ? 'ppx:bg-success/15 ppx:text-success' : ratio >= 3 ? 'ppx:bg-warning/15 ppx:text-warning' : 'ppx:bg-destructive/15 ppx:text-destructive')} title={'Contrast against its background: 4.5 or more reads well (AA)'}>
+                    {ratio.toFixed(1)}:1 {ratio >= 7 ? 'AAA' : ratio >= 4.5 ? 'AA' : 'low'}
+                </span>
+            )}
+            <input
+                value={text}
+                onChange={(event) => setText(event.target.value)}
+                onBlur={commit}
+                onKeyDown={(event) => event.key === 'Enter' && commit()}
+                spellCheck={false}
+                aria-label={`${label}, as hex or oklch`}
+                aria-invalid={bad}
+                title={bad ? 'Use #rrggbb or oklch(L C H)' : undefined}
+                className={cn('ppx:w-52 ppx:rounded-md ppx:border ppx:bg-input ppx:px-2 ppx:py-1 ppx:font-mono ppx:text-xs', bad ? 'ppx:border-destructive' : 'ppx:border-input-border')}
+            />
+        </div>
+    );
+}
+
+/** A small piece of the panel in the palette being edited. */
+function MiniPanel({ get }: { get: (role: string) => string }) {
+    return (
+        <div className={'ppx:sticky ppx:top-4 ppx:flex ppx:h-fit ppx:overflow-hidden ppx:rounded-lg ppx:border ppx:text-[11px]'} style={{ background: get('background'), borderColor: get('border'), color: get('text') }} aria-hidden>
+            <div className={'ppx:flex ppx:w-16 ppx:flex-col ppx:gap-1 ppx:p-2'} style={{ background: get('sidebar') }}>
+                <span className={'ppx:rounded ppx:px-1.5 ppx:py-1'} style={{ background: `color-mix(in oklab, ${get('primary')} 20%, transparent)` }}>
+                    Home
+                </span>
+                <span className={'ppx:px-1.5 ppx:py-1'} style={{ color: get('muted_text') }}>
+                    Files
+                </span>
+                <span className={'ppx:px-1.5 ppx:py-1'} style={{ color: get('muted_text') }}>
+                    Logs
+                </span>
+            </div>
+            <div className={'ppx:flex ppx:flex-1 ppx:flex-col ppx:gap-2 ppx:p-2'}>
+                <div className={'ppx:flex ppx:flex-col ppx:gap-1.5 ppx:rounded ppx:border ppx:p-2'} style={{ background: get('surface'), borderColor: get('border') }}>
+                    <span className={'ppx:font-semibold'}>A card</span>
+                    <span style={{ color: get('muted_text') }}>Quiet text under it.</span>
+                    <div className={'ppx:flex ppx:flex-wrap ppx:gap-1'}>
+                        <span className={'ppx:rounded ppx:px-1.5 ppx:py-0.5'} style={{ background: get('primary'), color: get('on_primary') }}>
+                            Button
+                        </span>
+                        {(['success', 'warning', 'danger'] as const).map((role) => (
+                            <span key={role} className={'ppx:rounded ppx:px-1.5 ppx:py-0.5 ppx:capitalize'} style={{ background: `color-mix(in oklab, ${get(role)} 18%, transparent)`, color: get(role) }}>
+                                {role}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+                <div className={'ppx:rounded ppx:p-1.5 ppx:font-mono ppx:leading-relaxed'} style={{ background: get('deep') }}>
+                    <span style={{ color: get('magenta') }}>if</span> (<span style={{ color: get('blue') }}>ready</span>()) <span style={{ color: get('cyan') }}>=</span> <span style={{ color: get('green') }}>&quot;go&quot;</span>
+                    <br />
+                    <span style={{ color: get('yellow') }}>[WARN]</span> <span style={{ color: get('red') }}>[ERROR]</span> done
+                </div>
+                <div className={'ppx:rounded ppx:p-1.5'} style={{ background: get('raised') }}>
+                    A menu, raised
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* #endregion Colours */
+
+function Label({ setting }: { setting: ThemeSetting }) {
+    return (
         <div className={'ppx:mb-1.5'}>
             <p className={'ppx:text-sm ppx:font-medium'}>{setting.label}</p>
             {setting.help && <p className={'ppx:text-xs ppx:text-muted-foreground'}>{setting.help}</p>}
         </div>
     );
+}
+
+function Choice({ options, value, onChange, children }: { options: { value: string; label: string }[]; value: unknown; onChange: (value: string) => void; children?: (option: { value: string; label: string }) => ReactNode }) {
+    return (
+        <div className={'ppx:grid ppx:grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] ppx:gap-2'}>
+            {options.map((option) => (
+                <button key={option.value} type={'button'} aria-pressed={value === option.value} onClick={() => onChange(option.value)} className={cn('ppx:flex ppx:cursor-pointer ppx:flex-col ppx:items-center ppx:gap-2 ppx:rounded-lg ppx:border ppx:p-3', value === option.value ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary')}>
+                    {children?.(option)}
+                    <span className={'ppx:text-sm'}>{option.label}</span>
+                </button>
+            ))}
+        </div>
+    );
+}
+
+function Field({ setting, value, onChange, onSchema }: { setting: ThemeSetting; value: unknown; onChange: (value: unknown) => void; onSchema: (schema: ThemeSetting[]) => void }) {
+    const upload = useRef<HTMLInputElement>(null);
 
     switch (setting.type) {
         case 'toggle':
             return <ToggleRow label={setting.label} help={setting.help} checked={value === true} onChange={onChange} />;
-        case 'color':
-            return (
-                <>
-                    {label}
-                    <input type={'color'} value={typeof value === 'string' ? value : '#000000'} onChange={(event) => onChange(event.target.value)} aria-label={setting.label} />
-                </>
-            );
         case 'number': {
             const number = Number(value ?? setting.min ?? 0);
 
             return (
                 <>
                     <div className={'ppx:flex ppx:items-start ppx:justify-between ppx:gap-2'}>
-                        {label}
+                        <Label setting={setting} />
                         <span className={'ppx:font-mono ppx:text-sm ppx:tabular-nums'}>
                             {number}
                             {setting.unit}
@@ -314,62 +557,61 @@ function Field({ setting, value, onChange, onSchema }: { setting: ThemeSetting; 
         }
         case 'select': {
             const options = optionsOf(setting);
-            if (setting.key === 'catppuccin_accent') {
-                return (
-                    <>
-                        {label}
-                        <div className={'ppx:grid ppx:grid-cols-7 ppx:gap-1.5'}>
-                            {options.map((option) => (
-                                <button key={option.value} type={'button'} title={option.label} onClick={() => onChange(option.value)} className={cn('ppx:h-8 ppx:cursor-pointer ppx:rounded-md ppx:border-2', value === option.value ? 'ppx:border-foreground' : 'ppx:border-transparent')} style={{ background: CATPPUCCIN_ACCENTS[option.value] }}>
-                                    <span className={'ppx:sr-only'}>{option.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                        <p className={'ppx:mt-1 ppx:text-xs ppx:text-muted-foreground'}>{options.find((option) => option.value === value)?.label}</p>
-                    </>
-                );
-            }
             if (setting.key === 'switches') {
                 return (
                     <>
-                        {label}
-                        <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-2'}>
-                            {options.map((option) => {
-                                const round = option.value === 'rounded';
-
-                                return (
-                                    <button key={option.value} type={'button'} onClick={() => onChange(option.value)} className={cn('ppx:flex ppx:cursor-pointer ppx:flex-col ppx:items-center ppx:gap-2 ppx:rounded-lg ppx:border ppx:p-3', value === option.value ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary')}>
-                                        <span className={cn('ppx:flex ppx:gap-0.5 ppx:border ppx:border-border ppx:bg-muted/40 ppx:p-0.5 ppx:text-xs', round ? 'ppx:rounded-full' : 'ppx:rounded-md')}>
-                                            <span className={cn('ppx:bg-primary ppx:px-2 ppx:py-0.5 ppx:text-primary-foreground', round ? 'ppx:rounded-full' : 'ppx:rounded')}>Files</span>
-                                            <span className={'ppx:px-2 ppx:py-0.5 ppx:text-muted-foreground'}>Editor</span>
-                                        </span>
-                                        <span className={'ppx:text-sm'}>{option.label}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        <Label setting={setting} />
+                        <Choice options={options} value={value} onChange={onChange}>
+                            {(option) => (
+                                <span className={cn('ppx:flex ppx:gap-0.5 ppx:border ppx:border-border ppx:bg-muted/40 ppx:p-0.5 ppx:text-xs', option.value === 'rounded' ? 'ppx:rounded-full' : 'ppx:rounded-md')}>
+                                    <span className={cn('ppx:bg-primary ppx:px-2 ppx:py-0.5 ppx:text-primary-foreground', option.value === 'rounded' ? 'ppx:rounded-full' : 'ppx:rounded')}>Files</span>
+                                    <span className={'ppx:px-2 ppx:py-0.5 ppx:text-muted-foreground'}>Editor</span>
+                                </span>
+                            )}
+                        </Choice>
                     </>
                 );
             }
-            if (setting.key === 'palette') {
+            if (setting.key === 'surface_style') {
                 return (
                     <>
-                        {label}
-                        <div className={'ppx:grid ppx:grid-cols-6 ppx:gap-1.5'}>
-                            {options.map((option) => (
-                                <button key={option.value} type={'button'} title={option.label} onClick={() => onChange(option.value)} className={cn('ppx:flex ppx:h-9 ppx:cursor-pointer ppx:items-center ppx:justify-center ppx:rounded-md ppx:border-2', value === option.value ? 'ppx:border-foreground' : 'ppx:border-transparent')} style={{ background: option.value === 'custom' ? 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)' : swatch(option.value) }}>
-                                    <span className={'ppx:sr-only'}>{option.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                        <p className={'ppx:mt-1 ppx:text-xs ppx:text-muted-foreground'}>{PALETTES[String(value)]?.[0] ?? 'Custom'}</p>
+                        <Label setting={setting} />
+                        <Choice options={options} value={value} onChange={onChange}>
+                            {(option) => (
+                                <span
+                                    className={'ppx:h-10 ppx:w-full ppx:rounded-md ppx:border'}
+                                    style={{
+                                        background: option.value === 'glass' ? 'color-mix(in oklab, var(--card) 55%, transparent)' : 'var(--card)',
+                                        borderColor: option.value === 'outlined' ? 'var(--muted-foreground)' : option.value === 'glow' ? 'color-mix(in oklab, var(--primary) 50%, transparent)' : 'var(--border)',
+                                        boxShadow: option.value === 'raised' ? '0 4px 14px rgb(0 0 0 / 0.25)' : option.value === 'glow' ? '0 0 16px color-mix(in oklab, var(--primary) 30%, transparent)' : 'none',
+                                        backdropFilter: option.value === 'glass' ? 'blur(6px)' : undefined,
+                                    }}
+                                />
+                            )}
+                        </Choice>
+                    </>
+                );
+            }
+            if (setting.key === 'font') {
+                const families: Record<string, string> = { plex: "'IBM Plex Sans', sans-serif", system: 'system-ui, sans-serif', rounded: "ui-rounded, 'Nunito', sans-serif", serif: 'ui-serif, Georgia, serif', mono: "'JetBrains Mono', ui-monospace, monospace" };
+
+                return (
+                    <>
+                        <Label setting={setting} />
+                        <Choice options={options} value={value} onChange={onChange}>
+                            {(option) => (
+                                <span className={'ppx:text-2xl'} style={{ fontFamily: families[option.value] }}>
+                                    Aa
+                                </span>
+                            )}
+                        </Choice>
                     </>
                 );
             }
 
             return (
                 <>
-                    {label}
+                    <Label setting={setting} />
                     {options.length <= 4 ? (
                         <div className={'prism-switch ppx:flex ppx:flex-wrap ppx:gap-1 ppx:rounded-lg ppx:bg-muted/40 ppx:p-1'}>
                             {options.map((option) => (
@@ -397,7 +639,7 @@ function Field({ setting, value, onChange, onSchema }: { setting: ThemeSetting; 
 
             return (
                 <>
-                    {label}
+                    <Label setting={setting} />
                     <div className={'ppx:flex ppx:items-center ppx:gap-2'}>
                         <div className={'ppx:flex ppx:h-12 ppx:w-20 ppx:items-center ppx:justify-center ppx:overflow-hidden ppx:rounded ppx:border ppx:border-dashed ppx:border-border'}>{current ? <img src={current} alt={''} className={'ppx:h-full ppx:w-full ppx:object-cover'} /> : <NamedIcon name={'image'} size={18} className={'ppx:text-muted-foreground'} />}</div>
                         <input ref={upload} type={'file'} accept={'image/*'} className={'ppx:hidden'} onChange={(event) => event.target.files?.[0] && void send(event.target.files[0])} />
@@ -416,7 +658,7 @@ function Field({ setting, value, onChange, onSchema }: { setting: ThemeSetting; 
         default:
             return (
                 <>
-                    {label}
+                    <Label setting={setting} />
                     <Input value={typeof value === 'string' ? value : ''} maxLength={setting.max_length ?? undefined} onChange={(event) => onChange(event.target.value)} />
                 </>
             );

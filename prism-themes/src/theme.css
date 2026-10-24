@@ -1,228 +1,214 @@
 /* The panel stylesheet with every class the panel uses, then Prism Themes'. Plain Tailwind: no prefix. */
 @import '@pterodactyl/sdk/theme-entry.css';
-@import './palettes.css';
-@import './catppuccin.css';
 @source './**/*.{ts,tsx}';
 
 /*
- * Colour. A palette sets --pt-h (hue) and --pt-c (strength); every role token is worked out from
- * them, for dark and light. "Tint the greys" sets how much hue the neutral surfaces carry.
+ * A theme is two palettes of the same roles, one for dark mode (--pt-d-*) and one for light
+ * (--pt-l-*), written by the panel from the settings. Each mode picks its palette here and every
+ * token the panel, the console and the editor use is made from those roles. Presets, Catppuccin
+ * included, are only values for the roles: no rule here knows any of them by name.
  */
+
+/* #region palette */
 :where(:root) {
-    --pt-h: 255;
-    --pt-c: 0.17;
-    --pt-n: calc(var(--pt-c) * 0.12);
     --radius: var(--pt-radius, 10px);
-    --pt-card-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
-}
-
-[data-pt-tint='none'] {
-    --pt-n: 0;
-}
-
-[data-pt-tint='strong'] {
-    --pt-n: calc(var(--pt-c) * 0.28);
-}
-
-/* Monochrome drops the colour everywhere but keeps the palette's hue in the greys. */
-[data-pt-look='mono'] {
-    --pt-c: 0;
 }
 
 .dark {
-    --background: oklch(0.165 var(--pt-n) var(--pt-h));
-    --foreground: oklch(0.95 calc(var(--pt-n) * 0.3) var(--pt-h));
-    --card: oklch(0.205 var(--pt-n) var(--pt-h));
-    --card-foreground: var(--foreground);
-    --popover: oklch(0.235 var(--pt-n) var(--pt-h));
-    --popover-foreground: var(--foreground);
-    --muted: oklch(0.25 var(--pt-n) var(--pt-h));
-    --muted-foreground: oklch(0.72 calc(var(--pt-n) * 1.2) var(--pt-h));
-    --secondary: oklch(0.28 var(--pt-n) var(--pt-h));
-    --secondary-foreground: var(--foreground);
-    --sunken: oklch(0.145 var(--pt-n) var(--pt-h));
-    --border: oklch(0.3 var(--pt-n) var(--pt-h));
-    --input: oklch(0.22 var(--pt-n) var(--pt-h));
-    --input-border: oklch(0.33 var(--pt-n) var(--pt-h));
-    --primary: oklch(0.64 var(--pt-c) var(--pt-h));
-    --primary-foreground: oklch(0.99 0 0);
-    --accent: oklch(0.74 var(--pt-c) var(--pt-h));
-    --accent-foreground: oklch(0.18 0.02 var(--pt-h));
-    --ring: oklch(0.64 var(--pt-c) var(--pt-h) / 0.6);
-    --sidebar: oklch(0.185 var(--pt-n) var(--pt-h));
-    --sidebar-foreground: var(--foreground);
-    --sidebar-border: var(--border);
-    --sidebar-accent: oklch(0.26 calc(var(--pt-n) + var(--pt-c) * 0.15) var(--pt-h));
-    --sidebar-accent-foreground: var(--foreground);
-    --sidebar-primary: var(--primary);
-    --sidebar-primary-foreground: var(--primary-foreground);
-    --terminal-background: oklch(0.13 var(--pt-n) var(--pt-h));
-    --pt-card-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+    --pt-background: var(--pt-d-background);
+    --pt-surface: var(--pt-d-surface);
+    --pt-sidebar: var(--pt-d-sidebar);
+    --pt-raised: var(--pt-d-raised);
+    --pt-deep: var(--pt-d-deep);
+    --pt-border: var(--pt-d-border);
+    --pt-text: var(--pt-d-text);
+    --pt-muted-text: var(--pt-d-muted-text);
+    --pt-primary: var(--pt-d-primary);
+    --pt-on-primary: var(--pt-d-on-primary);
+    --pt-success: var(--pt-d-success);
+    --pt-warning: var(--pt-d-warning);
+    --pt-danger: var(--pt-d-danger);
+    --pt-red: var(--pt-d-red);
+    --pt-green: var(--pt-d-green);
+    --pt-yellow: var(--pt-d-yellow);
+    --pt-blue: var(--pt-d-blue);
+    --pt-magenta: var(--pt-d-magenta);
+    --pt-cyan: var(--pt-d-cyan);
+    --pt-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+    --pt-lift: white;
 }
 
 .light {
-    --background: oklch(0.975 var(--pt-n) var(--pt-h));
-    --foreground: oklch(0.21 calc(var(--pt-n) * 0.6) var(--pt-h));
-    --card: oklch(1 0 0);
-    --card-foreground: var(--foreground);
-    --popover: oklch(1 0 0);
-    --popover-foreground: var(--foreground);
-    --muted: oklch(0.95 var(--pt-n) var(--pt-h));
-    --muted-foreground: oklch(0.5 calc(var(--pt-n) * 1.2) var(--pt-h));
-    --secondary: oklch(0.93 var(--pt-n) var(--pt-h));
-    --secondary-foreground: var(--foreground);
-    --sunken: oklch(0.955 var(--pt-n) var(--pt-h));
-    --border: oklch(0.9 var(--pt-n) var(--pt-h));
-    --input: oklch(1 0 0);
-    --input-border: oklch(0.86 var(--pt-n) var(--pt-h));
-    --primary: oklch(0.56 var(--pt-c) var(--pt-h));
-    --primary-foreground: oklch(0.99 0 0);
-    --accent: oklch(0.5 var(--pt-c) var(--pt-h));
-    --accent-foreground: oklch(0.99 0 0);
-    --ring: oklch(0.56 var(--pt-c) var(--pt-h) / 0.5);
-    --sidebar: oklch(0.96 var(--pt-n) var(--pt-h));
-    --sidebar-foreground: var(--foreground);
-    --sidebar-border: var(--border);
-    --sidebar-accent: oklch(0.92 calc(var(--pt-n) + var(--pt-c) * 0.2) var(--pt-h));
-    --sidebar-accent-foreground: var(--foreground);
-    --sidebar-primary: var(--primary);
-    --sidebar-primary-foreground: var(--primary-foreground);
-    --pt-card-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+    --pt-background: var(--pt-l-background);
+    --pt-surface: var(--pt-l-surface);
+    --pt-sidebar: var(--pt-l-sidebar);
+    --pt-raised: var(--pt-l-raised);
+    --pt-deep: var(--pt-l-deep);
+    --pt-border: var(--pt-l-border);
+    --pt-text: var(--pt-l-text);
+    --pt-muted-text: var(--pt-l-muted-text);
+    --pt-primary: var(--pt-l-primary);
+    --pt-on-primary: var(--pt-l-on-primary);
+    --pt-success: var(--pt-l-success);
+    --pt-warning: var(--pt-l-warning);
+    --pt-danger: var(--pt-l-danger);
+    --pt-red: var(--pt-l-red);
+    --pt-green: var(--pt-l-green);
+    --pt-yellow: var(--pt-l-yellow);
+    --pt-blue: var(--pt-l-blue);
+    --pt-magenta: var(--pt-l-magenta);
+    --pt-cyan: var(--pt-l-cyan);
+    --pt-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+    --pt-lift: black;
 }
 
-/* Custom: the chosen colour as it is, with neutrals in its general direction. */
-[data-pt-palette='custom'] {
-    --pt-h: 265;
-    --pt-c: 0.12;
-}
+/* :root wins over the classic theme's own values for the same tokens. */
+:root.dark,
+:root.light {
+    --background: var(--pt-background);
+    --foreground: var(--pt-text);
+    --card: var(--pt-surface);
+    --card-foreground: var(--pt-text);
+    --popover: var(--pt-raised);
+    --popover-foreground: var(--pt-text);
+    --muted: var(--pt-raised);
+    --muted-foreground: var(--pt-muted-text);
+    --secondary: color-mix(in oklab, var(--pt-raised) 70%, var(--pt-border));
+    --secondary-foreground: var(--pt-text);
+    --sunken: var(--pt-deep);
+    --border: var(--pt-border);
+    --input: color-mix(in oklab, var(--pt-surface) 60%, var(--pt-deep));
+    --input-border: color-mix(in oklab, var(--pt-border) 75%, var(--pt-lift));
+    --primary: var(--pt-primary);
+    --primary-foreground: var(--pt-on-primary);
+    --accent: color-mix(in oklab, var(--pt-primary) 80%, var(--pt-text));
+    --accent-foreground: var(--pt-on-primary);
+    --ring: color-mix(in oklab, var(--pt-primary) 60%, transparent);
+    --destructive: var(--pt-danger);
+    --destructive-foreground: var(--pt-on-primary);
+    --success: var(--pt-success);
+    --success-foreground: var(--pt-on-primary);
+    --warning: var(--pt-warning);
+    --warning-foreground: var(--pt-on-primary);
+    --caution: color-mix(in oklab, var(--pt-warning) 50%, var(--pt-danger));
+    --caution-foreground: var(--pt-on-primary);
+    --chart-1: var(--pt-blue);
+    --chart-2: var(--pt-green);
+    --chart-3: var(--pt-yellow);
+    --chart-4: var(--pt-magenta);
+    --chart-5: var(--pt-cyan);
+    --sidebar: var(--pt-sidebar);
+    --sidebar-foreground: var(--pt-text);
+    --sidebar-border: var(--pt-border);
+    --sidebar-accent: var(--pt-raised);
+    --sidebar-accent-foreground: var(--pt-text);
+    --sidebar-primary: var(--pt-primary);
+    --sidebar-primary-foreground: var(--pt-on-primary);
+    --selection: color-mix(in oklab, var(--pt-primary) 30%, transparent);
+    --selection-foreground: var(--pt-text);
+    --scrollbar-track: var(--pt-deep);
+    --scrollbar-thumb: var(--pt-border);
+    --scrollbar-thumb-fill: color-mix(in oklab, var(--pt-border) 70%, var(--pt-muted-text));
 
-[data-pt-palette='custom'].dark {
-    --primary: var(--pt-accent, #6366f1);
-    --accent: color-mix(in oklab, var(--pt-accent, #6366f1) 75%, white);
-}
+    /* The console: the six code colours, with black and white from the palette's ends. */
+    --terminal-background: var(--pt-deep);
+    --terminal-foreground: var(--pt-text);
+    --terminal-cursor: var(--pt-primary);
+    --terminal-selection: color-mix(in oklab, var(--pt-primary) 30%, transparent);
+    --terminal-selection-foreground: var(--pt-text);
+    --terminal-ansi-black: color-mix(in oklab, var(--pt-border) 70%, var(--pt-deep));
+    --terminal-ansi-red: var(--pt-red);
+    --terminal-ansi-green: var(--pt-green);
+    --terminal-ansi-yellow: var(--pt-yellow);
+    --terminal-ansi-blue: var(--pt-blue);
+    --terminal-ansi-magenta: var(--pt-magenta);
+    --terminal-ansi-cyan: var(--pt-cyan);
+    --terminal-ansi-white: var(--pt-muted-text);
+    --terminal-ansi-bright-black: var(--pt-border);
+    --terminal-ansi-bright-red: var(--pt-red);
+    --terminal-ansi-bright-green: var(--pt-green);
+    --terminal-ansi-bright-yellow: var(--pt-yellow);
+    --terminal-ansi-bright-blue: var(--pt-blue);
+    --terminal-ansi-bright-magenta: var(--pt-magenta);
+    --terminal-ansi-bright-cyan: var(--pt-cyan);
+    --terminal-ansi-bright-white: var(--pt-text);
 
-[data-pt-palette='custom'].light {
-    --primary: var(--pt-accent, #6366f1);
-    --accent: color-mix(in oklab, var(--pt-accent, #6366f1) 85%, black);
+    /* The file editor. */
+    --editor-background: var(--pt-background);
+    --editor-foreground: var(--pt-text);
+    --editor-caret: var(--pt-primary);
+    --editor-active-line: color-mix(in oklab, var(--pt-raised) 50%, transparent);
+    --editor-selection: color-mix(in oklab, var(--pt-primary) 25%, transparent);
+    --editor-selected-foreground: var(--pt-text);
+    --editor-muted: var(--pt-muted-text);
+    --editor-border: var(--pt-border);
+    --editor-tooltip: var(--pt-raised);
+    --editor-tooltip-border: var(--pt-border);
+    --editor-search-match: color-mix(in oklab, var(--pt-yellow) 30%, transparent);
+    --editor-search-match-selected: color-mix(in oklab, var(--pt-yellow) 50%, transparent);
+    --editor-syntax-keyword: var(--pt-magenta);
+    --editor-syntax-string: var(--pt-green);
+    --editor-syntax-function: var(--pt-blue);
+    --editor-syntax-constant: color-mix(in oklab, var(--pt-yellow) 50%, var(--pt-red));
+    --editor-syntax-type: var(--pt-yellow);
+    --editor-syntax-operator: var(--pt-cyan);
+    --editor-syntax-definition: var(--pt-blue);
+    --editor-syntax-name: var(--pt-text);
+    --editor-syntax-invalid: var(--pt-red);
 }
+/* #endregion palette */
 
-/* #region looks */
-[data-pt-look='contrast'].dark {
-    --foreground: oklch(1 0 0);
-    --muted-foreground: oklch(0.86 0 0);
-    --border: oklch(0.62 var(--pt-n) var(--pt-h));
-    --input-border: oklch(0.7 var(--pt-n) var(--pt-h));
-    --background: oklch(0.08 0 0);
-    --card: oklch(0.13 0 0);
-    --sidebar: oklch(0.1 0 0);
-}
-
-[data-pt-look='contrast'].light {
-    --foreground: oklch(0 0 0);
-    --muted-foreground: oklch(0.3 0 0);
-    --border: oklch(0.45 0 0);
-    --input-border: oklch(0.4 0 0);
-}
-
-[data-pt-look='midnight'].dark {
-    --background: oklch(0.12 calc(var(--pt-n) + 0.02) var(--pt-h));
-    --card: oklch(0.16 calc(var(--pt-n) + 0.02) var(--pt-h));
-    --sidebar: oklch(0.1 calc(var(--pt-n) + 0.02) var(--pt-h));
-    --border: oklch(0.24 calc(var(--pt-n) + 0.02) var(--pt-h));
-}
-
-[data-pt-look='paper'] {
-    --pt-card-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 4px 16px rgb(0 0 0 / 0.08);
-}
-
-[data-pt-look='paper'].light {
-    --background: oklch(0.965 0.012 85);
-    --card: oklch(0.995 0.006 85);
-    --sidebar: oklch(0.945 0.015 85);
-    --border: oklch(0.88 0.015 85);
-}
-
-[data-pt-look='terminal'] {
-    --radius: 2px;
-    --font-sans: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
-    --font-header: var(--font-sans);
-}
-
-[data-pt-look='soft'] {
-    --pt-card-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
-}
-
-[data-pt-look='soft'] .pt-surface {
-    border-color: transparent;
-}
-
-[data-pt-look='neon'] .pt-surface {
-    border-color: color-mix(in oklab, var(--primary) 45%, transparent);
-    box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 20%, transparent), 0 0 24px color-mix(in oklab, var(--primary) 18%, transparent);
-}
-
-[data-pt-look='studio_classic'] .pt-surface {
+/* #region surfaces: how cards, menus and bars stand out */
+.pt-surface {
     box-shadow: none;
 }
-[data-pt-look='catppuccin'] .pt-surface {
-    box-shadow: none;
+
+[data-pt-surface='raised'] .pt-surface {
+    box-shadow: var(--pt-shadow), 0 4px 14px rgb(0 0 0 / 0.06);
 }
 
-/*
- * Glassmorphism: every surface is see-through and blurred over a colourful background, with a thin
- * light edge and a soft shadow. :root lets the see-through surfaces win over Catppuccin's.
- */
-:root[data-pt-look='glassmorphism'].dark {
-    --card: rgb(255 255 255 / 0.06);
-    --sidebar: rgb(255 255 255 / 0.05);
-    --muted: rgb(255 255 255 / 0.08);
-    --secondary: rgb(255 255 255 / 0.12);
-    --input: rgb(255 255 255 / 0.06);
-    --input-border: rgb(255 255 255 / 0.2);
-    --border: rgb(255 255 255 / 0.14);
-    --sidebar-border: rgb(255 255 255 / 0.12);
-    --sidebar-accent: rgb(255 255 255 / 0.1);
-    --popover: color-mix(in oklab, var(--background) 82%, transparent);
-    --pt-glass-edge: rgb(255 255 255 / 0.18);
-    --pt-card-shadow: 0 8px 32px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.12);
+[data-pt-surface='outlined'] .pt-surface {
+    border-color: color-mix(in oklab, var(--pt-border) 60%, var(--pt-text));
 }
 
-:root[data-pt-look='glassmorphism'].light {
-    --card: rgb(255 255 255 / 0.45);
-    --sidebar: rgb(255 255 255 / 0.4);
-    --muted: rgb(255 255 255 / 0.4);
-    --secondary: rgb(255 255 255 / 0.55);
-    --input: rgb(255 255 255 / 0.55);
-    --input-border: rgb(255 255 255 / 0.8);
-    --border: rgb(255 255 255 / 0.65);
-    --sidebar-border: rgb(255 255 255 / 0.6);
-    --sidebar-accent: rgb(255 255 255 / 0.5);
-    --popover: color-mix(in oklab, white 85%, transparent);
-    --pt-glass-edge: rgb(255 255 255 / 0.75);
-    --pt-card-shadow: 0 8px 32px rgb(31 38 135 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.7);
+[data-pt-surface='glow'] .pt-surface {
+    border-color: color-mix(in oklab, var(--pt-primary) 45%, transparent);
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--pt-primary) 20%, transparent),
+        0 0 24px color-mix(in oklab, var(--pt-primary) 18%, transparent);
 }
 
-[data-pt-look='glassmorphism'] .pt-surface,
-[data-pt-look='glassmorphism'] .pt-bar,
-[data-pt-look='glassmorphism'] .bg-card,
-[data-pt-look='glassmorphism'] .bg-popover,
-[data-pt-look='glassmorphism'] .bg-sidebar {
-    border-color: var(--pt-glass-edge);
-    backdrop-filter: blur(var(--pt-blur, 18px)) saturate(1.8);
+/* Glass: see-through, blurred surfaces with a light edge over the background. */
+[data-pt-surface='glass'] .pt-surface,
+[data-pt-surface='glass'] .pt-bar,
+[data-pt-surface='glass'] .bg-card,
+[data-pt-surface='glass'] .bg-popover,
+[data-pt-surface='glass'] .bg-sidebar {
+    background-color: color-mix(in oklab, var(--pt-surface) var(--pt-opacity, 70%), transparent);
+    border-color: color-mix(in oklab, var(--pt-text) 14%, transparent);
+    backdrop-filter: blur(var(--pt-blur, 14px)) saturate(1.5);
 }
 
-[data-pt-look='glassmorphism'] .pt-surface {
-    box-shadow: var(--pt-card-shadow);
+[data-pt-surface='glass'] .pt-bar,
+[data-pt-surface='glass'] .bg-sidebar {
+    background-color: color-mix(in oklab, var(--pt-sidebar) var(--pt-opacity, 70%), transparent);
+}
+
+[data-pt-surface='glass'] .pt-surface {
+    box-shadow: 0 8px 32px rgb(0 0 0 / 0.18), inset 0 1px 0 color-mix(in oklab, white 12%, transparent);
 }
 
 @media (prefers-reduced-transparency: reduce) {
-    :root[data-pt-look='glassmorphism'].dark,
-    :root[data-pt-look='glassmorphism'].light {
-        --card: var(--popover);
-        --sidebar: var(--popover);
+    [data-pt-surface='glass'] .pt-surface,
+    [data-pt-surface='glass'] .pt-bar,
+    [data-pt-surface='glass'] .bg-card,
+    [data-pt-surface='glass'] .bg-popover,
+    [data-pt-surface='glass'] .bg-sidebar {
+        background-color: var(--pt-surface);
+        backdrop-filter: none;
     }
 }
-/* #endregion looks */
+/* #endregion surfaces */
 
 /* #region shape */
 [data-pt-font='system'] {
@@ -263,27 +249,6 @@ html {
     border-radius: calc(var(--radius) * 0.6);
 }
 /* #endregion shape */
-
-/* #region surfaces */
-.pt-surface {
-    box-shadow: var(--pt-card-shadow);
-}
-
-[data-pt-glass='true'] .pt-surface,
-[data-pt-glass='true'] .pt-bar {
-    background-color: color-mix(in oklab, var(--card) 62%, transparent);
-    border-color: color-mix(in oklab, var(--foreground) 12%, transparent);
-    backdrop-filter: blur(var(--pt-blur, 14px)) saturate(1.35);
-}
-
-@media (prefers-reduced-transparency: reduce) {
-    [data-pt-glass='true'] .pt-surface,
-    [data-pt-glass='true'] .pt-bar {
-        background-color: var(--card);
-        backdrop-filter: none;
-    }
-}
-/* #endregion surfaces */
 
 /* #region background */
 /*
@@ -358,7 +323,7 @@ html[data-pt-bg='aurora']::before {
 }
 
 html[data-pt-bg='aurora']::before {
-    background: oklch(0.6 var(--pt-c) calc(var(--pt-h) + 60));
+    background: var(--pt-cyan);
     top: 30%;
     left: 40%;
     width: 40vmax;
@@ -408,24 +373,13 @@ html[data-pt-bg='aurora']::before {
 /* Colour mesh: four soft blobs in colours around the wheel, slowly shifting; made for glass. */
 [data-pt-bg='mesh'] body::before {
     background:
-        radial-gradient(42vmax 42vmax at 12% 25%, oklch(0.62 0.22 var(--pt-h) / 0.85), transparent 62%),
-        radial-gradient(36vmax 36vmax at 88% 12%, oklch(0.68 0.2 calc(var(--pt-h) + 70) / 0.7), transparent 62%),
-        radial-gradient(46vmax 46vmax at 72% 88%, oklch(0.6 0.22 calc(var(--pt-h) - 80) / 0.7), transparent 62%),
-        radial-gradient(34vmax 34vmax at 4% 92%, oklch(0.7 0.17 calc(var(--pt-h) + 150) / 0.6), transparent 62%),
+        radial-gradient(42vmax 42vmax at 12% 25%, color-mix(in oklab, var(--pt-primary) 85%, transparent), transparent 62%),
+        radial-gradient(36vmax 36vmax at 88% 12%, color-mix(in oklab, var(--pt-blue) 70%, transparent), transparent 62%),
+        radial-gradient(46vmax 46vmax at 72% 88%, color-mix(in oklab, var(--pt-magenta) 70%, transparent), transparent 62%),
+        radial-gradient(34vmax 34vmax at 4% 92%, color-mix(in oklab, var(--pt-cyan) 60%, transparent), transparent 62%),
         var(--background);
     background-size: 140% 140%;
     animation: pt-mesh 30s ease-in-out infinite alternate;
-}
-
-/* With Catppuccin the blobs are its own accents. */
-[data-pt-ctp='true'][data-pt-bg='mesh'] body::before {
-    background:
-        radial-gradient(40vmax 40vmax at 15% 20%, color-mix(in srgb, var(--ctp-mauve) 80%, transparent), transparent 62%),
-        radial-gradient(35vmax 35vmax at 85% 15%, color-mix(in srgb, var(--ctp-blue) 70%, transparent), transparent 62%),
-        radial-gradient(45vmax 45vmax at 70% 85%, color-mix(in srgb, var(--ctp-pink) 65%, transparent), transparent 62%),
-        radial-gradient(35vmax 35vmax at 10% 90%, color-mix(in srgb, var(--ctp-teal) 55%, transparent), transparent 62%),
-        var(--background);
-    background-size: 140% 140%;
 }
 
 @keyframes pt-mesh {
