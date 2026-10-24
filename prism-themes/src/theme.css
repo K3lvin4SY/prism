@@ -13,7 +13,6 @@
     --pt-c: 0.17;
     --pt-n: calc(var(--pt-c) * 0.12);
     --radius: var(--pt-radius, 10px);
-    --layout-sidebar-width: var(--pt-sidebar-width, 16rem);
     --pt-card-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
 }
 
@@ -226,22 +225,6 @@
 /* #endregion looks */
 
 /* #region shape */
-[data-pt-density='compact'] {
-    --spacing: 0.21rem;
-}
-
-[data-pt-density='comfortable'] {
-    --spacing: 0.27rem;
-}
-
-[data-pt-width='wide'] {
-    --layout-content-width: 96rem;
-}
-
-[data-pt-width='full'] {
-    --layout-content-width: 100%;
-}
-
 [data-pt-font='system'] {
     --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     --font-header: var(--font-sans);
@@ -289,25 +272,34 @@ html {
 /* #endregion surfaces */
 
 /* #region background */
+/*
+ * Drawn by body::before and body::after, fixed behind everything, so it shows with any layout and on
+ * the sign-in page. The aurora's third blob is html::before. The body's own background is the
+ * canvas under them.
+ */
 body {
     background: var(--background);
 }
 
-.pt-bg {
+:is([data-pt-bg='gradient'], [data-pt-bg='grid'], [data-pt-bg='image'], [data-pt-bg='mesh'], [data-pt-bg='stars'], [data-pt-bg='waves']) body::before,
+:is([data-pt-bg='image'], [data-pt-bg='stars'], [data-pt-bg='waves']) body::after,
+[data-pt-bg='aurora'] body::before,
+[data-pt-bg='aurora'] body::after,
+html[data-pt-bg='aurora']::before {
+    content: '';
     position: fixed;
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    overflow: hidden;
 }
 
-[data-pt-bg='gradient'] .pt-bg {
+[data-pt-bg='gradient'] body::before {
     background:
         radial-gradient(60rem 40rem at 0% -10%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 70%),
         radial-gradient(50rem 30rem at 110% 0%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%);
 }
 
-[data-pt-bg='grid'] .pt-bg {
+[data-pt-bg='grid'] body::before {
     background-image:
         linear-gradient(color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
         linear-gradient(90deg, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px);
@@ -315,24 +307,20 @@ body {
     mask-image: radial-gradient(ellipse at top, black 30%, transparent 80%);
 }
 
-[data-pt-bg='image'] .pt-bg {
+[data-pt-bg='image'] body::before {
     background: var(--pt-bg-image, none) center / cover no-repeat;
 }
 
-[data-pt-bg='image'] .pt-bg::after {
-    content: '';
-    position: absolute;
-    inset: 0;
+[data-pt-bg='image'] body::after {
     background: var(--background);
     opacity: var(--pt-bg-dim, 55%);
 }
 
 /* Aurora: three slow blobs of the colour drifting about. */
-[data-pt-bg='aurora'] .pt-bg::before,
-[data-pt-bg='aurora'] .pt-bg::after,
-[data-pt-bg='aurora'] .pt-bg > i {
-    content: '';
-    position: absolute;
+[data-pt-bg='aurora'] body::before,
+[data-pt-bg='aurora'] body::after,
+html[data-pt-bg='aurora']::before {
+    inset: auto;
     width: 60vmax;
     height: 60vmax;
     border-radius: 50%;
@@ -341,13 +329,13 @@ body {
     animation: pt-drift 28s ease-in-out infinite alternate;
 }
 
-[data-pt-bg='aurora'] .pt-bg::before {
+[data-pt-bg='aurora'] body::before {
     background: var(--primary);
     top: -25vmax;
     left: -15vmax;
 }
 
-[data-pt-bg='aurora'] .pt-bg::after {
+[data-pt-bg='aurora'] body::after {
     background: var(--accent);
     bottom: -30vmax;
     right: -20vmax;
@@ -355,7 +343,7 @@ body {
     animation-direction: alternate-reverse;
 }
 
-[data-pt-bg='aurora'] .pt-bg > i {
+html[data-pt-bg='aurora']::before {
     background: oklch(0.6 var(--pt-c) calc(var(--pt-h) + 60));
     top: 30%;
     left: 40%;
@@ -375,10 +363,9 @@ body {
 }
 
 /* Waves: bands of colour rolling sideways along the bottom. */
-[data-pt-bg='waves'] .pt-bg::before,
-[data-pt-bg='waves'] .pt-bg::after {
-    content: '';
-    position: absolute;
+[data-pt-bg='waves'] body::before,
+[data-pt-bg='waves'] body::after {
+    inset: auto;
     left: -50%;
     width: 200%;
     height: 40vh;
@@ -388,7 +375,7 @@ body {
     animation: pt-wave 18s linear infinite;
 }
 
-[data-pt-bg='waves'] .pt-bg::after {
+[data-pt-bg='waves'] body::after {
     bottom: -18vh;
     background: radial-gradient(50% 60% at 50% 100%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 70%);
     animation-duration: 26s;
@@ -405,7 +392,7 @@ body {
 }
 
 /* Colour mesh: four soft blobs in colours around the wheel, slowly shifting; made for glass. */
-[data-pt-bg='mesh'] .pt-bg {
+[data-pt-bg='mesh'] body::before {
     background:
         radial-gradient(42vmax 42vmax at 12% 25%, oklch(0.62 0.22 var(--pt-h) / 0.85), transparent 62%),
         radial-gradient(36vmax 36vmax at 88% 12%, oklch(0.68 0.2 calc(var(--pt-h) + 70) / 0.7), transparent 62%),
@@ -417,7 +404,7 @@ body {
 }
 
 /* With Catppuccin the blobs are its own accents. */
-[data-pt-ctp='true'][data-pt-bg='mesh'] .pt-bg {
+[data-pt-ctp='true'][data-pt-bg='mesh'] body::before {
     background:
         radial-gradient(40vmax 40vmax at 15% 20%, color-mix(in srgb, var(--ctp-mauve) 80%, transparent), transparent 62%),
         radial-gradient(35vmax 35vmax at 85% 15%, color-mix(in srgb, var(--ctp-blue) 70%, transparent), transparent 62%),
@@ -437,11 +424,8 @@ body {
 }
 
 /* Stars: two layers of dots that twinkle out of step. */
-[data-pt-bg='stars'] .pt-bg::before,
-[data-pt-bg='stars'] .pt-bg::after {
-    content: '';
-    position: absolute;
-    inset: 0;
+[data-pt-bg='stars'] body::before,
+[data-pt-bg='stars'] body::after {
     background-image:
         radial-gradient(1.5px 1.5px at 20% 30%, var(--foreground), transparent),
         radial-gradient(1px 1px at 70% 20%, var(--foreground), transparent),
@@ -454,7 +438,7 @@ body {
     animation: pt-twinkle 6s ease-in-out infinite alternate;
 }
 
-[data-pt-bg='stars'] .pt-bg::after {
+[data-pt-bg='stars'] body::after {
     background-size: 420px 420px;
     background-position: 140px 90px;
     animation-delay: -3s;
@@ -471,10 +455,9 @@ body {
 /* #endregion background */
 
 /* #region motion */
-[data-pt-motion='reduced'] .pt-bg,
-[data-pt-motion='reduced'] .pt-bg *,
-[data-pt-motion='reduced'] .pt-bg::before,
-[data-pt-motion='reduced'] .pt-bg::after {
+[data-pt-motion='reduced'] body::before,
+[data-pt-motion='reduced'] body::after,
+html[data-pt-motion='reduced']::before {
     animation: none !important;
 }
 
@@ -486,47 +469,10 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .pt-bg,
-    .pt-bg::before,
-    .pt-bg::after,
-    .pt-bg > i {
+    body::before,
+    body::after,
+    html::before {
         animation: none !important;
     }
 }
 /* #endregion motion */
-
-/* #region dock */
-.pt-dock-item {
-    transition: transform 150ms ease, margin 150ms ease;
-    transform-origin: bottom center;
-}
-
-[data-pt-magnify='true'] .pt-dock:hover .pt-dock-item:hover {
-    transform: scale(1.45) translateY(-6px);
-    margin: 0 10px;
-}
-
-[data-pt-magnify='true'] .pt-dock:hover .pt-dock-item:hover + .pt-dock-item,
-[data-pt-magnify='true'] .pt-dock:hover .pt-dock-item:has(+ .pt-dock-item:hover) {
-    transform: scale(1.2) translateY(-3px);
-    margin: 0 5px;
-}
-/* #endregion dock */
-
-/* #region cards */
-.pt-card-banner {
-    background:
-        linear-gradient(to bottom, transparent, var(--card)),
-        var(--pt-card-image, none) center / cover,
-        repeating-linear-gradient(135deg, color-mix(in oklab, var(--pt-egg, var(--primary)) 30%, transparent) 0 12px, color-mix(in oklab, var(--pt-egg, var(--primary)) 18%, transparent) 12px 24px);
-}
-
-.pt-card-neon {
-    border-color: color-mix(in oklab, var(--pt-egg, var(--primary)) 55%, transparent);
-    box-shadow: 0 0 22px color-mix(in oklab, var(--pt-egg, var(--primary)) 22%, transparent), inset 0 0 18px color-mix(in oklab, var(--pt-egg, var(--primary)) 8%, transparent);
-}
-
-.pt-card-tile {
-    background: linear-gradient(160deg, color-mix(in oklab, var(--pt-egg, var(--primary)) 16%, var(--card)), var(--card) 60%);
-}
-/* #endregion cards */
