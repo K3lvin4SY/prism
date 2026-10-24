@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { centerLine, fromAmpersand, lineWidth, normalizeMotd, parseLine, rainbow, stripCodes, toAmpersand, toPropertiesValue } from './motd';
+import { centerLine, fromAmpersand, lineWidth, normalizeMotd, parseLine, rainbow, stripCodes, toAmpersand, toPropertiesValue, colourAt, gradient, hexToSection } from './motd';
 
 describe('normalizeMotd', () => {
     it('reads a server.properties line with unicode escapes', () => {
@@ -72,5 +72,32 @@ describe('centred lines', () => {
 
     it('still reads a pasted properties line', () => {
         expect(normalizeMotd('  motd=Hi there  \n')).toBe('Hi there');
+    });
+});
+
+describe('gradient', () => {
+    const stops = [
+        { at: 0, hex: '#000000' },
+        { at: 0.5, hex: '#ff0000' },
+        { at: 1, hex: '#0000ff' },
+    ];
+
+    it('blends between the stops either side, in any order', () => {
+        expect(colourAt(stops, 0)).toBe('000000');
+        expect(colourAt(stops, 0.25)).toBe('800000');
+        expect(colourAt([...stops].reverse(), 0.75)).toBe('800080');
+        expect(colourAt(stops, 1)).toBe('0000ff');
+    });
+
+    it('holds the end colours beyond the first and last stop', () => {
+        expect(colourAt([{ at: 0.2, hex: '#112233' }, { at: 0.8, hex: '#445566' }], 0)).toBe('112233');
+        expect(colourAt([{ at: 0.2, hex: '#112233' }, { at: 0.8, hex: '#445566' }], 1)).toBe('445566');
+    });
+
+    it('colours each visible character and leaves spaces alone', () => {
+        const out = gradient('a b', [{ at: 0, hex: '#000000' }, { at: 1, hex: '#ffffff' }]);
+        expect(stripCodes(out)).toBe('a b');
+        expect(out.startsWith(hexToSection('000000'))).toBe(true);
+        expect(out.endsWith(`${hexToSection('ffffff')}b`)).toBe(true);
     });
 });

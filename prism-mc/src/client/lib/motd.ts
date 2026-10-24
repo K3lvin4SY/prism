@@ -212,10 +212,30 @@ export function rainbow(text: string, hex: boolean, styles = ''): string {
         .join('');
 }
 
-/** Colours every visible character along a smooth blend from one hex colour to another. */
-export function gradient(text: string, from: string, to: string, styles = ''): string {
-    const channels = (hex: string) => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
-    const [a, b] = [channels(from), channels(to)];
+/** A colour on a gradient: its place from 0 to 1 and its #rrggbb. */
+export interface GradientStop {
+    at: number;
+    hex: string;
+}
+
+const channels = (hex: string) => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
+
+/** The colour at a place on a gradient of any number of stops, as rrggbb. */
+export function colourAt(stops: readonly GradientStop[], t: number): string {
+    const sorted = [...stops].sort((a, b) => a.at - b.at);
+    const place = Math.min(1, Math.max(0, t));
+    const after = sorted.findIndex((stop) => stop.at >= place);
+    if (after <= 0) return (after === 0 ? sorted[0] : sorted[sorted.length - 1]).hex.slice(1).toLowerCase();
+    const [left, right] = [sorted[after - 1], sorted[after]];
+    const span = right.at - left.at;
+    const mix = span === 0 ? 0 : (place - left.at) / span;
+    const [a, b] = [channels(left.hex), channels(right.hex)];
+
+    return a.map((channel, index) => Math.round(channel + (b[index] - channel) * mix).toString(16).padStart(2, '0')).join('');
+}
+
+/** Colours every visible character along a gradient of any number of stops. */
+export function gradient(text: string, stops: readonly GradientStop[], styles = ''): string {
     const characters = [...stripCodes(text)];
     const visible = characters.filter((char) => char !== ' ').length;
     let index = 0;
@@ -224,9 +244,8 @@ export function gradient(text: string, from: string, to: string, styles = ''): s
         .map((char) => {
             if (char === ' ') return char;
             const t = visible <= 1 ? 0 : index++ / (visible - 1);
-            const mixed = a.map((channel, at) => Math.round(channel + (b[at] - channel) * t).toString(16).padStart(2, '0')).join('');
 
-            return `${hexToSection(mixed)}${styles}${char}`;
+            return `${hexToSection(colourAt(stops, t))}${styles}${char}`;
         })
         .join('');
 }

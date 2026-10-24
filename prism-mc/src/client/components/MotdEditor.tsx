@@ -4,7 +4,8 @@ import { Button, ButtonStyle, CopyOnClick, Dialog, DropdownMenu, DropdownMenuIte
 import { getStatus, keys } from '../api/client';
 import { renameServer } from '../api/properties';
 import { applyCode, insertAt } from '../lib/ampersand';
-import { COLORS, MOTD_WIDTH, STYLES, SYMBOLS, centerLine, fromAmpersand, gradient, lineWidth, normalizeMotd, rainbow, supportsHex, toAmpersand, toPropertiesValue } from '../lib/motd';
+import { COLORS, MOTD_WIDTH, STYLES, SYMBOLS, centerLine, fromAmpersand, gradient, lineWidth, normalizeMotd, rainbow, supportsHex, toAmpersand, toPropertiesValue, type GradientStop } from '../lib/motd';
+import GradientSlider from './GradientSlider';
 import IconUpload from './IconUpload';
 import ServerListPreview from './ServerListPreview';
 
@@ -71,7 +72,10 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
     const [lines, setLines] = useState<[string, string]>(() => splitLines(motd));
     const [focused, setFocused] = useState<0 | 1>(0);
     const [hex, setHex] = useState('#54DAF4');
-    const [hexTo, setHexTo] = useState('#C77DFF');
+    const [stops, setStops] = useState<GradientStop[]>([
+        { at: 0, hex: '#54daf4' },
+        { at: 1, hex: '#c77dff' },
+    ]);
     const [format, setFormat] = useState<OutputFormat>('properties');
     const [paste, setPaste] = useState('');
     const [name, setName] = useState(serverName);
@@ -249,20 +253,26 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
                     </div>
 
                     {/* Hex colours and gradients, where the server software reads them. */}
-                    <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2 mcs:border-b mcs:border-border mcs:bg-muted/20 mcs:px-3 mcs:py-2'}>
+                    <div className={'mcs:flex mcs:flex-col mcs:gap-2 mcs:border-b mcs:border-border mcs:bg-muted/20 mcs:px-3 mcs:py-2'}>
                         {hexAllowed ? (
                             <>
-                                <input type={'color'} value={hex} onChange={(event) => setHex(event.target.value.toUpperCase())} className={'mcs:h-8 mcs:w-9 mcs:cursor-pointer mcs:rounded mcs:border mcs:border-border mcs:bg-transparent'} aria-label={'Hex color'} />
-                                <Input value={hex} onChange={(event) => setHex(event.target.value)} className={'mcs:w-24 mcs:font-mono'} aria-label={'Hex color code'} />
-                                <Button size={'xsmall'} isSecondary disabled={!/^#[0-9a-fA-F]{6}$/.test(hex)} onMouseDown={(event) => event.preventDefault()} onClick={() => edit((text, start, end) => applyCode(text, start, end, hex.toLowerCase()))}>
-                                    Apply color
-                                </Button>
-                                <span className={'mcs:mx-1 mcs:text-xs mcs:text-muted-foreground'}>or a gradient to</span>
-                                <input type={'color'} value={hexTo} onChange={(event) => setHexTo(event.target.value.toUpperCase())} className={'mcs:h-8 mcs:w-9 mcs:cursor-pointer mcs:rounded mcs:border mcs:border-border mcs:bg-transparent'} aria-label={'Gradient end color'} />
-                                <span className={'mcs:h-3 mcs:w-16 mcs:rounded-full'} style={{ background: `linear-gradient(90deg, ${hex}, ${hexTo})` }} aria-hidden />
-                                <Button size={'xsmall'} isSecondary disabled={!/^#[0-9a-fA-F]{6}$/.test(hex) || !/^#[0-9a-fA-F]{6}$/.test(hexTo)} onMouseDown={(event) => event.preventDefault()} onClick={() => paint((text) => gradient(text, hex, hexTo))}>
-                                    Apply gradient
-                                </Button>
+                                <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
+                                    <span className={'mcs:w-16 mcs:text-xs mcs:font-medium mcs:text-muted-foreground'}>Color</span>
+                                    <input type={'color'} value={hex} onChange={(event) => setHex(event.target.value.toUpperCase())} className={'mcs:h-8 mcs:w-9 mcs:cursor-pointer mcs:rounded mcs:border mcs:border-border mcs:bg-transparent'} aria-label={'Hex color'} />
+                                    <Input value={hex} onChange={(event) => setHex(event.target.value)} className={'mcs:w-24 mcs:font-mono'} aria-label={'Hex color code'} />
+                                    <Button size={'xsmall'} isSecondary disabled={!/^#[0-9a-fA-F]{6}$/.test(hex)} onMouseDown={(event) => event.preventDefault()} onClick={() => edit((text, start, end) => applyCode(text, start, end, hex.toLowerCase()))}>
+                                        Apply color
+                                    </Button>
+                                </div>
+                                <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
+                                    <span className={'mcs:w-16 mcs:text-xs mcs:font-medium mcs:text-muted-foreground'}>Gradient</span>
+                                    <div className={'mcs:min-w-0 mcs:flex-1'}>
+                                        <GradientSlider stops={stops} onChange={setStops} />
+                                    </div>
+                                    <Button size={'xsmall'} isSecondary onMouseDown={(event) => event.preventDefault()} onClick={() => paint((text) => gradient(text, stops))}>
+                                        Apply gradient
+                                    </Button>
+                                </div>
                             </>
                         ) : (
                             <p className={'mcs:text-xs mcs:text-muted-foreground'}>Hex colors and gradients need Paper, Purpur or Spigot; this server uses the 16 colors above.</p>
