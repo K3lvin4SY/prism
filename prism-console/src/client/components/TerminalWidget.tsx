@@ -256,13 +256,13 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                             <Popover icon={'download'} label={'Download the console'}>
                                 {(close) => (
                                     <div className={'pcn:flex pcn:flex-col pcn:gap-1'}>
-                                        <div className={'pcn:mb-1 pcn:flex pcn:gap-1 pcn:rounded-md pcn:bg-muted/50 pcn:p-1 pcn:text-xs'}>
+                                        <div className={'prism-switch pcn:mb-1 pcn:flex pcn:gap-1 pcn:rounded-md pcn:bg-muted/50 pcn:p-1 pcn:text-xs'}>
                                             {[true, false].map((filtered) => (
                                                 <button
                                                     key={String(filtered)}
                                                     type={'button'}
                                                     onClick={() => setExportFiltered(filtered)}
-                                                    className={cn('pcn:flex-1 pcn:rounded pcn:px-2 pcn:py-1 pcn:cursor-pointer', exportFiltered === filtered ? 'pcn:bg-primary pcn:text-primary-foreground' : 'pcn:text-muted-foreground')}
+                                                    className={cn('prism-switch-item pcn:flex-1 pcn:rounded pcn:px-2 pcn:py-1 pcn:cursor-pointer', exportFiltered === filtered ? 'pcn:bg-primary pcn:text-primary-foreground' : 'pcn:text-muted-foreground')}
                                                 >
                                                     {filtered ? 'Visible lines' : 'All lines'}
                                                 </button>

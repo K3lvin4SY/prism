@@ -3,7 +3,7 @@ import { cn, toast } from '@pterodactyl/sdk';
 
 export function Pills<T extends string>({ value, options, onChange, size = 'md' }: { value: T; options: { value: T; label: string; disabled?: boolean }[]; onChange: (value: T) => void; size?: 'sm' | 'md' }) {
     return (
-        <div className={'pbk:flex pbk:flex-wrap pbk:gap-1 pbk:rounded-lg pbk:border pbk:border-border pbk:bg-card pbk:p-1'}>
+        <div className={'prism-switch pbk:flex pbk:flex-wrap pbk:gap-1 pbk:rounded-lg pbk:border pbk:border-border pbk:bg-card pbk:p-1'}>
             {options.map((option) => (
                 <button
                     key={option.value}
@@ -11,7 +11,7 @@ export function Pills<T extends string>({ value, options, onChange, size = 'md' 
                     disabled={option.disabled}
                     onClick={() => onChange(option.value)}
                     className={cn(
-                        'pbk:rounded-md pbk:cursor-pointer pbk:disabled:cursor-not-allowed pbk:disabled:opacity-40',
+                        'prism-switch-item pbk:rounded-md pbk:cursor-pointer pbk:disabled:cursor-not-allowed pbk:disabled:opacity-40',
                         size === 'sm' ? 'pbk:px-2.5 pbk:py-1 pbk:text-xs' : 'pbk:px-3 pbk:py-1.5 pbk:text-sm',
                         value === option.value ? 'pbk:bg-muted pbk:font-semibold pbk:text-foreground' : 'pbk:text-muted-foreground pbk:hover:text-foreground'
                     )}

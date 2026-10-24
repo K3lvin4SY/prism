@@ -27,7 +27,7 @@ interface Props {
 }
 
 const pill = (active: boolean) =>
-    cn('pcn:rounded-full pcn:px-3 pcn:py-1 pcn:text-sm pcn:cursor-pointer', active ? 'pcn:bg-primary pcn:text-primary-foreground' : 'pcn:text-muted-foreground pcn:hover:bg-muted pcn:hover:text-foreground');
+    cn('prism-switch-item pcn:rounded-full pcn:px-3 pcn:py-1 pcn:text-sm pcn:cursor-pointer', active ? 'pcn:bg-primary pcn:text-primary-foreground' : 'pcn:text-muted-foreground pcn:hover:bg-muted pcn:hover:text-foreground');
 
 export default function SettingsDialog({ preferences, terminal, layout, onChange, onClose }: Props) {
     const config = getConfig();
@@ -82,9 +82,9 @@ export default function SettingsDialog({ preferences, terminal, layout, onChange
                             </label>
                             <div className={'pcn:flex pcn:flex-col pcn:gap-1 pcn:text-sm'}>
                                 Line height
-                                <div className={'pcn:flex pcn:gap-1 pcn:rounded-lg pcn:bg-muted/40 pcn:p-1'}>
+                                <div className={'prism-switch pcn:flex pcn:gap-1 pcn:rounded-lg pcn:bg-muted/40 pcn:p-1'}>
                                     {[1.2, 1.3, 1.4, 1.5, 1.7].map((value) => (
-                                        <button key={value} type={'button'} onClick={() => setTerminal({ lineHeight: value })} className={cn('pcn:flex-1 pcn:rounded-md pcn:py-1 pcn:cursor-pointer', terminal.lineHeight === value ? 'pcn:bg-card pcn:font-semibold pcn:shadow-sm' : 'pcn:text-muted-foreground')}>
+                                        <button key={value} type={'button'} onClick={() => setTerminal({ lineHeight: value })} className={cn('prism-switch-item pcn:flex-1 pcn:rounded-md pcn:py-1 pcn:cursor-pointer', terminal.lineHeight === value ? 'pcn:bg-card pcn:font-semibold pcn:shadow-sm' : 'pcn:text-muted-foreground')}>
                                             {value}
                                         </button>
                                     ))}

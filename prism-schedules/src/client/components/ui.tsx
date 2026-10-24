@@ -3,7 +3,7 @@ import { cn, toast } from '@pterodactyl/sdk';
 
 export function Pills<T extends string>({ value, options, onChange, size = 'md' }: { value: T; options: { value: T; label: string; disabled?: boolean }[]; onChange: (value: T) => void; size?: 'sm' | 'md' }) {
     return (
-        <div className={'psc:flex psc:flex-wrap psc:gap-1 psc:rounded-lg psc:border psc:border-border psc:bg-card psc:p-1'}>
+        <div className={'prism-switch psc:flex psc:flex-wrap psc:gap-1 psc:rounded-lg psc:border psc:border-border psc:bg-card psc:p-1'}>
             {options.map((option) => (
                 <button
                     key={option.value}
@@ -11,7 +11,7 @@ export function Pills<T extends string>({ value, options, onChange, size = 'md' 
                     disabled={option.disabled}
                     onClick={() => onChange(option.value)}
                     className={cn(
-                        'psc:rounded-md psc:cursor-pointer psc:disabled:cursor-not-allowed psc:disabled:opacity-40',
+                        'prism-switch-item psc:rounded-md psc:cursor-pointer psc:disabled:cursor-not-allowed psc:disabled:opacity-40',
                         size === 'sm' ? 'psc:px-2.5 psc:py-1 psc:text-xs' : 'psc:px-3 psc:py-1.5 psc:text-sm',
                         value === option.value ? 'psc:bg-muted psc:font-semibold psc:text-foreground' : 'psc:text-muted-foreground psc:hover:text-foreground'
                     )}

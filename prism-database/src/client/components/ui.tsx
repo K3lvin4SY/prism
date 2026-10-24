@@ -3,7 +3,7 @@ import { NamedIcon, cn, toast } from '@pterodactyl/sdk';
 
 export function Pills<T extends string>({ value, options, onChange, size = 'md' }: { value: T; options: { value: T; label: string; disabled?: boolean }[]; onChange: (value: T) => void; size?: 'sm' | 'md' }) {
     return (
-        <div className={'pdb:flex pdb:flex-wrap pdb:gap-1 pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:p-1'}>
+        <div className={'prism-switch pdb:flex pdb:flex-wrap pdb:gap-1 pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:p-1'}>
             {options.map((option) => (
                 <button
                     key={option.value}
@@ -11,7 +11,7 @@ export function Pills<T extends string>({ value, options, onChange, size = 'md' 
                     disabled={option.disabled}
                     onClick={() => onChange(option.value)}
                     className={cn(
-                        'pdb:rounded-md pdb:cursor-pointer pdb:disabled:cursor-not-allowed pdb:disabled:opacity-40',
+                        'prism-switch-item pdb:rounded-md pdb:cursor-pointer pdb:disabled:cursor-not-allowed pdb:disabled:opacity-40',
                         size === 'sm' ? 'pdb:px-2.5 pdb:py-1 pdb:text-xs' : 'pdb:px-3 pdb:py-1.5 pdb:text-sm',
                         value === option.value ? 'pdb:bg-muted pdb:font-semibold pdb:text-foreground' : 'pdb:text-muted-foreground pdb:hover:text-foreground'
                     )}

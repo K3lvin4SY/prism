@@ -173,9 +173,9 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
                     <NamedIcon name={'search'} size={14} className={'pfl:pointer-events-none pfl:absolute pfl:left-2.5 pfl:top-1/2 pfl:-translate-y-1/2 pfl:text-muted-foreground'} />
                     <Input value={filter} onChange={(event) => setFilter(event.target.value)} placeholder={'Filter this folder'} className={'pfl:w-48 pfl:pl-8'} />
                 </div>
-                <div className={'pfl:flex pfl:rounded-md pfl:border pfl:border-border pfl:p-0.5'}>
+                <div className={'prism-switch pfl:flex pfl:rounded-md pfl:border pfl:border-border pfl:p-0.5'}>
                     {(['list', 'grid'] as const).map((value) => (
-                        <button key={value} type={'button'} onClick={() => onView(value)} aria-label={value === 'list' ? 'List' : 'Grid'} className={cn('pfl:flex pfl:size-7 pfl:items-center pfl:justify-center pfl:rounded pfl:cursor-pointer', view === value ? 'pfl:bg-muted pfl:text-foreground' : 'pfl:text-muted-foreground')}>
+                        <button key={value} type={'button'} onClick={() => onView(value)} aria-label={value === 'list' ? 'List' : 'Grid'} className={cn('prism-switch-item pfl:flex pfl:size-7 pfl:items-center pfl:justify-center pfl:rounded pfl:cursor-pointer', view === value ? 'pfl:bg-muted pfl:text-foreground' : 'pfl:text-muted-foreground')}>
                             <NamedIcon name={value === 'list' ? 'list' : 'layout-grid'} size={15} />
                         </button>
                     ))}

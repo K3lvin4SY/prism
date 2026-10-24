@@ -117,14 +117,14 @@ function PrismFiles({ initialPath = null }: { initialPath?: string | null }) {
 
     return (
         <div className={'pfl:flex pfl:flex-col pfl:gap-3'}>
-            <div className={'pfl:flex pfl:flex-wrap pfl:gap-1 pfl:self-start pfl:rounded-full pfl:border pfl:border-border pfl:bg-card pfl:p-1'}>
+            <div className={'prism-switch pfl:flex pfl:flex-wrap pfl:gap-1 pfl:self-start pfl:rounded-full pfl:border pfl:border-border pfl:bg-card pfl:p-1'}>
                 {tabs.map((item) => (
                     <button
                         key={item.id}
                         type={'button'}
                         onClick={() => setTab(item.id)}
                         className={cn(
-                            'pfl:inline-flex pfl:items-center pfl:gap-1.5 pfl:rounded-full pfl:px-3 pfl:py-1 pfl:text-sm pfl:cursor-pointer',
+                            'prism-switch-item pfl:inline-flex pfl:items-center pfl:gap-1.5 pfl:rounded-full pfl:px-3 pfl:py-1 pfl:text-sm pfl:cursor-pointer',
                             tab === item.id ? 'pfl:bg-primary pfl:text-primary-foreground' : 'pfl:text-muted-foreground pfl:hover:text-foreground'
                         )}
                     >
