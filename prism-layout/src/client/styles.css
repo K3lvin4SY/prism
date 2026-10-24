@@ -67,6 +67,8 @@ html[data-pla-nav='off'][data-pla-logo='beside'] #logo a:has(> img)::after {
 }
 
 html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:hover {
+    position: relative;
+    z-index: 1;
     transform: scale(1.45) translateY(-6px);
     margin: 0 10px;
 }
@@ -83,6 +85,37 @@ html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:has(+ .pla-dock-ite
     }
 }
 /* #endregion dock */
+
+/* #region collapsing the sidebar: the width slides between the sidebar and the rail */
+@media (min-width: 1024px) {
+    .pla-grow {
+        animation: pla-grow 180ms ease-out;
+    }
+
+    .pla-shrink {
+        animation: pla-shrink 180ms ease-out;
+    }
+}
+
+@keyframes pla-grow {
+    from {
+        width: 4rem;
+    }
+}
+
+@keyframes pla-shrink {
+    from {
+        width: var(--pla-sidebar-width, 16rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pla-grow,
+    .pla-shrink {
+        animation: none;
+    }
+}
+/* #endregion collapsing */
 
 /* #region server cards; --pla-egg is the card's game colour */
 .pla-card-banner {
@@ -101,6 +134,15 @@ html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:has(+ .pla-dock-ite
     box-shadow:
         0 0 22px color-mix(in oklab, var(--pla-egg, var(--primary)) 22%, transparent),
         inset 0 0 18px color-mix(in oklab, var(--pla-egg, var(--primary)) 8%, transparent);
+}
+
+/* The game's colour on the styles without a picture or tint of their own. */
+.pla-card-egg[data-style='outline'] {
+    border-color: color-mix(in oklab, var(--pla-egg) 55%, transparent);
+}
+
+.pla-card-egg[data-style='minimal'] {
+    background-color: color-mix(in oklab, var(--pla-egg) 8%, var(--card));
 }
 
 .pla-card-tile {

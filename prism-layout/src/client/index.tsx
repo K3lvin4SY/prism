@@ -1,4 +1,5 @@
 import './styles.css';
+import { lazy } from 'react';
 import { definePterodactylExtension } from '@pterodactyl/sdk';
 import { listenForPreview, setConfig } from './settings';
 import { AccountLayout, AdminLayout, ServerLayout } from './views/AreaLayout';
@@ -13,6 +14,8 @@ export default definePterodactylExtension({
         for (const slot of ['auth.login.before', 'auth.password.before', 'auth.passwordReset.before', 'auth.checkpoint.before'] as const) {
             slots.register(slot, SignIn);
         }
+
+        slots.register('server.settings.after', lazy(() => import('./views/ServerPicture')));
 
         views.override('layout.app', { load: () => import('./views/Shell') });
         views.override('layout.server', ServerLayout);

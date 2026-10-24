@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Avatar, NamedIcon, PanelLink, SpinnerOverlay, cn, usePanelLocation } from '@pterodactyl/sdk';
 import { Main, type AppLayoutModel, type ViewProps } from '@pterodactyl/sdk/theme';
+import { remember } from '../dashboard';
 import { cssString, useSettings, type Bars } from '../settings';
 import Announcement from './Announcement';
 import CommandPalette from './CommandPalette';
+import DashboardPanel from './DashboardPanel';
 import { AreaNav, FooterLinks, MainLinks, ServerCard, itemClass } from './nav';
 
 const has = {
@@ -54,9 +56,9 @@ function User({ model, compact, onPalette }: { model: AppLayoutModel; compact?: 
                     <NamedIcon name={model.scheme === 'dark' ? 'sun' : 'moon'} size={16} />
                 </button>
             )}
-            <span className='pla:flex pla:size-10 pla:items-center pla:justify-center' title={model.user.username}>
+            <PanelLink destination={{ to: '/account' }} className='pla:flex pla:size-10 pla:items-center pla:justify-center pla:rounded-full pla:transition-shadow pla:hover:ring-2 pla:hover:ring-primary/50' title={`Account settings: ${model.user.username}`} aria-label='Account settings'>
                 <Avatar name={model.user.uuid} size={26} />
-            </span>
+            </PanelLink>
             <button type='button' onClick={model.signOut} className={button} title='Sign out' aria-label='Sign out'>
                 <NamedIcon name='log-out' size={16} />
             </button>
@@ -73,29 +75,64 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     const { pathname } = usePanelLocation();
     const [drawer, setDrawer] = useState(false);
     const [palette, setPalette] = useState(false);
-    const bars = settings.bars;
+    const [collapsed, setCollapsed] = useState(readCollapsed);
+    // Only animate the width after a toggle, not on every page load.
+    const [moved, setMoved] = useState(false);
+    const area = model.area;
 
     useEffect(() => setDrawer(false), [pathname]);
+    useEffect(() => {
+        if (area.kind === 'server') remember({ identifier: area.identifier, name: area.name });
+    }, [area]);
 
     // Off, or in an admin area kept as it was: the panel's own frame, with the logo choice.
-    if (!settings.enabled || (model.area.kind === 'admin' && !settings.admin_styled)) return <PanelFrame model={model} Default={Default} />;
+    if (!settings.enabled || (area.kind === 'admin' && !settings.admin_styled)) return <PanelFrame model={model} Default={Default} />;
+
+    // A collapsed sidebar is drawn as the icon rail.
+    const collapsible = settings.sidebar_collapse && has.sidebar(settings.bars);
+    const folded = collapsible && collapsed;
+    const bars: Bars = folded ? (settings.bars === 'sidebar_top' ? 'rail_top' : 'rail') : settings.bars;
+    const toggle = () => {
+        setMoved(true);
+        setCollapsed(!collapsed);
+        writeCollapsed(!collapsed);
+    };
+    const collapseButton = collapsible && (
+        <button type='button' onClick={toggle} className={cn(itemClass('icons'), 'pla:hidden pla:shrink-0 pla:lg:flex')} title={folded ? 'Expand the sidebar' : 'Collapse the sidebar'} aria-label={folded ? 'Expand the sidebar' : 'Collapse the sidebar'} aria-expanded={!folded}>
+            <NamedIcon name={folded ? 'panel-left-open' : 'panel-left-close'} size={17} />
+        </button>
+    );
+    // The logo goes to the sidebar's top when the admin asks and there is a top bar to take it from.
+    const side = has.sidebar(bars) || has.rail(bars);
+    const brandSide = settings.brand_place === 'sidebar' && has.top(bars) && side;
+    const brandInSide = !has.top(bars) || brandSide;
 
     const links = [1, 2, 3]
         .map((n) => ({ label: String(settings[`link${n}_label` as keyof typeof settings] ?? ''), url: String(settings[`link${n}_url` as keyof typeof settings] ?? '') }))
         .filter((link) => /^https?:\/\//.test(link.url));
     const openPalette = settings.command_palette ? () => setPalette(true) : null;
-    const area = model.area;
     const sideCard = settings.server_card && area.kind === 'server' ? <ServerCard area={area} /> : null;
+    const dashboard = settings.dashboard_panel && area.kind === 'dashboard';
 
     const sidebar = (
-        <aside className={cn('pt-bar pla:flex-col pla:gap-4 pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:p-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-sidebar pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-72' : 'pla:hidden')}>
-            {!has.top(bars) && <Brand model={model} />}
+        <aside className={cn('pt-bar pla:flex-col pla:gap-4 pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:p-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-sidebar pla:lg:shrink-0', moved && 'pla-grow', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-72' : 'pla:hidden')}>
+            {(brandInSide || (collapseButton && !has.top(bars))) && (
+                <div className='pla:flex pla:items-center pla:gap-1'>
+                    {brandInSide && (
+                        <div className='pla:min-w-0 pla:flex-1'>
+                            <Brand model={model} />
+                        </div>
+                    )}
+                    {!has.top(bars) && collapseButton}
+                </div>
+            )}
             {!has.top(bars) && (
                 <nav aria-label='Main' className='pla:flex pla:flex-col pla:gap-0.5'>
                     <MainLinks model={model} variant='list' />
                 </nav>
             )}
             {sideCard}
+            {dashboard && <DashboardPanel variant='list' />}
             <AreaNav area={area} variant='list' grouped={settings.group_nav} />
             <div className='pla:mt-auto pla:flex pla:flex-col pla:gap-2'>
                 <FooterLinks links={links} variant='list' />
@@ -105,14 +142,17 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     );
 
     const rail = (
-        <aside className={cn('pt-bar pla:flex-col pla:items-center pla:gap-3 pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-16 pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-16 pla:overflow-y-auto' : 'pla:hidden')}>
-            {!has.top(bars) && <Brand model={model} compact />}
+        <aside className={cn('pt-bar pla:flex-col pla:items-center pla:gap-3 pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-16 pla:lg:shrink-0', moved && folded && 'pla-shrink', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-16 pla:overflow-y-auto' : 'pla:hidden')}>
+            {brandInSide && <Brand model={model} compact />}
+            {!has.top(bars) && collapseButton}
             {!has.top(bars) && (
                 <nav aria-label='Main' className='pla:flex pla:flex-col pla:items-center pla:gap-1'>
                     <MainLinks model={model} variant='icons' />
                 </nav>
             )}
-            {area.kind !== 'dashboard' && <div className='pla:h-px pla:w-8 pla:bg-border' />}
+            {(area.kind !== 'dashboard' || dashboard) && <div className='pla:h-px pla:w-8 pla:bg-border' />}
+            {area.kind === 'server' && settings.server_card && <ServerBadge name={area.name} state={area.state} />}
+            {dashboard && <DashboardPanel variant='icons' />}
             <AreaNav area={area} variant='icons' grouped={false} />
             <div className='pla:mt-auto pla:flex pla:flex-col pla:items-center pla:gap-1'>
                 <FooterLinks links={links} variant='icons' />
@@ -129,7 +169,10 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
                         <NamedIcon name='menu' size={18} />
                     </button>
                 )}
-                <Brand model={model} />
+                {collapseButton}
+                <div className={cn('pla:min-w-0', brandSide && 'pla:lg:hidden')}>
+                    <Brand model={model} />
+                </div>
                 <nav aria-label='Main' className='pla:flex pla:min-w-0 pla:flex-1 pla:items-center pla:gap-1 pla:overflow-x-auto'>
                     <MainLinks model={model} variant={bars === 'top' || bars === 'top_dock' ? 'list' : 'icons'} />
                 </nav>
@@ -150,7 +193,7 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     const dockItems = bars === 'dock' ? 'all' : 'area';
     const dock = (
         <nav aria-label='Dock' className='pla:pointer-events-none pla:fixed pla:inset-x-0 pla:bottom-3 pla:z-30 pla:flex pla:justify-center pla:px-3'>
-            <div className='pt-bar pla-dock pla:pointer-events-auto pla:flex pla:max-w-full pla:items-end pla:gap-1 pla:overflow-x-auto pla:rounded-2xl pla:border pla:border-border pla:bg-sidebar/90 pla:px-2 pla:py-1.5 pla:shadow-xl pla:backdrop-blur'>
+            <div className='pt-bar pla-dock pla:pointer-events-auto pla:flex pla:max-w-full pla:items-end pla:gap-1 pla:overflow-x-auto pla:lg:overflow-visible pla:rounded-2xl pla:border pla:border-border pla:bg-sidebar/90 pla:px-2 pla:py-1.5 pla:shadow-xl pla:backdrop-blur'>
                 {dockItems === 'all' &&
                     model.links.map((link) => (
                         <PanelLink key={link.id} destination={link.destination} exact={link.exact} className={cn(itemClass('icons'), 'pla-dock-item')} title={link.label} aria-label={link.label}>
@@ -192,6 +235,43 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
             {has.dock(bars) && dock}
             {settings.command_palette && <CommandPalette model={model} open={palette} onOpen={() => setPalette(true)} onClose={() => setPalette(false)} />}
         </div>
+    );
+}
+
+const COLLAPSED = 'prism-layout:collapsed';
+
+function readCollapsed(): boolean {
+    try {
+        return window.localStorage.getItem(COLLAPSED) === '1';
+    } catch {
+        return false;
+    }
+}
+
+function writeCollapsed(value: boolean): void {
+    try {
+        window.localStorage.setItem(COLLAPSED, value ? '1' : '0');
+    } catch {
+        // Remembered for this visit only.
+    }
+}
+
+const BADGE_DOT: Record<string, string> = { running: 'pla:bg-success', starting: 'pla:bg-warning', stopping: 'pla:bg-warning', offline: 'pla:bg-destructive' };
+
+/** On the rail, the open server's initials with its power state as a dot. */
+function ServerBadge({ name, state }: { name: string; state: string | null | undefined }) {
+    const initials = name
+        .split(/[\s_-]+/)
+        .filter(Boolean)
+        .slice(-2)
+        .map((word) => word.charAt(0).toUpperCase())
+        .join('');
+
+    return (
+        <span title={`${name}${state ? `: ${state}` : ''}`} className='pla:relative pla:flex pla:size-10 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-lg pla:border pla:border-border pla:bg-card pla:text-xs pla:font-semibold'>
+            {initials || '?'}
+            <span className={cn('pla:absolute pla:-top-0.5 pla:-right-0.5 pla:size-2.5 pla:rounded-full pla:ring-2 pla:ring-sidebar', BADGE_DOT[state ?? ''] ?? 'pla:bg-muted-foreground')} />
+        </span>
     );
 }
 

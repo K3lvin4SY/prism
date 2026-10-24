@@ -70,7 +70,7 @@ export function AreaNav({ area, variant, grouped, row = false, itemExtra }: { ar
     const groups = groupsOf(area, items, grouped && variant === 'list');
 
     return (
-        <nav aria-label={{ server: 'Server', account: 'Account', admin: 'Administration' }[area.kind]} className={cn('pla:flex', variant === 'tabs' || row ? 'pla:items-stretch pla:gap-1 pla:overflow-x-auto' : 'pla:flex-col pla:gap-1', variant === 'icons' && 'pla:items-center')}>
+        <nav aria-label={{ server: 'Server', account: 'Account', admin: 'Administration' }[area.kind]} className={cn('pla:flex', variant === 'tabs' ? 'pla:items-stretch pla:gap-1 pla:overflow-x-auto' : row ? 'pla:items-stretch pla:gap-1 pla:overflow-x-auto pla:lg:overflow-visible' : 'pla:flex-col pla:gap-1', variant === 'icons' && 'pla:items-center')}>
             <AreaSlot area={area} at='before' />
             {groups.map(([name, list]) => (
                 <div key={name ?? 'all'} className={cn('pla:flex', variant === 'tabs' || row ? 'pla:items-end pla:gap-1' : 'pla:flex-col pla:gap-0.5', variant === 'icons' && 'pla:items-center')}>

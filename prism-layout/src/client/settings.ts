@@ -17,6 +17,9 @@ export interface LayoutSettings {
     server_card: boolean;
     scheme_switch: boolean;
     admin_styled: boolean;
+    dashboard_panel: boolean;
+    sidebar_collapse: boolean;
+    brand_place: 'top' | 'sidebar';
     width: 'normal' | 'wide' | 'full';
     density: 'compact' | 'cozy' | 'comfortable';
     cards: CardStyle;
@@ -73,6 +76,9 @@ export function read(raw: Record<string, unknown>): LayoutSettings {
         server_card: bool(raw.server_card, true),
         scheme_switch: bool(raw.scheme_switch, true),
         admin_styled: bool(raw.admin_styled, true),
+        dashboard_panel: bool(raw.dashboard_panel, true),
+        sidebar_collapse: bool(raw.sidebar_collapse, true),
+        brand_place: oneOf(raw.brand_place, ['top', 'sidebar'] as const, 'top'),
         width: oneOf(raw.width, ['normal', 'wide', 'full'] as const, 'normal'),
         density: oneOf(raw.density, ['compact', 'cozy', 'comfortable'] as const, 'cozy'),
         cards: oneOf(raw.cards, ['banner', 'tile', 'neon', 'minimal', 'compact', 'outline', 'rows'] as const, 'banner'),

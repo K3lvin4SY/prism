@@ -5,7 +5,7 @@ import { useSettings } from '../settings';
 type Area = 'layout.server' | 'layout.account' | 'layout.admin';
 
 /**
- * The server, account and admin areas keep the layer below (the theme's layout, and PrismConsole's
+ * The server, account and admin areas keep the layer below (the theme's layout, and Prism Console's
  * when it is on), so nothing it adds is lost. Prism Layout's shell draws the area's pages, so the
  * class added here lets the stylesheet hide the panel's own menu for them.
  */

@@ -3,6 +3,8 @@ import { apply, cssString, cssUrlToken, getSettings, read } from './settings';
 
 describe('read', () => {
     it('falls back to the defaults', () => {
+        expect(read({})).toMatchObject({ dashboard_panel: true, sidebar_collapse: true, brand_place: 'top' });
+        expect(read({ brand_place: 'left' }).brand_place).toBe('top');
         expect(read({})).toMatchObject({ enabled: true, bars: 'sidebar', sidebar_width: 16, width: 'normal', cards: 'banner', logo: null, logo_mode: 'instead', logo_height: 32, login_style: 'card', login_mark: 'logo', login_logo_size: 160 });
     });
 

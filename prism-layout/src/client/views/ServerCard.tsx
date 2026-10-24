@@ -65,7 +65,7 @@ export default function ServerCard({ model, server, Default }: ViewProps<'dashbo
 
     return (
         <div className={cn('pla:flex pla:gap-3', settings.cards === 'rows' ? 'pla:flex-row pla:flex-wrap pla:items-center' : 'pla:flex-col')}>
-            <div className={cn('pla:flex pla:min-w-0 pla:items-start pla:gap-2', settings.cards === 'rows' && 'pla:flex-1')}>
+            <div className={cn('pla:flex pla:min-w-0 pla:gap-2', settings.cards === 'rows' ? 'pla:flex-1 pla:items-center' : 'pla:items-start')}>
                 <div className='pla:min-w-0 pla:flex-1'>
                     <p className='pla:truncate pla:font-semibold'>{model.name}</p>
                     <p className='pla:truncate pla:font-mono pla:text-xs pla:text-muted-foreground'>{model.address ?? 'No address'}</p>

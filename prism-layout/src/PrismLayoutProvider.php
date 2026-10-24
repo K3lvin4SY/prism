@@ -39,6 +39,8 @@ class PrismLayoutProvider extends ExtensionProvider
             $toggle('server_card', true, 'Server card in the sidebar', 'Navigation', "The open server's status and power buttons above its pages."),
             $toggle('scheme_switch', true, 'Light and dark switch', 'Navigation', 'When the theme has both.'),
             $toggle('admin_styled', true, 'Lay out the admin area too', 'Navigation', "Off keeps the admin area in the panel's own layout."),
+            $toggle('dashboard_panel', true, 'Overview and filters on the dashboard', 'Navigation', 'The sidebar shows how your servers are doing, filters for the cards and your recent servers.'),
+            $toggle('sidebar_collapse', true, 'People can collapse the sidebar', 'Navigation', "A button folds the sidebar into an icon rail and back; each person's choice is remembered in their browser."),
 
             // Page
             Setting::make('width', 'width', 'normal', ['required', 'string', 'in:normal,wide,full'])->label('Page width')->tab('Page')->field('select', $options(['normal' => 'Normal', 'wide' => 'Wide', 'full' => 'Full width']))->frontend(),
@@ -55,6 +57,7 @@ class PrismLayoutProvider extends ExtensionProvider
             // Branding: everything here also reaches the sign-in pages.
             Setting::make('logo', 'logo', null)->label('Logo')->help('PNG, JPG, WebP or SVG, up to 1 MB. A wide logo works best in a top bar.')->tab('Branding')->file(self::IMAGES, 1024)->frontend()->public(),
             Setting::make('logo_mode', 'logo_mode', 'instead', ['required', 'string', 'in:beside,instead,name'])->label('Show the logo')->help('Beside the company name, instead of it, or show only the name.')->tab('Branding')->field('select', $options(['beside' => 'Beside the name', 'instead' => 'Instead of the name', 'name' => 'Name only']))->frontend()->public(),
+            Setting::make('brand_place', 'brand_place', 'top', ['required', 'string', 'in:top,sidebar'])->label('Logo and name')->help('Where they go when the layout has both a top bar and a sidebar or icon rail.')->tab('Branding')->field('select', $options(['top' => 'In the top bar', 'sidebar' => 'At the top of the sidebar']))->frontend(),
             Setting::make('logo_height', 'logo_height', 32, ['required', 'integer', 'min:16', 'max:64'])->label('Logo height')->tab('Branding')->field('number')->frontend()->public(),
             Setting::make('logo_square', 'logo_square', null)->label('Square logo')->help('Used where there is only room for an icon, such as the icon rail.')->tab('Branding')->file(self::IMAGES, 1024)->frontend()->public(),
             Setting::make('favicon', 'favicon', null)->label('Favicon')->help('The icon in the browser tab. A square PNG, ICO or SVG, up to 512 KB.')->tab('Branding')->file(self::FAVICON_TYPES, 512)->frontend()->public(),
@@ -73,8 +76,8 @@ class PrismLayoutProvider extends ExtensionProvider
             Setting::make('announce_audience', 'announce_audience', 'everyone', ['required', 'string', 'in:everyone,admins,users'])->label('Shown to')->tab('Announcement')->field('select', $options(['everyone' => 'Everyone', 'admins' => 'Administrators', 'users' => 'Everyone but administrators']))->frontend(),
             $text('announce_link', '', 300, 'Button link', 'Announcement'),
             $text('announce_link_label', 'Read more', 40, 'Button text', 'Announcement'),
-            $text('announce_from', '', 20, 'Show from', 'Announcement', 'A date and time such as 2026-11-01 08:00. Empty shows it now.'),
-            $text('announce_until', '', 20, 'Show until', 'Announcement', 'Empty shows it until you clear the message.'),
+            $text('announce_from', '', 40, 'Show from', 'Announcement', 'Empty shows it straight away.'),
+            $text('announce_until', '', 40, 'Show until', 'Announcement', 'Empty shows it until you clear the message.'),
             $toggle('announce_dismiss', true, 'People can close it', 'Announcement', 'Closed stays closed in that browser until the message changes.'),
         ];
 

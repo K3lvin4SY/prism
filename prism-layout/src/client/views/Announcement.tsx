@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NamedIcon, cn } from '@pterodactyl/sdk';
 import type { AppLayoutModel } from '@pterodactyl/sdk/theme';
 import { useSettings } from '../settings';
@@ -10,7 +10,11 @@ const TONES = {
     danger: { icon: 'octagon-alert', className: 'pla:bg-destructive/15 pla:text-foreground pla:border-destructive/30' },
 } as const;
 
-/** "2026-11-01 08:00" as a time, or null when empty or unreadable. */
+/**
+ * The moment a from or until value names, or null when empty or unreadable. Prism Properties saves
+ * UTC ("2026-11-01T07:00:00.000Z"), so everyone sees the same moment; older "2026-11-01 08:00"
+ * values are read in the viewer's own time.
+ */
 const when = (text: string): number | null => {
     if (!text.trim()) return null;
     const time = Date.parse(text.trim().replace(' ', 'T'));
@@ -41,12 +45,22 @@ export default function Announcement({ model }: { model: AppLayoutModel }) {
     const text = settings.announce_text?.trim() ?? '';
     const id = hash(text);
     const [closed, setClosed] = useState(() => dismissed() === id);
+    const [, tick] = useState(0);
+    const from = when(settings.announce_from ?? '');
+    const until = when(settings.announce_until ?? '');
+
+    // Shows and hides the banner when its time comes, without a reload.
+    useEffect(() => {
+        const next = [from, until].filter((time): time is number => time !== null && time > Date.now()).sort((a, b) => a - b)[0];
+        if (next === undefined || next - Date.now() > 86_400_000) return;
+        const timer = window.setTimeout(() => tick((count) => count + 1), next - Date.now() + 500);
+
+        return () => window.clearTimeout(timer);
+    });
 
     if (!text || (closed && dismissed() === id)) return null;
 
     const now = Date.now();
-    const from = when(settings.announce_from ?? '');
-    const until = when(settings.announce_until ?? '');
     if ((from !== null && now < from) || (until !== null && now > until)) return null;
     if (settings.announce_audience === 'admins' && !model.user.rootAdmin) return null;
     if (settings.announce_audience === 'users' && model.user.rootAdmin) return null;
