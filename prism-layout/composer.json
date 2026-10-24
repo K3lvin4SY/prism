@@ -1,0 +1,11 @@
+{
+    "description": "Layouts, navigation, server cards, branding and the sign-in page for the panel.",
+    "autoload": {
+        "psr-4": {
+            "PrismLayout\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismLayoutExtension"
+    }
+}

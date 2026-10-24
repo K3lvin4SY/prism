@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PrismBranding\Http\Controllers;
+namespace PrismLayout\Http\Controllers;
 
 use Illuminate\Http\Response;
 use Pterodactyl\Services\Extensions\ExtensionHeadTags;
@@ -12,7 +12,7 @@ final class RefreshController
 {
     public function __invoke(ExtensionHeadTags $headTags): Response
     {
-        $headTags->forget('prism-branding');
+        $headTags->forget('prism-layout');
 
         return response()->noContent();
     }

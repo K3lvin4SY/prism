@@ -1,0 +1,179 @@
+@import 'tailwindcss/theme.css' layer(theme) prefix(pla);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(pla);
+@import '@pterodactyl/sdk/theme.css';
+@source './**/*.{ts,tsx}';
+
+/*
+ * Global rules, outside the Tailwind layers. settings.ts apply() writes the tokens and the
+ * data-pla-* attributes on <html>.
+ */
+
+/* #region page */
+/* The shell draws the area's pages, so the panel's own menu for them is hidden. */
+.pla-area > :first-child {
+    display: none;
+}
+
+html[data-pla-nav='on'] {
+    --layout-sidebar-width: var(--pla-sidebar-width, 16rem);
+}
+
+html[data-pla-nav='on'][data-pla-width='wide'] {
+    --layout-content-width: 96rem;
+}
+
+html[data-pla-nav='on'][data-pla-width='full'] {
+    --layout-content-width: 100%;
+}
+
+html[data-pla-nav='on'][data-pla-density='compact'] {
+    --spacing: 0.21rem;
+}
+
+html[data-pla-nav='on'][data-pla-density='comfortable'] {
+    --spacing: 0.27rem;
+}
+/* #endregion page */
+
+/* #region logo, in the panel's own layout */
+html[data-pla-nav='off'] #logo img {
+    height: var(--pla-logo-height, 2rem);
+    width: auto;
+    max-width: 100%;
+}
+
+/* "Beside the name": the company name follows the logo. */
+html[data-pla-nav='off'][data-pla-logo='beside'] #logo a:has(> img) {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+html[data-pla-nav='off'][data-pla-logo='beside'] #logo a:has(> img)::after {
+    content: var(--pla-name, '');
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/* #endregion logo */
+
+/* #region dock */
+.pla-dock-item {
+    transition:
+        transform 150ms ease,
+        margin 150ms ease;
+    transform-origin: bottom center;
+}
+
+html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:hover {
+    transform: scale(1.45) translateY(-6px);
+    margin: 0 10px;
+}
+
+html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:hover + .pla-dock-item,
+html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:has(+ .pla-dock-item:hover) {
+    transform: scale(1.2) translateY(-3px);
+    margin: 0 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pla-dock-item {
+        transition: none;
+    }
+}
+/* #endregion dock */
+
+/* #region server cards; --pla-egg is the card's game colour */
+.pla-card-banner {
+    background:
+        linear-gradient(to bottom, transparent, var(--card)),
+        var(--pla-card-image, none) center / cover,
+        repeating-linear-gradient(
+            135deg,
+            color-mix(in oklab, var(--pla-egg, var(--primary)) 30%, transparent) 0 12px,
+            color-mix(in oklab, var(--pla-egg, var(--primary)) 18%, transparent) 12px 24px
+        );
+}
+
+.pla-card-neon {
+    border-color: color-mix(in oklab, var(--pla-egg, var(--primary)) 55%, transparent);
+    box-shadow:
+        0 0 22px color-mix(in oklab, var(--pla-egg, var(--primary)) 22%, transparent),
+        inset 0 0 18px color-mix(in oklab, var(--pla-egg, var(--primary)) 8%, transparent);
+}
+
+.pla-card-tile {
+    background: linear-gradient(160deg, color-mix(in oklab, var(--pla-egg, var(--primary)) 16%, var(--card)), var(--card) 60%);
+}
+/* #endregion server cards */
+
+/* #region sign-in pages; data-pla-signin is only set while nobody is signed in */
+
+/* The logo, or nothing, in place of the Pterodactyl mascot on the panel's card. */
+html[data-pla-mark='logo'] svg[aria-label='Pterodactyl'],
+html[data-pla-mark='none'] div:has(> svg[aria-label='Pterodactyl']) {
+    display: none;
+}
+
+html[data-pla-mark='logo'] div:has(> svg[aria-label='Pterodactyl']) {
+    width: var(--pla-login-size, 10rem);
+    height: var(--pla-login-size, 10rem);
+    max-width: 100%;
+    margin-inline: auto;
+    background: var(--brand-logo) center / contain no-repeat;
+}
+
+@media (min-width: 768px) {
+    html[data-pla-mark='logo'] div:has(> svg[aria-label='Pterodactyl']) {
+        margin-inline: 3rem;
+    }
+
+    /* The card leaves no left padding for the mascot; put some back when it is gone. */
+    html[data-pla-mark='none'] div:has(> div > svg[aria-label='Pterodactyl']) {
+        padding-left: 1.5rem;
+    }
+}
+
+/* Split: a picture with the logo and tagline on the left half, the form on the right. */
+.pla-signin-art {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    html[data-pla-signin='split'] .pla-signin-art {
+        position: fixed;
+        inset: 0 50% 0 0;
+        z-index: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 3rem;
+        color: #fff;
+        background:
+            linear-gradient(to top, rgb(0 0 0 / 0.55), transparent 60%),
+            var(--pla-login-image, none) center / cover,
+            linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 45%, black));
+    }
+
+    html[data-pla-signin='split'] main:has(.pla-signin-art) {
+        padding-left: 50vw;
+    }
+}
+
+/* Backdrop: the picture fills the page behind the card, darkened. */
+html[data-pla-signin='backdrop'] .pla-signin-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+        linear-gradient(rgb(0 0 0 / 0.45), rgb(0 0 0 / 0.45)),
+        var(--pla-login-image, none) center / cover,
+        linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 40%, black));
+}
+
+html[data-pla-signin='backdrop'] .pla-signin-tagline {
+    color: #fff;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
+}
+/* #endregion sign-in pages */

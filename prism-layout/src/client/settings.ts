@@ -1,0 +1,213 @@
+import { useSyncExternalStore } from 'react';
+import { notifyThemeChange, type ExtensionConfig } from '@pterodactyl/sdk';
+
+export type Bars = 'sidebar' | 'top' | 'dock' | 'sidebar_top' | 'rail' | 'rail_top' | 'top_dock';
+export type CardStyle = 'banner' | 'tile' | 'neon' | 'minimal' | 'compact' | 'outline' | 'rows';
+export type LogoMode = 'beside' | 'instead' | 'name';
+export type LoginStyle = 'card' | 'split' | 'backdrop';
+export type LoginMark = 'logo' | 'mascot' | 'none';
+
+/** The admin's Prism Layout settings, from Prism Properties; see PrismLayoutProvider for each. */
+export interface LayoutSettings {
+    enabled: boolean;
+    bars: Bars;
+    sidebar_width: number;
+    dock_magnify: boolean;
+    group_nav: boolean;
+    server_card: boolean;
+    scheme_switch: boolean;
+    admin_styled: boolean;
+    width: 'normal' | 'wide' | 'full';
+    density: 'compact' | 'cozy' | 'comfortable';
+    cards: CardStyle;
+    status_style: 'badge' | 'dot' | 'bar';
+    usage_style: 'bars' | 'numbers' | 'hidden';
+    egg_colors: boolean;
+    power_buttons: boolean;
+    card_image: string | null;
+    logo: string | null;
+    logo_mode: LogoMode;
+    logo_height: number;
+    logo_square: string | null;
+    favicon: string | null;
+    login_style: LoginStyle;
+    login_mark: LoginMark;
+    login_logo_size: number;
+    login_tagline: string;
+    login_image: string | null;
+    announce_text: string;
+    announce_level: 'info' | 'success' | 'warning' | 'danger';
+    announce_style: 'bar' | 'card';
+    announce_audience: 'everyone' | 'admins' | 'users';
+    announce_link: string;
+    announce_link_label: string;
+    announce_from: string;
+    announce_until: string;
+    announce_dismiss: boolean;
+    link1_label: string;
+    link1_url: string;
+    link2_label: string;
+    link2_url: string;
+    link3_label: string;
+    link3_url: string;
+    command_palette: boolean;
+}
+
+const oneOf = <T extends string>(value: unknown, options: readonly T[], fallback: T): T => (options.includes(value as T) ? (value as T) : fallback);
+const bool = (value: unknown, fallback: boolean) => (typeof value === 'boolean' ? value : fallback);
+const text = (value: unknown, fallback = '') => (typeof value === 'string' ? value : fallback);
+const url = (value: unknown) => (typeof value === 'string' && value !== '' ? value : null);
+const clamp = (value: unknown, min: number, max: number, fallback: number) => {
+    const number = Number(value);
+
+    return Number.isFinite(number) && value !== null && value !== '' ? Math.min(max, Math.max(min, Math.round(number))) : fallback;
+};
+
+export function read(raw: Record<string, unknown>): LayoutSettings {
+    return {
+        enabled: bool(raw.enabled, true),
+        bars: oneOf(raw.bars, ['sidebar', 'top', 'dock', 'sidebar_top', 'rail', 'rail_top', 'top_dock'] as const, 'sidebar'),
+        sidebar_width: clamp(raw.sidebar_width, 12, 22, 16),
+        dock_magnify: bool(raw.dock_magnify, true),
+        group_nav: bool(raw.group_nav, true),
+        server_card: bool(raw.server_card, true),
+        scheme_switch: bool(raw.scheme_switch, true),
+        admin_styled: bool(raw.admin_styled, true),
+        width: oneOf(raw.width, ['normal', 'wide', 'full'] as const, 'normal'),
+        density: oneOf(raw.density, ['compact', 'cozy', 'comfortable'] as const, 'cozy'),
+        cards: oneOf(raw.cards, ['banner', 'tile', 'neon', 'minimal', 'compact', 'outline', 'rows'] as const, 'banner'),
+        status_style: oneOf(raw.status_style, ['badge', 'dot', 'bar'] as const, 'badge'),
+        usage_style: oneOf(raw.usage_style, ['bars', 'numbers', 'hidden'] as const, 'bars'),
+        egg_colors: bool(raw.egg_colors, true),
+        power_buttons: bool(raw.power_buttons, true),
+        card_image: url(raw.card_image),
+        logo: url(raw.logo),
+        logo_mode: oneOf(raw.logo_mode, ['beside', 'instead', 'name'] as const, 'instead'),
+        logo_height: clamp(raw.logo_height, 16, 64, 32),
+        logo_square: url(raw.logo_square),
+        favicon: url(raw.favicon),
+        login_style: oneOf(raw.login_style, ['card', 'split', 'backdrop'] as const, 'card'),
+        login_mark: oneOf(raw.login_mark, ['logo', 'mascot', 'none'] as const, 'logo'),
+        login_logo_size: clamp(raw.login_logo_size, 48, 320, 160),
+        login_tagline: text(raw.login_tagline),
+        login_image: url(raw.login_image),
+        announce_text: text(raw.announce_text),
+        announce_level: oneOf(raw.announce_level, ['info', 'success', 'warning', 'danger'] as const, 'info'),
+        announce_style: oneOf(raw.announce_style, ['bar', 'card'] as const, 'bar'),
+        announce_audience: oneOf(raw.announce_audience, ['everyone', 'admins', 'users'] as const, 'everyone'),
+        announce_link: text(raw.announce_link),
+        announce_link_label: text(raw.announce_link_label, 'Read more'),
+        announce_from: text(raw.announce_from),
+        announce_until: text(raw.announce_until),
+        announce_dismiss: bool(raw.announce_dismiss, true),
+        link1_label: text(raw.link1_label),
+        link1_url: text(raw.link1_url),
+        link2_label: text(raw.link2_label),
+        link2_url: text(raw.link2_url),
+        link3_label: text(raw.link3_label),
+        link3_url: text(raw.link3_url),
+        command_palette: bool(raw.command_palette, true),
+    };
+}
+
+/** Text as a quoted CSS string, escaped so it cannot end the string early. */
+export const cssString = (value: string) => `"${value.replace(/["\\\n\r]/g, (char) => `\\${char.charCodeAt(0).toString(16)} `)}"`;
+
+/** A value for a CSS `url()` token. */
+export const cssUrlToken = (address: string) => `url(${cssString(address)})`;
+
+/*
+ * The saved settings, with the draft Prism Properties' preview window sends laid over them. Views
+ * read them through useSettings(), so a preview shows at once.
+ */
+let saved: Record<string, unknown> = {};
+let current: LayoutSettings = read({});
+const listeners = new Set<() => void>();
+
+const subscribe = (listener: () => void) => {
+    listeners.add(listener);
+
+    return () => listeners.delete(listener);
+};
+
+export const getSettings = () => current;
+
+export function useSettings(): LayoutSettings {
+    return useSyncExternalStore(subscribe, getSettings, getSettings);
+}
+
+/** Whether nobody is signed in: the sign-in pages. */
+const guest = () => !(window as unknown as { PterodactylUser?: unknown }).PterodactylUser;
+
+/**
+ * Writes the settings to `<html>` for the stylesheet: the logo tokens themes read, sizes, and
+ * attributes for the page width, spacing, dock and sign-in page.
+ */
+export function apply(settings: LayoutSettings): void {
+    current = settings;
+    const root = document.documentElement;
+    const set = (name: string, value: string | null) => (value === null ? root.style.removeProperty(name) : root.style.setProperty(name, value));
+
+    set('--brand-logo', settings.logo ? cssUrlToken(settings.logo) : null);
+    set('--brand-logo-square', settings.logo_square ? cssUrlToken(settings.logo_square) : null);
+    set('--pla-logo-height', `${settings.logo_height}px`);
+    set('--pla-sidebar-width', `${settings.sidebar_width}rem`);
+    set('--pla-card-image', settings.card_image ? cssUrlToken(settings.card_image) : null);
+    set('--pla-login-size', `${settings.login_logo_size}px`);
+    set('--pla-login-image', settings.login_image ? cssUrlToken(settings.login_image) : null);
+
+    root.dataset.plaNav = settings.enabled ? 'on' : 'off';
+    root.dataset.plaLogo = settings.logo ? settings.logo_mode : 'none';
+    root.dataset.plaWidth = settings.width;
+    root.dataset.plaDensity = settings.density;
+    root.dataset.plaMagnify = String(settings.dock_magnify);
+    // Without an uploaded logo the mascot stays unless the admin chose nothing at all.
+    root.dataset.plaMark = settings.login_mark === 'logo' && !settings.logo ? 'mascot' : settings.login_mark;
+    if (guest()) root.dataset.plaSignin = settings.login_style;
+    else delete root.dataset.plaSignin;
+
+    listeners.forEach((listener) => listener());
+    notifyThemeChange();
+}
+
+export function setConfig(config: ExtensionConfig): void {
+    saved = { ...(config as Record<string, unknown>) };
+    apply(read(saved));
+}
+
+export const PREVIEW_WINDOW = 'prism-preview';
+export const PREVIEW_MESSAGE = 'prism-preview';
+export const READY_MESSAGE = 'prism-preview:ready';
+
+/**
+ * In the preview window Prism Properties opens: lay the draft it sends over the saved settings, and
+ * tell it when a page is ready for them.
+ */
+export function listenForPreview(): void {
+    const editor = window.opener as Window | null;
+    if (window.name !== PREVIEW_WINDOW || !editor) return;
+
+    window.addEventListener('message', (event: MessageEvent) => {
+        if (event.origin !== window.location.origin || event.source !== editor) return;
+        const data = event.data as { type?: string; extension?: string; settings?: Record<string, unknown> } | null;
+        if (data?.type === PREVIEW_MESSAGE && data.extension === 'prism-layout' && data.settings && typeof data.settings === 'object') {
+            apply(read({ ...saved, ...data.settings }));
+        }
+    });
+
+    try {
+        editor.postMessage({ type: READY_MESSAGE, extension: 'prism-layout' }, window.location.origin);
+    } catch {
+        // The editor has gone; the saved settings show.
+    }
+}
+
+/** A colour for a game, from its egg tag, so each game's cards look alike. */
+export function eggColour(tags: readonly string[] | undefined): string | null {
+    const tag = tags?.find((item) => item !== 'minecraft' || tags.length === 1) ?? tags?.[0];
+    if (!tag) return null;
+    let hash = 0;
+    for (const char of tag) hash = (hash * 31 + char.charCodeAt(0)) % 360;
+
+    return `oklch(0.66 0.15 ${hash})`;
+}

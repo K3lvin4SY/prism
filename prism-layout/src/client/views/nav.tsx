@@ -6,11 +6,11 @@ export type Variant = 'list' | 'icons' | 'tabs';
 
 export const itemClass = (variant: Variant) =>
     cn(
-        'flex items-center gap-3 rounded-lg text-sm text-muted-foreground no-underline transition-colors',
-        'hover:bg-sidebar-accent hover:text-foreground data-[status=active]:bg-primary/15 data-[status=active]:text-foreground data-[status=active]:font-medium',
-        variant === 'list' && 'px-3 py-2',
-        variant === 'icons' && 'size-10 justify-center',
-        variant === 'tabs' && 'shrink-0 px-3 py-1.5 whitespace-nowrap data-[status=active]:bg-transparent data-[status=active]:shadow-[inset_0_-2px_0_var(--primary)] rounded-none hover:bg-transparent'
+        'pla:flex pla:items-center pla:gap-3 pla:rounded-lg pla:text-sm pla:text-muted-foreground pla:no-underline pla:transition-colors',
+        'pla:hover:bg-sidebar-accent pla:hover:text-foreground pla:data-[status=active]:bg-primary/15 pla:data-[status=active]:text-foreground pla:data-[status=active]:font-medium',
+        variant === 'list' && 'pla:px-3 pla:py-2',
+        variant === 'icons' && 'pla:size-10 pla:justify-center',
+        variant === 'tabs' && 'pla:shrink-0 pla:px-3 pla:py-1.5 pla:whitespace-nowrap pla:data-[status=active]:bg-transparent pla:data-[status=active]:shadow-[inset_0_-2px_0_var(--primary)] pla:rounded-none pla:hover:bg-transparent'
     );
 
 /** The dashboard, admin area and account. */
@@ -21,7 +21,7 @@ export function MainLinks({ model, variant }: { model: AppLayoutModel; variant: 
             {model.links.map((link) => (
                 <PanelLink key={link.id} destination={link.destination} exact={link.exact} className={itemClass(variant)} title={variant === 'icons' ? link.label : undefined} aria-label={link.label}>
                     <NamedIcon name={link.icon} size={16} aria-hidden />
-                    {variant !== 'icons' && <span className='min-w-0 truncate'>{link.label}</span>}
+                    {variant !== 'icons' && <span className='pla:min-w-0 pla:truncate'>{link.label}</span>}
                 </PanelLink>
             ))}
             <Slot name='nav.items.after' />
@@ -70,16 +70,16 @@ export function AreaNav({ area, variant, grouped, row = false, itemExtra }: { ar
     const groups = groupsOf(area, items, grouped && variant === 'list');
 
     return (
-        <nav aria-label={{ server: 'Server', account: 'Account', admin: 'Administration' }[area.kind]} className={cn('flex', variant === 'tabs' || row ? 'items-stretch gap-1 overflow-x-auto' : 'flex-col gap-1', variant === 'icons' && 'items-center')}>
+        <nav aria-label={{ server: 'Server', account: 'Account', admin: 'Administration' }[area.kind]} className={cn('pla:flex', variant === 'tabs' || row ? 'pla:items-stretch pla:gap-1 pla:overflow-x-auto' : 'pla:flex-col pla:gap-1', variant === 'icons' && 'pla:items-center')}>
             <AreaSlot area={area} at='before' />
             {groups.map(([name, list]) => (
-                <div key={name ?? 'all'} className={cn('flex', variant === 'tabs' || row ? 'items-end gap-1' : 'flex-col gap-0.5', variant === 'icons' && 'items-center')}>
-                    {name && variant === 'list' && <p className='px-3 pt-3 pb-1 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase'>{name}</p>}
+                <div key={name ?? 'all'} className={cn('pla:flex', variant === 'tabs' || row ? 'pla:items-end pla:gap-1' : 'pla:flex-col pla:gap-0.5', variant === 'icons' && 'pla:items-center')}>
+                    {name && variant === 'list' && <p className='pla:px-3 pla:pt-3 pla:pb-1 pla:text-[11px] pla:font-semibold pla:tracking-wider pla:text-muted-foreground pla:uppercase'>{name}</p>}
                     <Navigation items={list}>
                         {(item, { badge }) => (
                             <NavigationLink item={item} className={cn(itemClass(variant), itemExtra)} title={variant === 'icons' ? item.label : undefined}>
                                 {item.icon && <NamedIcon name={item.icon} size={16} aria-hidden />}
-                                {variant !== 'icons' && <span className='min-w-0 flex-1 truncate'>{item.label}</span>}
+                                {variant !== 'icons' && <span className='pla:min-w-0 pla:flex-1 pla:truncate'>{item.label}</span>}
                                 {variant !== 'icons' && badge}
                             </NavigationLink>
                         )}
@@ -112,18 +112,18 @@ export function ServerCard({ area }: { area: ServerArea }) {
             setBusy(false);
         }
     };
-    const button = 'flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-foreground disabled:opacity-40';
+    const button = 'pla:flex pla:size-7 pla:items-center pla:justify-center pla:rounded-md pla:text-muted-foreground pla:hover:bg-sidebar-accent pla:hover:text-foreground pla:disabled:opacity-40';
 
     return (
-        <div className='pt-surface rounded-lg border border-border bg-card p-3'>
-            <div className='flex items-center gap-2'>
-                <span className='min-w-0 flex-1 truncate text-sm font-semibold'>{area.name}</span>
+        <div className='pt-surface pla:rounded-lg pla:border pla:border-border pla:bg-card pla:p-3'>
+            <div className='pla:flex pla:items-center pla:gap-2'>
+                <span className='pla:min-w-0 pla:flex-1 pla:truncate pla:text-sm pla:font-semibold'>{area.name}</span>
                 <Badge size='sm' tone={state.tone}>
                     {state.label}
                 </Badge>
             </div>
             {area.state && (
-                <div className='mt-2 flex gap-1'>
+                <div className='pla:mt-2 pla:flex pla:gap-1'>
                     {area.state === 'offline' ? (
                         <button type='button' disabled={busy} onClick={() => void power('start')} className={button} title='Start' aria-label='Start'>
                             <NamedIcon name='play' size={14} />
@@ -149,11 +149,11 @@ export function FooterLinks({ links, variant }: { links: { label: string; url: s
     if (links.length === 0) return null;
 
     return (
-        <div className={cn('flex', variant === 'list' ? 'flex-col gap-0.5' : 'items-center gap-1')}>
+        <div className={cn('pla:flex', variant === 'list' ? 'pla:flex-col pla:gap-0.5' : 'pla:items-center pla:gap-1')}>
             {links.map((link) => (
                 <a key={link.url} href={link.url} target='_blank' rel='noopener noreferrer' className={itemClass(variant === 'tabs' ? 'list' : variant)} title={link.label}>
                     <NamedIcon name={/discord/i.test(link.url + link.label) ? 'message-circle' : /store|shop/i.test(link.url + link.label) ? 'shopping-bag' : 'external-link'} size={16} aria-hidden />
-                    {variant === 'list' && <span className='truncate'>{link.label}</span>}
+                    {variant === 'list' && <span className='pla:truncate'>{link.label}</span>}
                 </a>
             ))}
         </div>

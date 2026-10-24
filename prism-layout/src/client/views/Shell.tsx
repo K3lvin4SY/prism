@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Avatar, NamedIcon, PanelLink, SpinnerOverlay, cn, usePanelLocation } from '@pterodactyl/sdk';
-import { Main, View, type AppLayoutModel, type ViewProps } from '@pterodactyl/sdk/theme';
-import { useSettings, type Bars } from '../settings';
+import { Main, type AppLayoutModel, type ViewProps } from '@pterodactyl/sdk/theme';
+import { cssString, useSettings, type Bars } from '../settings';
 import Announcement from './Announcement';
 import CommandPalette from './CommandPalette';
 import { AreaNav, FooterLinks, MainLinks, ServerCard, itemClass } from './nav';
@@ -15,22 +15,24 @@ const has = {
 
 /** The logo, beside or instead of the name as Prism Branding says; a square one where space is tight. */
 function Brand({ model, compact }: { model: AppLayoutModel; compact?: boolean }) {
-    const beside = document.documentElement.dataset.pbrLogo === 'beside';
+    const settings = useSettings();
+    const beside = settings.logo_mode === 'beside';
+    const logo = settings.logo_mode === 'name' ? null : model.brand.logoUrl;
     const square = getComputedStyle(document.documentElement).getPropertyValue('--brand-logo-square').trim();
 
     if (compact) {
         return (
-            <PanelLink destination={{ to: '/' }} aria-label={model.brand.name} className='flex size-10 items-center justify-center rounded-lg bg-primary/15 font-semibold text-primary no-underline' style={square ? { background: `${square} center / contain no-repeat` } : undefined}>
+            <PanelLink destination={{ to: '/' }} aria-label={model.brand.name} className='pla:flex pla:size-10 pla:items-center pla:justify-center pla:rounded-lg pla:bg-primary/15 pla:font-semibold pla:text-primary pla:no-underline' style={square ? { background: `${square} center / contain no-repeat` } : undefined}>
                 {!square && model.brand.name.charAt(0).toUpperCase()}
             </PanelLink>
         );
     }
 
     return (
-        <div id='logo' className='min-w-0'>
-            <PanelLink destination={{ to: '/' }} className='flex min-w-0 items-center gap-2.5 px-2 font-header text-lg font-semibold text-foreground no-underline'>
-                {model.brand.logoUrl && <img src={model.brand.logoUrl} alt={beside ? '' : model.brand.name} style={{ height: 'var(--pbr-logo-height, 2rem)' }} className='w-auto shrink-0' />}
-                {(!model.brand.logoUrl || beside) && <span className='truncate'>{model.brand.name}</span>}
+        <div id='logo' className='pla:min-w-0'>
+            <PanelLink destination={{ to: '/' }} className='pla:flex pla:min-w-0 pla:items-center pla:gap-2.5 pla:px-2 pla:font-header pla:text-lg pla:font-semibold pla:text-foreground pla:no-underline'>
+                {logo && <img src={logo} alt={beside ? '' : model.brand.name} style={{ height: 'var(--pla-logo-height, 2rem)' }} className='pla:w-auto pla:shrink-0' />}
+                {(!logo || beside) && <span className='pla:truncate'>{model.brand.name}</span>}
             </PanelLink>
         </div>
     );
@@ -41,7 +43,7 @@ function User({ model, compact, onPalette }: { model: AppLayoutModel; compact?: 
     const button = itemClass('icons');
 
     return (
-        <div className={cn('flex items-center gap-1', compact && 'flex-col')}>
+        <div className={cn('pla:flex pla:items-center pla:gap-1', compact && 'pla:flex-col')}>
             {onPalette && (
                 <button type='button' onClick={onPalette} className={button} title='Search and jump (Ctrl+K)' aria-label='Search and jump'>
                     <NamedIcon name='command' size={16} />
@@ -52,7 +54,7 @@ function User({ model, compact, onPalette }: { model: AppLayoutModel; compact?: 
                     <NamedIcon name={model.scheme === 'dark' ? 'sun' : 'moon'} size={16} />
                 </button>
             )}
-            <span className='flex size-10 items-center justify-center' title={model.user.username}>
+            <span className='pla:flex pla:size-10 pla:items-center pla:justify-center' title={model.user.username}>
                 <Avatar name={model.user.uuid} size={26} />
             </span>
             <button type='button' onClick={model.signOut} className={button} title='Sign out' aria-label='Sign out'>
@@ -75,8 +77,8 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
 
     useEffect(() => setDrawer(false), [pathname]);
 
-    // The admin area can keep the panel's own frame.
-    if (model.area.kind === 'admin' && !settings.admin_styled) return <Default />;
+    // Off, or in an admin area kept as it was: the panel's own frame, with the logo choice.
+    if (!settings.enabled || (model.area.kind === 'admin' && !settings.admin_styled)) return <PanelFrame model={model} Default={Default} />;
 
     const links = [1, 2, 3]
         .map((n) => ({ label: String(settings[`link${n}_label` as keyof typeof settings] ?? ''), url: String(settings[`link${n}_url` as keyof typeof settings] ?? '') }))
@@ -86,17 +88,16 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     const sideCard = settings.server_card && area.kind === 'server' ? <ServerCard area={area} /> : null;
 
     const sidebar = (
-        <aside className={cn('pt-bar flex-col gap-4 overflow-y-auto border-r border-sidebar-border bg-sidebar p-3 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-sidebar lg:shrink-0', drawer ? 'fixed inset-y-0 left-0 z-40 flex w-72' : 'hidden')}>
+        <aside className={cn('pt-bar pla:flex-col pla:gap-4 pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:p-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-sidebar pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-72' : 'pla:hidden')}>
             {!has.top(bars) && <Brand model={model} />}
             {!has.top(bars) && (
-                <nav aria-label='Main' className='flex flex-col gap-0.5'>
+                <nav aria-label='Main' className='pla:flex pla:flex-col pla:gap-0.5'>
                     <MainLinks model={model} variant='list' />
                 </nav>
             )}
             {sideCard}
             <AreaNav area={area} variant='list' grouped={settings.group_nav} />
-            {!has.top(bars) && <View name='app.search' className={itemClass('list')} />}
-            <div className='mt-auto flex flex-col gap-2'>
+            <div className='pla:mt-auto pla:flex pla:flex-col pla:gap-2'>
                 <FooterLinks links={links} variant='list' />
                 {!has.top(bars) && <User model={model} onPalette={openPalette} />}
             </div>
@@ -104,16 +105,16 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     );
 
     const rail = (
-        <aside className={cn('pt-bar flex-col items-center gap-3 border-r border-sidebar-border bg-sidebar px-2 py-3 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-16 lg:shrink-0', drawer ? 'fixed inset-y-0 left-0 z-40 flex w-16 overflow-y-auto' : 'hidden')}>
+        <aside className={cn('pt-bar pla:flex-col pla:items-center pla:gap-3 pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-16 pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-16 pla:overflow-y-auto' : 'pla:hidden')}>
             {!has.top(bars) && <Brand model={model} compact />}
             {!has.top(bars) && (
-                <nav aria-label='Main' className='flex flex-col items-center gap-1'>
+                <nav aria-label='Main' className='pla:flex pla:flex-col pla:items-center pla:gap-1'>
                     <MainLinks model={model} variant='icons' />
                 </nav>
             )}
-            {area.kind !== 'dashboard' && <div className='h-px w-8 bg-border' />}
+            {area.kind !== 'dashboard' && <div className='pla:h-px pla:w-8 pla:bg-border' />}
             <AreaNav area={area} variant='icons' grouped={false} />
-            <div className='mt-auto flex flex-col items-center gap-1'>
+            <div className='pla:mt-auto pla:flex pla:flex-col pla:items-center pla:gap-1'>
                 <FooterLinks links={links} variant='icons' />
                 {!has.top(bars) && <User model={model} compact onPalette={openPalette} />}
             </div>
@@ -121,25 +122,24 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     );
 
     const top = (
-        <header className='pt-bar sticky top-0 z-30 border-b border-border bg-sidebar'>
-            <div className='mx-auto flex h-14 w-full max-w-panel items-center gap-3 px-3'>
+        <header className='pt-bar pla:sticky pla:top-0 pla:z-30 pla:border-b pla:border-border pla:bg-sidebar'>
+            <div className='pla:mx-auto pla:flex pla:h-14 pla:w-full pla:max-w-panel pla:items-center pla:gap-3 pla:px-3'>
                 {(has.sidebar(bars) || has.rail(bars)) && (
-                    <button type='button' onClick={() => setDrawer(!drawer)} className={cn(itemClass('icons'), 'lg:hidden')} aria-label='Menu' aria-expanded={drawer}>
+                    <button type='button' onClick={() => setDrawer(!drawer)} className={cn(itemClass('icons'), 'pla:lg:hidden')} aria-label='Menu' aria-expanded={drawer}>
                         <NamedIcon name='menu' size={18} />
                     </button>
                 )}
                 <Brand model={model} />
-                <nav aria-label='Main' className='flex min-w-0 flex-1 items-center gap-1 overflow-x-auto'>
+                <nav aria-label='Main' className='pla:flex pla:min-w-0 pla:flex-1 pla:items-center pla:gap-1 pla:overflow-x-auto'>
                     <MainLinks model={model} variant={bars === 'top' || bars === 'top_dock' ? 'list' : 'icons'} />
                 </nav>
-                <View name='app.search' className={itemClass('icons')} />
                 {bars !== 'top' && <FooterLinks links={has.sidebar(bars) ? [] : links} variant='icons' />}
                 <User model={model} onPalette={openPalette} />
             </div>
             {bars === 'top' && area.kind !== 'dashboard' && (
-                <div className='border-t border-border'>
-                    <div className='mx-auto flex w-full max-w-panel items-center gap-3 px-3'>
-                        {area.kind === 'server' && <span className='shrink-0 py-2 text-sm font-semibold'>{area.name}</span>}
+                <div className='pla:border-t pla:border-border'>
+                    <div className='pla:mx-auto pla:flex pla:w-full pla:max-w-panel pla:items-center pla:gap-3 pla:px-3'>
+                        {area.kind === 'server' && <span className='pla:shrink-0 pla:py-2 pla:text-sm pla:font-semibold'>{area.name}</span>}
                         <AreaNav area={area} variant='tabs' grouped={false} />
                     </div>
                 </div>
@@ -149,19 +149,19 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
 
     const dockItems = bars === 'dock' ? 'all' : 'area';
     const dock = (
-        <nav aria-label='Dock' className='pointer-events-none fixed inset-x-0 bottom-3 z-30 flex justify-center px-3'>
-            <div className='pt-bar pt-dock pointer-events-auto flex max-w-full items-end gap-1 overflow-x-auto rounded-2xl border border-border bg-sidebar/90 px-2 py-1.5 shadow-xl backdrop-blur'>
+        <nav aria-label='Dock' className='pla:pointer-events-none pla:fixed pla:inset-x-0 pla:bottom-3 pla:z-30 pla:flex pla:justify-center pla:px-3'>
+            <div className='pt-bar pla-dock pla:pointer-events-auto pla:flex pla:max-w-full pla:items-end pla:gap-1 pla:overflow-x-auto pla:rounded-2xl pla:border pla:border-border pla:bg-sidebar/90 pla:px-2 pla:py-1.5 pla:shadow-xl pla:backdrop-blur'>
                 {dockItems === 'all' &&
                     model.links.map((link) => (
-                        <PanelLink key={link.id} destination={link.destination} exact={link.exact} className={cn(itemClass('icons'), 'pt-dock-item')} title={link.label} aria-label={link.label}>
+                        <PanelLink key={link.id} destination={link.destination} exact={link.exact} className={cn(itemClass('icons'), 'pla-dock-item')} title={link.label} aria-label={link.label}>
                             <NamedIcon name={link.icon} size={18} />
                         </PanelLink>
                     ))}
-                {dockItems === 'all' && area.kind !== 'dashboard' && <span className='mx-1 h-8 w-px self-center bg-border' />}
+                {dockItems === 'all' && area.kind !== 'dashboard' && <span className='pla:mx-1 pla:h-8 pla:w-px pla:self-center pla:bg-border' />}
                 <DockArea model={model} />
                 {dockItems === 'area' && area.kind === 'dashboard' &&
                     model.links.map((link) => (
-                        <PanelLink key={link.id} destination={link.destination} exact={link.exact} className={cn(itemClass('icons'), 'pt-dock-item')} title={link.label} aria-label={link.label}>
+                        <PanelLink key={link.id} destination={link.destination} exact={link.exact} className={cn(itemClass('icons'), 'pla-dock-item')} title={link.label} aria-label={link.label}>
                             <NamedIcon name={link.icon} size={18} />
                         </PanelLink>
                     ))}
@@ -170,28 +170,24 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     );
 
     const smallHeader = (
-        <header className='pt-bar sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-sidebar px-3'>
+        <header className='pt-bar pla:sticky pla:top-0 pla:z-30 pla:flex pla:h-14 pla:items-center pla:gap-3 pla:border-b pla:border-border pla:bg-sidebar pla:px-3'>
             <Brand model={model} />
-            <div className='flex-1' />
-            <View name='app.search' className={itemClass('icons')} />
+            <div className='pla:flex-1' />
             <FooterLinks links={links} variant='icons' />
             <User model={model} onPalette={openPalette} />
         </header>
     );
 
     return (
-        <div className='flex min-h-dvh'>
-            <div className='pt-bg' aria-hidden>
-                <i />
-            </div>
+        <div className='pla:flex pla:min-h-dvh'>
             <SpinnerOverlay visible={model.signingOut} fixed />
-            {drawer && <button type='button' aria-label='Close the menu' className='fixed inset-0 z-30 bg-black/40 lg:hidden' onClick={() => setDrawer(false)} />}
+            {drawer && <button type='button' aria-label='Close the menu' className='pla:fixed pla:inset-0 pla:z-30 pla:bg-black/40 pla:lg:hidden' onClick={() => setDrawer(false)} />}
             {has.sidebar(bars) && sidebar}
             {has.rail(bars) && rail}
-            <div className='flex min-w-0 flex-1 flex-col'>
+            <div className='pla:flex pla:min-w-0 pla:flex-1 pla:flex-col'>
                 {has.top(bars) ? top : bars === 'dock' ? smallHeader : <MobileBar model={model} onMenu={() => setDrawer(!drawer)} open={drawer} />}
                 <Announcement model={model} />
-                <Main className={cn('min-w-0 flex-1', has.dock(bars) && 'pb-24')}>{children as ReactNode}</Main>
+                <Main className={cn('pla:min-w-0 pla:flex-1', has.dock(bars) && 'pla:pb-24')}>{children as ReactNode}</Main>
             </div>
             {has.dock(bars) && dock}
             {settings.command_palette && <CommandPalette model={model} open={palette} onOpen={() => setPalette(true)} onClose={() => setPalette(false)} />}
@@ -205,8 +201,8 @@ function DockArea({ model }: { model: AppLayoutModel }) {
     if (area.kind === 'dashboard') return null;
 
     return (
-        <div className='flex items-end gap-1'>
-            <AreaNav area={area} variant='icons' grouped={false} row itemExtra='pt-dock-item' />
+        <div className='pla:flex pla:items-end pla:gap-1'>
+            <AreaNav area={area} variant='icons' grouped={false} row itemExtra='pla-dock-item' />
         </div>
     );
 }
@@ -214,11 +210,28 @@ function DockArea({ model }: { model: AppLayoutModel }) {
 /** On phones, a bar with the menu button for the sidebar and rail layouts. */
 function MobileBar({ model, onMenu, open }: { model: AppLayoutModel; onMenu: () => void; open: boolean }) {
     return (
-        <div className='pt-bar sticky top-0 z-30 flex h-12 items-center gap-2 border-b border-border bg-sidebar px-2 lg:hidden'>
+        <div className='pt-bar pla:sticky pla:top-0 pla:z-30 pla:flex pla:h-12 pla:items-center pla:gap-2 pla:border-b pla:border-border pla:bg-sidebar pla:px-2 pla:lg:hidden'>
             <button type='button' onClick={onMenu} className={itemClass('icons')} aria-label='Menu' aria-expanded={open}>
                 <NamedIcon name='menu' size={18} />
             </button>
             <Brand model={model} />
         </div>
     );
+}
+
+/**
+ * The panel's own layout with the logo choice: "Name only" hides any logo, and "Beside the name"
+ * adds the company name after it through the stylesheet.
+ */
+function PanelFrame({ model, Default }: { model: AppLayoutModel; Default: ViewProps<'layout.app'>['Default'] }) {
+    const settings = useSettings();
+    const name = model.brand.name;
+
+    useEffect(() => {
+        document.documentElement.style.setProperty('--pla-name', cssString(name));
+    }, [name]);
+
+    if (settings.logo_mode === 'name') return <Default model={{ ...model, brand: { ...model.brand, logoUrl: null } }} />;
+
+    return <Default />;
 }

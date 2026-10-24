@@ -45,7 +45,7 @@ export default function CommandPalette({ model, open, onOpen, onClose }: { model
     });
 
     const servers = useQuery({
-        queryKey: ['prism-themes', 'palette-servers'],
+        queryKey: ['prism-layout', 'palette-servers'],
         queryFn: async () => (await http.get<{ data: { attributes: { identifier: string; name: string; description: string | null } }[] }>('/api/client', { params: { per_page: 100 } })).data.data.map((item) => item.attributes),
         enabled: open,
         staleTime: 60_000,
@@ -86,10 +86,10 @@ export default function CommandPalette({ model, open, onOpen, onClose }: { model
     let group = '';
 
     return (
-        <div className='fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 pt-[12vh]' onMouseDown={onClose}>
-            <div role='dialog' aria-label='Search and jump' className='pt-surface w-full max-w-xl overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl' onMouseDown={(event) => event.stopPropagation()}>
-                <div className='flex items-center gap-3 border-b border-border px-4'>
-                    <NamedIcon name='search' size={16} className='text-muted-foreground' />
+        <div className='pla:fixed pla:inset-0 pla:z-50 pla:flex pla:items-start pla:justify-center pla:bg-black/50 pla:px-4 pla:pt-[12vh]' onMouseDown={onClose}>
+            <div role='dialog' aria-label='Search and jump' className='pt-surface pla:w-full pla:max-w-xl pla:overflow-hidden pla:rounded-xl pla:border pla:border-border pla:bg-popover pla:text-popover-foreground pla:shadow-2xl' onMouseDown={(event) => event.stopPropagation()}>
+                <div className='pla:flex pla:items-center pla:gap-3 pla:border-b pla:border-border pla:px-4'>
+                    <NamedIcon name='search' size={16} className='pla:text-muted-foreground' />
                     <input
                         ref={input}
                         value={query}
@@ -105,29 +105,29 @@ export default function CommandPalette({ model, open, onOpen, onClose }: { model
                             } else if (event.key === 'Enter') go(shown[index]);
                         }}
                         placeholder='Search servers, pages and settings…'
-                        className='h-12 flex-1 bg-transparent text-sm outline-none'
+                        className='pla:h-12 pla:flex-1 pla:bg-transparent pla:text-sm pla:outline-none'
                         aria-label='Search'
                     />
-                    <kbd className='rounded border border-border px-1.5 text-[10px] text-muted-foreground'>Esc</kbd>
+                    <kbd className='pla:rounded pla:border pla:border-border pla:px-1.5 pla:text-[10px] pla:text-muted-foreground'>Esc</kbd>
                 </div>
-                <div className='max-h-[55vh] overflow-y-auto p-1.5'>
-                    {servers.isLoading && <p className='px-3 py-2 text-xs text-muted-foreground'>Loading servers…</p>}
-                    {shown.length === 0 && !servers.isLoading && <p className='px-3 py-6 text-center text-sm text-muted-foreground'>Nothing matches.</p>}
+                <div className='pla:max-h-[55vh] pla:overflow-y-auto pla:p-1.5'>
+                    {servers.isLoading && <p className='pla:px-3 pla:py-2 pla:text-xs pla:text-muted-foreground'>Loading servers…</p>}
+                    {shown.length === 0 && !servers.isLoading && <p className='pla:px-3 pla:py-6 pla:text-center pla:text-sm pla:text-muted-foreground'>Nothing matches.</p>}
                     {shown.map((command, at) => {
                         const heading = command.group !== group ? (group = command.group) : null;
 
                         return (
                             <div key={command.id}>
-                                {heading && <p className='px-3 pt-2 pb-1 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase'>{heading}</p>}
+                                {heading && <p className='pla:px-3 pla:pt-2 pla:pb-1 pla:text-[11px] pla:font-semibold pla:tracking-wider pla:text-muted-foreground pla:uppercase'>{heading}</p>}
                                 <button
                                     type='button'
                                     onMouseEnter={() => setIndex(at)}
                                     onClick={() => go(command)}
-                                    className={cn('flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm', at === index ? 'bg-primary/15 text-foreground' : 'text-muted-foreground')}
+                                    className={cn('pla:flex pla:w-full pla:items-center pla:gap-3 pla:rounded-lg pla:px-3 pla:py-2 pla:text-left pla:text-sm', at === index ? 'pla:bg-primary/15 pla:text-foreground' : 'pla:text-muted-foreground')}
                                 >
-                                    <NamedIcon name={command.icon} size={15} className='shrink-0' />
-                                    <span className='min-w-0 flex-1 truncate'>{command.label}</span>
-                                    {command.hint && <span className='max-w-48 truncate text-xs text-muted-foreground'>{command.hint}</span>}
+                                    <NamedIcon name={command.icon} size={15} className='pla:shrink-0' />
+                                    <span className='pla:min-w-0 pla:flex-1 pla:truncate'>{command.label}</span>
+                                    {command.hint && <span className='pla:max-w-48 pla:truncate pla:text-xs pla:text-muted-foreground'>{command.hint}</span>}
                                 </button>
                             </div>
                         );
