@@ -55,9 +55,10 @@ const plainStyle = (): Style => ({ color: null, bold: false, italic: false, unde
  * escapes), text with § codes, or text with & codes and &#RRGGBB hex colours.
  */
 export function normalizeMotd(input: string): string {
-    let text = input.replace(/\r\n?/g, '\n').trim();
-    if (/^motd\s*[=:]/i.test(text)) {
-        text = text.replace(/^motd\s*[=:]\s*/i, '');
+    // Leading spaces stay: they are how a line is centred in the server list.
+    let text = input.replace(/\r\n?/g, '\n').replace(/^\n+/, '').replace(/\s+$/, '');
+    if (/^\s*motd\s*[=:]/i.test(text)) {
+        text = text.replace(/^\s*motd\s*[=:]\s*/i, '');
     }
 
     const looksEscaped = /\\u[0-9a-fA-F]{4}|\\n/.test(text);
@@ -207,6 +208,25 @@ export function rainbow(text: string, hex: boolean, styles = ''): string {
             const hue = visible <= 1 ? 0 : (position / visible) * 300;
 
             return `${hexToSection(hslToHex(hue, 100, 60))}${styles}${char}`;
+        })
+        .join('');
+}
+
+/** Colours every visible character along a smooth blend from one hex colour to another. */
+export function gradient(text: string, from: string, to: string, styles = ''): string {
+    const channels = (hex: string) => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
+    const [a, b] = [channels(from), channels(to)];
+    const characters = [...stripCodes(text)];
+    const visible = characters.filter((char) => char !== ' ').length;
+    let index = 0;
+
+    return characters
+        .map((char) => {
+            if (char === ' ') return char;
+            const t = visible <= 1 ? 0 : index++ / (visible - 1);
+            const mixed = a.map((channel, at) => Math.round(channel + (b[at] - channel) * t).toString(16).padStart(2, '0')).join('');
+
+            return `${hexToSection(mixed)}${styles}${char}`;
         })
         .join('');
 }

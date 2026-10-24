@@ -62,7 +62,17 @@ class PropertiesController extends Controller
     public function update(Request $request, Server $server): JsonResponse
     {
         $info = $this->authorizeFeature($request, $server, 'properties', 'properties');
-        $data = $request->validate(['values' => ['required', 'array', 'min:1', 'max:100']]);
+        $data = $request->validate([
+            'values' => ['required', 'array', 'min:1', 'max:100'],
+            // The panel trims request text, so a value's leading spaces (a centred MOTD) are sent as a count.
+            'leading' => ['sometimes', 'array'],
+            'leading.*' => ['integer', 'min:1', 'max:80'],
+        ]);
+        foreach ($data['leading'] ?? [] as $key => $count) {
+            if (is_string($data['values'][$key] ?? null)) {
+                $data['values'][$key] = str_repeat(' ', (int) $count).ltrim($data['values'][$key], ' ');
+            }
+        }
 
         $properties = ServerProperties::load($server, $info);
         $schema = $properties->schema($info['edition']);

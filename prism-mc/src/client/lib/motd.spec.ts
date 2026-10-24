@@ -1,15 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-    centerLine,
-    fromAmpersand,
-    lineWidth,
-    normalizeMotd,
-    parseLine,
-    rainbow,
-    stripCodes,
-    toAmpersand,
-    toPropertiesValue,
-} from './motd';
+import { centerLine, fromAmpersand, lineWidth, normalizeMotd, parseLine, rainbow, stripCodes, toAmpersand, toPropertiesValue } from './motd';
 
 describe('normalizeMotd', () => {
     it('reads a server.properties line with unicode escapes', () => {
@@ -69,5 +59,18 @@ describe('helpers', () => {
         const centred = centerLine('Hello');
         expect(centred.trim()).toBe('Hello');
         expect(Math.abs(270 - 2 * lineWidth(centred) + lineWidth('Hello'))).toBeLessThanOrEqual(8);
+    });
+});
+
+describe('centred lines', () => {
+    it('keep their leading spaces through saving', () => {
+        const centred = centerLine('Hello');
+        expect(normalizeMotd(`${centred}\nSecond`)).toBe(`${centred}\nSecond`);
+        // Java drops leading spaces from a value unless the first is escaped.
+        expect(toPropertiesValue(normalizeMotd(centred)).startsWith('\\ ')).toBe(true);
+    });
+
+    it('still reads a pasted properties line', () => {
+        expect(normalizeMotd('  motd=Hi there  \n')).toBe('Hi there');
     });
 });

@@ -55,7 +55,10 @@ export async function getProperties(server: string): Promise<PropertiesResponse>
 }
 
 export async function updateProperties(server: string, values: Record<string, string | number | boolean>): Promise<Record<string, string>> {
-    const { data } = await http.patch<{ changed: Record<string, string> }>(`${base(server)}/properties`, { values });
+    // The panel trims every text it receives, which would undo a centred MOTD's leading spaces;
+    // how many there were travels beside the value and the server puts them back.
+    const leading = Object.fromEntries(Object.entries(values).flatMap(([key, value]) => (typeof value === 'string' && /^ +/.test(value) ? [[key, value.match(/^ +/)![0].length]] : [])));
+    const { data } = await http.patch<{ changed: Record<string, string> }>(`${base(server)}/properties`, { values, ...(Object.keys(leading).length > 0 ? { leading } : {}) });
 
     return data.changed;
 }

@@ -81,7 +81,7 @@ export default function SettingsBrowser({ edition, file = 'server.properties', v
         <div className={'mcs:flex mcs:flex-col mcs:gap-3'}>
             <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:justify-between mcs:gap-3'}>
                 <p className={'mcs:text-sm mcs:text-muted-foreground'}>
-                    {Object.keys(values).length} values in {file}. Changes are saved together when you press Save, and take effect after the next restart.
+                    {Object.keys(values).length} values in {file}. {term === '' && category === 'motd' && motdEditor ? 'The MOTD is saved as you type and shows after the next restart.' : 'Changes are saved together when you press Save, and take effect after the next restart.'}
                 </p>
                 <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={'Find a setting or key…'} className={'mcs:max-w-72'} />
             </div>
