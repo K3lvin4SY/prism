@@ -198,10 +198,10 @@ export default function ControlPanel({ identifier, player, state, running, onDon
 
                 <div className={'mcs:grid mcs:grid-cols-2 mcs:gap-1.5'}>
                     <Button size={'small'} isSecondary disabled={!online} isLoading={busy('kick')} onClick={() => run('kick', 'kick', { reason }, `${player.name} was kicked.`)}>
-                        <NamedIcon name={'log-out'} size={14} /> Kick
+                        <GamePicture picture={{ item: 'minecraft:leather_boots' }} /> Kick
                     </Button>
                     <Button.Danger size={'small'} isSecondary disabled={!online && !onClearOffline} title={!online && !onClearOffline ? offline : undefined} isLoading={busy('clear')} onClick={() => setConfirmClear(true)}>
-                        <NamedIcon name={'ban'} size={14} /> Clear inventory
+                        <GamePicture picture={{ item: 'minecraft:barrier' }} /> Clear inventory
                     </Button.Danger>
                 </div>
 
