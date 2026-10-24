@@ -42,23 +42,28 @@ export function relative(iso: string | null): string {
     return seconds >= 0 ? `in ${text}` : `${text} ago`;
 }
 
+/** The empty list, the same for Prism's schedules and the panel's own. */
+export function EmptySchedules({ title, description, canCreate, onNew }: { title: string; description: string; canCreate: boolean; onNew: () => void }) {
+    return (
+        <div className={'psc:flex psc:flex-col psc:items-center psc:gap-3 psc:rounded-lg psc:border psc:border-dashed psc:border-border psc:py-14 psc:text-center'}>
+            <NamedIcon name={'calendar-clock'} size={36} className={'psc:text-muted-foreground'} />
+            <div>
+                <p className={'psc:font-medium'}>{title}</p>
+                <p className={'psc:text-sm psc:text-muted-foreground'}>{description}</p>
+            </div>
+            {canCreate && (
+                <Button onClick={onNew}>
+                    <NamedIcon name={'plus'} size={14} /> New schedule
+                </Button>
+            )}
+        </div>
+    );
+}
+
 /** The schedules as cards, each with its switch, what it does and its last and next run. */
 export default function ScheduleList({ state, onOpen, onNew }: { state: State; onOpen: (id: number, tab?: string) => void; onNew: () => void }) {
     if (state.schedules.length === 0) {
-        return (
-            <div className={'psc:flex psc:flex-col psc:items-center psc:gap-3 psc:rounded-lg psc:border psc:border-dashed psc:border-border psc:py-14 psc:text-center'}>
-                <NamedIcon name={'calendar-clock'} size={36} className={'psc:text-muted-foreground'} />
-                <div>
-                    <p className={'psc:font-medium'}>No Prism schedules yet</p>
-                    <p className={'psc:text-sm psc:text-muted-foreground'}>Start from a preset: daily restarts with warnings, crash recovery, backups and more.</p>
-                </div>
-                {state.permissions.create && (
-                    <Button onClick={onNew}>
-                        <NamedIcon name={'plus'} size={14} /> New schedule
-                    </Button>
-                )}
-            </div>
-        );
+        return <EmptySchedules title={'No Prism schedules yet'} description={'Start from a preset: daily restarts with warnings, crash recovery, backups and more.'} canCreate={state.permissions.create} onNew={onNew} />;
     }
 
     return (

@@ -2,3 +2,8 @@
 @import 'tailwindcss/utilities.css' layer(utilities) prefix(psc);
 @import '@pterodactyl/sdk/theme.css';
 @source './**/*.{ts,tsx}';
+
+/* Classic mode: the panel's own list under Prism's heading, without its own toolbar. */
+.psc-classic > div > :first-child:not(:only-child) {
+    display: none;
+}

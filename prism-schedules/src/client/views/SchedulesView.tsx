@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, NamedIcon, Spinner, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
-import type { ViewProps } from '@pterodactyl/sdk/theme';
+import { Alert, Button, NamedIcon, Spinner, cn, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import type { ScheduleListModel, ViewProps } from '@pterodactyl/sdk/theme';
 import { api, keys, type ScheduleInput, type State } from '../api';
 import Calendar from '../components/Calendar';
 import PresetDialog from '../components/PresetDialog';
-import ScheduleList from '../components/ScheduleList';
+import ScheduleList, { EmptySchedules } from '../components/ScheduleList';
 import { Pills } from '../components/ui';
 import { applyConfig, getConfig } from '../config';
 import Editor from '../editor/Editor';
@@ -34,7 +34,7 @@ function readHash(): { open: number | 'new' | null; tab: string | null } {
 }
 
 /** Prism Schedules in place of the panel's schedule list, with a switch back to it. */
-export default function SchedulesView({ Default }: ViewProps<'server.schedules'>) {
+export default function SchedulesView({ model, Default }: ViewProps<'server.schedules'>) {
     const identifier = useCurrentServerRequired().attributes.identifier;
     const state = useQuery({
         queryKey: keys.state(identifier),
@@ -68,17 +68,7 @@ export default function SchedulesView({ Default }: ViewProps<'server.schedules'>
         />
     );
 
-    if (mode === 'classic') {
-        return (
-            <div className={'psc:flex psc:flex-col psc:gap-4'}>
-                <div className={'psc:flex psc:items-center psc:justify-end psc:gap-3'}>
-                    <span className={'psc:text-sm psc:text-muted-foreground'}>The panel&apos;s own schedules</span>
-                    {switcher}
-                </div>
-                <Default />
-            </div>
-        );
-    }
+    if (mode === 'classic') return <Classic model={model} Default={Default} switcher={switcher} timezone={state.data?.timezone ?? null} />;
 
     if (state.isLoading) return <Spinner centered />;
     if (state.isError || !state.data) return <Alert type={'danger'}>{httpErrorToHuman(state.error)}</Alert>;
@@ -146,41 +136,79 @@ function Plus({ state, switcher }: { state: State; switcher: React.ReactNode }) 
 
     return (
         <div className={'psc:flex psc:flex-col psc:gap-4'}>
-            <div className={'psc:flex psc:flex-wrap psc:items-end psc:gap-3'}>
-                <div className={'psc:min-w-56 psc:flex-1'}>
-                    <h2 className={'psc:text-lg psc:font-semibold'}>Schedules</h2>
-                    <p className={'psc:text-sm psc:text-muted-foreground'}>
-                        {state.schedules.length} {state.schedules.length === 1 ? 'schedule' : 'schedules'} · {flatten(state.schedules.flatMap((schedule) => schedule.steps)).length} steps
-                        {running > 0 && ` · ${running} running now`} · times are {state.timezone}
-                    </p>
-                </div>
-                <Pills
-                    value={view}
-                    onChange={setView}
-                    options={[
-                        { value: 'list', label: 'List' },
-                        { value: 'calendar', label: 'Calendar' },
-                    ]}
-                />
-                {switcher}
-                {state.permissions.create && (
-                    <>
-                        <input ref={importer} type={'file'} accept={'.json,application/json'} className={'psc:hidden'} onChange={(event) => event.target.files?.[0] && void importFile(event.target.files[0])} />
-                        <Button isSecondary disabled={full} onClick={() => importer.current?.click()}>
-                            <NamedIcon name={'upload'} size={14} /> Import
-                        </Button>
-                        <Button disabled={full} onClick={() => setPresets(true)}>
-                            <NamedIcon name={'plus'} size={14} /> New schedule
-                        </Button>
-                    </>
-                )}
-            </div>
+            <Header
+                summary={`${state.schedules.length} ${state.schedules.length === 1 ? 'schedule' : 'schedules'} · ${flatten(state.schedules.flatMap((schedule) => schedule.steps)).length} steps${running > 0 ? ` · ${running} running now` : ''} · times are ${state.timezone}`}
+                views={
+                    <Pills
+                        value={view}
+                        onChange={setView}
+                        options={[
+                            { value: 'list', label: 'List' },
+                            { value: 'calendar', label: 'Calendar' },
+                        ]}
+                    />
+                }
+                switcher={switcher}
+                canCreate={state.permissions.create}
+                full={full}
+                onImport={() => importer.current?.click()}
+                onNew={() => setPresets(true)}
+            />
+            <input ref={importer} type={'file'} accept={'.json,application/json'} className={'psc:hidden'} onChange={(event) => event.target.files?.[0] && void importFile(event.target.files[0])} />
 
             {full && state.permissions.create && <Alert type={'info'}>This server has the {config.maxSchedules} schedules the administrator allows.</Alert>}
 
             {view === 'calendar' ? <Calendar state={state} onOpen={(id) => go(id)} /> : <ScheduleList state={state} onOpen={(id, tab) => go(id, tab ?? null)} onNew={() => setPresets(true)} />}
 
             {presets && <PresetDialog minecraft={state.minecraft} onPick={start} onClose={() => setPresets(false)} />}
+        </div>
+    );
+}
+
+/**
+ * The page's heading, the same in both modes so switching does not move anything: the counts,
+ * the list or calendar choice (Prism only), the mode switch, Import (Prism only) and New schedule.
+ */
+function Header({ summary, views, switcher, canCreate, full = false, onImport, onNew }: { summary: string; views?: ReactNode; switcher: ReactNode; canCreate: boolean; full?: boolean; onImport?: () => void; onNew: () => void }) {
+    return (
+        <div className={'psc:flex psc:flex-wrap psc:items-end psc:gap-3'}>
+            <div className={'psc:min-w-56 psc:flex-1'}>
+                <h2 className={'psc:text-lg psc:font-semibold'}>Schedules</h2>
+                <p className={'psc:text-sm psc:text-muted-foreground'}>{summary}</p>
+            </div>
+            {views}
+            {switcher}
+            {canCreate && (
+                <>
+                    <Button isSecondary disabled={full || !onImport} onClick={onImport} title={onImport ? undefined : 'Import makes Prism schedules; switch to Prism to use it.'}>
+                        <NamedIcon name={'upload'} size={14} /> Import
+                    </Button>
+                    <Button disabled={full} onClick={onNew}>
+                        <NamedIcon name={'plus'} size={14} /> New schedule
+                    </Button>
+                </>
+            )}
+        </div>
+    );
+}
+
+/**
+ * The panel's own schedules under the same heading as Prism's. The panel's list is kept, with its
+ * toolbar hidden; New schedule presses that toolbar's button so the panel's own form opens.
+ */
+function Classic({ model, Default, switcher, timezone }: { model: ScheduleListModel; Default: ViewProps<'server.schedules'>['Default']; switcher: ReactNode; timezone: string | null }) {
+    const box = useRef<HTMLDivElement>(null);
+    const count = model.schedules.length;
+    const empty = !model.loading && count === 0;
+    const create = () => box.current?.querySelector<HTMLButtonElement>('button')?.click();
+
+    return (
+        <div className={'psc:flex psc:flex-col psc:gap-4'}>
+            <Header summary={model.loading ? 'The panel’s own schedules' : `${count} ${count === 1 ? 'schedule' : 'schedules'}${timezone ? ` · times are ${timezone}` : ''}`} switcher={switcher} canCreate={model.canCreate} onNew={create} />
+            {empty && <EmptySchedules title={'No schedules yet'} description={'Schedules run commands, power actions and backups automatically.'} canCreate={model.canCreate} onNew={create} />}
+            <div ref={box} className={cn('psc-classic', empty && 'psc:hidden')}>
+                <Default />
+            </div>
         </div>
     );
 }
