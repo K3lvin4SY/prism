@@ -50,7 +50,8 @@ final class Detector
 
     private static function cacheKey(Server $server): string
     {
-        return 'ext:prism-terraria:info:'.$server->uuid;
+        // The detected tags are part of the key, so changing them applies at once.
+        return 'ext:prism-terraria:info:'.$server->uuid.':'.md5(implode(',', Settings::eggTags()));
     }
 
     /** @return array<string, mixed> */
@@ -58,9 +59,11 @@ final class Detector
     {
         $egg = $this->server->egg;
 
-        // Only servers whose egg carries the Terraria tag are Prism Terraria's; every other game is left alone.
+        // Only servers whose egg carries one of the detected tags (terraria and tria unless the admin
+        // added more in Prism Properties), by name or slug, are Prism Terraria's.
+        $detected = Settings::eggTags();
         $tagged = $egg !== null && $egg->tags->contains(
-            static fn ($tag): bool => strcasecmp((string) $tag->name, 'terraria') === 0 || in_array(strtolower((string) $tag->slug), ['terraria', 'tria'], true),
+            static fn ($tag): bool => in_array(strtolower((string) $tag->name), $detected, true) || in_array(strtolower((string) $tag->slug), $detected, true),
         );
         if (! $tagged) {
             return $this->result(null, 'egg');

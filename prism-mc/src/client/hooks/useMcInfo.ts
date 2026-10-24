@@ -1,10 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentServerRequired, type SdkServer } from '@pterodactyl/sdk';
 import { getInfo, keys, type Feature, type McInfo } from '../api/client';
+import { eggTags } from '../config';
 
-/** Prism MC only works on servers whose egg has the Minecraft tag. */
+/** Prism MC only works on servers whose egg has one of the detected tags (minecraft by default). */
 export function mightBeMinecraft(server: SdkServer | undefined): boolean {
-    return (server?.attributes.egg_tags ?? []).some((tag) => tag.toLowerCase() === 'minecraft');
+    const detected = eggTags();
+
+    return (server?.attributes.egg_tags ?? []).some((tag) => detected.includes(tag.toLowerCase()));
 }
 
 export function useMcInfoFor(server: SdkServer | undefined) {

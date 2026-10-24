@@ -16,3 +16,13 @@ export function tabEnabled(tab: string): boolean {
 
     return typeof value === 'boolean' ? value : true;
 }
+
+/** The egg tags that mark a Terraria server, from Prism Properties; terraria and tria unless the admin changed them. */
+export function eggTags(): string[] {
+    const tags = (typeof config.egg_tags === 'string' ? config.egg_tags : '')
+        .split(',')
+        .map((tag) => tag.trim().toLowerCase())
+        .filter(Boolean);
+
+    return tags.length > 0 ? tags : ['terraria', 'tria'];
+}

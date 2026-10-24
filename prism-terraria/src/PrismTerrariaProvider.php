@@ -45,6 +45,9 @@ class PrismTerrariaProvider extends ExtensionProvider
         $this->registerSettings(new ExtensionSettingsDefinition($this->settings(), [
             ...$tabs,
 
+            // Detection
+            Setting::make('egg_tags', 'egg_tags', \PrismTerraria\Support\Settings::DEFAULT_TAGS, ['required', 'string', 'max:300', 'regex:/^[A-Za-z0-9_\- ,]+$/'])->label('Egg tags to detect')->help("Servers whose egg has one of these tags, separated by commas, are Prism Terraria servers. The default is terraria and tria. Add your own tag to include eggs that use it.")->tab('Detection')->field('text')->frontend(),
+
             // Content
             Setting::make('confirm_installs', 'confirm_installs', true, ['required', 'boolean'])->label('Confirm before installing')->help('Ask before a mod or plugin is installed.')->tab('Content')->field('toggle'),
 

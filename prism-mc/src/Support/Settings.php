@@ -17,6 +17,9 @@ final class Settings
 {
     public const string EXTENSION = 'prism-mc';
 
+    /** Egg tags Prism MC detects when the admin has not changed the list. */
+    public const string DEFAULT_TAGS = 'minecraft';
+
     public static function store(): ExtensionSettings
     {
         return new ExtensionSettings(self::EXTENSION);
@@ -36,6 +39,20 @@ final class Settings
         } catch (Throwable) {
             return $default;
         }
+    }
+
+    /**
+     * The egg tags that mark a server as Prism MC's, from Prism Properties: lower-case, without
+     * blanks. Empty falls back to the default, so Prism MC cannot be switched off by accident.
+     *
+     * @return list<string>
+     */
+    public static function eggTags(): array
+    {
+        $value = self::admin('egg_tags', self::DEFAULT_TAGS);
+        $tags = array_values(array_unique(array_filter(array_map(static fn (string $tag): string => strtolower(trim($tag)), explode(',', is_string($value) ? $value : '')))));
+
+        return $tags === [] ? array_map('trim', explode(',', self::DEFAULT_TAGS)) : $tags;
     }
 
     /** The egg's forced server type from the admin egg form, or `auto`. */

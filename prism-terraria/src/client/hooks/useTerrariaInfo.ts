@@ -1,10 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentServerRequired, type SdkServer } from '@pterodactyl/sdk';
 import { getInfo, keys, type Feature, type TerrariaInfo } from '../api/client';
+import { eggTags } from '../config';
 
-/** Prism Terraria only works on servers whose egg has the Terraria tag (slug "TRIA" or "terraria"). */
+/** Prism Terraria only works on servers whose egg has one of the detected tags (terraria and tria by default). */
 export function mightBeTerraria(server: SdkServer | undefined): boolean {
-    return (server?.attributes.egg_tags ?? []).some((tag) => ['tria', 'terraria'].includes(tag.toLowerCase()));
+    const detected = eggTags();
+
+    return (server?.attributes.egg_tags ?? []).some((tag) => detected.includes(tag.toLowerCase()));
 }
 
 export function useTerrariaInfoFor(server: SdkServer | undefined) {

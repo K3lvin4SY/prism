@@ -77,7 +77,8 @@ final class Detector
 
     private static function cacheKey(Server $server): string
     {
-        return 'ext:prism-mc:info:'.$server->uuid;
+        // The detected tags are part of the key, so changing them applies at once.
+        return 'ext:prism-mc:info:'.$server->uuid.':'.md5(implode(',', Settings::eggTags()));
     }
 
     /** @return array<string, mixed> */
@@ -89,8 +90,10 @@ final class Detector
         $record = Settings::server($this->server)->get('software');
         $record = is_array($record) ? $record : null;
 
-        // Only servers whose egg carries the Minecraft tag are Prism MC's; every other game is left alone.
-        if (! in_array('minecraft', $tags, true)) {
+        // Only servers whose egg carries one of the detected tags (minecraft unless the admin added
+        // more in Prism Properties) are Prism MC's; every other game is left alone.
+        $minecraft = array_intersect($tags, Settings::eggTags()) !== [];
+        if (! $minecraft) {
             return $this->result(null, 'egg');
         }
 
@@ -132,7 +135,7 @@ final class Detector
             return $this->result($software, 'egg', $record);
         }
 
-        return $this->result(in_array('minecraft', $tags, true) ? 'vanilla' : null, 'egg', $record);
+        return $this->result($minecraft ? 'vanilla' : null, 'egg', $record);
     }
 
     private function detectFromFiles(): ?string

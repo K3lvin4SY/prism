@@ -19,3 +19,13 @@ export const tabEnabled = (tab: string) => on(`tab_${tab}`);
 export type Feature = 'crossplay' | 'proxy' | 'skins' | 'patchbukkit';
 
 export const featureEnabled = (feature: Feature) => on(`feature_${feature}`);
+
+/** The egg tags that mark a Minecraft server, from Prism Properties; minecraft unless the admin changed them. */
+export function eggTags(): string[] {
+    const tags = (typeof config.egg_tags === 'string' ? config.egg_tags : '')
+        .split(',')
+        .map((tag) => tag.trim().toLowerCase())
+        .filter(Boolean);
+
+    return tags.length > 0 ? tags : ['minecraft'];
+}

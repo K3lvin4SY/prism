@@ -47,6 +47,9 @@ class PrismMcProvider extends ExtensionProvider
         $this->registerSettings(new ExtensionSettingsDefinition($this->settings(), [
             ...$tabs,
 
+            // Detection
+            Setting::make('egg_tags', 'egg_tags', \PrismMc\Support\Settings::DEFAULT_TAGS, ['required', 'string', 'max:300', 'regex:/^[A-Za-z0-9_\- ,]+$/'])->label('Egg tags to detect')->help("Servers whose egg has one of these tags, separated by commas, are Prism MC servers. The default is minecraft. Add your own tag to include eggs that use it.")->tab('Detection')->field('text')->frontend(),
+
             // Features
             Setting::make('feature_crossplay', 'feature_crossplay', true, ['required', 'boolean'])->label('Crossplay')->help('Geyser and Floodgate on the Properties tab, so Bedrock players can join Java servers.')->tab('Features')->field('toggle')->frontend()->frontendType('boolean'),
             Setting::make('feature_proxy', 'feature_proxy', true, ['required', 'boolean'])->label('Proxy networks')->help('Link servers behind Velocity, BungeeCord or Waterfall from the Properties tab.')->tab('Features')->field('toggle')->frontend()->frontendType('boolean'),
