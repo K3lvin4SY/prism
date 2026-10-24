@@ -202,14 +202,14 @@ export default function WorldMap({ server, markers, focus, height = 560 }: { ser
     return (
         <div className={'mcs:flex mcs:flex-col mcs:gap-2'}>
             <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
-                <div className={'mcs:flex mcs:rounded-md mcs:bg-muted mcs:p-0.5'}>
+                <div className={'prism-switch mcs:flex mcs:rounded-md mcs:bg-muted mcs:p-0.5'}>
                     {DIMENSIONS.map((entry) => (
                         <button
                             key={entry.value}
                             type={'button'}
                             onClick={() => setDimension(entry.value)}
                             className={cn(
-                                'mcs:rounded mcs:px-3 mcs:py-1 mcs:text-sm mcs:cursor-pointer',
+                                'prism-switch-item mcs:rounded mcs:px-3 mcs:py-1 mcs:text-sm mcs:cursor-pointer',
                                 dimension === entry.value ? 'mcs:bg-primary mcs:text-primary-foreground' : 'mcs:text-muted-foreground mcs:hover:text-foreground'
                             )}
                         >

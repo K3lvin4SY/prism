@@ -105,7 +105,7 @@ export default function PlayersScreen() {
             <div className={'mcs:grid mcs:gap-4 mcs:lg:grid-cols-[1fr_300px]'}>
                 <div className={'mcs:flex mcs:flex-col mcs:gap-3 mcs:min-w-0'}>
                     <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
-                        <div className={'mcs:flex mcs:rounded-md mcs:bg-card mcs:border mcs:border-border mcs:p-0.5'}>
+                        <div className={'prism-switch mcs:flex mcs:rounded-md mcs:bg-card mcs:border mcs:border-border mcs:p-0.5'}>
                             {(['everyone', 'online', 'whitelist', 'banned'] as const)
                                 .filter((value) => !(isBedrock && value === 'banned'))
                                 .map((value) => (
@@ -117,7 +117,7 @@ export default function PlayersScreen() {
                                             setPage(1);
                                         }}
                                         className={cn(
-                                            'mcs:rounded mcs:px-3 mcs:py-1.5 mcs:text-sm mcs:cursor-pointer mcs:capitalize',
+                                            'prism-switch-item mcs:rounded mcs:px-3 mcs:py-1.5 mcs:text-sm mcs:cursor-pointer mcs:capitalize',
                                             filter === value ? 'mcs:bg-primary mcs:text-primary-foreground' : 'mcs:text-muted-foreground mcs:hover:text-foreground'
                                         )}
                                     >

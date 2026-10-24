@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Badge, Input, NamedIcon, Select, Spinner, Switch, TitledGreyBox, cn, httpErrorToHuman, useDebouncedCallback } from '@pterodactyl/sdk';
+import { useMemo, useState, type ReactNode } from 'react';
+import { Badge, Input, NamedIcon, Select, Switch, TitledGreyBox, cn } from '@pterodactyl/sdk';
 import { categories, definitionsFor, managedKeys, validate, type PropertyDefinition } from '../api/properties';
 import McText from './McText';
 
@@ -9,7 +9,9 @@ interface Props {
     /** The file the values live in, named in the header. */
     file?: string;
     values: Record<string, string>;
-    onSave: (values: Record<string, string>) => Promise<void>;
+    /** The unsaved values by key; the screen saves them together. */
+    draft: Record<string, string>;
+    onChange: (key: string, value: string) => void;
     /** The MOTD editor, shown in place of the rows while the MOTD category is open. */
     motdEditor?: ReactNode;
     /** Other categories drawn by a component instead of rows, such as Crossplay. */
@@ -37,12 +39,12 @@ const otherDefinition = (key: string): PropertyDefinition => ({
 
 /**
  * Every property, sorted into categories, with its real key next to a short explanation.
- * Each row saves on its own as soon as its value is valid.
+ * Changes are kept as a draft until the screen's save bar saves them together.
  */
 /** Categories that hold a tool instead of properties, shown only when that tool is passed in. */
 const PANEL_ONLY = ['crossplay', 'proxy'];
 
-export default function SettingsBrowser({ edition, file = 'server.properties', values, onSave, motdEditor, panels = {}, eggBindings = {} }: Props) {
+export default function SettingsBrowser({ edition, file = 'server.properties', values, draft, onChange, motdEditor, panels = {}, eggBindings = {} }: Props) {
     const [category, setCategory] = useState('motd');
     const [search, setSearch] = useState('');
 
@@ -79,7 +81,7 @@ export default function SettingsBrowser({ edition, file = 'server.properties', v
         <div className={'mcs:flex mcs:flex-col mcs:gap-3'}>
             <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:justify-between mcs:gap-3'}>
                 <p className={'mcs:text-sm mcs:text-muted-foreground'}>
-                    {Object.keys(values).length} values in {file}. Every change is written straight away and takes effect after the next restart.
+                    {Object.keys(values).length} values in {file}. Changes are saved together when you press Save, and take effect after the next restart.
                 </p>
                 <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={'Find a setting or key…'} className={'mcs:max-w-72'} />
             </div>
@@ -121,7 +123,9 @@ export default function SettingsBrowser({ edition, file = 'server.properties', v
                                         key={`${row.definition.key}-${row.definition.category}`}
                                         row={row}
                                         binding={row.definition.key in eggBindings ? eggBindings[row.definition.key] : undefined}
-                                        onSave={onSave}
+                                        value={draft[row.definition.key] ?? row.value}
+                                        changed={row.definition.key in draft}
+                                        onChange={(value) => onChange(row.definition.key, value)}
                                         onEditMotd={() => {
                                             setSearch('');
                                             setCategory('motd');
@@ -139,40 +143,23 @@ export default function SettingsBrowser({ edition, file = 'server.properties', v
 
 function SettingRow({
     row,
-    onSave,
+    value: draft,
+    changed,
+    onChange,
     onEditMotd,
     binding,
 }: {
     row: Row;
-    onSave: Props['onSave'];
+    value: string;
+    changed: boolean;
+    onChange: (value: string) => void;
     onEditMotd: () => void;
     /** undefined: the egg leaves it alone; null: fixed by the egg; string: from that startup variable. */
     binding: string | null | undefined;
 }) {
     const { definition } = row;
-    const [draft, setDraft] = useState(row.value);
-    const [state, setState] = useState<'idle' | 'saving' | 'error'>('idle');
-    const [error, setError] = useState<string | null>(null);
+    const error = changed ? validate(definition, draft) : null;
     const managed = managedKeys.includes(definition.key) || binding === null;
-
-    useEffect(() => setDraft(row.value), [row.value]);
-
-    const save = async (value: string) => {
-        const problem = validate(definition, value);
-        setError(problem);
-        if (problem !== null || value === row.value) return;
-
-        setState('saving');
-        try {
-            await onSave({ [definition.key]: value });
-            setState('idle');
-        } catch (exception) {
-            setState('error');
-            setError(httpErrorToHuman(exception));
-        }
-    };
-
-    const saveLater = useDebouncedCallback(save, 700);
 
     const control = () => {
         if (managed) {
@@ -193,11 +180,7 @@ function SettingRow({
                     <Switch
                         checked={draft === 'true'}
                         aria-label={definition.label}
-                        onChange={(checked) => {
-                            const value = checked ? 'true' : 'false';
-                            setDraft(value);
-                            save(value);
-                        }}
+                        onChange={(checked) => onChange(checked ? 'true' : 'false')}
                     />
                 );
             case 'enum':
@@ -205,10 +188,7 @@ function SettingRow({
                     <div className={'mcs:w-56'}>
                         <Select
                             value={draft}
-                            onChange={(value) => {
-                                setDraft(String(value));
-                                save(String(value));
-                            }}
+                            onChange={(value) => onChange(String(value))}
                             options={(definition.options ?? []).map((option) => ({ value: option, label: definition.optionLabels?.[option] ?? option }))}
                         />
                     </div>
@@ -221,11 +201,7 @@ function SettingRow({
                         inputMode={definition.type === 'int' ? 'numeric' : undefined}
                         $hasError={error !== null}
                         className={definition.type === 'int' ? 'mcs:w-36' : 'mcs:w-64'}
-                        onChange={(event) => {
-                            setDraft(event.target.value);
-                            saveLater(event.target.value);
-                        }}
-                        onBlur={() => saveLater.flush()}
+                        onChange={(event) => onChange(event.target.value)}
                     />
                 );
         }
@@ -239,7 +215,7 @@ function SettingRow({
                     <Badge size={'sm'} variant={'soft'} className={'mcs:font-mono mcs:normal-case'}>
                         {definition.key}
                     </Badge>
-                    {state === 'saving' && <Spinner size={'small'} />}
+                    {changed && <span className={'mcs:size-2 mcs:rounded-full mcs:bg-warning'} title={'Unsaved'} />}
                 </div>
                 <p className={'mcs:text-xs mcs:text-muted-foreground mcs:mt-1'}>{managedKeys.includes(definition.key)
                         ? 'Set by the allocation in the Network tab.'

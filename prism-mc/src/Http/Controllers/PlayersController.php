@@ -237,10 +237,61 @@ class PlayersController extends Controller
         return new JsonResponse([
             'uuid' => $player,
             'dat' => $dat !== null ? base64_encode($dat) : null,
+            // The editor sends this back, so a newer save is never overwritten unseen.
+            'hash' => $dat !== null ? sha1($dat) : null,
             'stats' => $stats['stats'] ?? null,
             'advancements' => $done,
             'version' => $info['version'],
         ]);
+    }
+
+    /**
+     * Replaces a Java player's saved file with one edited in the inventory editor (or cleared).
+     * Only while the player is offline, so the game cannot overwrite it, and only when the file
+     * is still the one the editor read. The previous file is kept beside it as a backup.
+     */
+    public function writeData(Request $request, Server $server, string $player): JsonResponse
+    {
+        $info = $this->authorizeFeature($request, $server, 'players', 'players-manage');
+        abort_unless($info['edition'] === 'java', 404, 'Player files can only be edited on Java servers.');
+        $player = strtolower($player);
+        abort_unless(preg_match(PlayerData::UUID, $player) === 1, 422, 'Invalid player.');
+        $input = $request->validate([
+            'dat' => ['required', 'string', 'max:'.(int) (self::MAX_PLAYER_FILE * 1.4)],
+            'expectedHash' => ['required', 'string', 'regex:/^[0-9a-f]{40}$/'],
+            'reason' => ['nullable', 'string', 'in:edit,clear'],
+        ]);
+
+        $bytes = base64_decode($input['dat'], true);
+        abort_if($bytes === false || $bytes === '' || strlen($bytes) > self::MAX_PLAYER_FILE, 422, 'The edited player file is not valid.');
+        // Gzip, zlib or a plain compound tag, as the game reads.
+        abort_unless(str_starts_with($bytes, "\x1f\x8b") || $bytes[0] === "\x78" || $bytes[0] === "\x0a", 422, 'The edited player file is not valid NBT.');
+
+        $data = PlayerData::for($server, 'java');
+        if ($data->isRunning()) {
+            try {
+                $status = MinecraftPing::for($server, 'java')->status();
+            } catch (Throwable) {
+                $status = null;
+            }
+            $events = $data->events();
+            $players = $this->javaPlayers($data, $events, PlayerData::onlineFrom($events, $status));
+            foreach ($players as $entry) {
+                abort_if($entry['uuid'] === $player && $entry['online'], 409, 'The player is online. Edit their items once they have left, so the game does not overwrite the change.');
+            }
+        }
+
+        [$playerFolder] = $data->playerFolders();
+        $path = "$playerFolder/$player.dat";
+        $current = $data->files()->read($path, self::MAX_PLAYER_FILE);
+        abort_if($current === null, 404, 'The player has no saved file.');
+        abort_unless(hash_equals(sha1($current), $input['expectedHash']), 409, 'The player file changed since it was opened. Reload it and make the change again.');
+
+        $data->files()->write("$path.prism-backup", $current);
+        $data->files()->write($path, $bytes);
+        Activity::event('server:prism-mc.players.'.(($input['reason'] ?? 'edit') === 'clear' ? 'clear' : 'edit'))->property(['player' => $player, 'offline' => true])->log();
+
+        return new JsonResponse(['hash' => sha1($bytes)]);
     }
 
     /**

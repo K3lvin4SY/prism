@@ -15,15 +15,18 @@ import {
     toast,
     type ScreenComponentProps,
 } from '@pterodactyl/sdk';
-import { getBedrockPlayer, getPlayer, getPlayers, playerAction, playerKeys, useSkin, type PlayerSummary, type Skin } from '../api/players';
+import { getBedrockPlayer, getPlayer, getPlayers, playerAction, playerKeys, useSkin, writePlayerData, type PlayerSummary, type Skin } from '../api/players';
 import ControlPanel from '../components/players/ControlPanel';
 import Hud from '../components/players/Hud';
+import InventoryEditor from '../components/players/InventoryEditor';
 import { EnderChestView, InventoryView } from '../components/players/Inventory';
 import PlayerHead from '../components/players/PlayerHead';
 import SkinViewer from '../components/players/SkinViewer';
 import { useMcInfo } from '../hooks/useMcInfo';
 import { armouredSkin } from '../lib/armour';
+import { clearInventory, detectFormat } from '../lib/inventoryEdit';
 import { base64ToBytes, readNbt, readNbtFile } from '../lib/nbt';
+import { bytesToBase64, readNbtFileTyped, writeNbtFileTyped } from '../lib/nbtio';
 import { formatTicks, prettyId, readBedrockPlayer, readPlayer, type PlayerState } from '../lib/player';
 import { featureEnabled } from '../config';
 
@@ -72,6 +75,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
     const uuid = String(route.params.player ?? '').toLowerCase();
     const [tab, setTab] = useState<'inventory' | 'ender'>('inventory');
     const [saving, setSaving] = useState(false);
+    const [editing, setEditing] = useState(false);
 
     const list = useQuery({ queryKey: playerKeys.list(identifier), queryFn: () => getPlayers(identifier), refetchInterval: 15_000 });
     const bedrock = info?.edition === 'bedrock';
@@ -79,7 +83,8 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
         queryKey: playerKeys.detail(identifier, uuid),
         queryFn: () => (bedrock ? getBedrockPlayer(identifier, uuid) : getPlayer(identifier, uuid)),
         enabled: info !== undefined,
-        refetchInterval: 30_000,
+        // Held still while the editor is open, so a refresh cannot reset it mid-edit.
+        refetchInterval: editing ? false : 30_000,
     });
     const skin = useSkin(identifier, uuid);
     const { player, error } = usePlayerState(detail.data?.dat, bedrock);
@@ -125,6 +130,17 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
         } finally {
             setSaving(false);
         }
+    };
+
+    /** Empties the inventory in the saved file while the player is away: the same write the editor uses. */
+    const clearOffline = async () => {
+        const dat = detail.data?.dat;
+        const hash = detail.data?.hash;
+        if (!dat || !hash) return;
+        const file = await readNbtFileTyped(base64ToBytes(dat));
+        const bytes = await writeNbtFileTyped({ ...file, root: clearInventory(file.root, detectFormat(file.root)) });
+        await writePlayerData(identifier, uuid, bytesToBase64(bytes), hash, 'clear');
+        refresh();
     };
 
     if (detail.isLoading || list.isLoading) {
@@ -236,7 +252,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                         {player && (
                             <div className={'mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:flex mcs:flex-col mcs:gap-3'}>
                                 <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:justify-between mcs:gap-2'}>
-                                    <div className={'mcs:flex mcs:rounded-md mcs:bg-muted mcs:p-0.5'}>
+                                    <div className={'prism-switch mcs:flex mcs:rounded-md mcs:bg-muted mcs:p-0.5'}>
                                         {(
                                             [
                                                 ['inventory', 'Inventory', 'package'],
@@ -248,7 +264,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                                 type={'button'}
                                                 onClick={() => setTab(value)}
                                                 className={cn(
-                                                    'mcs:inline-flex mcs:items-center mcs:gap-1.5 mcs:rounded mcs:px-3 mcs:py-1.5 mcs:text-sm mcs:cursor-pointer',
+                                                    'prism-switch-item mcs:inline-flex mcs:items-center mcs:gap-1.5 mcs:rounded mcs:px-3 mcs:py-1.5 mcs:text-sm mcs:cursor-pointer',
                                                     tab === value ? 'mcs:bg-primary mcs:text-primary-foreground' : 'mcs:text-muted-foreground mcs:hover:text-foreground'
                                                 )}
                                             >
@@ -256,29 +272,39 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                             </button>
                                         ))}
                                     </div>
-                                    {list.data?.canManage && list.data.running && (
-                                        <Button size={'small'} isSecondary isLoading={saving} onClick={saveNow}>
-                                            <NamedIcon name={'save'} size={14} /> Save now
-                                        </Button>
-                                    )}
+                                    <div className={'mcs:flex mcs:gap-2'}>
+                                        {list.data?.canManage && list.data.running && (
+                                            <Button size={'small'} isSecondary disabled={saving} onClick={saveNow}>
+                                                <NamedIcon name={'refresh-cw'} size={14} className={saving ? 'mcs:animate-spin' : undefined} /> Update
+                                            </Button>
+                                        )}
+                                        {list.data?.canManage && !bedrock && detail.data?.dat && detail.data.hash && (
+                                            <Button size={'small'} disabled={summary?.online} title={summary?.online ? 'Available while the player is offline, so the game cannot overwrite the changes' : undefined} onClick={() => setEditing(true)}>
+                                                <NamedIcon name={'pencil'} size={14} /> Edit
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className={'mcs:flex mcs:justify-center'}>
                                     {tab === 'inventory' && <InventoryView player={player} version={version} />}
                                     {tab === 'ender' && <EnderChestView player={player} version={version} />}
                                 </div>
-                                <p className={'mcs:text-xs mcs:text-muted-foreground'}>This is the last save. Online players are saved every few minutes, or right away with Save now.</p>
+                                <p className={'mcs:text-xs mcs:text-muted-foreground'}>This is the last save. Online players are saved every few minutes, or right away with Update.</p>
                             </div>
                         )}
                     </div>
 
                     <div className={'mcs:flex mcs:flex-col mcs:gap-4'}>
                         {list.data?.canManage && summary && (
-                            <ControlPanel identifier={identifier} player={summary} state={player} running={list.data.running} onDone={refresh} />
+                            <ControlPanel identifier={identifier} player={summary} state={player} running={list.data.running} onDone={refresh} onClearOffline={!bedrock && detail.data?.dat && detail.data.hash ? clearOffline : undefined} />
                         )}
                         {!bedrock && <Advancements items={detail.data?.advancements ?? []} />}
                     </div>
                 </div>
             </div>
+            {editing && detail.data?.dat && detail.data.hash && (
+                <InventoryEditor server={identifier} uuid={uuid} name={name} dat={detail.data.dat} hash={detail.data.hash} version={version} initialTab={tab} onClose={() => setEditing(false)} onSaved={refresh} />
+            )}
         </ServerContentBlock>
     );
 }

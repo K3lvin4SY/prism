@@ -19,6 +19,8 @@ interface Props {
     running: boolean;
     /** Reloads the player data after the server has saved. */
     onDone: () => void;
+    /** Clears the saved inventory in the player file, for when the player is offline (Java only). */
+    onClearOffline?: () => Promise<void>;
 }
 
 /**
@@ -26,7 +28,7 @@ interface Props {
  * its button shows a spinner until the server has it, while everything else stays usable.
  * Switches and game mode change at once and only move back if the action fails.
  */
-export default function ControlPanel({ identifier, player, state, running, onDone }: Props) {
+export default function ControlPanel({ identifier, player, state, running, onDone, onClearOffline }: Props) {
     const [pending, setPending] = useState<string[]>([]);
     const [gameMode, setGameMode] = useState<string | null>(null);
     const [access, setAccess] = useState<Partial<Record<Access, boolean>>>({});
@@ -182,7 +184,7 @@ export default function ControlPanel({ identifier, player, state, running, onDon
                     <Button size={'small'} isSecondary disabled={!online} isLoading={busy('kick')} onClick={() => run('kick', 'kick', { reason }, `${player.name} was kicked.`)}>
                         <NamedIcon name={'log-out'} size={14} /> Kick
                     </Button>
-                    <Button.Danger size={'small'} isSecondary disabled={!online} isLoading={busy('clear')} onClick={() => setConfirmClear(true)}>
+                    <Button.Danger size={'small'} isSecondary disabled={!online && !onClearOffline} title={!online && !onClearOffline ? offline : undefined} isLoading={busy('clear')} onClick={() => setConfirmClear(true)}>
                         <NamedIcon name={'eraser'} size={14} /> Clear inventory
                     </Button.Danger>
                 </div>
@@ -214,12 +216,23 @@ export default function ControlPanel({ identifier, player, state, running, onDon
                 onClose={() => setConfirmClear(false)}
                 title={'Clear inventory'}
                 confirm={'Clear inventory'}
-                onConfirmed={() => {
+                onConfirmed={async () => {
                     setConfirmClear(false);
-                    run('clear', 'clear', {}, `${player.name}'s inventory was cleared.`);
+                    if (online || !onClearOffline) return run('clear', 'clear', {}, `${player.name}'s inventory was cleared.`);
+                    setPending((current) => [...current, 'clear']);
+                    try {
+                        await onClearOffline();
+                        toast.success(`${player.name}'s inventory was cleared in their player file.`);
+                    } catch (error) {
+                        toast.error(httpErrorToHuman(error));
+                    } finally {
+                        setPending((current) => current.filter((key) => key !== 'clear'));
+                    }
                 }}
             >
-                Clear the whole inventory of {player.name}? This cannot be undone.
+                {online
+                    ? `Clear the whole inventory of ${player.name}, armour and offhand included? This cannot be undone.`
+                    : `${player.name} is offline, so every item they carry and wear is removed from their player file. The ender chest stays, and the previous file is kept as a backup.`}
             </Dialog.Confirm>
         </TitledGreyBox>
     );

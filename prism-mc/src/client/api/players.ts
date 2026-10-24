@@ -46,6 +46,16 @@ export interface PlayerDetails {
     stats: Record<string, Record<string, number>> | null;
     advancements: { id: string; date: string | null }[];
     version: string | null;
+    /** The sha1 of the saved file, sent back when it is edited; missing on Bedrock. */
+    hash?: string | null;
+}
+
+/**
+ * Replaces a Java player's saved file, edited in the browser. The server refuses while the player
+ * is online or when the file changed since `expectedHash` was read. Resolves the new file's hash.
+ */
+export async function writePlayerData(server: string, uuid: string, dat: string, expectedHash: string, reason: 'edit' | 'clear' = 'edit'): Promise<string> {
+    return (await http.put<{ hash: string }>(`${base(server)}/players/${uuid}/data`, { dat, expectedHash, reason })).data.hash;
 }
 
 export type PlayerAction =
