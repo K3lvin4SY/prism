@@ -89,7 +89,7 @@ export function Tiles({ server, store, vertical, compact, sparklines = true }: {
                             <div className={cn('pcn:h-full pcn:rounded-full', tile.fraction > 0.9 ? 'pcn:bg-red-500' : tile.fraction > 0.75 ? 'pcn:bg-amber-500' : 'pcn:bg-primary')} style={{ width: `${Math.min(100, tile.fraction * 100)}%` }} />
                         </div>
                     )}
-                    {tile.spark && sparklines && !compact && <Sparkline values={tile.spark} className={'pcn:pointer-events-none pcn:absolute pcn:bottom-0 pcn:right-0 pcn:h-8 pcn:w-1/2 pcn:opacity-60'} />}
+                    {tile.spark && tile.fraction === null && sparklines && !compact && <Sparkline values={tile.spark} className={'pcn:pointer-events-none pcn:absolute pcn:bottom-0 pcn:right-0 pcn:h-8 pcn:w-1/2 pcn:opacity-60'} />}
                 </div>
             ))}
         </div>

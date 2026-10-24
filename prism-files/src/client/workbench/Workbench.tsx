@@ -563,7 +563,7 @@ function ActivityButton({ icon, label, active, onClick }: { icon: string; label:
             title={label}
             aria-label={label}
             onClick={onClick}
-            className={cn('pfl:flex pfl:size-9 pfl:items-center pfl:justify-center pfl:rounded-md pfl:cursor-pointer', active ? 'pfl:text-foreground pfl:shadow-[inset_2px_0_0_var(--primary)]' : 'pfl:text-muted-foreground pfl:hover:text-foreground')}
+            className={cn('pfl:flex pfl:size-9 pfl:items-center pfl:justify-center pfl:rounded-md pfl:cursor-pointer', active ? 'pfl:bg-primary/15 pfl:text-primary' : 'pfl:text-muted-foreground pfl:hover:bg-muted pfl:hover:text-foreground')}
         >
             <NamedIcon name={icon} size={19} />
         </button>

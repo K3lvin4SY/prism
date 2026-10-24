@@ -104,7 +104,7 @@ export default function SettingsBrowser({ edition, file = 'server.properties', v
                             >
                                 <NamedIcon name={entry.icon} size={16} />
                                 <span className={'mcs:flex-1'}>{entry.label}</span>
-                                {!(entry.id in panels) && <span className={'mcs:text-xs mcs:opacity-70'}>{counts[entry.id]}</span>}
+                                {!(entry.id in panels) && !(entry.id === 'motd' && motdEditor) && <span className={'mcs:text-xs mcs:opacity-70'}>{counts[entry.id]}</span>}
                             </button>
                         ))}
                 </nav>

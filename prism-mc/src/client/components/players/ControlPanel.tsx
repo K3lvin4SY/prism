@@ -185,7 +185,7 @@ export default function ControlPanel({ identifier, player, state, running, onDon
                         <NamedIcon name={'log-out'} size={14} /> Kick
                     </Button>
                     <Button.Danger size={'small'} isSecondary disabled={!online && !onClearOffline} title={!online && !onClearOffline ? offline : undefined} isLoading={busy('clear')} onClick={() => setConfirmClear(true)}>
-                        <NamedIcon name={'eraser'} size={14} /> Clear inventory
+                        <NamedIcon name={'ban'} size={14} /> Clear inventory
                     </Button.Danger>
                 </div>
 

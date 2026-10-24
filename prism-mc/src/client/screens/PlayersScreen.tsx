@@ -231,9 +231,9 @@ export default function PlayersScreen() {
 function PlayerRow({ identifier, player, linkable }: { identifier: string; player: PlayerSummary; linkable: boolean }) {
     const content = (
         <>
-            <ListRow.Icon>
+            <span className={'mcs:flex mcs:shrink-0 mcs:items-center'}>
                 <PlayerHead server={identifier} skinKey={player.uuid ?? player.name} className={'mcs:size-9'} />
-            </ListRow.Icon>
+            </span>
             <div className={'mcs:min-w-0 mcs:flex-1'}>
                 <ListRow.Title>{player.name ?? 'Unknown player'}</ListRow.Title>
                 <ListRow.Description>

@@ -208,10 +208,15 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
 
     const top = (
         <header className='pt-bar pla:sticky pla:top-0 pla:z-30 pla:border-b pla:border-border pla:bg-sidebar'>
-            <div className='pla:flex pla:h-14 pla:items-center'>
-                {/* At the bar's own left edge, beside the sidebar, outside the centred content; the menu button takes its place on narrow screens. */}
-                {collapseButton && <div className='pla:hidden pla:shrink-0 pla:items-center pla:pl-3 pla:lg:flex'>{collapseButton}</div>}
-                <div className='pla:mx-auto pla:flex pla:h-14 pla:w-full pla:min-w-0 pla:max-w-panel pla:items-center pla:gap-3 pla:px-3'>
+            <div className='pla:relative pla:flex pla:h-14 pla:items-center'>
+                {/*
+                 * At the bar's own left edge, beside the sidebar. It lies over the bar rather than
+                 * taking room in it, so the row below centres exactly like the page under it; until
+                 * the page is wide enough for the margins to hold it, the row makes room. The menu
+                 * button takes its place on narrow screens.
+                 */}
+                {collapseButton && <div className='pla:absolute pla:inset-y-0 pla:left-3 pla:z-10 pla:hidden pla:items-center pla:lg:flex'>{collapseButton}</div>}
+                <div className={cn('pla:mx-auto pla:flex pla:h-14 pla:w-full pla:min-w-0 pla:max-w-panel pla:items-center pla:gap-3 pla:px-3', collapseButton && 'pla:lg:pl-16 pla:2xl:pl-3')}>
                     {(has.sidebar(bars) || has.rail(bars)) && (
                         <button type='button' onClick={() => setDrawer(!drawer)} className={cn(itemClass('icons'), 'pla:lg:hidden')} aria-label='Menu' aria-expanded={drawer}>
                             <NamedIcon name='menu' size={18} />

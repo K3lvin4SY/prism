@@ -41,6 +41,21 @@ export interface PlayerState {
 
 const GAME_MODES = ['survival', 'creative', 'adventure', 'spectator'] as const;
 
+/** Points needed to go from a level to the next, as the game counts them (Java 1.8+ and Bedrock). */
+const pointsToNext = (level: number) => (level <= 15 ? 2 * level + 7 : level <= 30 ? 5 * level - 38 : 9 * level - 158);
+
+/**
+ * The experience the player holds now: what their level is worth plus the progress bar. The
+ * file's XpTotal is every point ever collected, spending on enchanting included, so it is not
+ * the same as the level shown.
+ */
+export function experienceHeld(level: number, progress: number): number {
+    const whole = Math.max(0, Math.floor(level));
+    const base = whole <= 16 ? whole * whole + 6 * whole : whole <= 31 ? 2.5 * whole * whole - 40.5 * whole + 360 : 4.5 * whole * whole - 162.5 * whole + 2220;
+
+    return Math.round(base + Math.min(1, Math.max(0, progress)) * pointsToNext(whole));
+}
+
 const DIMENSIONS: Record<string, string> = { '-1': 'minecraft:the_nether', '0': 'minecraft:overworld', '1': 'minecraft:the_end' };
 
 /** Flattens a chat component (a JSON string in older files, NBT in newer ones) to plain text. */
@@ -149,7 +164,7 @@ export function readPlayer(root: NbtCompound): PlayerState {
         saturation: nbt.num(root.foodSaturationLevel, 5),
         xpLevel: nbt.num(root.XpLevel, 0),
         xpProgress: nbt.num(root.XpP, 0),
-        xpTotal: nbt.num(root.XpTotal, 0),
+        xpTotal: experienceHeld(nbt.num(root.XpLevel, 0), nbt.num(root.XpP, 0)),
         selectedSlot: nbt.num(root.SelectedItemSlot, 0),
         inventory,
         equipment,
@@ -237,7 +252,7 @@ export function readBedrockPlayer(root: NbtCompound): PlayerState {
         saturation: attribute('minecraft:player.saturation', 5),
         xpLevel: nbt.num(root.PlayerLevel, 0),
         xpProgress: nbt.num(root.PlayerLevelProgress, 0),
-        xpTotal: 0,
+        xpTotal: experienceHeld(nbt.num(root.PlayerLevel, 0), nbt.num(root.PlayerLevelProgress, 0)),
         selectedSlot: nbt.num(root.SelectedInventorySlot, 0),
         inventory: items(root.Inventory).filter((item) => item.slot >= 0 && item.slot < 36),
         equipment,

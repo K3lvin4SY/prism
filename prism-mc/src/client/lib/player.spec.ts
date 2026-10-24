@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { readNbtFile } from './nbt';
-import { enchantmentLabel, maxDurability, readItem, readPlayer } from './player';
+import { enchantmentLabel, experienceHeld, maxDurability, readItem, readPlayer } from './player';
 
 // A real 1.21.4 player file, saved from the Fabric test server after giving the bot items.
 const fixture = new Uint8Array(readFileSync(join(__dirname, '__fixtures__', 'player-1.21.4.dat')));
@@ -56,5 +56,16 @@ describe('item helpers', () => {
     it('names enchantments the way the game does', () => {
         expect(enchantmentLabel({ id: 'minecraft:sharpness', level: 5 })).toBe('Sharpness V');
         expect(enchantmentLabel({ id: 'minecraft:mending', level: 1 })).toBe('Mending');
+    });
+});
+
+describe('experienceHeld', () => {
+    it('matches the game at each band of the formula', () => {
+        expect([0, 15, 16, 30, 31, 50].map((level) => experienceHeld(level, 0))).toEqual([0, 315, 352, 1395, 1507, 5345]);
+    });
+
+    it('adds the progress towards the next level', () => {
+        expect(experienceHeld(30, 0.5)).toBe(1395 + 56);
+        expect(experienceHeld(0, 1)).toBe(7);
     });
 });
