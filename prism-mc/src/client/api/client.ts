@@ -1,6 +1,6 @@
 import { http } from '@pterodactyl/sdk';
 
-export type Feature = 'players' | 'versions' | 'properties' | 'plugins' | 'mods' | 'modpacks';
+export type Feature = 'players' | 'versions' | 'properties' | 'world' | 'plugins' | 'mods' | 'modpacks';
 
 export type Kind = 'vanilla' | 'plugins' | 'modded' | 'hybrid' | 'proxy' | 'bedrock';
 

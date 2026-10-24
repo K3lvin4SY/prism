@@ -16,6 +16,7 @@ class PrismMcProvider extends ExtensionProvider
         'players' => 'Players',
         'versions' => 'Versions',
         'properties' => 'Properties',
+        'world' => 'World',
         'plugins' => 'Plugins',
         'mods' => 'Mods',
         'modpacks' => 'Modpacks',
@@ -30,6 +31,7 @@ class PrismMcProvider extends ExtensionProvider
             'players-manage' => 'Op, whitelist, ban, kick and change players.',
             'properties' => 'Edit server.properties and the server icon.',
             'versions' => 'Change the server software and version.',
+            'world' => 'See the world map and where players are.',
             'plugins' => 'Install, update and remove plugins.',
             'mods' => 'Install, update and remove mods.',
             'modpacks' => 'Install modpacks. This replaces mods and configs.',
@@ -48,7 +50,6 @@ class PrismMcProvider extends ExtensionProvider
             // Features
             Setting::make('feature_crossplay', 'feature_crossplay', true, ['required', 'boolean'])->label('Crossplay')->help('Geyser and Floodgate on the Properties tab, so Bedrock players can join Java servers.')->tab('Features')->field('toggle')->frontend()->frontendType('boolean'),
             Setting::make('feature_proxy', 'feature_proxy', true, ['required', 'boolean'])->label('Proxy networks')->help('Link servers behind Velocity, BungeeCord or Waterfall from the Properties tab.')->tab('Features')->field('toggle')->frontend()->frontendType('boolean'),
-            Setting::make('feature_world_map', 'feature_world_map', true, ['required', 'boolean'])->label('World map')->help('A map of the world around each player, drawn from the region files.')->tab('Features')->field('toggle')->frontend()->frontendType('boolean'),
             Setting::make('feature_skins', 'feature_skins', true, ['required', 'boolean'])->label('3D skins')->help('Player skins as a model you can turn, on player pages.')->tab('Features')->field('toggle')->frontend()->frontendType('boolean'),
             Setting::make('feature_patchbukkit', 'feature_patchbukkit', true, ['required', 'boolean'])->label('PatchBukkit')->help('Run Bukkit plugins on Pumpkin servers, from the Plugins tab.')->tab('Features')->field('toggle')->frontend()->frontendType('boolean'),
 

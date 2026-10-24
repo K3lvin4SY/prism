@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button, NamedIcon, Spinner, cn, http } from '@pterodactyl/sdk';
-import { base } from '../../api/client';
-import { readRegion } from '../../lib/anvil';
-import { blockColor, type Rgb } from '../../lib/blockColors';
-import PlayerHead from './PlayerHead';
+import { base } from '../api/client';
+import { readRegion } from '../lib/anvil';
+import { blockColor, type Rgb } from '../lib/blockColors';
+import PlayerHead from './players/PlayerHead';
 
-type Dimension = 'overworld' | 'the_nether' | 'the_end';
+export type Dimension = 'overworld' | 'the_nether' | 'the_end';
 
 const DIMENSIONS: { value: Dimension; label: string }[] = [
     { value: 'overworld', label: 'Overworld' },
@@ -94,22 +94,37 @@ function RegionTile({ server, dimension, region }: { server: string; dimension: 
     );
 }
 
-interface Props {
-    server: string;
-    playerKey: string;
-    position: [number, number, number] | null;
-    dimension: string;
+/** A player on the map, where they were at their last save. */
+export interface Marker {
+    key: string;
+    name: string;
+    online: boolean;
+    position: [number, number, number];
+    dimension: Dimension;
 }
 
+/** Ask the map to show a spot; `at` changes each time so the same spot can be asked for again. */
+export interface Focus {
+    dimension: Dimension;
+    x: number;
+    z: number;
+    at: number;
+}
+
+export const toDimension = (value: string): Dimension => {
+    const name = value.replace(/^minecraft:/, '');
+
+    return DIMENSIONS.some((entry) => entry.value === name) ? (name as Dimension) : 'overworld';
+};
+
 /**
- * A top-down map drawn from the world's region files, with the player's head where they were
- * at the last save. Drag to move around, scroll or use the buttons to zoom.
+ * A top-down map drawn from the world's region files, with each player's head where they were
+ * at their last save. Drag to move around, scroll or use the buttons to zoom.
  */
-export default function WorldMap({ server, playerKey, position, dimension: playerDimension }: Props) {
-    const initial = (playerDimension.replace(/^minecraft:/, '') as Dimension) || 'overworld';
-    const [dimension, setDimension] = useState<Dimension>(DIMENSIONS.some((entry) => entry.value === initial) ? initial : 'overworld');
-    const [zoom, setZoom] = useState(2);
-    const [center, setCenter] = useState<[number, number]>(() => (position ? [position[0], position[2]] : [0, 0]));
+export default function WorldMap({ server, markers, focus, height = 560 }: { server: string; markers: Marker[]; focus: Focus | null; height?: number }) {
+    const [dimension, setDimension] = useState<Dimension>(focus?.dimension ?? 'overworld');
+    const [zoom, setZoom] = useState(1);
+    const [center, setCenter] = useState<[number, number]>(() => (focus ? [focus.x, focus.z] : [0, 0]));
     const [size, setSize] = useState<[number, number]>([800, 420]);
     const box = useRef<HTMLDivElement>(null);
     const drag = useRef<{ x: number; z: number; pointerX: number; pointerY: number } | null>(null);
@@ -142,9 +157,20 @@ export default function WorldMap({ server, playerKey, position, dimension: playe
         return () => observer.disconnect();
     }, []);
 
-    const onPlayerDimension = initial === dimension;
-    const recenter = () => setCenter(onPlayerDimension && position ? [position[0], position[2]] : [0, 0]);
-    useEffect(recenter, [dimension]); // eslint-disable-line react-hooks/exhaustive-deps
+    const here = markers.filter((marker) => marker.dimension === dimension);
+
+    // Centre on the players in view, or on 0, 0 when there are none.
+    const recenter = () => {
+        if (here.length === 0) return setCenter([0, 0]);
+        setCenter([here.reduce((sum, marker) => sum + marker.position[0], 0) / here.length, here.reduce((sum, marker) => sum + marker.position[2], 0) / here.length]);
+    };
+
+    useEffect(() => {
+        if (!focus) return;
+        setDimension(focus.dimension);
+        setCenter([focus.x, focus.z]);
+        setZoom((current) => Math.max(current, 2));
+    }, [focus]);
 
     const scale = ZOOMS[zoom];
     const halfWidth = size[0] / 2 / scale;
@@ -192,7 +218,7 @@ export default function WorldMap({ server, playerKey, position, dimension: playe
                     ))}
                 </div>
                 <div className={'mcs:ml-auto mcs:flex mcs:items-center mcs:gap-1'}>
-                    <Button.Text size={'small'} onClick={recenter} title={'Centre on the player'}>
+                    <Button.Text size={'small'} onClick={recenter} title={'Centre on the players'}>
                         <NamedIcon name={'locate-fixed'} size={16} />
                     </Button.Text>
                     <Button.Text size={'small'} disabled={zoom === 0} onClick={() => setZoom(zoom - 1)} aria-label={'Zoom out'}>
@@ -206,7 +232,8 @@ export default function WorldMap({ server, playerKey, position, dimension: playe
 
             <div
                 ref={box}
-                className={'mcs:relative mcs:h-[420px] mcs:overflow-hidden mcs:rounded-md mcs:bg-[#111] mcs:cursor-grab mcs:active:cursor-grabbing mcs:touch-none mcs:select-none'}
+                style={{ height }}
+                className={'mcs:relative mcs:overflow-hidden mcs:rounded-md mcs:bg-[#111] mcs:cursor-grab mcs:active:cursor-grabbing mcs:touch-none mcs:select-none'}
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={() => (drag.current = null)}
@@ -219,11 +246,12 @@ export default function WorldMap({ server, playerKey, position, dimension: playe
                     {visible.map((region) => (
                         <RegionTile key={`${dimension}:${region.x}:${region.z}`} server={server} dimension={dimension} region={region} />
                     ))}
-                    {onPlayerDimension && position && (
-                        <div className={'mcs:absolute'} style={{ left: position[0], top: position[2], width: 24, height: 24, transform: `translate(-50%, -50%) scale(${1 / scale})` }}>
-                            <PlayerHead server={server} skinKey={playerKey} className={'mcs:size-full mcs:max-w-none mcs:outline-2 mcs:outline-white mcs:shadow-lg'} />
+                    {here.map((marker) => (
+                        <div key={marker.key} className={'mcs:absolute mcs:flex mcs:flex-col mcs:items-center'} title={`${marker.name}: ${Math.round(marker.position[0])}, ${Math.round(marker.position[1])}, ${Math.round(marker.position[2])}`} style={{ left: marker.position[0], top: marker.position[2], transform: `translate(-50%, -12px) scale(${1 / scale})`, transformOrigin: 'center 12px' }}>
+                            <PlayerHead server={server} skinKey={marker.key} className={cn('mcs:size-6 mcs:max-w-none mcs:shadow-lg', marker.online ? 'mcs:outline-2 mcs:outline-[#55ff55]' : 'mcs:outline-2 mcs:outline-white')} />
+                            <span className={'mcs-font mcs:mt-1 mcs:whitespace-nowrap mcs:rounded mcs:bg-black/60 mcs:px-1 mcs:text-[10px] mcs:leading-tight mcs:text-white'}>{marker.name}</span>
                         </div>
-                    )}
+                    ))}
                 </div>
 
                 {regions.isLoading && (

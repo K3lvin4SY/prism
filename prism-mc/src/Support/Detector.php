@@ -261,7 +261,7 @@ final class Detector
                 'build' => null,
                 'pluginLoaders' => [],
                 'modLoaders' => [],
-                'features' => array_fill_keys(['players', 'versions', 'properties', 'plugins', 'mods', 'modpacks'], false),
+                'features' => array_fill_keys(['players', 'versions', 'properties', 'world', 'plugins', 'mods', 'modpacks'], false),
                 'jarFile' => null,
                 'source' => $source,
             ];
@@ -290,6 +290,8 @@ final class Detector
                 'players' => $kind !== 'proxy',
                 'versions' => true,
                 'properties' => true,
+                // The map is drawn from Java region files; Bedrock worlds are a LevelDB.
+                'world' => $kind !== 'proxy' && $kind !== 'bedrock',
                 'plugins' => in_array($kind, ['plugins', 'hybrid', 'proxy'], true),
                 'mods' => in_array($kind, ['modded', 'hybrid'], true),
                 'modpacks' => in_array($kind, ['modded', 'hybrid'], true),

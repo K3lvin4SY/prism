@@ -18,7 +18,6 @@ import {
 import { getBedrockPlayer, getPlayer, getPlayers, playerAction, playerKeys, useSkin, type PlayerSummary, type Skin } from '../api/players';
 import ControlPanel from '../components/players/ControlPanel';
 import Hud from '../components/players/Hud';
-import WorldMap from '../components/players/WorldMap';
 import { EnderChestView, InventoryView } from '../components/players/Inventory';
 import PlayerHead from '../components/players/PlayerHead';
 import SkinViewer from '../components/players/SkinViewer';
@@ -71,7 +70,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
     const { identifier, info } = useMcInfo();
     const queryClient = useQueryClient();
     const uuid = String(route.params.player ?? '').toLowerCase();
-    const [tab, setTab] = useState<'inventory' | 'ender' | 'map'>('inventory');
+    const [tab, setTab] = useState<'inventory' | 'ender'>('inventory');
     const [saving, setSaving] = useState(false);
 
     const list = useQuery({ queryKey: playerKeys.list(identifier), queryFn: () => getPlayers(identifier), refetchInterval: 15_000 });
@@ -242,9 +241,8 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                             [
                                                 ['inventory', 'Inventory', 'package'],
                                                 ['ender', 'Ender Chest', 'box'],
-                                                ['map', 'Map', 'map'],
                                             ] as const
-                                        ).filter(([value]) => !((bedrock || !featureEnabled('world_map')) && value === 'map')).map(([value, label, icon]) => (
+                                        ).map(([value, label, icon]) => (
                                             <button
                                                 key={value}
                                                 type={'button'}
@@ -268,7 +266,6 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                     {tab === 'inventory' && <InventoryView player={player} version={version} />}
                                     {tab === 'ender' && <EnderChestView player={player} version={version} />}
                                 </div>
-                                {tab === 'map' && <WorldMap server={identifier} playerKey={uuid} position={player.position} dimension={player.dimension} />}
                                 <p className={'mcs:text-xs mcs:text-muted-foreground'}>This is the last save. Online players are saved every few minutes, or right away with Save now.</p>
                             </div>
                         )}

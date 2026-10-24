@@ -46,12 +46,17 @@ export function ItemTooltip({ item }: { item: Item }) {
 }
 
 /** One inventory slot: the item, its count, its durability bar and a game-style tooltip. */
-export default function ItemSlot({ item, version, selected, size = 'md' }: { item?: Item | null; version: string | null; selected?: boolean; size?: 'md' | 'lg' }) {
+/** The game's outlines for empty armour slots, from the same asset mirror as the HUD sprites. */
+const EMPTY_SLOT = 'https://assets.mcasset.cloud/1.21.11/assets/minecraft/textures/gui/sprites/container/slot';
+export type EmptySlot = 'helmet' | 'chestplate' | 'leggings' | 'boots';
+
+export default function ItemSlot({ item, version, selected, size = 'md', empty }: { item?: Item | null; version: string | null; selected?: boolean; size?: 'md' | 'lg'; empty?: EmptySlot }) {
     const box = size === 'lg' ? 'mcs:size-12' : 'mcs:size-10';
     const durability = item && item.maxDamage && item.damage > 0 ? 1 - item.damage / item.maxDamage : null;
 
     const slot = (
         <div className={cn('mcs-slot mcs:relative mcs:shrink-0 mcs:p-[3px]', box, selected && 'mcs:outline-2 mcs:outline-white mcs:z-10')}>
+            {!item && empty && <img src={`${EMPTY_SLOT}/${empty}.png`} alt={''} draggable={false} className={'mcs-pixelated mcs:size-full mcs:object-contain'} />}
             {item && (
                 <>
                     <ItemIcon item={item} version={version} />

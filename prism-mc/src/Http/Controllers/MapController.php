@@ -23,7 +23,7 @@ class MapController extends Controller
 
     public function regions(Request $request, Server $server, string $dimension): JsonResponse
     {
-        $info = $this->authorizeFeature($request, $server, 'players', 'players-view');
+        $info = $this->authorizeFeature($request, $server, 'world', 'world');
         abort_unless($info['edition'] === 'java', 404, 'The map is only drawn for Java worlds.');
         abort_unless(in_array($dimension, self::DIMENSIONS, true), 404);
 
@@ -42,7 +42,7 @@ class MapController extends Controller
 
     public function region(Request $request, Server $server, string $dimension, int $x, int $z): Response
     {
-        $info = $this->authorizeFeature($request, $server, 'players', 'players-view');
+        $info = $this->authorizeFeature($request, $server, 'world', 'world');
         abort_unless($info['edition'] === 'java', 404);
         abort_unless(in_array($dimension, self::DIMENSIONS, true) && abs($x) < 100_000 && abs($z) < 100_000, 404);
 

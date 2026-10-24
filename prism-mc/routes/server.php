@@ -60,7 +60,7 @@ Route::get('/players/skins/{key}', [PlayersController::class, 'skin'])->where('k
 Route::get('/players/bedrock/{xuid}', [PlayersController::class, 'bedrock'])->where('xuid', '[0-9]{1,20}')->name('players.bedrock');
 Route::get('/players/{player}', [PlayersController::class, 'show'])->where('player', '[0-9a-fA-F-]{36}')->name('players.show');
 
-Route::middleware(RequireFeature::class.':feature_world_map')->group(function () {
+Route::middleware(RequireFeature::class.':tab_world')->group(function () {
     Route::get('/map/{dimension}', [MapController::class, 'regions'])->where('dimension', 'overworld|the_nether|the_end')->name('map.regions');
     Route::get('/map/{dimension}/{x}/{z}', [MapController::class, 'region'])->where(['dimension' => 'overworld|the_nether|the_end', 'x' => '-?\d+', 'z' => '-?\d+'])->name('map.region');
 });

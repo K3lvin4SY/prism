@@ -16,6 +16,6 @@ export function allowSnapshots(): boolean {
 /** Whether the admin shows a server tab, such as `players` or `modpacks`. */
 export const tabEnabled = (tab: string) => on(`tab_${tab}`);
 
-export type Feature = 'crossplay' | 'proxy' | 'world_map' | 'skins' | 'patchbukkit';
+export type Feature = 'crossplay' | 'proxy' | 'skins' | 'patchbukkit';
 
 export const featureEnabled = (feature: Feature) => on(`feature_${feature}`);
