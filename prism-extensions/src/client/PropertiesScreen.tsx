@@ -3,8 +3,10 @@ import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Input, NamedIcon, NumberInput, PageContentBlock, Select, Spinner, TextArea, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { PRISM, getSettings, refresh, saveSettings, setSettingFile, settingsKey, type PrismExtension, type PrismId, type SettingField } from './api';
 import BrandingPreview from './BrandingPreview';
+import SaveBar, { describeValue } from './SaveBar';
 import DateTimeField from './DateTimeField';
 import EggPictures from './EggPictures';
+import ExportImport from './ExportImport';
 import LayoutPresets from './LayoutPresets';
 import { PreviewControls, closePreview, usePreviewDraft } from './preview';
 import { THEME_ID, themeApi, themeKeys } from './themes/api';
@@ -12,7 +14,8 @@ import ThemeEditor, { themeSections } from './themes/ThemeEditor';
 import { HighlightsEditor, KeybindsEditor, LinesEditor, QuickCommandsEditor, ToggleRow } from './editors';
 import { HINTS, type Hint } from './hints';
 
-type Target = PrismId | typeof THEME_ID;
+const EXPORT_ID = 'prism-export';
+type Target = PrismId | typeof THEME_ID | typeof EXPORT_ID;
 
 /** One entry in the sidebar: an installed Prism extension, or Prism Themes, with its sections. */
 interface Entry {
@@ -50,6 +53,8 @@ export default function PropertiesScreen() {
             const layout = list.findIndex((entry) => entry.id === 'prism-layout');
             list.splice(layout + 1, 0, theme);
         }
+        // Prism Export closes the list.
+        if (list.length > 0) list.push({ id: EXPORT_ID, name: 'Export and import', icon: 'package', sections: ['Export', 'Import'], settings: [] });
 
         return list;
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -111,7 +116,9 @@ export default function PropertiesScreen() {
 
                                     return (
                                         <div key={entry.id} hidden={!shown}>
-                                            {entry.id === THEME_ID ? (
+                                            {entry.id === EXPORT_ID ? (
+                                                <ExportImport section={section} installed={installed} theme={hasTheme ? themeSettings.data : undefined} />
+                                            ) : entry.id === THEME_ID ? (
                                                 <ThemeEditor section={section} focus={shown ? focus : null} onDirty={(value) => onDirty(THEME_ID, value)} />
                                             ) : (
                                                 item && <ExtensionSettings extension={item.extension} schema={item.schema} tab={section} focus={shown ? focus : null} onDirty={onDirty} />
@@ -339,20 +346,21 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
 
             {layout && <PreviewControls />}
 
-            <div
-                className={cn(
-                    'ppx:sticky ppx:bottom-4 ppx:z-10 ppx:flex ppx:items-center ppx:gap-3 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-3 ppx:shadow-lg ppx:transition-opacity',
-                    dirty ? 'ppx:opacity-100' : 'ppx:pointer-events-none ppx:opacity-0'
-                )}
-            >
-                <span className={'ppx:flex-1 ppx:text-sm'}>{Object.keys(draft).length === 1 ? 'One unsaved change.' : `${Object.keys(draft).length} unsaved changes.`}</span>
-                <Button.Text onClick={() => setDraft({})} disabled={saving}>
-                    Discard
-                </Button.Text>
-                <Button onClick={save} isLoading={saving}>
-                    Save changes
-                </Button>
-            </div>
+            <SaveBar
+                changes={schema
+                    .filter((field) => field.input in draft)
+                    .map((field) => ({ key: field.input, label: field.label, section: tabOf(field), from: describeValue(field.value, field.options), to: describeValue(draft[field.input], field.options) }))}
+                saving={saving}
+                onSave={save}
+                onDiscard={() => setDraft({})}
+                onUndo={(key) =>
+                    setDraft((current) => {
+                        const { [key]: _undone, ...rest } = current;
+
+                        return rest;
+                    })
+                }
+            />
         </div>
     );
 }
@@ -452,14 +460,14 @@ function Field({ field, hint, value, onChange }: { field: SettingField; hint: Hi
         return (
             <>
                 <Label field={field} />
-                <div className={'ppx:flex ppx:flex-wrap ppx:gap-1 ppx:rounded-lg ppx:bg-muted/40 ppx:p-1'}>
+                <div className={'prism-switch ppx:flex ppx:flex-wrap ppx:gap-1 ppx:rounded-lg ppx:bg-muted/40 ppx:p-1'}>
                     {field.options.map((option) => (
                         <button
                             key={String(option.value)}
                             type={'button'}
                             onClick={() => onChange(option.value)}
                             className={cn(
-                                'ppx:rounded-md ppx:px-3 ppx:py-1.5 ppx:text-sm ppx:cursor-pointer',
+                                'prism-switch-item ppx:rounded-md ppx:px-3 ppx:py-1.5 ppx:text-sm ppx:cursor-pointer',
                                 option.value === value ? 'ppx:bg-card ppx:font-semibold ppx:shadow-sm' : 'ppx:text-muted-foreground ppx:hover:text-foreground'
                             )}
                         >

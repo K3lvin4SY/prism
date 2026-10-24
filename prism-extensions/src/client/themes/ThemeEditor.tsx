@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Dialog, Input, NamedIcon, Select, Spinner, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { ToggleRow } from '../editors';
 import { PreviewControls, reloadPreview, usePreviewDraft } from '../preview';
+import SaveBar, { describeValue } from '../SaveBar';
 import { THEME_ID, optionsOf, themeApi, themeKeys, type ThemeSetting } from './api';
 import { CATPPUCCIN_ACCENTS, LOOKS, PALETTES, swatch, type Look } from './looks';
 
@@ -167,22 +168,33 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
                         </div>
                     </section>
 
-                    <div className={'ppx:sticky ppx:bottom-4 ppx:z-10 ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-3 ppx:shadow-lg'}>
-                        <input ref={importer} type={'file'} accept={'.json,application/json'} className={'ppx:hidden'} onChange={(event) => event.target.files?.[0] && void importLook(event.target.files[0])} />
-                        <Button.Text size={'small'} onClick={() => importer.current?.click()}>
-                            <NamedIcon name={'upload'} size={14} /> Import
-                        </Button.Text>
-                        <Button.Text size={'small'} onClick={exportLook}>
-                            <NamedIcon name={'download'} size={14} /> Export
-                        </Button.Text>
-                        <span className={'ppx:flex-1'} />
-                        <Button.Text disabled={!dirty || saving} onClick={() => setDraft({})}>
-                            Discard
-                        </Button.Text>
-                        <Button isLoading={saving} disabled={!dirty} onClick={save}>
-                            {dirty ? `Save ${Object.keys(draft).length} ${Object.keys(draft).length === 1 ? 'change' : 'changes'}` : 'Saved'}
-                        </Button>
-                    </div>
+                    <SaveBar
+                        always
+                        changes={list
+                            .filter((setting) => setting.key in draft)
+                            .map((setting) => ({ key: setting.key, label: setting.label, section: setting.tab ?? 'General', from: describeValue(setting.value, optionsOf(setting)), to: describeValue(draft[setting.key], optionsOf(setting)) }))}
+                        saving={saving}
+                        onSave={save}
+                        onDiscard={() => setDraft({})}
+                        onUndo={(key) =>
+                            setDraft((current) => {
+                                const { [key]: _undone, ...rest } = current;
+
+                                return rest;
+                            })
+                        }
+                        extra={
+                            <>
+                                <input ref={importer} type={'file'} accept={'.json,application/json'} className={'ppx:hidden'} onChange={(event) => event.target.files?.[0] && void importLook(event.target.files[0])} />
+                                <Button.Text size={'small'} onClick={() => importer.current?.click()}>
+                                    <NamedIcon name={'upload'} size={14} /> Import
+                                </Button.Text>
+                                <Button.Text size={'small'} onClick={exportLook}>
+                                    <NamedIcon name={'download'} size={14} /> Export
+                                </Button.Text>
+                            </>
+                        }
+                    />
                 </div>
 
                 <div className={'ppx:flex ppx:min-w-0 ppx:flex-col ppx:gap-3'}>
@@ -317,6 +329,28 @@ function Field({ setting, value, onChange, onSchema }: { setting: ThemeSetting; 
                     </>
                 );
             }
+            if (setting.key === 'switches') {
+                return (
+                    <>
+                        {label}
+                        <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-2'}>
+                            {options.map((option) => {
+                                const round = option.value === 'rounded';
+
+                                return (
+                                    <button key={option.value} type={'button'} onClick={() => onChange(option.value)} className={cn('ppx:flex ppx:cursor-pointer ppx:flex-col ppx:items-center ppx:gap-2 ppx:rounded-lg ppx:border ppx:p-3', value === option.value ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary')}>
+                                        <span className={cn('ppx:flex ppx:gap-0.5 ppx:border ppx:border-border ppx:bg-muted/40 ppx:p-0.5 ppx:text-xs', round ? 'ppx:rounded-full' : 'ppx:rounded-md')}>
+                                            <span className={cn('ppx:bg-primary ppx:px-2 ppx:py-0.5 ppx:text-primary-foreground', round ? 'ppx:rounded-full' : 'ppx:rounded')}>Files</span>
+                                            <span className={'ppx:px-2 ppx:py-0.5 ppx:text-muted-foreground'}>Editor</span>
+                                        </span>
+                                        <span className={'ppx:text-sm'}>{option.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </>
+                );
+            }
             if (setting.key === 'palette') {
                 return (
                     <>
@@ -337,9 +371,9 @@ function Field({ setting, value, onChange, onSchema }: { setting: ThemeSetting; 
                 <>
                     {label}
                     {options.length <= 4 ? (
-                        <div className={'ppx:flex ppx:flex-wrap ppx:gap-1 ppx:rounded-lg ppx:bg-muted/40 ppx:p-1'}>
+                        <div className={'prism-switch ppx:flex ppx:flex-wrap ppx:gap-1 ppx:rounded-lg ppx:bg-muted/40 ppx:p-1'}>
                             {options.map((option) => (
-                                <button key={option.value} type={'button'} onClick={() => onChange(option.value)} className={cn('ppx:rounded-md ppx:px-3 ppx:py-1.5 ppx:text-sm ppx:cursor-pointer', option.value === value ? 'ppx:bg-card ppx:font-semibold ppx:shadow-sm' : 'ppx:text-muted-foreground ppx:hover:text-foreground')}>
+                                <button key={option.value} type={'button'} onClick={() => onChange(option.value)} className={cn('prism-switch-item ppx:rounded-md ppx:px-3 ppx:py-1.5 ppx:text-sm ppx:cursor-pointer', option.value === value ? 'ppx:bg-card ppx:font-semibold ppx:shadow-sm' : 'ppx:text-muted-foreground ppx:hover:text-foreground')}>
                                     {option.label}
                                 </button>
                             ))}

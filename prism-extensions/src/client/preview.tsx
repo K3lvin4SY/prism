@@ -72,7 +72,7 @@ export function usePreviewDraft(extension: string, settings: Record<string, unkn
 }
 
 const pill = (active: boolean) =>
-    cn('ppx:inline-flex ppx:items-center ppx:gap-1.5 ppx:rounded-full ppx:px-3 ppx:py-1 ppx:text-xs ppx:font-medium ppx:cursor-pointer', active ? 'ppx:bg-primary ppx:text-primary-foreground' : 'ppx:text-muted-foreground ppx:hover:bg-muted ppx:hover:text-foreground');
+    cn('prism-switch-item ppx:inline-flex ppx:items-center ppx:gap-1.5 ppx:rounded-full ppx:px-3 ppx:py-1 ppx:text-xs ppx:font-medium ppx:cursor-pointer', active ? 'ppx:bg-primary ppx:text-primary-foreground' : 'ppx:text-muted-foreground ppx:hover:bg-muted ppx:hover:text-foreground');
 
 /** The page and device pickers and the button that opens the preview window. */
 export function PreviewControls({ children }: { children?: ReactNode }) {
@@ -103,7 +103,7 @@ export function PreviewControls({ children }: { children?: ReactNode }) {
             <p className={'ppx:text-sm ppx:font-semibold'}>Live preview</p>
             <p className={'ppx:text-sm ppx:text-muted-foreground'}>The real panel in its own window, sized like the device you pick. Each change shows there at once; nobody else sees anything until you save.</p>
             <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2'}>
-                <div className={'ppx:flex ppx:gap-1 ppx:rounded-full ppx:border ppx:border-border ppx:p-1'}>
+                <div className={'prism-switch ppx:flex ppx:gap-1 ppx:rounded-full ppx:border ppx:border-border ppx:p-1'}>
                     {(['dashboard', 'server', 'admin', 'account'] as Page[]).map((name) => (
                         <button
                             key={name}
@@ -118,7 +118,7 @@ export function PreviewControls({ children }: { children?: ReactNode }) {
                         </button>
                     ))}
                 </div>
-                <div className={'ppx:flex ppx:gap-1 ppx:rounded-full ppx:border ppx:border-border ppx:p-1'}>
+                <div className={'prism-switch ppx:flex ppx:gap-1 ppx:rounded-full ppx:border ppx:border-border ppx:p-1'}>
                     {(['desktop', 'tablet', 'phone'] as Device[]).map((name) => (
                         <button
                             key={name}
