@@ -2,13 +2,36 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, Dialog, Input, NamedIcon, Spinner, Switch, TitledGreyBox, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { playerAction, type PlayerAction, type PlayerSummary } from '../../api/players';
 import type { PlayerState } from '../../lib/player';
+import { ItemIcon } from './ItemSlot';
 
-const GAME_MODES = [
-    { value: 'survival', label: 'Survival', icon: 'sword' },
-    { value: 'creative', label: 'Creative', icon: 'box' },
-    { value: 'adventure', label: 'Adventure', icon: 'map' },
-    { value: 'spectator', label: 'Spectator', icon: 'circle-dot' },
-] as const;
+/** Each button shows a picture from the game: an item, or the heart from the HUD. */
+type Picture = { item: string } | { sprite: string };
+
+const GAME_MODES: { value: string; label: string; picture: Picture }[] = [
+    { value: 'survival', label: 'Survival', picture: { item: 'minecraft:diamond_sword' } },
+    { value: 'creative', label: 'Creative', picture: { item: 'minecraft:crafting_table' } },
+    { value: 'adventure', label: 'Adventure', picture: { item: 'minecraft:map' } },
+    { value: 'spectator', label: 'Spectator', picture: { item: 'minecraft:spyglass' } },
+];
+
+const ACTIONS: { action: 'heal' | 'feed' | 'starve' | 'kill'; label: string; picture: Picture }[] = [
+    { action: 'heal', label: 'Heal', picture: { sprite: 'https://assets.mcasset.cloud/1.21.11/assets/minecraft/textures/gui/sprites/hud/heart/full.png' } },
+    { action: 'feed', label: 'Feed', picture: { item: 'minecraft:cooked_beef' } },
+    { action: 'starve', label: 'Starve', picture: { item: 'minecraft:rotten_flesh' } },
+    { action: 'kill', label: 'Kill', picture: { item: 'minecraft:skeleton_skull' } },
+];
+
+function GamePicture({ picture }: { picture: Picture }) {
+    return (
+        <span className={'mcs:inline-flex mcs:size-4 mcs:shrink-0 mcs:items-center mcs:justify-center'} aria-hidden>
+            {'sprite' in picture ? (
+                <img src={picture.sprite} alt={''} draggable={false} className={'mcs-pixelated mcs:size-full mcs:object-contain'} />
+            ) : (
+                <ItemIcon item={{ id: picture.item, count: 1, slot: -1, name: null, lore: [], enchantments: [], stored: [], damage: 0, maxDamage: null, unbreakable: false }} version={null} />
+            )}
+        </span>
+    );
+}
 
 type Access = 'op' | 'whitelisted' | 'banned';
 
@@ -124,7 +147,7 @@ export default function ControlPanel({ identifier, player, state, running, onDon
                                 title={offline}
                                 onClick={() => currentMode !== mode.value && setMode(mode.value)}
                             >
-                                {busy('gamemode') && currentMode === mode.value ? <Spinner size={'small'} /> : <NamedIcon name={mode.icon} size={14} />} {mode.label}
+                                {busy('gamemode') && currentMode === mode.value ? <Spinner size={'small'} /> : <GamePicture picture={mode.picture} />} {mode.label}
                             </Button>
                         ))}
                     </div>
@@ -147,16 +170,9 @@ export default function ControlPanel({ identifier, player, state, running, onDon
                 </div>
 
                 <div className={'mcs:grid mcs:grid-cols-2 mcs:gap-1.5'}>
-                    {(
-                        [
-                            ['heal', 'Heal', 'heart'],
-                            ['feed', 'Feed', 'drumstick'],
-                            ['starve', 'Starve', 'utensils'],
-                            ['kill', 'Kill', 'skull'],
-                        ] as const
-                    ).map(([action, label, icon]) => (
+                    {ACTIONS.map(({ action, label, picture }) => (
                         <Button key={action} size={'small'} isSecondary disabled={!online} isLoading={busy(action)} title={offline} onClick={() => run(action, action)}>
-                            <NamedIcon name={icon} size={14} /> {label}
+                            <GamePicture picture={picture} /> {label}
                         </Button>
                     ))}
                 </div>
