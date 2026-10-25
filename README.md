@@ -35,20 +35,11 @@ Prism is a set of extensions for Pterodactyl Panel 2.0. Install only the ones yo
 | **[Prism MC](prism-mc)** | Players, a world map, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers. |
 | **[Prism Terraria](prism-terraria)** | Players, settings, versions, a world map, tModLoader mods and TShock plugins. |
 
-### Pumpkin plugins
-
-[`pumpkin-plugins/`](pumpkin-plugins) contains native plugins for the [Pumpkin](https://github.com/Pumpkin-MC/Pumpkin) Minecraft server, written in Rust.
-
-| Plugin | Description |
-| --- | --- |
-| **[Control That Speed](pumpkin-plugins/control-that-speed)** | Speed multipliers for walking, flying, sneaking and mining. |
-
 ## Requirements
 
 - Pterodactyl Panel `2.0` with extension SDK `>= 2.0.0-beta.6`
 - PHP `8.3`
 - Node.js and npm, to build the extensions
-- Rust, only to build the Pumpkin plugins
 
 ## Getting started
 
@@ -95,10 +86,9 @@ PORTAINER_PASS=... node scripts/deploy.mjs --ext prism-files
 
 ```
 prism/
-├── prism-*/           Panel extensions
-├── pumpkin-plugins/   Rust plugins for Pumpkin servers
-├── scripts/           Deploy, API and data generation helpers
-└── .panel/            Pterodactyl Panel source (cloned separately, ignored by git)
+├── prism-*/    Panel extensions
+├── scripts/    Deploy, API and data generation helpers
+└── .panel/     Pterodactyl Panel source (cloned separately, ignored by git)
 ```
 
 ---
