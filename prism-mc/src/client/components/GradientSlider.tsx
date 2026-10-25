@@ -1,6 +1,7 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { NamedIcon, Tooltip, cn } from '@pterodactyl/sdk';
 import { colourAt, type GradientStop } from '../lib/motd';
+import ColorPicker from './ColorPicker';
 
 /** Pixels a handle can be dragged off the line before letting go removes it. */
 const TEAR_OFF = 36;
@@ -99,7 +100,7 @@ export default function GradientSlider({ stops, onChange }: { stops: GradientSto
                 </div>
             </div>
             <div className={'mcs:flex mcs:items-center mcs:gap-1.5'}>
-                <input type={'color'} value={current.hex} onChange={(event) => update(stops.indexOf(current), { hex: event.target.value.toLowerCase() })} className={'mcs:h-8 mcs:w-9 mcs:cursor-pointer mcs:rounded mcs:border mcs:border-border mcs:bg-transparent'} aria-label={'Color of the selected handle'} />
+                <ColorPicker value={current.hex} onChange={(hex) => update(stops.indexOf(current), { hex })} label={'Color of the selected handle'} />
                 <span className={'mcs:w-16 mcs:font-mono mcs:text-xs mcs:text-muted-foreground'}>{current.hex.toUpperCase()}</span>
                 <Tooltip content={stops.length <= 2 ? 'A gradient needs two colors' : 'Remove this color (or drag it off the line)'}>
                     <button

@@ -3,8 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Button, ButtonStyle, CopyOnClick, Dialog, DropdownMenu, DropdownMenuItem, Input, Label, NamedIcon, TextArea, Tooltip, cn, http, httpErrorToHuman, toast, useDebouncedCallback } from '@pterodactyl/sdk';
 import { getStatus, keys } from '../api/client';
 import { renameServer } from '../api/properties';
-import { applyCode, insertAt } from '../lib/ampersand';
-import { COLORS, MOTD_WIDTH, STYLES, SYMBOLS, centerLine, fromAmpersand, gradient, lineWidth, normalizeMotd, rainbow, supportsHex, toAmpersand, toPropertiesValue, type GradientStop } from '../lib/motd';
+import { applyCode, formatSelection, insertAt, type Change, type Edited } from '../lib/ampersand';
+import { COLORS, MOTD_WIDTH, STYLES, SYMBOLS, centerLine, fromAmpersand, gradientColors, lineWidth, normalizeMotd, rainbowColors, supportsHex, toAmpersand, toPropertiesValue, type GradientStop } from '../lib/motd';
+import ColorPicker from './ColorPicker';
 import GradientSlider from './GradientSlider';
 import IconUpload from './IconUpload';
 import ServerListPreview from './ServerListPreview';
@@ -29,6 +30,8 @@ const splitLines = (motd: string): [string, string] => {
 
     return [first, second];
 };
+
+type StyleKey = Extract<Change, { toggle: unknown }>['toggle'];
 
 const STYLE_ICONS: Record<string, string> = { l: 'bold', o: 'italic', n: 'underline', m: 'strikethrough', k: 'sparkles' };
 
@@ -71,7 +74,7 @@ function Tool({ label, onClick, children, disabled }: { label: string; onClick: 
 export default function MotdEditor({ server, software, motd, icon, serverName, canRename, maxPlayers, onSave, onIconChange }: Props) {
     const [lines, setLines] = useState<[string, string]>(() => splitLines(motd));
     const [focused, setFocused] = useState<0 | 1>(0);
-    const [hex, setHex] = useState('#54DAF4');
+    const [hex, setHex] = useState('#54daf4');
     const [stops, setStops] = useState<GradientStop[]>([
         { at: 0, hex: '#54daf4' },
         { at: 1, hex: '#c77dff' },
@@ -121,7 +124,7 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
     const setLine = (line: 0 | 1, value: string) => update(line === 0 ? [value, lines[1]] : [lines[0], value]);
 
     /** Runs an edit against the focused line's selection and puts the cursor back. */
-    const edit = (change: (text: string, start: number, end: number) => { text: string; cursor: number }) => {
+    const edit = (change: (text: string, start: number, end: number) => Edited) => {
         const input = inputs[focused].current;
         const text = lines[focused];
         const start = input?.selectionStart ?? text.length;
@@ -130,17 +133,21 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
         setLine(focused, result.text);
         requestAnimationFrame(() => {
             input?.focus();
-            input?.setSelectionRange(result.cursor, result.cursor);
+            input?.setSelectionRange(result.anchor ?? result.cursor, result.cursor);
         });
     };
 
-    /** Colours the selection, or the whole line, with a run of colours. */
-    const paint = (colour: (text: string) => string) =>
+    /**
+     * Formats the selected characters, whatever colours and styles they already have. With nothing
+     * selected, a colour, style or reset is written at the cursor for what is typed next, and a
+     * rainbow or gradient colours the whole line.
+     */
+    const formatWith = (change: Change, code?: string) =>
         edit((text, start, end) => {
-            const [from, to] = start === end ? [0, text.length] : [start, end];
-            const coloured = toAmpersand(colour(fromAmpersand(text.slice(from, to))));
+            if (start !== end) return formatSelection(text, start, end, change);
+            if (code !== undefined) return applyCode(text, start, end, code);
 
-            return { text: text.slice(0, from) + coloured + '&r' + text.slice(to), cursor: from + coloured.length + 2 };
+            return formatSelection(text, 0, text.length, change);
         });
 
     const center = (line: 0 | 1) => setLine(line, toAmpersand(centerLine(fromAmpersand(lines[line]))));
@@ -208,31 +215,44 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
                 <section className={box}>
                     {/* The toolbar works on the line with the cursor, or its selection. */}
                     <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-1 mcs:border-b mcs:border-border mcs:px-2 mcs:py-1.5'}>
-                        <div className={'mcs:grid mcs:grid-cols-8 mcs:gap-1 mcs:pr-1'}>
+                        <div className={cn('mcs:grid mcs:gap-1 mcs:pr-1', hexAllowed ? 'mcs:grid-cols-10' : 'mcs:grid-cols-8')}>
                             {COLORS.map((color) => (
                                 <Tooltip key={color.code} content={`${color.name} · &${color.code}`}>
                                     <button
                                         type={'button'}
                                         aria-label={color.name}
                                         onMouseDown={(event) => event.preventDefault()}
-                                        onClick={() => edit((text, start, end) => applyCode(text, start, end, color.code))}
+                                        onClick={() => formatWith({ color: color.code }, color.code)}
                                         className={'mcs:size-5 mcs:cursor-pointer mcs:rounded-sm mcs:border mcs:border-black/30 mcs:transition-transform mcs:hover:scale-110'}
                                         style={{ backgroundColor: color.hex }}
                                     />
                                 </Tooltip>
                             ))}
+                            {hexAllowed && (
+                                <ColorPicker
+                                    value={hex}
+                                    label={'Any color: pick one for the selection'}
+                                    confirm={'Apply color'}
+                                    hint={'Applies to the selected text, or to what you type next when nothing is selected.'}
+                                    onChange={(picked) => {
+                                        setHex(picked);
+                                        formatWith({ color: picked }, picked);
+                                    }}
+                                    className={'mcs:col-start-9 mcs:col-end-11 mcs:row-start-1 mcs:row-end-3 mcs:size-11'}
+                                />
+                            )}
                         </div>
                         <span className={'mcs:mx-1 mcs:h-8 mcs:w-px mcs:bg-border'} />
                         {STYLES.map((style) => (
-                            <Tool key={style.code} label={`${style.name} · &${style.code}`} onClick={() => edit((text, start, end) => applyCode(text, start, end, style.code))}>
+                            <Tool key={style.code} label={`${style.name} · &${style.code}`} onClick={() => formatWith({ toggle: style.key as StyleKey }, style.code)}>
                                 <NamedIcon name={STYLE_ICONS[style.code] ?? 'type'} size={15} />
                             </Tool>
                         ))}
-                        <Tool label={'Reset formatting · &r'} onClick={() => edit((text, start, end) => insertAt(text, start, end, '&r'))}>
+                        <Tool label={'Reset formatting · &r'} onClick={() => formatWith({ reset: true }, 'r')}>
                             <NamedIcon name={'remove-formatting'} size={15} />
                         </Tool>
                         <span className={'mcs:mx-1 mcs:h-8 mcs:w-px mcs:bg-border'} />
-                        <Tool label={'Rainbow: color the selection, or the line, along the spectrum'} onClick={() => paint((text) => rainbow(text, hexAllowed))}>
+                        <Tool label={'Rainbow: color the selection, or the line, along the spectrum'} onClick={() => formatWith({ colors: (count) => rainbowColors(count, hexAllowed) })}>
                             <NamedIcon name={'rainbow'} size={15} />
                         </Tool>
                         <DropdownMenu
@@ -252,24 +272,16 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
                         </DropdownMenu>
                     </div>
 
-                    {/* Hex colours and gradients, where the server software reads them. */}
+                    {/* Gradients, where the server software reads hex colours. */}
                     <div className={'mcs:flex mcs:flex-col mcs:gap-2 mcs:border-b mcs:border-border mcs:bg-muted/20 mcs:px-3 mcs:py-2'}>
                         {hexAllowed ? (
                             <>
-                                <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
-                                    <span className={'mcs:w-16 mcs:text-xs mcs:font-medium mcs:text-muted-foreground'}>Color</span>
-                                    <input type={'color'} value={hex} onChange={(event) => setHex(event.target.value.toUpperCase())} className={'mcs:h-8 mcs:w-9 mcs:cursor-pointer mcs:rounded mcs:border mcs:border-border mcs:bg-transparent'} aria-label={'Hex color'} />
-                                    <Input value={hex} onChange={(event) => setHex(event.target.value)} className={'mcs:w-24 mcs:font-mono'} aria-label={'Hex color code'} />
-                                    <Button size={'xsmall'} isSecondary disabled={!/^#[0-9a-fA-F]{6}$/.test(hex)} onMouseDown={(event) => event.preventDefault()} onClick={() => edit((text, start, end) => applyCode(text, start, end, hex.toLowerCase()))}>
-                                        Apply color
-                                    </Button>
-                                </div>
                                 <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
                                     <span className={'mcs:w-16 mcs:text-xs mcs:font-medium mcs:text-muted-foreground'}>Gradient</span>
                                     <div className={'mcs:min-w-0 mcs:flex-1'}>
                                         <GradientSlider stops={stops} onChange={setStops} />
                                     </div>
-                                    <Button size={'xsmall'} isSecondary onMouseDown={(event) => event.preventDefault()} onClick={() => paint((text) => gradient(text, stops))}>
+                                    <Button size={'xsmall'} isSecondary onMouseDown={(event) => event.preventDefault()} onClick={() => formatWith({ colors: (count) => gradientColors(count, stops) })}>
                                         Apply gradient
                                     </Button>
                                 </div>

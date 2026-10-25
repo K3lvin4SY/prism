@@ -212,6 +212,16 @@ export function rainbow(text: string, hex: boolean, styles = ''): string {
         .join('');
 }
 
+/** A rainbow's colour for each of `count` characters: legacy codes cycling, or hex (`#rrggbb`) along the spectrum. */
+export function rainbowColors(count: number, hex: boolean): string[] {
+    return Array.from({ length: count }, (_, index) => (hex ? `#${hslToHex(count <= 1 ? 0 : (index / count) * 300, 100, 60)}` : RAINBOW_CODES[index % RAINBOW_CODES.length]));
+}
+
+/** A gradient's colour (`#rrggbb`) for each of `count` characters, the first and last on its ends. */
+export function gradientColors(count: number, stops: readonly GradientStop[]): string[] {
+    return Array.from({ length: count }, (_, index) => `#${colourAt(stops, count <= 1 ? 0 : index / (count - 1))}`);
+}
+
 /** A colour on a gradient: its place from 0 to 1 and its #rrggbb. */
 export interface GradientStop {
     at: number;
