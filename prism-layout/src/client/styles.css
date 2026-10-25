@@ -136,7 +136,7 @@ html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:has(+ .pla-dock-ite
 }
 /* #endregion the folding sidebar */
 
-/* #region server cards; --pla-egg is the card's game colour */
+/* #region server cards; --pla-egg is the card's game color */
 .pla-card-banner {
     background:
         linear-gradient(to bottom, transparent, var(--card)),
@@ -155,7 +155,7 @@ html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:has(+ .pla-dock-ite
         inset 0 0 18px color-mix(in oklab, var(--pla-egg, var(--primary)) 8%, transparent);
 }
 
-/* The game's colour on the styles without a picture or tint of their own. */
+/* The game's color on the styles without a picture or tint of their own. */
 .pla-card-egg[data-style='outline'] {
     border-color: color-mix(in oklab, var(--pla-egg) 55%, transparent);
 }

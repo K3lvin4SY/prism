@@ -17,7 +17,7 @@ interface CustomRule {
     pattern: string;
     regex: boolean;
     caseSensitive: boolean;
-    colour: string;
+    color: string;
 }
 
 interface Highlights {
@@ -38,7 +38,7 @@ export function HighlightsEditor({ value, onChange }: { value: unknown; onChange
             <div className={'ppx:grid ppx:gap-1 ppx:sm:grid-cols-2'}>
                 {BUILTIN_HIGHLIGHTS.map((rule) => (
                     <label key={rule.key} className={'ppx:flex ppx:items-center ppx:gap-2 ppx:rounded-md ppx:px-2 ppx:py-1.5 ppx:text-sm ppx:hover:bg-muted/50'}>
-                        <span className={'ppx:size-3 ppx:rounded-full'} style={{ background: rule.colour }} />
+                        <span className={'ppx:size-3 ppx:rounded-full'} style={{ background: rule.color }} />
                         <span className={'ppx:flex-1'}>{rule.label}</span>
                         <Checkbox checked={builtin[rule.key] !== false} onChange={(checked) => update({ builtin: { ...builtin, [rule.key]: checked }, custom })} />
                     </label>
@@ -49,12 +49,12 @@ export function HighlightsEditor({ value, onChange }: { value: unknown; onChange
                     <div key={index} className={row}>
                         <input
                             type={'color'}
-                            value={rule.colour}
-                            onChange={(event) => setRule(index, { colour: event.target.value })}
+                            value={rule.color}
+                            onChange={(event) => setRule(index, { color: event.target.value })}
                             className={'ppx:size-8 ppx:cursor-pointer ppx:rounded ppx:border-0 ppx:bg-transparent'}
-                            aria-label={'Colour'}
+                            aria-label={'Color'}
                         />
-                        <Input value={rule.pattern} onChange={(event) => setRule(index, { pattern: event.target.value })} placeholder={rule.regex ? 'Pattern, such as \\bkicked\\b' : 'Text to colour'} className={'ppx:min-w-48 ppx:flex-1 ppx:font-mono'} />
+                        <Input value={rule.pattern} onChange={(event) => setRule(index, { pattern: event.target.value })} placeholder={rule.regex ? 'Pattern, such as \\bkicked\\b' : 'Text to color'} className={'ppx:min-w-48 ppx:flex-1 ppx:font-mono'} />
                         <label className={'ppx:flex ppx:items-center ppx:gap-1.5 ppx:text-xs'}>
                             <Checkbox checked={rule.regex} onChange={(checked) => setRule(index, { regex: checked })} /> Regex
                         </label>
@@ -67,7 +67,7 @@ export function HighlightsEditor({ value, onChange }: { value: unknown; onChange
                     </div>
                 ))}
                 <div>
-                    <Button size={'small'} isSecondary onClick={() => update({ builtin, custom: [...custom, { pattern: '', regex: false, caseSensitive: false, colour: '#f472b6' }] })}>
+                    <Button size={'small'} isSecondary onClick={() => update({ builtin, custom: [...custom, { pattern: '', regex: false, caseSensitive: false, color: '#f472b6' }] })}>
                         <NamedIcon name={'plus'} size={14} /> Add a rule
                     </Button>
                 </div>

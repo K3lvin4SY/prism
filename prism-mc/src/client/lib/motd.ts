@@ -1,6 +1,6 @@
 /**
  * Minecraft formatted text. The canonical form is legacy text with `§` codes and `\n` between
- * lines, which is what server.properties stores once its escapes are decoded. Hex colours use
+ * lines, which is what server.properties stores once its escapes are decoded. Hex colors use
  * the Bukkit `§x§r§r§g§g§b§b` form.
  */
 
@@ -52,7 +52,7 @@ const plainStyle = (): Style => ({ color: null, bold: false, italic: false, unde
 
 /**
  * Reads a MOTD in any common form: a server.properties line or value (with § and \n
- * escapes), text with § codes, or text with & codes and &#RRGGBB hex colours.
+ * escapes), text with § codes, or text with & codes and &#RRGGBB hex colors.
  */
 export function normalizeMotd(input: string): string {
     // Leading spaces stay: they are how a line is centred in the server list.
@@ -191,8 +191,8 @@ export function parseMotd(motd: string): Segment[][] {
 const RAINBOW_CODES = ['c', '6', 'e', 'a', 'b', '9', 'd'];
 
 /**
- * Colours every visible character along the spectrum. Hex output gives a smooth gradient;
- * otherwise the seven bright legacy colours cycle.
+ * Colors every visible character along the spectrum. Hex output gives a smooth gradient;
+ * otherwise the seven bright legacy colors cycle.
  */
 export function rainbow(text: string, hex: boolean, styles = ''): string {
     const characters = [...stripCodes(text)];
@@ -212,17 +212,17 @@ export function rainbow(text: string, hex: boolean, styles = ''): string {
         .join('');
 }
 
-/** A rainbow's colour for each of `count` characters: legacy codes cycling, or hex (`#rrggbb`) along the spectrum. */
+/** A rainbow's color for each of `count` characters: legacy codes cycling, or hex (`#rrggbb`) along the spectrum. */
 export function rainbowColors(count: number, hex: boolean): string[] {
     return Array.from({ length: count }, (_, index) => (hex ? `#${hslToHex(count <= 1 ? 0 : (index / count) * 300, 100, 60)}` : RAINBOW_CODES[index % RAINBOW_CODES.length]));
 }
 
-/** A gradient's colour (`#rrggbb`) for each of `count` characters, the first and last on its ends. */
+/** A gradient's color (`#rrggbb`) for each of `count` characters, the first and last on its ends. */
 export function gradientColors(count: number, stops: readonly GradientStop[]): string[] {
-    return Array.from({ length: count }, (_, index) => `#${colourAt(stops, count <= 1 ? 0 : index / (count - 1))}`);
+    return Array.from({ length: count }, (_, index) => `#${colorAt(stops, count <= 1 ? 0 : index / (count - 1))}`);
 }
 
-/** A colour on a gradient: its place from 0 to 1 and its #rrggbb. */
+/** A color on a gradient: its place from 0 to 1 and its #rrggbb. */
 export interface GradientStop {
     at: number;
     hex: string;
@@ -230,8 +230,8 @@ export interface GradientStop {
 
 const channels = (hex: string) => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
 
-/** The colour at a place on a gradient of any number of stops, as rrggbb. */
-export function colourAt(stops: readonly GradientStop[], t: number): string {
+/** The color at a place on a gradient of any number of stops, as rrggbb. */
+export function colorAt(stops: readonly GradientStop[], t: number): string {
     const sorted = [...stops].sort((a, b) => a.at - b.at);
     const place = Math.min(1, Math.max(0, t));
     const after = sorted.findIndex((stop) => stop.at >= place);
@@ -244,7 +244,7 @@ export function colourAt(stops: readonly GradientStop[], t: number): string {
     return a.map((channel, index) => Math.round(channel + (b[index] - channel) * mix).toString(16).padStart(2, '0')).join('');
 }
 
-/** Colours every visible character along a gradient of any number of stops. */
+/** Colors every visible character along a gradient of any number of stops. */
 export function gradient(text: string, stops: readonly GradientStop[], styles = ''): string {
     const characters = [...stripCodes(text)];
     const visible = characters.filter((char) => char !== ' ').length;
@@ -255,7 +255,7 @@ export function gradient(text: string, stops: readonly GradientStop[], styles = 
             if (char === ' ') return char;
             const t = visible <= 1 ? 0 : index++ / (visible - 1);
 
-            return `${hexToSection(colourAt(stops, t))}${styles}${char}`;
+            return `${hexToSection(colorAt(stops, t))}${styles}${char}`;
         })
         .join('');
 }
@@ -304,7 +304,7 @@ export function centerLine(line: string): string {
 
 export const SYMBOLS = ['★', '☆', '✦', '✧', '❤', '♥', '✔', '✖', '➤', '►', '◄', '•', '●', '◆', '♦', '♣', '♠', '☀', '☁', '☂', '⚔', '⛏', '✪', '⚡', '♪', '♫', '«', '»', '▪', '▶', '◀', '┃', '│'];
 
-/** Whether the server software reads hex colours in the MOTD. */
+/** Whether the server software reads hex colors in the MOTD. */
 export function supportsHex(software: string | null | undefined): boolean {
     return ['paper', 'purpur', 'spigot', 'folia', 'pufferfish', 'leaf', 'mohist', 'arclight'].includes(software ?? '');
 }

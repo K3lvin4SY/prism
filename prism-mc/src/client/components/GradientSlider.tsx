@@ -1,17 +1,17 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { Tooltip, cn } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
-import { colourAt, type GradientStop } from '../lib/motd';
+import { colorAt, type GradientStop } from '../lib/motd';
 import ColorPicker from './ColorPicker';
 
 /** Pixels a handle can be dragged off the line before letting go removes it. */
 const TEAR_OFF = 36;
 
 /**
- * A gradient as a slider: a line in the gradient's colours with a handle for each colour on it.
- * Click the line to add a colour there, drag a handle to move it, and select one to change its
- * colour beside the slider or to remove it (the bin, Delete, or dragging it off the line).
- * There are always at least two colours.
+ * A gradient as a slider: a line in the gradient's colors with a handle for each color on it.
+ * Click the line to add a color there, drag a handle to move it, and select one to change its
+ * color beside the slider or to remove it (the bin, Delete, or dragging it off the line).
+ * There are always at least two colors.
  */
 export default function GradientSlider({ stops, onChange }: { stops: GradientStop[]; onChange: (stops: GradientStop[]) => void }) {
     const track = useRef<HTMLDivElement>(null);
@@ -38,7 +38,7 @@ export default function GradientSlider({ stops, onChange }: { stops: GradientSto
     const add = (event: PointerEvent<HTMLDivElement>) => {
         if (event.target !== event.currentTarget) return;
         const at = placeOf(event.clientX);
-        onChange([...stops, { at, hex: `#${colourAt(stops, at)}` }]);
+        onChange([...stops, { at, hex: `#${colorAt(stops, at)}` }]);
         setSelected(stops.length);
     };
 
@@ -76,7 +76,7 @@ export default function GradientSlider({ stops, onChange }: { stops: GradientSto
     return (
         <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-3'}>
             <div className={'mcs:relative mcs:min-w-56 mcs:flex-1 mcs:py-3'}>
-                {/* The line; clicking it adds a colour where it was clicked. */}
+                {/* The line; clicking it adds a color where it was clicked. */}
                 <div ref={track} onPointerDown={add} className={'mcs:relative mcs:h-1.5 mcs:cursor-copy mcs:rounded-full'} style={{ background }} title={'Click to add a color here'}>
                     {stops.map((stop, index) => (
                         <button

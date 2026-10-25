@@ -5,7 +5,7 @@ import { classify, compileRules, highlightRanges, makeLine, paint, searchRanges,
 import { PullTracker } from './pull';
 
 describe('parseAnsi', () => {
-    it('splits colours and resets', () => {
+    it('splits colors and resets', () => {
         const segments = parseAnsi('\x1b[31mred\x1b[0m plain \x1b[1;92mbold green');
         expect(segments).toEqual([
             { text: 'red', fg: 'var(--terminal-ansi-red)' },
@@ -14,7 +14,7 @@ describe('parseAnsi', () => {
         ]);
     });
 
-    it('reads 256 and true colours', () => {
+    it('reads 256 and true colors', () => {
         expect(parseAnsi('\x1b[38;5;196mx')[0].fg).toBe('rgb(255, 0, 0)');
         expect(parseAnsi('\x1b[38;2;1;2;3mx')[0].fg).toBe('rgb(1, 2, 3)');
     });
@@ -39,9 +39,9 @@ describe('classify', () => {
 });
 
 describe('highlights and search', () => {
-    it('colours matches and keeps the rest', () => {
+    it('colors matches and keeps the rest', () => {
         const line = makeLine('[INFO]: Steve joined the game from 10.0.0.5:51234');
-        const rules = compileRules([{ builtin: { info: false }, custom: [{ pattern: 'game', regex: false, caseSensitive: true, colour: '#ff00ff' }] }]);
+        const rules = compileRules([{ builtin: { info: false }, custom: [{ pattern: 'game', regex: false, caseSensitive: true, color: '#ff00ff' }] }]);
         const pieces = paint(line.segments, highlightRanges(line, rules));
         expect(pieces.map((piece) => piece.text).join('')).toBe(line.text);
         expect(pieces.find((piece) => piece.text === '10.0.0.5:51234')?.fg).toBe('#c084fc');
@@ -49,7 +49,7 @@ describe('highlights and search', () => {
     });
 
     it('skips invalid custom patterns', () => {
-        expect(() => compileRules([{ builtin: {}, custom: [{ pattern: '(', regex: true, caseSensitive: false, colour: '#fff' }] }])).not.toThrow();
+        expect(() => compileRules([{ builtin: {}, custom: [{ pattern: '(', regex: true, caseSensitive: false, color: '#fff' }] }])).not.toThrow();
     });
 
     it('searches with regex, case and whole word', () => {

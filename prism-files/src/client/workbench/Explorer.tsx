@@ -118,7 +118,7 @@ function Node({ entry, depth, open, toggle, ...props }: Props & { entry: FileEnt
                 )}
             >
                 <NamedIcon name={entry.directory ? (expanded ? 'chevron-down' : 'chevron-right') : 'dot'} size={14} className={cn('pfl:shrink-0', !entry.directory && 'pfl:invisible')} />
-                <NamedIcon name={entry.directory && expanded ? 'folder-open' : icon.icon} size={15} className={cn('pfl:shrink-0', icon.colour)} />
+                <NamedIcon name={entry.directory && expanded ? 'folder-open' : icon.icon} size={15} className={cn('pfl:shrink-0', icon.color)} />
                 <span className={'pfl:min-w-0 pfl:flex-1 pfl:truncate'}>{entry.name}</span>
                 {props.dirty.has(entry.path) && <span className={'pfl:size-2 pfl:shrink-0 pfl:rounded-full pfl:bg-foreground/70'} />}
             </div>

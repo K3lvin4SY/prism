@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { itemName, rarityColour, searchItems } from './items';
+import { itemName, rarityColor, searchItems } from './items';
 
 describe('items', () => {
     it('names items, prefixes and the old copper tool ids of starting kits', () => {
@@ -18,7 +18,7 @@ describe('items', () => {
         expect(searchItems('')).toEqual([]);
     });
 
-    it('colours names by rarity', () => {
-        expect(rarityColour(2)).toBe('#ffffff');
+    it('colors names by rarity', () => {
+        expect(rarityColor(2)).toBe('#ffffff');
     });
 });

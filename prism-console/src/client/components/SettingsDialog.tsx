@@ -6,15 +6,15 @@ import { FONTS, getConfig, type LayoutId, type QuickCommand, type TerminalSettin
 import { AREAS, LAYOUTS, WIDGETS, normaliseCustom } from '../layouts';
 import type { CustomRule, HighlightSettings } from '../lib/lines';
 
-const BUILTIN: { key: string; label: string; colour: string }[] = [
-    { key: 'errors', label: 'Errors', colour: '#f87171' },
-    { key: 'warnings', label: 'Warnings', colour: '#fbbf24' },
-    { key: 'joins', label: 'Player joins and leaves', colour: '#4ade80' },
-    { key: 'chat', label: 'Chat', colour: '#93c5fd' },
-    { key: 'ready', label: 'Server ready', colour: '#34d399' },
-    { key: 'info', label: 'Info lines', colour: '#7dd3fc' },
-    { key: 'debug', label: 'Debug lines', colour: '#94a3b8' },
-    { key: 'ips', label: 'IP addresses', colour: '#c084fc' },
+const BUILTIN: { key: string; label: string; color: string }[] = [
+    { key: 'errors', label: 'Errors', color: '#f87171' },
+    { key: 'warnings', label: 'Warnings', color: '#fbbf24' },
+    { key: 'joins', label: 'Player joins and leaves', color: '#4ade80' },
+    { key: 'chat', label: 'Chat', color: '#93c5fd' },
+    { key: 'ready', label: 'Server ready', color: '#34d399' },
+    { key: 'info', label: 'Info lines', color: '#7dd3fc' },
+    { key: 'debug', label: 'Debug lines', color: '#94a3b8' },
+    { key: 'ips', label: 'IP addresses', color: '#c084fc' },
 ];
 
 type Tab = 'terminal' | 'layout' | 'highlights' | 'quick';
@@ -163,7 +163,7 @@ export default function SettingsDialog({ preferences, terminal, layout, onChange
                             <div className={'pcn:grid pcn:gap-1 pcn:sm:grid-cols-2'}>
                                 {BUILTIN.map((rule) => (
                                     <label key={rule.key} className={'pcn:flex pcn:items-center pcn:gap-2 pcn:rounded-md pcn:px-2 pcn:py-1 pcn:text-sm pcn:hover:bg-muted/50'}>
-                                        <span className={'pcn:size-3 pcn:rounded-full'} style={{ background: rule.colour }} />
+                                        <span className={'pcn:size-3 pcn:rounded-full'} style={{ background: rule.color }} />
                                         <span className={'pcn:flex-1'}>{rule.label}</span>
                                         <Checkbox
                                             checked={highlights.builtin[rule.key] ?? config.highlights.builtin[rule.key] ?? true}
@@ -181,7 +181,7 @@ export default function SettingsDialog({ preferences, terminal, layout, onChange
                                 />
                             ))}
                             <div>
-                                <Button size={'small'} isSecondary onClick={() => onChange({ highlights: { ...highlights, custom: [...highlights.custom, { pattern: '', regex: false, caseSensitive: false, colour: '#f472b6' }] } })}>
+                                <Button size={'small'} isSecondary onClick={() => onChange({ highlights: { ...highlights, custom: [...highlights.custom, { pattern: '', regex: false, caseSensitive: false, color: '#f472b6' }] } })}>
                                     <NamedIcon name={'plus'} size={14} /> Add a rule
                                 </Button>
                             </div>
@@ -222,7 +222,7 @@ export default function SettingsDialog({ preferences, terminal, layout, onChange
 function RuleRow({ rule, onChange, onRemove }: { rule: CustomRule; onChange: (patch: Partial<CustomRule>) => void; onRemove: () => void }) {
     return (
         <div className={'pcn:flex pcn:flex-wrap pcn:items-center pcn:gap-2'}>
-            <input type={'color'} value={rule.colour} onChange={(event) => onChange({ colour: event.target.value })} className={'pcn:size-8 pcn:cursor-pointer pcn:rounded pcn:border-0 pcn:bg-transparent'} aria-label={'Colour'} />
+            <input type={'color'} value={rule.color} onChange={(event) => onChange({ color: event.target.value })} className={'pcn:size-8 pcn:cursor-pointer pcn:rounded pcn:border-0 pcn:bg-transparent'} aria-label={'Color'} />
             <Input value={rule.pattern} onChange={(event) => onChange({ pattern: event.target.value })} placeholder={rule.regex ? 'Pattern' : 'Text'} className={'pcn:min-w-40 pcn:flex-1 pcn:font-mono'} />
             <label className={'pcn:flex pcn:items-center pcn:gap-1 pcn:text-xs'}>
                 <Checkbox checked={rule.regex} onChange={(regex) => onChange({ regex })} /> Regex

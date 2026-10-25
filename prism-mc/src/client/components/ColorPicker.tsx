@@ -26,7 +26,7 @@ function hsvToHex({ h, s, v }: Hsv): string {
     return `#${[f(5), f(3), f(1)].map((channel) => Math.round(channel * 255).toString(16).padStart(2, '0')).join('')}`;
 }
 
-/** Black or white, whichever reads better on the colour. */
+/** Black or white, whichever reads better on the color. */
 const inkOn = (hex: string) => {
     const [r, g, b] = [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
 
@@ -62,9 +62,9 @@ interface Props {
     onChange: (hex: string) => void;
     /** What the swatch does, for its tooltip and the window's title. */
     label: string;
-    /** The button that takes the colour. */
+    /** The button that takes the color. */
     confirm?: string;
-    /** Something to show under the picker, such as what the colour applies to. */
+    /** Something to show under the picker, such as what the color applies to. */
     hint?: ReactNode;
     className?: string;
     /** The pipette's size, for squares larger than the default. */
@@ -72,8 +72,8 @@ interface Props {
 }
 
 /**
- * A square filled with the colour, with a pipette on it. Clicking it opens a window to pick a
- * colour from a saturation and brightness square and a hue slider, or by typing its hex code.
+ * A square filled with the color, with a pipette on it. Clicking it opens a window to pick a
+ * color from a saturation and brightness square and a hue slider, or by typing its hex code.
  */
 export default function ColorPicker({ value, onChange, label, confirm = 'Use this color', hint, className, iconSize = 15 }: Props) {
     const [open, setOpen] = useState(false);
@@ -182,7 +182,7 @@ function PickerDialog({ initial, title, confirm, hint, onClose, onPick }: { init
                 </div>
 
                 <div className={'mcs:flex mcs:items-end mcs:gap-3'}>
-                    {/* The colour picked beside the one it replaces. */}
+                    {/* The color picked beside the one it replaces. */}
                     <div className={'mcs:flex mcs:h-10 mcs:w-20 mcs:shrink-0 mcs:overflow-hidden mcs:rounded-md mcs:shadow-[inset_0_0_0_1px_rgb(0_0_0/0.3)]'} aria-hidden>
                         <span className={'mcs:flex-1'} style={{ backgroundColor: initial }} title={'Before'} />
                         <span className={'mcs:flex-1'} style={{ backgroundColor: hex }} title={'New'} />

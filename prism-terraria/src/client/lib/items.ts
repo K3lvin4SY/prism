@@ -2,14 +2,14 @@ import items from './data/items.json';
 import prefixes from './data/prefixes.json';
 
 /**
- * Terraria item names, prefixes and rarity colours (generated from TEdit's data by
+ * Terraria item names, prefixes and rarity colors (generated from TEdit's data by
  * scripts/gen-terraria-data.mjs). Icons are loaded from the Terraria wiki by item name.
  */
 
 /** Negative "net IDs" are old copper-tool variants still used by starting inventories. */
 const LEGACY: Record<number, number> = { [-13]: 3509, [-14]: 3508, [-15]: 3507, [-16]: 3506 };
 
-const RARITY_COLOURS: Record<string, string> = {
+const RARITY_COLORS: Record<string, string> = {
     Gray: '#828282',
     Blue: '#9696ff',
     Green: '#96ff96',
@@ -38,8 +38,8 @@ export function itemName(netId: number, prefix = 0): string {
     return before ? `${before} ${name}` : name;
 }
 
-export function rarityColour(netId: number): string {
-    return RARITY_COLOURS[items.rarities[itemId(netId)] ?? ''] ?? '#ffffff';
+export function rarityColor(netId: number): string {
+    return RARITY_COLORS[items.rarities[itemId(netId)] ?? ''] ?? '#ffffff';
 }
 
 /** The wiki's picture of an item, found by its file name. */

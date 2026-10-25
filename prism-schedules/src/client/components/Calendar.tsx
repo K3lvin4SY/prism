@@ -5,10 +5,10 @@ import type { Schedule, State } from '../api';
 import { TRIGGER_ICONS, triggerText } from './ScheduleList';
 
 const PALETTE = ['#3b82f6', '#22c55e', '#f59e0b', '#a855f7', '#ef4444', '#14b8a6', '#ec4899', '#6366f1'];
-const colour = (schedule: Schedule, index: number) => schedule.color ?? PALETTE[index % PALETTE.length];
+const color = (schedule: Schedule, index: number) => schedule.color ?? PALETTE[index % PALETTE.length];
 const PER_CELL = 3;
 
-/** The coming week by day and hour, each run a block in its schedule's colour. */
+/** The coming week by day and hour, each run a block in its schedule's color. */
 export default function Calendar({ state, onOpen }: { state: State; onOpen: (id: number) => void }) {
     const [compact, setCompact] = useState(true);
     const days = useMemo(() => {
@@ -48,7 +48,7 @@ export default function Calendar({ state, onOpen }: { state: State; onOpen: (id:
                         .filter((schedule) => schedule.trigger.type === 'cron')
                         .map((schedule) => (
                             <button key={schedule.id} type={'button'} onClick={() => onOpen(schedule.id)} className={cn('psc:flex psc:cursor-pointer psc:items-center psc:gap-1.5 psc:text-xs', (!schedule.enabled || schedule.pausedUntil) && 'psc:line-through psc:opacity-60')}>
-                                <span className={'psc:size-2.5 psc:rounded-sm'} style={{ background: colour(schedule, state.schedules.indexOf(schedule)) }} />
+                                <span className={'psc:size-2.5 psc:rounded-sm'} style={{ background: color(schedule, state.schedules.indexOf(schedule)) }} />
                                 {schedule.name}
                             </button>
                         ))}
@@ -109,7 +109,7 @@ function Row({ hour, days, cells, now, onOpen }: { hour: number; days: Date[]; c
                                 onClick={() => onOpen(schedule.id)}
                                 title={`${schedule.name} · ${at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}${count > 1 ? ` and ${count - 1} more this hour` : ''}`}
                                 className={'psc:min-w-0 psc:flex-1 psc:cursor-pointer psc:truncate psc:rounded psc:px-1.5 psc:py-0.5 psc:text-left psc:text-[11px] psc:font-medium psc:text-white psc:hover:opacity-90'}
-                                style={{ background: colour(schedule, index) }}
+                                style={{ background: color(schedule, index) }}
                             >
                                 {count > 1 ? `${count}×` : `:${String(at.getMinutes()).padStart(2, '0')}`} {schedule.name}
                             </button>

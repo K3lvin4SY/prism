@@ -2,7 +2,7 @@
 // https://github.com/TEdit/Terraria-Map-Editor, src/TEdit.Terraria/Data):
 //   items.json    id → name, rarity
 //   prefixes.json id → name
-//   map.json      tile, wall and global (sky, liquids, …) map colours
+//   map.json      tile, wall and global (sky, liquids, …) map colors
 // Usage: node scripts/gen-terraria-data.mjs <folder with TEdit's items.json, prefixes.json, tiles.json, walls.json, globalColors.json>
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -32,8 +32,8 @@ writeFileSync(new URL('items.json', out), JSON.stringify({ names, rarities }) + 
 const prefixes = read('prefixes.json').map((prefix) => (prefix.name ?? '').trim());
 writeFileSync(new URL('prefixes.json', out), JSON.stringify(prefixes) + '\n');
 
-// "#RRGGBBAA" colours, by id; "" where TEdit has none.
-const colours = (list) => {
+// "#RRGGBBAA" colors, by id; "" where TEdit has none.
+const colors = (list) => {
     const max = Math.max(...list.map((entry) => entry.id ?? 0));
     const result = Array(max + 1).fill('');
     for (const entry of list) {
@@ -43,6 +43,6 @@ const colours = (list) => {
     return result;
 };
 const global = Object.fromEntries(read('globalColors.json').map((entry) => [entry.name, entry.color.slice(0, 7)]));
-writeFileSync(new URL('map.json', out), JSON.stringify({ tiles: colours(read('tiles.json')), walls: colours(read('walls.json')), global }) + '\n');
+writeFileSync(new URL('map.json', out), JSON.stringify({ tiles: colors(read('tiles.json')), walls: colors(read('walls.json')), global }) + '\n');
 
 console.log(`${items.length} items (max id ${maxItem}), ${prefixes.length} prefixes`);

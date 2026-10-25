@@ -337,7 +337,7 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                                     tab.path === state.active ? 'pfl:bg-[var(--editor-background,transparent)] pfl:shadow-[inset_0_2px_0_var(--primary)]' : 'pfl:text-muted-foreground pfl:hover:bg-muted/40'
                                 )}
                             >
-                                <NamedIcon name={icon.icon} size={14} className={icon.colour} />
+                                <NamedIcon name={icon.icon} size={14} className={icon.color} />
                                 <span className={cn(tab.preview && 'pfl:italic')}>{basename(tab.path)}</span>
                                 <button
                                     type={'button'}

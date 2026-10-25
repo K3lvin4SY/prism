@@ -1,4 +1,4 @@
-/** A run of console text in one style. Colours are CSS values. */
+/** A run of console text in one style. Colors are CSS values. */
 export interface Segment {
     text: string;
     fg?: string;
@@ -13,7 +13,7 @@ const NAMES = ['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'wh
 
 const named = (index: number, bright: boolean) => `var(--terminal-ansi-${bright ? 'bright-' : ''}${NAMES[index]})`;
 
-/** The xterm 256-colour palette entry, for 38;5;n. */
+/** The xterm 256-color palette entry, for 38;5;n. */
 function palette(n: number): string {
     if (n < 8) return named(n, false);
     if (n < 16) return named(n - 8, true);
@@ -29,11 +29,11 @@ function palette(n: number): string {
     return `rgb(${grey}, ${grey}, ${grey})`;
 }
 
-// CSI sequences (colours, cursor moves, clears) and OSC sequences (window titles).
+// CSI sequences (colors, cursor moves, clears) and OSC sequences (window titles).
 // eslint-disable-next-line no-control-regex
 const ESCAPES = /\x1b\[([0-9;?]*)([A-Za-z])|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[()][A-Za-z0-9]|\x1b[=>78]/g;
 
-/** Splits a console line into styled segments. Only colour and style codes are kept. */
+/** Splits a console line into styled segments. Only color and style codes are kept. */
 export function parseAnsi(line: string): Segment[] {
     const segments: Segment[] = [];
     let style: Omit<Segment, 'text'> = {};
@@ -68,15 +68,15 @@ export function parseAnsi(line: string): Segment[] {
             else if (code === 39) style = { ...style, fg: undefined };
             else if (code === 49) style = { ...style, bg: undefined };
             else if (code === 38 || code === 48) {
-                let colour: string | undefined;
+                let color: string | undefined;
                 if (codes[i + 1] === 5) {
-                    colour = palette(codes[i + 2] ?? 0);
+                    color = palette(codes[i + 2] ?? 0);
                     i += 2;
                 } else if (codes[i + 1] === 2) {
-                    colour = `rgb(${codes[i + 2] ?? 0}, ${codes[i + 3] ?? 0}, ${codes[i + 4] ?? 0})`;
+                    color = `rgb(${codes[i + 2] ?? 0}, ${codes[i + 3] ?? 0}, ${codes[i + 4] ?? 0})`;
                     i += 4;
                 }
-                style = code === 38 ? { ...style, fg: colour } : { ...style, bg: colour };
+                style = code === 38 ? { ...style, fg: color } : { ...style, bg: color };
             }
         }
     }

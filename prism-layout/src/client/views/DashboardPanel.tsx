@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { PanelLink, bytesToString, cn } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import { NO_FILTERS, filtering, gameTag, matches, readRecent, setFilters, useDashboard, type DashboardServer } from '../dashboard';
-import { eggColour } from '../settings';
+import { eggColor } from '../settings';
 import { itemClass } from './nav';
 
 const online = (server: DashboardServer) => server.power !== null && server.power !== 'offline';
@@ -97,7 +97,7 @@ function FilterPanel() {
                 <div className='pla:flex pla:flex-wrap pla:gap-1.5' role='group' aria-label='Game'>
                     {games.map((game) => (
                         <button key={game} type='button' aria-pressed={filters.game === game} onClick={() => setFilters({ game: filters.game === game ? null : game })} className={chip(filters.game === game)}>
-                            <span className='pla:size-2 pla:rounded-full' style={{ background: eggColour([game]) ?? 'var(--primary)' }} />
+                            <span className='pla:size-2 pla:rounded-full' style={{ background: eggColor([game]) ?? 'var(--primary)' }} />
                             {game}
                         </button>
                     ))}

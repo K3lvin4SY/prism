@@ -40,7 +40,7 @@ final class ServerConsole
         ));
     }
 
-    /** @return list<string> the console's recent lines, without colour codes */
+    /** @return list<string> the console's recent lines, without color codes */
     public function lines(int $count = 100): array
     {
         try {

@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import { pictureApi, pictureKeys, type ServerPicture as Picture } from '../pictures';
-import { cssUrlToken, eggColour, useSettings } from '../settings';
+import { cssUrlToken, eggColor, useSettings } from '../settings';
 
 /**
  * On a server's Settings page: the picture on its dashboard card. The server's own, or else its
@@ -21,7 +21,7 @@ export default function ServerPicture() {
     if (!settings.enabled || settings.cards !== 'banner' || !picture.data?.canChange) return null;
 
     const data = picture.data;
-    const colour = eggColour((server as { egg_tags?: string[] }).egg_tags) ?? 'var(--primary)';
+    const color = eggColor((server as { egg_tags?: string[] }).egg_tags) ?? 'var(--primary)';
     const run = async (action: () => Promise<Picture>, done: string) => {
         setBusy(true);
         try {
@@ -35,7 +35,7 @@ export default function ServerPicture() {
             if (input.current) input.current.value = '';
         }
     };
-    const source = data.source === 'server' ? 'This server’s own picture.' : data.source === 'egg' ? `The default for ${data.egg}.` : data.url ? 'The panel’s default.' : `No picture: a pattern in the game’s colour.`;
+    const source = data.source === 'server' ? 'This server’s own picture.' : data.source === 'egg' ? `The default for ${data.egg}.` : data.url ? 'The panel’s default.' : `No picture: a pattern in the game’s color.`;
 
     return (
         <section className='pt-surface pla:mt-4 pla:flex pla:flex-col pla:gap-3 pla:rounded-lg pla:border pla:border-border pla:bg-card pla:p-4'>
@@ -46,7 +46,7 @@ export default function ServerPicture() {
             <div
                 className='pla:h-24 pla:max-w-md pla:rounded-md pla:border pla:border-border'
                 style={{
-                    background: `linear-gradient(to bottom, transparent, var(--card)), ${data.url ? `${cssUrlToken(data.url)} center / cover, ` : ''}repeating-linear-gradient(135deg, color-mix(in oklab, ${colour} 30%, transparent) 0 12px, color-mix(in oklab, ${colour} 18%, transparent) 12px 24px)`,
+                    background: `linear-gradient(to bottom, transparent, var(--card)), ${data.url ? `${cssUrlToken(data.url)} center / cover, ` : ''}repeating-linear-gradient(135deg, color-mix(in oklab, ${color} 30%, transparent) 0 12px, color-mix(in oklab, ${color} 18%, transparent) 12px 24px)`,
                 }}
                 aria-hidden
             />

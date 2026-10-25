@@ -3,7 +3,7 @@ import { cn } from '@pterodactyl/sdk';
 import { NamedIcon } from '../../icons';
 import type { Tag } from '../../api/content';
 
-/** Loader colours, as Modrinth shows them. */
+/** Loader colors, as Modrinth shows them. */
 export const LOADER_COLORS: Record<string, string> = {
     fabric: '#dbb69b',
     quilt: '#c796f9',

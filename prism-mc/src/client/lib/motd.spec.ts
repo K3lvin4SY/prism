@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { centerLine, fromAmpersand, lineWidth, normalizeMotd, parseLine, rainbow, stripCodes, toAmpersand, toPropertiesValue, colourAt, gradient, hexToSection } from './motd';
+import { centerLine, fromAmpersand, lineWidth, normalizeMotd, parseLine, rainbow, stripCodes, toAmpersand, toPropertiesValue, colorAt, gradient, hexToSection } from './motd';
 
 describe('normalizeMotd', () => {
     it('reads a server.properties line with unicode escapes', () => {
@@ -33,23 +33,23 @@ describe('round trips', () => {
 });
 
 describe('parseLine', () => {
-    it('resets styles on a colour code, as the client does', () => {
+    it('resets styles on a color code, as the client does', () => {
         const segments = parseLine('§l§aGreen');
         expect(segments).toHaveLength(1);
         expect(segments[0]).toMatchObject({ text: 'Green', color: '#55FF55', bold: false });
     });
 
-    it('applies styles after a colour', () => {
+    it('applies styles after a color', () => {
         expect(parseLine('§a§lBold green')[0]).toMatchObject({ color: '#55FF55', bold: true });
     });
 
-    it('reads hex colours', () => {
+    it('reads hex colors', () => {
         expect(parseLine('§x§5§4§d§a§f§4Hi')[0].color).toBe('#54DAF4');
     });
 });
 
 describe('helpers', () => {
-    it('colours each visible character for rainbow text', () => {
+    it('colors each visible character for rainbow text', () => {
         const result = rainbow('ab c', false);
         expect(stripCodes(result)).toBe('ab c');
         expect(result.startsWith('§c')).toBe(true);
@@ -83,18 +83,18 @@ describe('gradient', () => {
     ];
 
     it('blends between the stops either side, in any order', () => {
-        expect(colourAt(stops, 0)).toBe('000000');
-        expect(colourAt(stops, 0.25)).toBe('800000');
-        expect(colourAt([...stops].reverse(), 0.75)).toBe('800080');
-        expect(colourAt(stops, 1)).toBe('0000ff');
+        expect(colorAt(stops, 0)).toBe('000000');
+        expect(colorAt(stops, 0.25)).toBe('800000');
+        expect(colorAt([...stops].reverse(), 0.75)).toBe('800080');
+        expect(colorAt(stops, 1)).toBe('0000ff');
     });
 
-    it('holds the end colours beyond the first and last stop', () => {
-        expect(colourAt([{ at: 0.2, hex: '#112233' }, { at: 0.8, hex: '#445566' }], 0)).toBe('112233');
-        expect(colourAt([{ at: 0.2, hex: '#112233' }, { at: 0.8, hex: '#445566' }], 1)).toBe('445566');
+    it('holds the end colors beyond the first and last stop', () => {
+        expect(colorAt([{ at: 0.2, hex: '#112233' }, { at: 0.8, hex: '#445566' }], 0)).toBe('112233');
+        expect(colorAt([{ at: 0.2, hex: '#112233' }, { at: 0.8, hex: '#445566' }], 1)).toBe('445566');
     });
 
-    it('colours each visible character and leaves spaces alone', () => {
+    it('colors each visible character and leaves spaces alone', () => {
         const out = gradient('a b', [{ at: 0, hex: '#000000' }, { at: 1, hex: '#ffffff' }]);
         expect(stripCodes(out)).toBe('a b');
         expect(out.startsWith(hexToSection('000000'))).toBe(true);

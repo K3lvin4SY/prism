@@ -49,7 +49,7 @@ export default function LayoutPresets({ values, onPick }: { values: Record<strin
     );
 }
 
-/** A small drawing of a layout: its bars, page width and cards, in the theme's colours. */
+/** A small drawing of a layout: its bars, page width and cards, in the theme's colors. */
 function Wireframe({ settings }: { settings: Record<string, unknown> }) {
     const classic = settings.enabled === false;
     const bars = classic ? 'top' : String(settings.bars);

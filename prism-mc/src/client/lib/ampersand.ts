@@ -1,9 +1,9 @@
 /**
  * Editing helpers for the MOTD line fields, which hold & codes.
  *
- * Formatting a selection works on the line as characters, each with its own colour and styles,
+ * Formatting a selection works on the line as characters, each with its own color and styles,
  * rather than by inserting codes around the selection: a selection that crosses text already
- * coloured differently then changes exactly the characters in it, and the line is written back
+ * colored differently then changes exactly the characters in it, and the line is written back
  * with the fewest codes that give every character its look.
  */
 
@@ -22,7 +22,7 @@ const STYLE_CODES: [StyleKey, string][] = [
 
 const STYLE_BY_CODE = new Map(STYLE_CODES.map(([key, code]) => [code, key]));
 
-/** One visible character: its colour (a legacy code such as `6`, or `#rrggbb`; null for none) and styles. */
+/** One visible character: its color (a legacy code such as `6`, or `#rrggbb`; null for none) and styles. */
 export interface RichChar {
     char: string;
     color: string | null;
@@ -37,7 +37,7 @@ export interface RichChar {
 
 const plain = { color: null, bold: false, italic: false, underline: false, strike: false, obfuscated: false };
 
-/** A line of & codes as characters with their look. A colour resets the styles, as in game. */
+/** A line of & codes as characters with their look. A color resets the styles, as in game. */
 export function parseRich(text: string): RichChar[] {
     const chars: RichChar[] = [];
     let state = { ...plain } as Omit<RichChar, 'char' | 'at'>;
@@ -79,7 +79,7 @@ export function serializeRich(chars: readonly Omit<RichChar, 'at'>[]): { text: s
         if (!invisible && !same(look, state)) {
             const lostStyle = STYLE_CODES.some(([key]) => state[key] && !look[key]);
             if (look.color !== state.color || lostStyle) {
-                // A colour code (or &r) clears every style, so the styles kept are written again.
+                // A color code (or &r) clears every style, so the styles kept are written again.
                 text += look.color === null ? '&r' : `&${look.color}`;
                 for (const [key, code] of STYLE_CODES) if (look[key]) text += `&${code}`;
             } else {
@@ -113,8 +113,8 @@ export interface Edited {
 export type Change ={ color: string | null } | { toggle: StyleKey } | { reset: true } | { colors: (count: number) => string[] };
 
 /**
- * Formats the selected characters and writes the line back: a colour, a style switched on (or off
- * when every selected character has it), a reset, or a colour per visible character for rainbows
+ * Formats the selected characters and writes the line back: a color, a style switched on (or off
+ * when every selected character has it), a reset, or a color per visible character for rainbows
  * and gradients. The formatted characters stay selected, from `anchor` to `cursor`, so more can
  * be applied to them.
  */

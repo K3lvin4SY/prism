@@ -14,7 +14,7 @@ const SLOT_TYPE = 'application/x-prism-slot';
 const ITEM_TYPE = 'application/x-prism-item';
 
 const OUTLINE: Partial<Record<ArmourPart, EmptySlot>> = { head: 'helmet', chest: 'chestplate', legs: 'leggings', feet: 'boots' };
-const COLOURS = ['black', 'dark_blue', 'dark_green', 'dark_aqua', 'dark_red', 'dark_purple', 'gold', 'gray', 'dark_gray', 'blue', 'green', 'aqua', 'red', 'light_purple', 'yellow', 'white'];
+const COLORS = ['black', 'dark_blue', 'dark_green', 'dark_aqua', 'dark_red', 'dark_purple', 'gold', 'gray', 'dark_gray', 'blue', 'green', 'aqua', 'red', 'light_purple', 'yellow', 'white'];
 const HEX: Record<string, string> = { black: '#000000', dark_blue: '#0000AA', dark_green: '#00AA00', dark_aqua: '#00AAAA', dark_red: '#AA0000', dark_purple: '#AA00AA', gold: '#FFAA00', gray: '#AAAAAA', dark_gray: '#555555', blue: '#5555FF', green: '#55FF55', aqua: '#55FFFF', red: '#FF5555', light_purple: '#FF55FF', yellow: '#FFFF55', white: '#FFFFFF' };
 
 const show = (item: CompoundTag): Item | null => readItem(toPlain(item));
@@ -399,13 +399,13 @@ function StyleControls({ style, onChange }: { style: TextStyle; onChange: (style
             <select
                 value={style.color ?? ''}
                 onChange={(event) => onChange({ ...style, color: event.target.value || null })}
-                aria-label={'Colour'}
+                aria-label={'Color'}
                 className={'mcs:rounded-md mcs:border mcs:border-input-border mcs:bg-input mcs:px-2 mcs:py-1 mcs:text-xs'}
             >
-                <option value={''}>Default colour</option>
-                {COLOURS.map((colour) => (
-                    <option key={colour} value={colour}>
-                        {colour.replace(/_/g, ' ')}
+                <option value={''}>Default color</option>
+                {COLORS.map((color) => (
+                    <option key={color} value={color}>
+                        {color.replace(/_/g, ' ')}
                     </option>
                 ))}
             </select>

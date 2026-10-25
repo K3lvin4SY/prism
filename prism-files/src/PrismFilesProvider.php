@@ -39,7 +39,7 @@ class PrismFilesProvider extends ExtensionProvider
             Setting::make('editor_word_wrap', 'editor_word_wrap', false, ['required', 'boolean'])->label('Wrap long lines')->tab('Editor')->field('toggle')->frontend(),
             Setting::make('editor_minimap', 'editor_minimap', true, ['required', 'boolean'])->label('Minimap')->tab('Editor')->field('toggle')->frontend(),
             Setting::make('editor_sticky_scroll', 'editor_sticky_scroll', true, ['required', 'boolean'])->label('Sticky scroll')->tab('Editor')->field('toggle')->frontend(),
-            Setting::make('editor_bracket_colors', 'editor_bracket_colors', true, ['required', 'boolean'])->label('Bracket colours')->tab('Editor')->field('toggle')->frontend(),
+            Setting::make('editor_bracket_colors', 'editor_bracket_colors', true, ['required', 'boolean'])->label('Bracket colors')->tab('Editor')->field('toggle')->frontend(),
             Setting::make('editor_autosave', 'editor_autosave', 'off', ['required', 'string', 'in:off,delay,focus'])->label('Auto save')->tab('Editor')->field('select', $choices(['off' => 'Off', 'delay' => 'After a short pause', 'focus' => 'When the editor loses focus']))->frontend(),
             Setting::make('allow_editor_settings', 'allow_editor_settings', true, ['required', 'boolean'])->label('People may change their own editor')->help('Their own text size, theme, wrap and keybinds.')->tab('Editor')->field('toggle')->frontend(),
 

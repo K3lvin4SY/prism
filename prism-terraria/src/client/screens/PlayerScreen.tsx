@@ -53,7 +53,7 @@ function Slots({ items, range, columns = 10, accent }: { items: Map<number, Char
     );
 }
 
-function Bar({ value, max, colour, label }: { value: number; max: number; colour: string; label: string }) {
+function Bar({ value, max, color, label }: { value: number; max: number; color: string; label: string }) {
     return (
         <div className={'trs:flex trs:flex-col trs:gap-1'}>
             <div className={'trs:flex trs:justify-between trs:text-xs'}>
@@ -63,7 +63,7 @@ function Bar({ value, max, colour, label }: { value: number; max: number; colour
                 </span>
             </div>
             <div className={'trs:h-2 trs:overflow-hidden trs:rounded-full trs:bg-muted'}>
-                <div className={'trs:h-full trs:rounded-full'} style={{ width: `${Math.min(100, (value / Math.max(1, max)) * 100)}%`, background: colour }} />
+                <div className={'trs:h-full trs:rounded-full'} style={{ width: `${Math.min(100, (value / Math.max(1, max)) * 100)}%`, background: color }} />
             </div>
         </div>
     );
@@ -156,8 +156,8 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                             <TitledGreyBox title={'Character'}>
                                 <div className={'trs:flex trs:flex-col trs:gap-4'}>
                                     <div className={'trs:grid trs:gap-3 trs:sm:grid-cols-2'}>
-                                        <Bar value={character.health} max={character.maxHealth} colour={'#e0323c'} label={'Health'} />
-                                        <Bar value={character.mana} max={character.maxMana} colour={'#3c6ee0'} label={'Mana'} />
+                                        <Bar value={character.health} max={character.maxHealth} color={'#e0323c'} label={'Health'} />
+                                        <Bar value={character.mana} max={character.maxMana} color={'#3c6ee0'} label={'Mana'} />
                                     </div>
                                     <div className={'trs:flex trs:flex-wrap trs:gap-2 trs:text-xs trs:text-muted-foreground'}>
                                         <span>{character.questsCompleted} angler quests</span>

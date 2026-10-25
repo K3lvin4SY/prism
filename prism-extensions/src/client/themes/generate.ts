@@ -1,7 +1,7 @@
 import type { Mode, Values } from './presets';
 
 /**
- * A whole palette from one colour: the formulas behind the old Colour setting, the same ones
+ * A whole palette from one color: the formulas behind the old Color setting, the same ones
  * prism-themes/scripts/generate.py uses for Studio, Studio classic and Terminal.
  */
 export type Tint = 'none' | 'subtle' | 'strong';

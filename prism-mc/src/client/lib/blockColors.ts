@@ -1,7 +1,7 @@
 /**
- * Map colours for blocks, worked out from the game's own textures: the average of each
+ * Map colors for blocks, worked out from the game's own textures: the average of each
  * block's top texture, loaded once per session from a public asset mirror. Blocks the game
- * tints by biome get the plains tint, and anything without a texture gets a colour by name.
+ * tints by biome get the plains tint, and anything without a texture gets a color by name.
  */
 
 export type Rgb = [number, number, number];
@@ -18,7 +18,7 @@ const TINTS: [RegExp, Rgb][] = [
     [/^(water|bubble_column)$/, [63, 118, 228]],
 ];
 
-/** Colours by name for blocks whose textures do not say much from above. */
+/** Colors by name for blocks whose textures do not say much from above. */
 const FALLBACKS: [RegExp, Rgb][] = [
     [/water|bubble_column/, [63, 118, 228]],
     [/lava|magma/, [207, 92, 15]],
@@ -92,7 +92,7 @@ function tint(id: string, color: Rgb): Rgb {
     if (!match) return color;
     const [tr, tg, tb] = match[1];
 
-    // The grey texture carries the shading; the tint carries the colour.
+    // The grey texture carries the shading; the tint carries the color.
     return [(color[0] * tr) / 255, (color[1] * tg) / 255, (color[2] * tb) / 255];
 }
 

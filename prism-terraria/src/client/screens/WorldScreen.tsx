@@ -222,12 +222,12 @@ function WorldMap({ image, header, onReload }: { image: ImageData; header: World
         context.fillRect(0, 0, target.width, target.height);
         context.drawImage(full, x, y, image.width * scale, image.height * scale);
 
-        const marker = (tileX: number, tileY: number, colour: string, label: string) => {
+        const marker = (tileX: number, tileY: number, color: string, label: string) => {
             const px = x + (tileX + 0.5) * scale;
             const py = y + (tileY + 0.5) * scale;
             context.beginPath();
             context.arc(px, py, 6, 0, Math.PI * 2);
-            context.fillStyle = colour;
+            context.fillStyle = color;
             context.fill();
             context.lineWidth = 2;
             context.strokeStyle = '#000';

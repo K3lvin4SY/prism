@@ -115,15 +115,15 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
 };
 
 /** Prism Console's built-in highlight rules, in the order they are listed. */
-export const BUILTIN_HIGHLIGHTS: { key: string; label: string; colour: string }[] = [
-    { key: 'errors', label: 'Errors', colour: '#f87171' },
-    { key: 'warnings', label: 'Warnings', colour: '#fbbf24' },
-    { key: 'joins', label: 'Player joins and leaves', colour: '#4ade80' },
-    { key: 'chat', label: 'Chat', colour: '#93c5fd' },
-    { key: 'ready', label: 'Server ready', colour: '#34d399' },
-    { key: 'info', label: 'Info lines', colour: '#cbd5e1' },
-    { key: 'debug', label: 'Debug lines', colour: '#94a3b8' },
-    { key: 'ips', label: 'IP addresses', colour: '#c084fc' },
+export const BUILTIN_HIGHLIGHTS: { key: string; label: string; color: string }[] = [
+    { key: 'errors', label: 'Errors', color: '#f87171' },
+    { key: 'warnings', label: 'Warnings', color: '#fbbf24' },
+    { key: 'joins', label: 'Player joins and leaves', color: '#4ade80' },
+    { key: 'chat', label: 'Chat', color: '#93c5fd' },
+    { key: 'ready', label: 'Server ready', color: '#34d399' },
+    { key: 'info', label: 'Info lines', color: '#cbd5e1' },
+    { key: 'debug', label: 'Debug lines', color: '#94a3b8' },
+    { key: 'ips', label: 'IP addresses', color: '#c084fc' },
 ];
 
 export const KEYBIND_ACTIONS: Record<string, string> = {

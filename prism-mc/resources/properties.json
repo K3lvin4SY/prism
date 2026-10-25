@@ -14,7 +14,7 @@
     "hidden": ["rcon.password", "management-server-secret"],
     "properties": [
         { "key": "motd", "editions": ["java", "pumpkin"], "category": "motd", "type": "motd", "label": "Message of the day", "description": "The two lines players see under the server name in their server list.", "default": "A Minecraft Server", "maxLength": 512 },
-        { "key": "server-name", "editions": ["bedrock"], "category": "motd", "type": "string", "label": "Server name", "description": "The name shown in the Bedrock server list. Section-sign colour codes work here.", "default": "Dedicated Server", "maxLength": 128 },
+        { "key": "server-name", "editions": ["bedrock"], "category": "motd", "type": "string", "label": "Server name", "description": "The name shown in the Bedrock server list. Section-sign color codes work here.", "default": "Dedicated Server", "maxLength": 128 },
 
         { "key": "max-players", "editions": ["java", "bedrock", "pumpkin"], "category": "serverlist", "type": "int", "label": "Maximum players", "description": "How many players can be online at once.", "default": 20, "min": 1, "max": 100000 },
         { "key": "enable-status", "editions": ["java"], "category": "serverlist", "type": "bool", "label": "Show in server list", "description": "Answer server-list pings. Turned off, the server shows as offline but players can still join.", "default": true },

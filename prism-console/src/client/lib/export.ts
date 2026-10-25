@@ -10,8 +10,8 @@ function stamp(time: number, iso = false): string {
 
 const escapeHtml = (text: string) => text.replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[char]!);
 
-/** The 16 terminal colours as they are on the page, so a saved .html keeps them. */
-function terminalColours(): string {
+/** The 16 terminal colors as they are on the page, so a saved .html keeps them. */
+function terminalColors(): string {
     const style = getComputedStyle(document.documentElement);
     const names = ['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'];
 
@@ -38,7 +38,7 @@ export function exportLines(lines: ConsoleLine[], format: ExportFormat, timestam
             })
             .join('\n');
 
-        return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title></head><body style="margin:0;background:#0f172a;color:#e2e8f0;${terminalColours()}"><pre style="margin:0;padding:16px;font:13px/1.4 ui-monospace,monospace;white-space:pre-wrap">${body}</pre></body></html>`;
+        return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title></head><body style="margin:0;background:#0f172a;color:#e2e8f0;${terminalColors()}"><pre style="margin:0;padding:16px;font:13px/1.4 ui-monospace,monospace;white-space:pre-wrap">${body}</pre></body></html>`;
     }
 
     return lines.map((line) => (timestamps ? `[${stamp(line.time, format === 'log')}] ` : '') + line.text).join('\n') + '\n';

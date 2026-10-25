@@ -333,7 +333,7 @@ function ServerBadge({ name, state }: { name: string; state: string | null | und
     );
 }
 
-/** The area's pages as dock icons, with the server card's colour on a server. */
+/** The area's pages as dock icons, with the server card's color on a server. */
 function DockArea({ model }: { model: AppLayoutModel }) {
     const area = model.area;
     if (area.kind === 'dashboard') return null;

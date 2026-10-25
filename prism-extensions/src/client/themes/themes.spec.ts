@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { contrast, normaliseColour, toHex, toOklch } from './colour';
+import { contrast, normaliseColor, toHex, toOklch } from './color';
 import { asSettings, generatePalette } from './generate';
 import { BUILT_IN, ROLES, matches, readCustom, writeCustom } from './presets';
 
@@ -14,11 +14,11 @@ describe('built-in presets', () => {
         expect(BUILT_IN.map((preset) => preset.name)).toEqual(['Studio', 'Studio classic', 'Terminal', 'Catppuccin Mocha', 'Catppuccin Macchiato', 'Catppuccin Frappé', 'Catppuccin Latte']);
     });
 
-    it('set every look setting, with colours the panel accepts', () => {
+    it('set every look setting, with colors the panel accepts', () => {
         for (const preset of BUILT_IN) {
             expect(Object.keys(preset.values).sort()).toEqual(lookKeys.sort());
             for (const [key, value] of Object.entries(preset.values)) {
-                if (settings[key].type === 'color') expect(normaliseColour(String(value)), `${preset.name} ${key}`).toBe(value);
+                if (settings[key].type === 'color') expect(normaliseColor(String(value)), `${preset.name} ${key}`).toBe(value);
             }
         }
     });
@@ -28,7 +28,7 @@ describe('built-in presets', () => {
         expect(matches(BUILT_IN[0], defaults)).toBe(true);
     });
 
-    it('carry Catppuccin only as colours', () => {
+    it('carry Catppuccin only as colors', () => {
         const mocha = BUILT_IN.find((preset) => preset.id === 'catppuccin-mocha')!;
         expect(mocha.values).toMatchObject({ d_background: '#1e1e2e', d_primary: '#cba6f7', l_background: '#eff1f5', l_primary: '#8839ef' });
     });
@@ -48,21 +48,21 @@ describe('the palette generator', () => {
         expect({ ...asSettings('d', generatePalette('d', 255, 0.17, 'subtle')), ...asSettings('l', generatePalette('l', 255, 0.17, 'subtle')) }).toEqual(Object.fromEntries(Object.entries(studio).filter(([key]) => /^[dl]_/.test(key))));
     });
 
-    it('fills every role with a valid colour', () => {
+    it('fills every role with a valid color', () => {
         for (const mode of ['d', 'l'] as const) {
             const palette = generatePalette(mode, 12.5, 0.2, 'strong');
             expect(Object.keys(palette).sort()).toEqual(ROLES.map((role) => role.key).sort());
-            for (const value of Object.values(palette)) expect(normaliseColour(value)).toBe(value);
+            for (const value of Object.values(palette)) expect(normaliseColor(value)).toBe(value);
         }
     });
 });
 
-describe('colours', () => {
+describe('colors', () => {
     it('accepts what the panel accepts and nothing else', () => {
-        expect(normaliseColour(' #ABCDEF ')).toBe('#abcdef');
-        expect(normaliseColour('oklch(0.5  0.1 200 /0.5)')).toBe('oklch(0.5 0.1 200 / 0.5)');
-        expect(normaliseColour('red')).toBeNull();
-        expect(normaliseColour('rgb(1, 2, 3)')).toBeNull();
+        expect(normaliseColor(' #ABCDEF ')).toBe('#abcdef');
+        expect(normaliseColor('oklch(0.5  0.1 200 /0.5)')).toBe('oklch(0.5 0.1 200 / 0.5)');
+        expect(normaliseColor('red')).toBeNull();
+        expect(normaliseColor('rgb(1, 2, 3)')).toBeNull();
     });
 
     it('converts between hex and oklch', () => {

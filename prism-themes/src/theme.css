@@ -110,7 +110,7 @@
     --scrollbar-thumb: var(--pt-border);
     --scrollbar-thumb-fill: color-mix(in oklab, var(--pt-border) 70%, var(--pt-muted-text));
 
-    /* The console: the six code colours, with black and white from the palette's ends. */
+    /* The console: the six code colors, with black and white from the palette's ends. */
     --terminal-background: var(--pt-deep);
     --terminal-foreground: var(--pt-text);
     --terminal-cursor: var(--pt-primary);
@@ -295,7 +295,7 @@ html[data-pt-bg='aurora']::before {
     opacity: var(--pt-bg-dim, 55%);
 }
 
-/* Aurora: three slow blobs of the colour drifting about. */
+/* Aurora: three slow blobs of the color drifting about. */
 [data-pt-bg='aurora'] body::before,
 [data-pt-bg='aurora'] body::after,
 html[data-pt-bg='aurora']::before {
@@ -341,7 +341,7 @@ html[data-pt-bg='aurora']::before {
     }
 }
 
-/* Waves: bands of colour rolling sideways along the bottom. */
+/* Waves: bands of color rolling sideways along the bottom. */
 [data-pt-bg='waves'] body::before,
 [data-pt-bg='waves'] body::after {
     inset: auto;
@@ -370,7 +370,7 @@ html[data-pt-bg='aurora']::before {
     }
 }
 
-/* Colour mesh: four soft blobs in colours around the wheel, slowly shifting; made for glass. */
+/* Color mesh: four soft blobs in colors around the wheel, slowly shifting; made for glass. */
 [data-pt-bg='mesh'] body::before {
     background:
         radial-gradient(42vmax 42vmax at 12% 25%, color-mix(in oklab, var(--pt-primary) 85%, transparent), transparent 62%),

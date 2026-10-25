@@ -9,7 +9,7 @@ describe('parseRich and serializeRich', () => {
         expect(serializeRich(parseRich('&6A&6B')).text).toBe('&6AB');
     });
 
-    it('resets styles on a colour, as in game', () => {
+    it('resets styles on a color, as in game', () => {
         const [first, second] = parseRich('&lA&cB');
         expect(first).toMatchObject({ bold: true, color: null });
         expect(second).toMatchObject({ bold: false, color: 'c' });
@@ -17,19 +17,19 @@ describe('parseRich and serializeRich', () => {
 });
 
 describe('formatSelection', () => {
-    it('colours a selection across differently coloured text', () => {
+    it('colors a selection across differently colored text', () => {
         const text = '&cRed&9Blue';
         const [start, end] = select(text, 'd&9Bl');
         expect(formatSelection(text, start, end, { color: 'a' }).text).toBe('&cRe&adBl&9ue');
     });
 
-    it('keeps the styles of the characters it recolours', () => {
+    it('keeps the styles of the characters it recolors', () => {
         const text = '&c&lBold&r plain';
         const [start, end] = [0, text.length];
         expect(formatSelection(text, start, end, { color: '#112233' }).text).toBe('&#112233&lBold &#112233plain');
     });
 
-    it('switches a style on across colours, and off when all of them have it', () => {
+    it('switches a style on across colors, and off when all of them have it', () => {
         const text = '&cAB&9CD';
         const [start, end] = select(text, 'B&9C');
         const bold = formatSelection(text, start, end, { toggle: 'bold' }).text;
@@ -44,7 +44,7 @@ describe('formatSelection', () => {
         expect(formatSelection(text, start, end, { reset: true }).text).toBe('&6&lGold &rtext');
     });
 
-    it('gives each visible character its own colour for gradients, keeping styles', () => {
+    it('gives each visible character its own color for gradients, keeping styles', () => {
         const text = '&lA B';
         const result = formatSelection(text, 0, text.length, { colors: (count) => ['#000000', '#ffffff'].slice(0, count) });
         expect(result.text).toBe('&#000000&lA &#ffffff&lB');

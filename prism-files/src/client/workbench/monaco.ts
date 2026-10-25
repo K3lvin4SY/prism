@@ -13,11 +13,11 @@ function token(name: string, fallback: string): string {
     return /^#[0-9a-f]{3,8}$/i.test(value) ? value : fallback;
 }
 
-/** Whether the panel is showing a dark scheme, from its background colour. */
+/** Whether the panel is showing a dark scheme, from its background color. */
 function panelIsDark(): boolean {
-    const colour = getComputedStyle(document.body).backgroundColor.match(/\d+(\.\d+)?/g)?.map(Number) ?? [20, 20, 20];
+    const color = getComputedStyle(document.body).backgroundColor.match(/\d+(\.\d+)?/g)?.map(Number) ?? [20, 20, 20];
 
-    return (colour[0] * 299 + colour[1] * 587 + colour[2] * 114) / 1000 < 140;
+    return (color[0] * 299 + color[1] * 587 + color[2] * 114) / 1000 < 140;
 }
 
 let defined = false;

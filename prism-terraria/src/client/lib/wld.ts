@@ -404,16 +404,16 @@ export async function renderTiles(buffer: ArrayBuffer, world: ParsedWorld, onPro
             const invisibleWall = (header4 & 4) !== 0;
 
             for (let i = 0; i <= repeat && y < height; i++, y++) {
-                let colour: [number, number, number];
-                if (tile >= 0 && !invisibleTile) colour = TILES[tile] ?? GLOBAL.Rock;
-                else if (liquid) colour = liquid;
-                else if (wall > 0 && !invisibleWall) colour = WALLS[wall] ?? GLOBAL.Rock;
-                else colour = background(y);
+                let color: [number, number, number];
+                if (tile >= 0 && !invisibleTile) color = TILES[tile] ?? GLOBAL.Rock;
+                else if (liquid) color = liquid;
+                else if (wall > 0 && !invisibleWall) color = WALLS[wall] ?? GLOBAL.Rock;
+                else color = background(y);
 
                 const index = (y * width + x) * 4;
-                pixels[index] = colour[0];
-                pixels[index + 1] = colour[1];
-                pixels[index + 2] = colour[2];
+                pixels[index] = color[0];
+                pixels[index + 1] = color[1];
+                pixels[index + 2] = color[2];
                 pixels[index + 3] = 255;
             }
             y--;

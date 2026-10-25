@@ -131,7 +131,7 @@ final class MinecraftPing
     }
 
     /**
-     * Turns a chat component into legacy § text, keeping colours and styles.
+     * Turns a chat component into legacy § text, keeping colors and styles.
      */
     public static function flattenComponent(mixed $component): string
     {

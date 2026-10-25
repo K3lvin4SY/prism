@@ -98,7 +98,7 @@ export default function TrashView({ server, items, ignored }: { server: string; 
                             <div key={item.id} className={cn('pfl:grid pfl:grid-cols-[2rem_minmax(0,1fr)_5rem_7rem_6rem_7.5rem] pfl:items-center pfl:gap-2 pfl:border-b pfl:border-border/50 pfl:px-3 pfl:py-1.5 pfl:text-sm', selected.has(item.id) && 'pfl:bg-primary/10')}>
                                 <Checkbox checked={selected.has(item.id)} onChange={(checked) => setSelected((current) => new Set(checked ? [...current, item.id] : [...current].filter((id) => id !== item.id)))} />
                                 <span className={'pfl:flex pfl:min-w-0 pfl:items-center pfl:gap-2'}>
-                                    <NamedIcon name={icon.icon} size={15} className={cn('pfl:shrink-0', icon.colour)} />
+                                    <NamedIcon name={icon.icon} size={15} className={cn('pfl:shrink-0', icon.color)} />
                                     <span className={'pfl:truncate pfl:font-mono pfl:text-xs'} title={item.path}>
                                         {item.path}
                                     </span>

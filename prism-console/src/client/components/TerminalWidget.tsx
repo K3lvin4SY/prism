@@ -22,7 +22,7 @@ interface Props {
     compact?: boolean;
 }
 
-const LEVEL_COLOURS: Record<Level, string> = {
+const LEVEL_COLORS: Record<Level, string> = {
     error: 'pcn:text-red-400',
     warning: 'pcn:text-amber-300',
     info: 'pcn:text-sky-300',
@@ -237,7 +237,7 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                                         hidden ? 'pcn:border-white/10 pcn:opacity-40 pcn:line-through' : 'pcn:border-white/20'
                                     )}
                                 >
-                                    <span className={LEVEL_COLOURS[level]}>{label}</span>
+                                    <span className={LEVEL_COLORS[level]}>{label}</span>
                                     <span className={'pcn:rounded-full pcn:bg-white/10 pcn:px-1.5 pcn:tabular-nums'}>{store.counts[level]}</span>
                                 </button>
                             );
@@ -279,7 +279,7 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                                             Download .log
                                         </MenuItem>
                                         <MenuItem icon={'file-code'} onClick={() => (exportAs('html'), close())}>
-                                            Download coloured .html
+                                            Download colored .html
                                         </MenuItem>
                                         <MenuItem icon={'clipboard'} onClick={() => (copy(), close())}>
                                             Copy to clipboard

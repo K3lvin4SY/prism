@@ -109,19 +109,19 @@ export function isArchive(name: string): boolean {
     return /\.(zip|tar|tar\.gz|tgz|gz|rar|7z|tar\.xz|xz|tar\.bz2|bz2)$/i.test(name);
 }
 
-/** An icon and colour per file type, as VS Code's explorer shows them. */
-export function fileIcon(name: string, directory: boolean): { icon: string; colour: string } {
-    if (directory) return { icon: 'folder', colour: 'pfl:text-sky-400' };
+/** An icon and color per file type, as VS Code's explorer shows them. */
+export function fileIcon(name: string, directory: boolean): { icon: string; color: string } {
+    if (directory) return { icon: 'folder', color: 'pfl:text-sky-400' };
     const ext = extension(name);
-    if (['yml', 'yaml'].includes(ext)) return { icon: 'file-cog', colour: 'pfl:text-pink-400' };
-    if (['json', 'json5', 'mcmeta'].includes(ext)) return { icon: 'file-braces', colour: 'pfl:text-amber-400' };
-    if (['properties', 'toml', 'ini', 'cfg', 'conf', 'env'].includes(ext)) return { icon: 'file-sliders', colour: 'pfl:text-orange-300' };
-    if (['jar', 'zip', 'gz', 'tgz', 'tar', 'rar', '7z', 'xz'].includes(ext)) return { icon: 'file-archive', colour: 'pfl:text-violet-400' };
-    if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico'].includes(ext)) return { icon: 'file-image', colour: 'pfl:text-emerald-400' };
-    if (['mp3', 'ogg', 'wav', 'flac'].includes(ext)) return { icon: 'file-music', colour: 'pfl:text-fuchsia-400' };
-    if (['mp4', 'webm', 'mkv'].includes(ext)) return { icon: 'file-video-camera', colour: 'pfl:text-fuchsia-400' };
-    if (['log', 'txt', 'md'].includes(ext)) return { icon: 'file-text', colour: 'pfl:text-slate-300' };
-    if (['js', 'ts', 'py', 'lua', 'java', 'sh', 'kt', 'go', 'rs', 'php', 'sk'].includes(ext)) return { icon: 'file-code', colour: 'pfl:text-cyan-400' };
+    if (['yml', 'yaml'].includes(ext)) return { icon: 'file-cog', color: 'pfl:text-pink-400' };
+    if (['json', 'json5', 'mcmeta'].includes(ext)) return { icon: 'file-braces', color: 'pfl:text-amber-400' };
+    if (['properties', 'toml', 'ini', 'cfg', 'conf', 'env'].includes(ext)) return { icon: 'file-sliders', color: 'pfl:text-orange-300' };
+    if (['jar', 'zip', 'gz', 'tgz', 'tar', 'rar', '7z', 'xz'].includes(ext)) return { icon: 'file-archive', color: 'pfl:text-violet-400' };
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico'].includes(ext)) return { icon: 'file-image', color: 'pfl:text-emerald-400' };
+    if (['mp3', 'ogg', 'wav', 'flac'].includes(ext)) return { icon: 'file-music', color: 'pfl:text-fuchsia-400' };
+    if (['mp4', 'webm', 'mkv'].includes(ext)) return { icon: 'file-video-camera', color: 'pfl:text-fuchsia-400' };
+    if (['log', 'txt', 'md'].includes(ext)) return { icon: 'file-text', color: 'pfl:text-slate-300' };
+    if (['js', 'ts', 'py', 'lua', 'java', 'sh', 'kt', 'go', 'rs', 'php', 'sk'].includes(ext)) return { icon: 'file-code', color: 'pfl:text-cyan-400' };
 
-    return { icon: 'file', colour: 'pfl:text-slate-400' };
+    return { icon: 'file', color: 'pfl:text-slate-400' };
 }

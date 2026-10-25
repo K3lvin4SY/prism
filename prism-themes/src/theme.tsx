@@ -10,7 +10,7 @@ const skins: ThemeSkins = {
 };
 
 /*
- * Only the look: colours, fonts, surfaces and the background. The panel's own layout stays, and
+ * Only the look: colors, fonts, surfaces and the background. The panel's own layout stays, and
  * Prism Layout, an extension, places things when it is on.
  */
 export default defineTheme({

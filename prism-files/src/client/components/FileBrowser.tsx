@@ -269,7 +269,7 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
                                             onDoubleClick={(event) => event.stopPropagation()}
                                             className={'pfl:inline-flex pfl:min-w-0 pfl:max-w-full pfl:items-center pfl:gap-2 pfl:text-left pfl:cursor-pointer'}
                                         >
-                                            <NamedIcon name={icon.icon} size={17} className={cn('pfl:shrink-0', icon.colour)} />
+                                            <NamedIcon name={icon.icon} size={17} className={cn('pfl:shrink-0', icon.color)} />
                                             <span className={'pfl:truncate pfl:hover:underline'}>{entry.name}</span>
                                         </button>
                                         {isProtected(entry.path) && <NamedIcon name={'lock'} size={12} className={'pfl:shrink-0 pfl:text-amber-400'} />}
@@ -316,7 +316,7 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
                                     className={cn('pfl:flex pfl:flex-col pfl:items-center pfl:gap-1.5 pfl:rounded-lg pfl:border pfl:p-3 pfl:text-center pfl:cursor-pointer', selected.has(entry.name) ? 'pfl:border-primary pfl:bg-primary/15' : 'pfl:border-transparent pfl:hover:bg-muted/50')}
                                 >
                                     <span className={'pfl:flex pfl:size-12 pfl:items-center pfl:justify-center pfl:rounded-lg pfl:bg-muted/50'}>
-                                        <NamedIcon name={icon.icon} size={26} className={icon.colour} />
+                                        <NamedIcon name={icon.icon} size={26} className={icon.color} />
                                     </span>
                                     <span className={'pfl:line-clamp-2 pfl:w-full pfl:break-all pfl:text-xs'}>{entry.name}</span>
                                     <span className={'pfl:text-[10px] pfl:text-muted-foreground'}>{entry.directory ? fromNow(entry.modified) : bytesToString(entry.size)}</span>

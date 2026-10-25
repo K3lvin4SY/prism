@@ -1,6 +1,6 @@
 /**
- * Colour values as the panel stores them: hex (#rgb, #rgba, #rrggbb, #rrggbbaa) or oklch(L C H),
- * with conversions for the colour pickers and the contrast between text and its background.
+ * Color values as the panel stores them: hex (#rgb, #rgba, #rrggbb, #rrggbbaa) or oklch(L C H),
+ * with conversions for the color pickers and the contrast between text and its background.
  */
 
 export interface Rgb {
@@ -14,8 +14,8 @@ const number = String.raw`(?:\d{1,3}(?:\.\d{1,6})?|\.\d{1,6})`;
 /** The panel's own rule (ExtensionSettingValueGuard::COLOR_PATTERN), so nothing is refused on save. */
 const PATTERN = new RegExp(String.raw`^(?:#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})|oklch\(${number}%? ${number}%? ${number}(?:deg)?(?: / ${number}%?)?\))$`);
 
-/** A typed colour in the shape the panel stores, or null when it would be refused. */
-export function normaliseColour(text: string): string | null {
+/** A typed color in the shape the panel stores, or null when it would be refused. */
+export function normaliseColor(text: string): string | null {
     const value = text.trim().toLowerCase().replace(/\s+/g, ' ').replace(/ ?\/ ?/, ' / ').replace('( ', '(').replace(' )', ')');
 
     return PATTERN.test(value) ? value : null;
@@ -41,8 +41,8 @@ function oklchToRgb(l: number, c: number, h: number, a = 1): Rgb {
     };
 }
 
-export function parseColour(text: string): Rgb | null {
-    const value = normaliseColour(text);
+export function parseColor(text: string): Rgb | null {
+    const value = normaliseColor(text);
     if (!value) return null;
     if (value.startsWith('#')) {
         const hex = value.slice(1);
@@ -65,16 +65,16 @@ const byte = (value: number) =>
         .toString(16)
         .padStart(2, '0');
 
-/** A colour as #rrggbb for the native picker, which has no alpha or oklch. */
+/** A color as #rrggbb for the native picker, which has no alpha or oklch. */
 export const toHex = (text: string): string => {
-    const rgb = parseColour(text);
+    const rgb = parseColor(text);
 
     return rgb ? `#${byte(rgb.r)}${byte(rgb.g)}${byte(rgb.b)}` : '#000000';
 };
 
-/** Lightness, chroma and hue of a colour, for the palette generator. */
+/** Lightness, chroma and hue of a color, for the palette generator. */
 export function toOklch(text: string): { l: number; c: number; h: number } {
-    const rgb = parseColour(text) ?? { r: 0, g: 0, b: 0, a: 1 };
+    const rgb = parseColor(text) ?? { r: 0, g: 0, b: 0, a: 1 };
     const [r, g, b] = [toLinear(rgb.r), toLinear(rgb.g), toLinear(rgb.b)];
     const l_ = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
     const m_ = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
@@ -91,8 +91,8 @@ const luminance = ({ r, g, b }: Rgb) => 0.2126 * toLinear(r) + 0.7152 * toLinear
 
 /** The WCAG contrast ratio of text on a background, from 1 to 21. */
 export function contrast(text: string, background: string): number | null {
-    const a = parseColour(text);
-    const b = parseColour(background);
+    const a = parseColor(text);
+    const b = parseColor(background);
     if (!a || !b) return null;
     const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
 

@@ -45,7 +45,7 @@ class PrismConsoleProvider extends ExtensionProvider
             // Features
             Setting::make('feature_search', 'feature_search', true, ['required', 'boolean'])->label('Search')->help('Ctrl+F with regular expressions, match case and whole word.')->tab('Features')->field('toggle')->frontend(),
             Setting::make('feature_filters', 'feature_filters', true, ['required', 'boolean'])->label('Log level filters')->help('Show only errors, warnings, players, info, debug or system lines.')->tab('Features')->field('toggle')->frontend(),
-            Setting::make('feature_export', 'feature_export', true, ['required', 'boolean'])->label('Export and copy')->help('Download the console as .txt, .log or coloured .html.')->tab('Features')->field('toggle')->frontend(),
+            Setting::make('feature_export', 'feature_export', true, ['required', 'boolean'])->label('Export and copy')->help('Download the console as .txt, .log or colored .html.')->tab('Features')->field('toggle')->frontend(),
             Setting::make('feature_charts', 'feature_charts', true, ['required', 'boolean'])->label('Live charts')->tab('Features')->field('toggle')->frontend(),
             Setting::make('feature_quick_commands', 'feature_quick_commands', true, ['required', 'boolean'])->label('Quick commands')->tab('Features')->field('toggle')->frontend(),
             Setting::make('feature_history_sync', 'feature_history_sync', true, ['required', 'boolean'])->label('Command history follows people')->help('Saves each person\'s history on the panel, so it is there in every browser.')->tab('Features')->field('toggle')->frontend(),
@@ -59,7 +59,7 @@ class PrismConsoleProvider extends ExtensionProvider
             Setting::make('default_timestamps', 'default_timestamps', false, ['required', 'boolean'])->label('Show timestamps')->tab('Terminal')->field('toggle')->frontend(),
 
             // Highlights and quick commands, as JSON edited by Prism Properties.
-            Setting::make('highlights', 'highlights', self::DEFAULT_HIGHLIGHTS, ['required', 'string', 'json'])->label('Highlight rules')->help('Colours errors, warnings, joins, chat and IP addresses, and any text or pattern you add, for everyone.')->tab('Highlights')->textarea(20000)->frontend(),
+            Setting::make('highlights', 'highlights', self::DEFAULT_HIGHLIGHTS, ['required', 'string', 'json'])->label('Highlight rules')->help('Colors errors, warnings, joins, chat and IP addresses, and any text or pattern you add, for everyone.')->tab('Highlights')->textarea(20000)->frontend(),
             Setting::make('quick_commands', 'quick_commands', '[]', ['required', 'string', 'json'])->label('Quick commands')->help('Buttons that send a command. Each can be limited to servers whose egg has a tag, and ask before it runs.')->tab('Quick commands')->textarea(20000)->frontend(),
         ]));
     }

@@ -6,7 +6,7 @@ import { ToggleRow } from '../editors';
 import { PreviewControls, reloadPreview, usePreviewDraft } from '../preview';
 import SaveBar, { describeValue } from '../SaveBar';
 import { THEME_ID, optionsOf, themeApi, themeKeys, type ThemeSetting } from './api';
-import { contrast, normaliseColour, toHex, toOklch } from './colour';
+import { contrast, normaliseColor, toHex, toOklch } from './color';
 import { asSettings, generatePalette, type Tint } from './generate';
 import { BUILT_IN, ROLES, isLook, lookOf, matches, newId, readCustom, writeCustom, type Mode, type Preset, type Values } from './presets';
 
@@ -435,7 +435,7 @@ function RoleRow({ id, label, help, value, against, focused, onChange }: { id: s
     }, [value]);
     const ratio = against ? contrast(value, against) : null;
     const commit = () => {
-        const normal = normaliseColour(text);
+        const normal = normaliseColor(text);
         if (normal) {
             setBad(false);
             if (normal !== value) onChange(normal);

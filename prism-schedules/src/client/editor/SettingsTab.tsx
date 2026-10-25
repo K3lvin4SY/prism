@@ -5,9 +5,9 @@ import { NamedIcon } from '../icons';
 import { api, keys, type Schedule, type ScheduleInput, type State } from '../api';
 import { Check, Section } from '../components/ui';
 
-const COLOURS = ['#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#14b8a6', '#0ea5e9', '#64748b'];
+const COLORS = ['#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#14b8a6', '#0ea5e9', '#64748b'];
 
-/** Colour, pausing, export, copying to other servers and deleting. */
+/** Color, pausing, export, copying to other servers and deleting. */
 export default function SettingsTab({ state, schedule, value, onChange, disabled, onDeleted }: { state: State; schedule: Schedule | null; value: ScheduleInput; onChange: (patch: Partial<ScheduleInput>) => void; disabled: boolean; onDeleted: () => void }) {
     const identifier = useCurrentServerRequired().attributes.identifier;
     const queryClient = useQueryClient();
@@ -51,12 +51,12 @@ export default function SettingsTab({ state, schedule, value, onChange, disabled
 
     return (
         <div className={'psc:grid psc:gap-4 psc:lg:grid-cols-2'}>
-            <Section title={'Colour'}>
+            <Section title={'Color'}>
                 <p className={'psc:mb-3 psc:text-sm psc:text-muted-foreground'}>Shown on the card and in the calendar.</p>
                 <div className={'psc:flex psc:flex-wrap psc:gap-2'}>
-                    <button type={'button'} disabled={disabled} onClick={() => onChange({ color: null })} className={cn('psc:size-8 psc:cursor-pointer psc:rounded-full psc:border-2 psc:bg-primary', value.color === null ? 'psc:border-foreground' : 'psc:border-transparent')} title={'Theme colour'} />
-                    {COLOURS.map((colour) => (
-                        <button key={colour} type={'button'} disabled={disabled} onClick={() => onChange({ color: colour })} className={cn('psc:size-8 psc:cursor-pointer psc:rounded-full psc:border-2', value.color === colour ? 'psc:border-foreground' : 'psc:border-transparent')} style={{ background: colour }} title={colour} />
+                    <button type={'button'} disabled={disabled} onClick={() => onChange({ color: null })} className={cn('psc:size-8 psc:cursor-pointer psc:rounded-full psc:border-2 psc:bg-primary', value.color === null ? 'psc:border-foreground' : 'psc:border-transparent')} title={'Theme color'} />
+                    {COLORS.map((color) => (
+                        <button key={color} type={'button'} disabled={disabled} onClick={() => onChange({ color: color })} className={cn('psc:size-8 psc:cursor-pointer psc:rounded-full psc:border-2', value.color === color ? 'psc:border-foreground' : 'psc:border-transparent')} style={{ background: color }} title={color} />
                     ))}
                 </div>
             </Section>

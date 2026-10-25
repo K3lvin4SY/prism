@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Tooltip, cn } from '@pterodactyl/sdk';
 import type { CharacterItem } from '../../api/players';
-import { itemIcon, itemName, rarityColour } from '../../lib/items';
+import { itemIcon, itemName, rarityColor } from '../../lib/items';
 
 /** One inventory slot, drawn like Terraria's: a dark blue box with the item and its stack. */
 export default function ItemSlot({ item, accent, className }: { item?: CharacterItem; accent?: 'armour' | 'vanity' | 'dye'; className?: string }) {
@@ -32,7 +32,7 @@ export default function ItemSlot({ item, accent, className }: { item?: Character
         <Tooltip
             content={
                 <span>
-                    <span style={{ color: rarityColour(item.id) }} className={'trs:font-semibold'}>
+                    <span style={{ color: rarityColor(item.id) }} className={'trs:font-semibold'}>
                         {itemName(item.id, item.prefix)}
                     </span>
                     {item.stack > 1 && <span className={'trs:text-muted-foreground'}> × {item.stack}</span>}

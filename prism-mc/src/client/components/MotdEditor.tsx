@@ -139,9 +139,9 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
     };
 
     /**
-     * Formats the selected characters, whatever colours and styles they already have. With nothing
-     * selected, a colour, style or reset is written at the cursor for what is typed next, and a
-     * rainbow or gradient colours the whole line.
+     * Formats the selected characters, whatever colors and styles they already have. With nothing
+     * selected, a color, style or reset is written at the cursor for what is typed next, and a
+     * rainbow or gradient colors the whole line.
      */
     const formatWith = (change: Change, code?: string) =>
         edit((text, start, end) => {
@@ -275,7 +275,7 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
                         </DropdownMenu>
                     </div>
 
-                    {/* Gradients, where the server software reads hex colours. */}
+                    {/* Gradients, where the server software reads hex colors. */}
                     <div className={'mcs:flex mcs:flex-col mcs:gap-2 mcs:border-b mcs:border-border mcs:bg-muted/20 mcs:px-3 mcs:py-2'}>
                         {hexAllowed ? (
                             <>
