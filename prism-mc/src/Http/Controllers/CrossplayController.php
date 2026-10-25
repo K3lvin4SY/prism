@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PrismMc\Support\InstallPlan;
 use PrismMc\Support\McJars;
+use PrismMc\Support\PlayerData;
 use PrismMc\Support\Providers\ModrinthProvider;
 use PrismMc\Support\ServerFiles;
 use PrismMc\Support\ServerProperties;
@@ -180,6 +181,127 @@ class CrossplayController extends Controller
         return new JsonResponse(['job' => $job], 202);
     }
 
+    /**
+     * Geyser and Floodgate as installed against their newest builds for this server. Each jar is
+     * hashed and compared with the build's published checksum, so it is exact whatever installed it.
+     */
+    public function updates(Request $request, Server $server): JsonResponse
+    {
+        [$info, $platform] = $this->context($request, $server);
+        abort_if($platform === null || $info['software'] === 'pumpkin', 422, 'There is no Geyser to update here.');
+
+        return new JsonResponse(['components' => array_map(static fn (array $component): array => array_diff_key($component, ['latestFile' => true]), $this->components($server, $info, $platform))]);
+    }
+
+    /**
+     * Replaces whichever of Geyser and Floodgate has a newer build: the server stops, the old jar
+     * is moved aside, the new one is downloaded and checked, the old one is deleted, and the
+     * server starts again if it was running. If anything fails the old jar is put back.
+     */
+    public function update(Request $request, Server $server): JsonResponse
+    {
+        [$info, $platform] = $this->context($request, $server);
+        abort_if($platform === null || $info['software'] === 'pumpkin', 422, 'There is no Geyser to update here.');
+        abort_unless($this->can($request, $server, $platform[2] === 'mods' ? 'mods' : 'plugins'), 403, 'You also need permission to install '.$platform[2].'.');
+        [$loader, , $folder] = $platform;
+
+        $outdated = array_values(array_filter($this->components($server, $info, $platform), static fn (array $component): bool => $component['installed'] !== null && ! $component['upToDate']));
+        abort_if($outdated === [], 422, 'Geyser and Floodgate are up to date.');
+
+        $running = PlayerData::for($server, $info['edition'])->isRunning();
+        $plan = InstallPlan::for($server, 'Updating Bedrock crossplay')->stopServer();
+
+        // Every new jar is downloaded and checked before any old one is deleted, so a failure
+        // can put each old jar back.
+        foreach ($outdated as $component) {
+            $old = $component['installed'];
+            $new = $component['latestFile'];
+            $aside = "$old.prism-old";
+
+            $plan->add('rename', ['dir' => $folder, 'from' => $old, 'to' => $aside]);
+            if ($new['filename'] !== $old) {
+                $plan->onFailure('delete', ['dir' => $folder, 'files' => [$new['filename']]]);
+            }
+            $plan->onFailure('rename', ['dir' => $folder, 'from' => $aside, 'to' => $old, 'optional' => true])
+                ->add('pulls', ['files' => [['url' => $new['url'], 'dir' => $folder, 'file' => $new['filename'], 'size' => $new['size']]]])
+                ->add('verify', ['path' => "$folder/{$new['filename']}", 'algorithm' => $new['algorithm'], 'hash' => $new['hash']]);
+        }
+
+        foreach ($outdated as $component) {
+            $old = $component['installed'];
+            $new = $component['latestFile'];
+            $plan->add('delete', ['dir' => $folder, 'files' => ["$old.prism-old"]])
+                ->add('forget', ['key' => "content.$folder.$old"]);
+
+            if (isset($new['project'])) {
+                $plan->add('record', ['key' => "content.$folder.{$new['filename']}", 'value' => [
+                    'provider' => 'modrinth',
+                    'project' => $new['project'],
+                    'version' => $new['version'],
+                    'versionNumber' => $new['versionNumber'],
+                    'title' => $new['title'],
+                    'icon' => $new['icon'],
+                    'url' => null,
+                    'sha1' => $new['hash'],
+                    'size' => $new['size'],
+                    'loaders' => [$loader],
+                    'gameVersions' => [],
+                    'installedAt' => time(),
+                ]]);
+            }
+        }
+
+        // Running before, running after, whether the update went through or was rolled back.
+        if ($running) {
+            $plan->add('power', ['action' => 'start'])->onFailure('power', ['action' => 'start']);
+        }
+
+        $job = $plan->dispatch($request->user(), 'properties');
+        Activity::event('server:prism-mc.crossplay.update')->property('files', array_map(static fn (array $component): string => $component['latestFile']['filename'], $outdated))->log();
+
+        return new JsonResponse(['job' => $job], 202);
+    }
+
+    /**
+     * Geyser and Floodgate: the jar on the server, the newest build's version and file, and
+     * whether the jar is that build.
+     *
+     * @param  array<string, mixed>  $info
+     * @param  array{0: string, 1: string, 2: string, 3: list<string>}  $platform
+     * @return list<array{name: string, installed: string|null, latest: string, upToDate: bool, latestFile: array<string, mixed>}>
+     */
+    private function components(Server $server, array $info, array $platform): array
+    {
+        [$loader, $floodgateSource, $folder] = $platform;
+        $files = ServerFiles::for($server);
+        $jars = array_keys(array_filter($files->list($folder), static fn (array $file): bool => $file['file']));
+        $latest = [
+            'Geyser' => $this->modrinthFile(self::GEYSER, $loader, $info['version']),
+            'Floodgate' => $floodgateSource === 'modrinth' ? $this->modrinthFile(self::FLOODGATE, $loader, $info['version']) : $this->geyserMcFile('floodgate', substr($floodgateSource, strlen('geysermc:'))),
+        ];
+
+        $components = [];
+        foreach ($latest as $name => $file) {
+            $installed = collect($jars)->first(static fn (string $jar): bool => (bool) preg_match('/^'.strtolower($name).'.*\.jar$/i', $jar));
+            $upToDate = false;
+            if ($installed !== null) {
+                $content = $files->read("$folder/$installed", 80 * 1024 * 1024);
+                $upToDate = $content !== null && hash_equals(strtolower((string) $file['hash']), hash($file['algorithm'], $content));
+                unset($content);
+            }
+
+            $components[] = [
+                'name' => $name,
+                'installed' => $installed,
+                'latest' => $file['versionNumber'] ?? $file['filename'],
+                'upToDate' => $upToDate,
+                'latestFile' => $file,
+            ];
+        }
+
+        return $components;
+    }
+
     /** Removes the Geyser and Floodgate jars. Their config folders stay. */
     public function disable(Request $request, Server $server): JsonResponse
     {
@@ -296,6 +418,7 @@ class CrossplayController extends Controller
 
         return [
             'url' => sprintf('https://download.geysermc.org/v2/projects/%s/versions/%s/builds/%d/downloads/%s', $project, $build['version'], $build['build'], $platform),
+            'versionNumber' => sprintf('%s build %d', $build['version'], $build['build']),
             'filename' => basename((string) $download['name']),
             'size' => null,
             'algorithm' => 'sha256',

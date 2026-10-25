@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Dialog, Spinner, Switch, TitledGreyBox, http, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Dialog, Spinner, Switch, TitledGreyBox, http, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import { base } from '../api/client';
 import JobProgress from './JobProgress';
@@ -16,6 +16,13 @@ interface CrossplayStatus {
     configured?: boolean;
     port?: number | null;
     job?: string | null;
+}
+
+interface Component {
+    name: string;
+    installed: string | null;
+    latest: string;
+    upToDate: boolean;
 }
 
 function Row({ ok, label, detail }: { ok: boolean; label: string; detail: string }) {
@@ -119,6 +126,8 @@ export default function CrossplayPanel({ server }: { server: string }) {
                     </div>
                 )}
 
+                {enabled && !runningJob && <Updates server={server} onJob={setJob} />}
+
                 <p className={'mcs:text-xs mcs:text-muted-foreground'}>
                     Turning this on stops the server, downloads Geyser and Floodgate and checks them against their published checksums, turns off signed chat (Bedrock players
                     cannot sign messages), starts the server once so Geyser writes its config, points it at this server's port and restarts.
@@ -129,6 +138,80 @@ export default function CrossplayPanel({ server }: { server: string }) {
                 The Geyser and Floodgate files are deleted; their config folders are kept. Bedrock players can no longer join after the next restart.
             </Dialog.Confirm>
         </TitledGreyBox>
+    );
+}
+
+/**
+ * Checks Geyser and Floodgate against their newest builds for this server and, when one is
+ * behind, updates it: the jars are swapped while the server is stopped and it starts again.
+ */
+function Updates({ server, onJob }: { server: string; onJob: (job: string) => void }) {
+    const [components, setComponents] = useState<Component[] | null>(null);
+    const [checking, setChecking] = useState(false);
+    const [updating, setUpdating] = useState(false);
+    const [confirm, setConfirm] = useState(false);
+    const outdated = (components ?? []).filter((component) => component.installed && !component.upToDate);
+
+    const check = async () => {
+        setChecking(true);
+        try {
+            setComponents((await http.get<{ components: Component[] }>(`${base(server)}/crossplay/updates`)).data.components);
+        } catch (error) {
+            toast.error(httpErrorToHuman(error));
+        } finally {
+            setChecking(false);
+        }
+    };
+
+    const update = async () => {
+        setUpdating(true);
+        try {
+            onJob((await http.post<{ job: string }>(`${base(server)}/crossplay/update`)).data.job);
+            setComponents(null);
+        } catch (error) {
+            toast.error(httpErrorToHuman(error));
+        } finally {
+            setUpdating(false);
+            setConfirm(false);
+        }
+    };
+
+    return (
+        <div className={'mcs:flex mcs:flex-col mcs:gap-2'}>
+            {components && (
+                <div className={'mcs:divide-y mcs:divide-border mcs:rounded-md mcs:border mcs:border-border mcs:px-3'}>
+                    {components.map((component) => (
+                        <div key={component.name} className={'mcs:flex mcs:items-center mcs:gap-3 mcs:py-2'}>
+                            <NamedIcon
+                                name={!component.installed ? 'circle-dot' : component.upToDate ? 'circle-check' : 'download'}
+                                size={18}
+                                className={!component.installed ? 'mcs:text-muted-foreground' : component.upToDate ? 'mcs:text-success' : 'mcs:text-warning'}
+                            />
+                            <span className={'mcs:text-sm mcs:font-medium'}>{component.name}</span>
+                            <span className={'mcs:ml-auto mcs:truncate mcs:text-xs mcs:text-muted-foreground'}>
+                                {!component.installed ? 'Not installed' : component.upToDate ? `Up to date · ${component.latest}` : `Update to ${component.latest}`}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+            <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
+                <Button size={'small'} isSecondary isLoading={checking} onClick={check}>
+                    <NamedIcon name={'refresh-cw'} size={14} /> {components ? 'Check again' : 'Check for updates'}
+                </Button>
+                {outdated.length > 0 && (
+                    <Button size={'small'} isLoading={updating} onClick={() => setConfirm(true)}>
+                        <NamedIcon name={'download'} size={14} /> Update {outdated.map((component) => component.name).join(' and ')}
+                    </Button>
+                )}
+                {components && outdated.length === 0 && <span className={'mcs:text-xs mcs:text-muted-foreground'}>Nothing to update.</span>}
+            </div>
+
+            <Dialog.Confirm open={confirm} onClose={() => setConfirm(false)} title={`Update ${outdated.map((component) => component.name).join(' and ')}?`} confirm={'Update'} pending={updating} onConfirmed={update}>
+                The server stops while the new {outdated.length === 1 ? 'jar is' : 'jars are'} downloaded and checked against the published checksum, then starts again if it was running.
+                If anything goes wrong, the current {outdated.length === 1 ? 'jar is' : 'jars are'} put back.
+            </Dialog.Confirm>
+        </div>
     );
 }
 

@@ -70,6 +70,8 @@ Route::middleware(RequireFeature::class.':feature_crossplay')->group(function ()
     Route::get('/crossplay', [CrossplayController::class, 'show'])->name('crossplay');
     Route::post('/crossplay', [CrossplayController::class, 'enable'])->name('crossplay.enable');
     Route::delete('/crossplay', [CrossplayController::class, 'disable'])->name('crossplay.disable');
+    Route::get('/crossplay/updates', [CrossplayController::class, 'updates'])->name('crossplay.updates');
+    Route::post('/crossplay/update', [CrossplayController::class, 'update'])->name('crossplay.update');
 });
 
 Route::middleware(RequireFeature::class.':feature_proxy')->group(function () {
