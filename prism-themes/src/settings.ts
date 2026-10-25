@@ -1,4 +1,5 @@
 import { notifyThemeChange } from '@pterodactyl/sdk';
+import { onDraft, readDraft } from './configStore';
 import manifest from '../extension.json';
 
 interface SettingDefinition {
@@ -30,28 +31,12 @@ export function applyPreview(values: Record<string, unknown>): void {
     notifyThemeChange();
 }
 
-/** One preview window serves every Prism extension; each message names the extension it is for. */
-export const PREVIEW_WINDOW = 'prism-preview';
-export const PREVIEW_MESSAGE = 'prism-preview';
-export const READY_MESSAGE = 'prism-preview:ready';
-
 /**
- * In the preview window Prism Properties opens (the panel refuses to be framed): take the settings
- * being edited from the editor that opened it, and tell it when a page is ready for them.
+ * In Prism Core's preview window: show the draft kept from an earlier page, then each new one as
+ * the editor sends it.
  */
-export function listenForPreview(): void {
-    const editor = window.opener as Window | null;
-    if (window.name !== PREVIEW_WINDOW || !editor) return;
-
-    window.addEventListener('message', (event: MessageEvent) => {
-        if (event.origin !== window.location.origin || event.source !== editor) return;
-        const data = event.data as { type?: string; extension?: string; settings?: Record<string, unknown> } | null;
-        if (data?.type === PREVIEW_MESSAGE && data.extension === 'prism-themes' && data.settings && typeof data.settings === 'object') applyPreview(data.settings);
-    });
-
-    try {
-        editor.postMessage({ type: READY_MESSAGE, extension: 'prism-themes' }, window.location.origin);
-    } catch {
-        // The editor has gone; the saved settings show.
-    }
+export function followPreview(): void {
+    const draft = readDraft('prism-themes');
+    if (Object.keys(draft).length > 0) applyPreview(draft);
+    onDraft('prism-themes', applyPreview);
 }

@@ -1,4 +1,5 @@
 import type { ExtensionConfig } from '@pterodactyl/sdk';
+import { createConfigStore } from './configStore';
 import { parsePatterns } from './lib/paths';
 
 export interface EditorSettings {
@@ -88,10 +89,11 @@ function read(raw: ExtensionConfig): FilesConfig {
     };
 }
 
-let config: FilesConfig = read({});
+/** The settings, with Prism Core's live preview draft over them in its preview window. */
+export const configStore = createConfigStore('prism-files', read);
 
 export function setConfig(raw: ExtensionConfig): void {
-    config = read(raw);
+    configStore.set(raw);
 }
 
 let applied: unknown = null;
@@ -100,9 +102,9 @@ let applied: unknown = null;
 export function applyConfig(raw: unknown): void {
     if (!raw || raw === applied || typeof raw !== 'object' || Array.isArray(raw)) return;
     applied = raw;
-    config = read(raw as ExtensionConfig);
+    configStore.set(raw as ExtensionConfig);
 }
 
 export function getConfig(): FilesConfig {
-    return config;
+    return configStore.get();
 }

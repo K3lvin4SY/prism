@@ -1,5 +1,5 @@
 import { defineTheme, skin, type ThemeSkins } from '@pterodactyl/sdk/theme';
-import { listenForPreview } from './settings';
+import { followPreview } from './settings';
 
 /**
  * Every box the panel draws gets the surface class the Surfaces setting styles: cards, rows,
@@ -24,6 +24,6 @@ const skins: ThemeSkins = {
 export default defineTheme({
     ui: skins,
     setup() {
-        listenForPreview();
+        followPreview();
     },
 });

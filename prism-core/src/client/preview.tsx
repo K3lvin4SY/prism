@@ -1,20 +1,35 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button, cn, http } from '@pterodactyl/sdk';
+import { PREVIEW_WINDOW } from './configStore';
+import { PREVIEW_MESSAGE, READY_MESSAGE } from './hub';
 import { NamedIcon } from './icons';
 
 /*
  * One preview window of the real panel for every Prism editor (the panel refuses to be framed).
- * Each editor sends its own extension's unsaved settings there, so a draft look and a draft layout
- * show together. Prism Themes and Prism Layout listen for these messages in that window.
+ * Each editor sends its own extension's unsaved settings there, so drafts of several extensions
+ * show together. In the window, Prism Core's hub (hub.ts) passes them on to the extensions.
  */
-const WINDOW = 'prism-preview';
-const PREVIEW = 'prism-preview';
-const READY = 'prism-preview:ready';
+const WINDOW = PREVIEW_WINDOW;
+const PREVIEW = PREVIEW_MESSAGE;
+const READY = READY_MESSAGE;
 
 export type Device = 'desktop' | 'tablet' | 'phone';
 const SIZES: Record<Device, [number, number]> = { desktop: [1366, 860], tablet: [820, 1180], phone: [390, 844] };
-export type Page = 'dashboard' | 'server' | 'admin' | 'account';
+export type Page = 'home' | 'dashboard' | 'server' | 'admin' | 'account';
+
+/** Where each server extension shows itself: a server page, on a server of its game if it has one. */
+const HOMES: Record<string, { label: string; path: string; tag?: string }> = {
+    'prism-console': { label: 'Console', path: '' },
+    'prism-files': { label: 'Files', path: '/files' },
+    'prism-database': { label: 'Databases', path: '/databases' },
+    'prism-backups': { label: 'Backups', path: '/backups' },
+    'prism-schedules': { label: 'Schedules', path: '/schedules' },
+    'prism-mc': { label: 'Minecraft', path: '/properties', tag: 'minecraft' },
+    'prism-terraria': { label: 'Terraria', path: '/terraria-properties', tag: 'terraria' },
+};
+
+type ServerItem = { attributes: { identifier: string; egg_tags?: string[] } };
 
 let target: Window | null = null;
 let timer: number | undefined;
@@ -61,6 +76,14 @@ export function usePreviewDraft(extension: string, settings: Record<string, unkn
         if (extension && open && target) target.postMessage({ type: PREVIEW, extension, settings }, window.location.origin);
     }, [open, extension, settings]);
 
+    // Leaving the editor takes its draft back out of the window: the saved settings show again.
+    useEffect(
+        () => () => {
+            if (extension && isOpen()) target?.postMessage({ type: PREVIEW, extension, settings: {} }, window.location.origin);
+        },
+        [extension]
+    );
+
     useEffect(() => {
         const listener = (event: MessageEvent) => {
             if (!extension || event.origin !== window.location.origin || !target || event.source !== target) return;
@@ -75,11 +98,17 @@ export function usePreviewDraft(extension: string, settings: Record<string, unkn
 const pill = (active: boolean) =>
     cn('prism-switch-item ppx:inline-flex ppx:items-center ppx:gap-1.5 ppx:rounded-full ppx:px-3 ppx:py-1 ppx:text-xs ppx:font-medium ppx:cursor-pointer', active ? 'ppx:bg-primary ppx:text-primary-foreground' : 'ppx:text-muted-foreground ppx:hover:bg-muted ppx:hover:text-foreground');
 
-/** The page and device pickers and the button that opens the preview window. */
-export function PreviewControls({ children }: { children?: ReactNode }) {
-    const firstServer = useQuery({ queryKey: ['prism-core', 'first-server'], queryFn: async () => (await http.get<{ data: { attributes: { identifier: string } }[] }>('/api/client', { params: { per_page: 1 } })).data.data[0]?.attributes.identifier ?? null });
+/**
+ * The page and device pickers and the button that opens the preview window. A server extension
+ * opens on its own page; the others on the dashboard.
+ */
+export function PreviewControls({ extension, children }: { extension?: string; children?: ReactNode }) {
+    const servers = useQuery({ queryKey: ['prism-core', 'preview-servers'], queryFn: async () => (await http.get<{ data: ServerItem[] }>('/api/client', { params: { per_page: 50 } })).data.data });
     const open = usePreviewOpen();
-    const [page, setPage] = useState<Page>('dashboard');
+    const home = extension ? HOMES[extension] : undefined;
+    const [page, setPage] = useState<Page>(home ? 'home' : 'dashboard');
+    const firstServer = servers.data?.[0]?.attributes.identifier ?? null;
+    const homeServer = (home?.tag ? servers.data?.find((server) => server.attributes.egg_tags?.includes(home.tag!)) : undefined)?.attributes.identifier ?? firstServer;
     const [device, setDevice] = useState<Device>('desktop');
     const [turned, setTurned] = useState(false);
 
@@ -87,7 +116,16 @@ export function PreviewControls({ children }: { children?: ReactNode }) {
         const where = next.page ?? page;
         const size = SIZES[next.device ?? device];
         const [w, h] = (next.turned ?? turned) ? [size[1], size[0]] : size;
-        const url = where === 'dashboard' ? '/' : where === 'admin' ? '/panel' : where === 'account' ? '/account' : firstServer.data ? `/server/${firstServer.data}` : '/';
+        const url =
+            where === 'home' && home && homeServer
+                ? `/server/${homeServer}${home.path}`
+                : where === 'admin'
+                  ? '/panel'
+                  : where === 'account'
+                    ? '/account'
+                    : where === 'server' && firstServer
+                      ? `/server/${firstServer}`
+                      : '/';
         if (isOpen() && target && !next.device && next.turned === undefined) {
             target.location.href = url;
             target.focus();
@@ -102,10 +140,12 @@ export function PreviewControls({ children }: { children?: ReactNode }) {
     return (
         <div className={'pt-surface ppx:flex ppx:flex-col ppx:gap-3 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
             <p className={'ppx:text-sm ppx:font-semibold'}>Live preview</p>
-            <p className={'ppx:text-sm ppx:text-muted-foreground'}>The real panel in its own window, sized like the device you pick. Each change shows there at once; nobody else sees anything until you save.</p>
+            <p className={'ppx:text-sm ppx:text-muted-foreground'}>
+                The real panel in its own window, sized like the device you pick. Each change shows there at once; nobody else sees anything until you save. Settings the server enforces, such as limits and permissions, keep their saved values there until then.
+            </p>
             <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2'}>
                 <div className={'prism-switch ppx:flex ppx:gap-1 ppx:rounded-full ppx:border ppx:border-border ppx:p-1'}>
-                    {(['dashboard', 'server', 'admin', 'account'] as Page[]).map((name) => (
+                    {((home ? ['home', 'dashboard', 'server', 'admin', 'account'] : ['dashboard', 'server', 'admin', 'account']) as Page[]).map((name) => (
                         <button
                             key={name}
                             type={'button'}
@@ -115,7 +155,7 @@ export function PreviewControls({ children }: { children?: ReactNode }) {
                                 if (open) show({ page: name });
                             }}
                         >
-                            {name.charAt(0).toUpperCase() + name.slice(1)}
+                            {name === 'home' ? home?.label : name.charAt(0).toUpperCase() + name.slice(1)}
                         </button>
                     ))}
                 </div>

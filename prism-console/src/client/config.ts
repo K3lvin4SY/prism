@@ -1,4 +1,5 @@
 import type { ExtensionConfig } from '@pterodactyl/sdk';
+import { createConfigStore } from './configStore';
 import type { HighlightSettings } from './lib/lines';
 
 export type LayoutId = 'classic' | 'dashboard' | 'side' | 'monitor' | 'focus' | 'compact';
@@ -47,7 +48,8 @@ function json<T>(value: unknown, fallback: T): T {
 const bool = (value: unknown, fallback: boolean) => (typeof value === 'boolean' ? value : fallback);
 const num = (value: unknown, fallback: number) => (typeof value === 'number' && Number.isFinite(value) ? value : Number(value) || fallback);
 
-let config: ConsoleConfig = read({});
+/** The settings, with Prism Core's live preview draft over them in its preview window. */
+export const configStore = createConfigStore('prism-console', read);
 
 export function read(raw: ExtensionConfig): ConsoleConfig {
     const get = (key: string) => (raw as Record<string, unknown>)[key];
@@ -89,7 +91,7 @@ export function read(raw: ExtensionConfig): ConsoleConfig {
 }
 
 export function setConfig(raw: ExtensionConfig): void {
-    config = read(raw);
+    configStore.set(raw);
 }
 
 let applied: unknown = null;
@@ -98,11 +100,11 @@ let applied: unknown = null;
 export function applyConfig(raw: unknown): void {
     if (!raw || raw === applied || typeof raw !== 'object' || Array.isArray(raw)) return;
     applied = raw;
-    config = read(raw as ExtensionConfig);
+    configStore.set(raw as ExtensionConfig);
 }
 
 export function getConfig(): ConsoleConfig {
-    return config;
+    return configStore.get();
 }
 
 /** Google Fonts families for the monospace fonts people can pick. */

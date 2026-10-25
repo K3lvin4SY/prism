@@ -1,10 +1,10 @@
 import './styles.css';
 import { definePterodactylExtension } from '@pterodactyl/sdk';
-import { setConfig } from './config';
+import { configStore, setConfig } from './config';
 
 export default definePterodactylExtension({
     setup({ config, views }) {
         setConfig(config);
-        views.override('server.databases', { load: () => import('./views/DatabasesView') });
+        views.override('server.databases', { load: () => import('./views/DatabasesView').then(configStore.liveModule) });
     },
 });

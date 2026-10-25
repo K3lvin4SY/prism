@@ -1,4 +1,5 @@
 import type { ExtensionConfig } from '@pterodactyl/sdk';
+import { createConfigStore } from './configStore';
 
 export interface DatabaseConfig {
     enabled: boolean;
@@ -14,7 +15,8 @@ export interface DatabaseConfig {
     sharing: boolean;
 }
 
-let config: DatabaseConfig = read({});
+/** The settings, with Prism Core's live preview draft over them in its preview window. */
+export const configStore = createConfigStore('prism-database', read);
 
 function read(raw: ExtensionConfig): DatabaseConfig {
     const get = (key: string) => (raw as Record<string, unknown>)[key];
@@ -37,7 +39,7 @@ function read(raw: ExtensionConfig): DatabaseConfig {
 }
 
 export function setConfig(raw: ExtensionConfig): void {
-    config = read(raw);
+    configStore.set(raw);
 }
 
 let applied: unknown = null;
@@ -46,9 +48,9 @@ let applied: unknown = null;
 export function applyConfig(raw: unknown): void {
     if (!raw || raw === applied || typeof raw !== 'object' || Array.isArray(raw)) return;
     applied = raw;
-    config = read(raw as ExtensionConfig);
+    configStore.set(raw as ExtensionConfig);
 }
 
 export function getConfig(): DatabaseConfig {
-    return config;
+    return configStore.get();
 }

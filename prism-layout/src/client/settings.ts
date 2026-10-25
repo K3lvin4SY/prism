@@ -1,5 +1,6 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { onDraft, readDraft } from './configStore';
 import { http, notifyThemeChange, type ExtensionConfig } from '@pterodactyl/sdk';
 import { gameTag } from './dashboard';
 
@@ -133,6 +134,9 @@ export const cssUrlToken = (address: string) => `url(${cssString(address)})`;
  * read them through useSettings(), so a preview shows at once.
  */
 let saved: Record<string, unknown> = {};
+
+/** In Prism Core's preview window, the draft being edited, laid over the saved settings. */
+let draft: Record<string, unknown> = readDraft('prism-layout');
 let current: LayoutSettings = read({});
 const listeners = new Set<() => void>();
 
@@ -184,34 +188,15 @@ export function apply(settings: LayoutSettings): void {
 
 export function setConfig(config: ExtensionConfig): void {
     saved = { ...(config as Record<string, unknown>) };
-    apply(read(saved));
+    apply(read({ ...saved, ...draft }));
 }
 
-export const PREVIEW_WINDOW = 'prism-preview';
-export const PREVIEW_MESSAGE = 'prism-preview';
-export const READY_MESSAGE = 'prism-preview:ready';
-
-/**
- * In the preview window Prism Properties opens: lay the draft it sends over the saved settings, and
- * tell it when a page is ready for them.
- */
-export function listenForPreview(): void {
-    const editor = window.opener as Window | null;
-    if (window.name !== PREVIEW_WINDOW || !editor) return;
-
-    window.addEventListener('message', (event: MessageEvent) => {
-        if (event.origin !== window.location.origin || event.source !== editor) return;
-        const data = event.data as { type?: string; extension?: string; settings?: Record<string, unknown> } | null;
-        if (data?.type === PREVIEW_MESSAGE && data.extension === 'prism-layout' && data.settings && typeof data.settings === 'object') {
-            apply(read({ ...saved, ...data.settings }));
-        }
+/** Takes each draft Prism Core passes on in its preview window, and shows it at once. */
+export function followPreview(): void {
+    onDraft('prism-layout', (settings) => {
+        draft = settings;
+        apply(read({ ...saved, ...draft }));
     });
-
-    try {
-        editor.postMessage({ type: READY_MESSAGE, extension: 'prism-layout' }, window.location.origin);
-    } catch {
-        // The editor has gone; the saved settings show.
-    }
 }
 
 /**

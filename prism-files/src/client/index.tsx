@@ -1,11 +1,11 @@
 import './styles.css';
 import { definePterodactylExtension } from '@pterodactyl/sdk';
-import { setConfig } from './config';
+import { configStore, setConfig } from './config';
 
 export default definePterodactylExtension({
     setup({ config, views }) {
         setConfig(config);
-        views.override('page.server.files', { load: () => import('./views/FilesPage') });
-        views.override('page.server.files.editor', { load: () => import('./views/EditorPage') });
+        views.override('page.server.files', { load: () => import('./views/FilesPage').then(configStore.liveModule) });
+        views.override('page.server.files.editor', { load: () => import('./views/EditorPage').then(configStore.liveModule) });
     },
 });

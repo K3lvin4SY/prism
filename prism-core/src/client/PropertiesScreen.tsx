@@ -301,8 +301,8 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
 
     const value = (field: SettingField) => (field.input in draft ? draft[field.input] : field.value);
     const values = useMemo(() => Object.fromEntries(schema.map((field) => [field.input, field.input in draft ? draft[field.input] : field.value])), [schema, draft]);
-    // Only Prism Layout listens in the preview window; for the others nothing is sent.
-    usePreviewDraft(layout ? extension.id : '', layout ? values : EMPTY);
+    // Every Prism extension shows its draft in the preview window.
+    usePreviewDraft(extension.id, values);
 
     const change = (field: SettingField, next: unknown) =>
         setDraft((current) => {
@@ -381,7 +381,7 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
                 <Alert type={'info'}>Protected paths are enforced by Prism File Browser. Someone using the panel&apos;s file API directly, such as an API key or SFTP, is not stopped by them.</Alert>
             )}
 
-            {layout && <PreviewControls />}
+            <PreviewControls extension={extension.id} />
 
             <SaveBar
                 changes={schema
@@ -401,8 +401,6 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
         </div>
     );
 }
-
-const EMPTY: Record<string, unknown> = {};
 
 function Label({ field, aside }: { field: SettingField; aside?: React.ReactNode }) {
     return (

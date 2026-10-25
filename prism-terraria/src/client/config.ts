@@ -1,25 +1,27 @@
 import type { ExtensionConfig } from '@pterodactyl/sdk';
+import { createConfigStore } from './configStore';
 
-let config: ExtensionConfig = {};
+/** The settings, with Prism Core's live preview draft over them in its preview window. */
+export const configStore = createConfigStore('prism-terraria', (raw: ExtensionConfig): ExtensionConfig => raw);
 
 export function setConfig(value: ExtensionConfig): void {
-    config = value;
+    configStore.set(value);
 }
 
 export function getConfig(): ExtensionConfig {
-    return config;
+    return configStore.get();
 }
 
 /** Whether the admin shows a server tab, such as `players` or `world`; on until turned off in Prism Properties. */
 export function tabEnabled(tab: string): boolean {
-    const value = config[`tab_${tab}`];
+    const value = configStore.get()[`tab_${tab}`];
 
     return typeof value === 'boolean' ? value : true;
 }
 
 /** The egg tags that mark a Terraria server, from Prism Properties; terraria and tria unless the admin changed them. */
 export function eggTags(): string[] {
-    const tags = (typeof config.egg_tags === 'string' ? config.egg_tags : '')
+    const tags = (typeof configStore.get().egg_tags === 'string' ? (configStore.get().egg_tags as string) : '')
         .split(',')
         .map((tag) => tag.trim().toLowerCase())
         .filter(Boolean);

@@ -1,4 +1,5 @@
 import type { ExtensionConfig } from '@pterodactyl/sdk';
+import { createConfigStore } from './configStore';
 
 /** The admin's Prism Schedules settings, from Prism Properties. */
 export interface SchedulesConfig {
@@ -29,12 +30,13 @@ export function read(raw: ExtensionConfig): SchedulesConfig {
     };
 }
 
-let config: SchedulesConfig = read({});
+/** The settings, with Prism Core's live preview draft over them in its preview window. */
+export const configStore = createConfigStore('prism-schedules', read);
 
-export const getConfig = () => config;
+export const getConfig = () => configStore.get();
 
 export function setConfig(raw: ExtensionConfig): void {
-    config = read(raw);
+    configStore.set(raw);
 }
 
 let applied: unknown = null;
@@ -43,5 +45,5 @@ let applied: unknown = null;
 export function applyConfig(raw: unknown): void {
     if (!raw || raw === applied || typeof raw !== 'object' || Array.isArray(raw)) return;
     applied = raw;
-    config = read(raw as ExtensionConfig);
+    configStore.set(raw as ExtensionConfig);
 }
