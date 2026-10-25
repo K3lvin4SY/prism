@@ -96,7 +96,7 @@ function EntryCard({
     };
 
     return (
-        <div className={'mcs:relative mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:pl-5 mcs:flex mcs:flex-col mcs:gap-4'}>
+        <div className={'pt-surface mcs:relative mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:pl-5 mcs:flex mcs:flex-col mcs:gap-4'}>
             <span className={'mcs:absolute mcs:left-0 mcs:top-4 mcs:bottom-4 mcs:w-1 mcs:rounded-r mcs:bg-primary/70'} aria-hidden />
             {heading}
             <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-3'}>
@@ -322,7 +322,7 @@ export default function ProxyPanel({ server }: { server: string }) {
                 <Alert type={'info'}>Start the proxy once so it writes its config. Then you can link servers here.</Alert>
             ) : (
                 <>
-                    <div className={'mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:flex mcs:flex-col mcs:gap-4'}>
+                    <div className={'pt-surface mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:flex mcs:flex-col mcs:gap-4'}>
                         <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-3'}>
                             <span className={'mcs:flex mcs:size-12 mcs:items-center mcs:justify-center mcs:rounded-full mcs:bg-primary/15 mcs:text-primary'}>
                                 <NamedIcon name={'network'} size={22} />

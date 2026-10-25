@@ -36,7 +36,7 @@ type StyleKey = Extract<Change, { toggle: unknown }>['toggle'];
 
 const STYLE_ICONS: Record<string, string> = { l: 'bold', o: 'italic', n: 'underline', m: 'strikethrough', k: 'sparkles' };
 
-const box = 'mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card';
+const box = 'pt-surface mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card';
 
 function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
     return (

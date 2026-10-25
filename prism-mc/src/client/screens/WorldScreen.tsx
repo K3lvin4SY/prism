@@ -75,14 +75,14 @@ export default function WorldScreen() {
     return (
         <ServerContentBlock title={'World'}>
             <div className={'mcs:grid mcs:gap-4 mcs:xl:grid-cols-[minmax(0,1fr)_300px]'}>
-                <div className={'mcs:flex mcs:min-w-0 mcs:flex-col mcs:gap-3 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
+                <div className={'pt-surface mcs:flex mcs:min-w-0 mcs:flex-col mcs:gap-3 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
                     <WorldMap server={identifier} markers={markers} focus={focus} />
                     <p className={'mcs:text-xs mcs:text-muted-foreground'}>
                         Players are shown where they were at their last save; online players are saved every few minutes. Online players have a green border.
                     </p>
                 </div>
 
-                <div className={'mcs:flex mcs:flex-col mcs:gap-3 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
+                <div className={'pt-surface mcs:flex mcs:flex-col mcs:gap-3 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
                     <div className={'mcs:flex mcs:items-center mcs:justify-between mcs:gap-2'}>
                         <h3 className={'mcs:text-sm mcs:font-semibold'}>Players</h3>
                         {reading && <Spinner size={'small'} />}

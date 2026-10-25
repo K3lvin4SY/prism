@@ -12,7 +12,7 @@ export default function UploadPanel({ queue }: { queue: UploadQueue }) {
     const loaded = uploads.reduce((sum, upload) => sum + (upload.status === 'done' ? upload.size : upload.loaded), 0);
 
     return (
-        <div className={'pfl:fixed pfl:bottom-4 pfl:right-4 pfl:z-40 pfl:w-[min(24rem,calc(100vw-2rem))] pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card pfl:shadow-2xl'}>
+        <div className={'pt-surface pt-overlay pfl:fixed pfl:bottom-4 pfl:right-4 pfl:z-40 pfl:w-[min(24rem,calc(100vw-2rem))] pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card pfl:shadow-2xl'}>
             <div className={'pfl:flex pfl:items-center pfl:gap-2 pfl:border-b pfl:border-border pfl:px-3 pfl:py-2 pfl:text-sm'}>
                 <NamedIcon name={active.length ? 'upload' : 'circle-check'} size={15} className={active.length ? 'pfl:text-primary' : 'pfl:text-success'} />
                 <span className={'pfl:flex-1 pfl:font-semibold'}>{active.length ? `Uploading ${active.length} of ${uploads.length}` : `${uploads.length} uploads finished`}</span>

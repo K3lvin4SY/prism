@@ -98,7 +98,7 @@ function PrismDatabases({ model }: Pick<ViewProps<'server.databases'>, 'model'>)
                             key={database.id}
                             type={'button'}
                             onClick={() => go(database.id)}
-                            className={'pdb:flex pdb:flex-col pdb:gap-2 pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:p-4 pdb:text-left pdb:cursor-pointer pdb:hover:border-primary'}
+                            className={'pt-surface pdb:flex pdb:flex-col pdb:gap-2 pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:p-4 pdb:text-left pdb:cursor-pointer pdb:hover:border-primary'}
                         >
                             <div className={'pdb:flex pdb:items-center pdb:gap-2'}>
                                 <NamedIcon name={'database'} size={18} className={'pdb:text-primary'} />

@@ -58,7 +58,7 @@ export default function Calendar({ state, onOpen }: { state: State; onOpen: (id:
                 </Button.Text>
             </div>
 
-            <div className={'psc:overflow-x-auto psc:rounded-lg psc:border psc:border-border psc:bg-card'}>
+            <div className={'pt-surface psc:overflow-x-auto psc:rounded-lg psc:border psc:border-border psc:bg-card'}>
                 <div className={'psc:grid psc:min-w-[720px]'} style={{ gridTemplateColumns: '3.5rem repeat(7, minmax(0, 1fr))' }}>
                     <div className={'psc:border-b psc:border-border'} />
                     {days.map((day, index) => (
@@ -75,7 +75,7 @@ export default function Calendar({ state, onOpen }: { state: State; onOpen: (id:
             </div>
 
             {offClock.length > 0 && (
-                <div className={'psc:flex psc:flex-col psc:gap-2 psc:rounded-lg psc:border psc:border-border psc:bg-card psc:p-4'}>
+                <div className={'pt-surface psc:flex psc:flex-col psc:gap-2 psc:rounded-lg psc:border psc:border-border psc:bg-card psc:p-4'}>
                     <p className={'psc:text-xs psc:font-semibold psc:uppercase psc:tracking-wide psc:text-muted-foreground'}>Not on the clock</p>
                     {offClock.map((schedule) => (
                         <button key={schedule.id} type={'button'} onClick={() => onOpen(schedule.id)} className={'psc:flex psc:cursor-pointer psc:items-center psc:gap-2 psc:text-left psc:text-sm psc:hover:text-primary'}>

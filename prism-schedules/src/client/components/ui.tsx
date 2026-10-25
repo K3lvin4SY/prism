@@ -25,7 +25,7 @@ export function Pills<T extends string>({ value, options, onChange, size = 'md' 
 
 export function Section({ title, actions, children, className }: { title: string; actions?: ReactNode; children: ReactNode; className?: string }) {
     return (
-        <section className={cn('psc:flex psc:flex-col psc:overflow-hidden psc:rounded-lg psc:border psc:border-border psc:bg-card', className)}>
+        <section className={cn('pt-surface psc:flex psc:flex-col psc:overflow-hidden psc:rounded-lg psc:border psc:border-border psc:bg-card', className)}>
             <div className={'psc:flex psc:min-h-12 psc:items-center psc:gap-2 psc:border-b psc:border-border psc:px-4 psc:py-2'}>
                 <h3 className={'psc:flex-1 psc:text-xs psc:font-semibold psc:uppercase psc:tracking-wide'}>{title}</h3>
                 {actions}

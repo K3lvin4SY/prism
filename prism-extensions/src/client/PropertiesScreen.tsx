@@ -193,7 +193,7 @@ function Sidebar({ entries, current, section, dirty, search, onSearch, onGo }: {
             </div>
 
             {query ? (
-                <nav className={'ppx:flex ppx:flex-col ppx:gap-0.5 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-1.5'} aria-label={'Search results'}>
+                <nav className={'pt-surface ppx:flex ppx:flex-col ppx:gap-0.5 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-1.5'} aria-label={'Search results'}>
                     {matches.length === 0 ? (
                         <p className={'ppx:px-2 ppx:py-1.5 ppx:text-sm ppx:text-muted-foreground'}>No setting matches.</p>
                     ) : (
@@ -239,7 +239,7 @@ function Sidebar({ entries, current, section, dirty, search, onSearch, onGo }: {
                         ))}
                     </select>
 
-                    <nav className={'ppx:hidden ppx:flex-col ppx:gap-0.5 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-1.5 ppx:lg:flex'} aria-label={'Prism extensions'}>
+                    <nav className={'pt-surface ppx:hidden ppx:flex-col ppx:gap-0.5 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-1.5 ppx:lg:flex'} aria-label={'Prism extensions'}>
                         {entries.map((entry) => {
                             const open = entry.id === current.id;
 
@@ -345,7 +345,7 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
 
     return (
         <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
-            <div className={'ppx:flex ppx:items-center ppx:gap-4 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
+            <div className={'pt-surface ppx:flex ppx:items-center ppx:gap-4 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
                 <div className={'ppx:flex ppx:size-11 ppx:shrink-0 ppx:items-center ppx:justify-center ppx:rounded-lg ppx:bg-primary/15 ppx:text-primary'}>
                     <NamedIcon name={extension.icon} size={22} />
                 </div>
@@ -359,7 +359,7 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
             {layout && (tab === 'Branding' || tab === 'Sign-in page') && <BrandingPreview schema={schema} draft={draft} tab={tab} />}
 
             {sections.map((section) => (
-                <section key={section.title} className={'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
+                <section key={section.title} className={'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
                     <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>{section.title}</h3>
                     <div className={'ppx:flex ppx:flex-col ppx:divide-y ppx:divide-border'}>
                         {section.fields.map((field) => (

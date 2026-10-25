@@ -158,12 +158,16 @@
 }
 /* #endregion palette */
 
-/* #region surfaces: how cards, menus and bars stand out */
-.pt-surface {
+/*
+ * #region surfaces: how cards, menus and bars stand out. Every box carries .pt-surface; floating
+ * ones (dialogs, menus, popups, sticky bars) also .pt-overlay, and keep their own shadow unless
+ * the look replaces it.
+ */
+.pt-surface:not(.pt-overlay) {
     box-shadow: none;
 }
 
-[data-pt-surface='raised'] .pt-surface {
+[data-pt-surface='raised'] .pt-surface:not(.pt-overlay) {
     box-shadow: var(--pt-shadow), 0 4px 14px rgb(0 0 0 / 0.06);
 }
 
@@ -178,8 +182,11 @@
         0 0 24px color-mix(in oklab, var(--pt-primary) 18%, transparent);
 }
 
-/* Glass: see-through, blurred surfaces with a light edge over the background. */
-[data-pt-surface='glass'] .pt-surface,
+/*
+ * Glass: see-through, blurred surfaces with a light edge over the background. A surface with a
+ * fill of its own (.pt-solid, such as the console's terminal) keeps it.
+ */
+[data-pt-surface='glass'] .pt-surface:not(.pt-solid),
 [data-pt-surface='glass'] .pt-bar,
 [data-pt-surface='glass'] .bg-card,
 [data-pt-surface='glass'] .bg-popover,

@@ -29,7 +29,7 @@ export default function HistoryTab({ schedule, steps }: { schedule: Schedule; st
 
     return (
         <div className={'psc:grid psc:gap-4 psc:lg:grid-cols-[18rem_minmax(0,1fr)]'}>
-            <div className={'psc:flex psc:max-h-[32rem] psc:flex-col psc:gap-1 psc:overflow-y-auto psc:rounded-lg psc:border psc:border-border psc:bg-card psc:p-1'}>
+            <div className={'pt-surface psc:flex psc:max-h-[32rem] psc:flex-col psc:gap-1 psc:overflow-y-auto psc:rounded-lg psc:border psc:border-border psc:bg-card psc:p-1'}>
                 {list.map((run) => {
                     const status = STATUS[run.status];
 
@@ -67,7 +67,7 @@ function RunView({ id, steps, scheduleId }: { id: number; steps: Step[]; schedul
     const finished = data.finishedAt ? Math.round((Date.parse(data.finishedAt) - Date.parse(data.startedAt)) / 1000) : null;
 
     return (
-        <div className={'psc:flex psc:flex-col psc:gap-3 psc:rounded-lg psc:border psc:border-border psc:bg-card psc:p-4'}>
+        <div className={'pt-surface psc:flex psc:flex-col psc:gap-3 psc:rounded-lg psc:border psc:border-border psc:bg-card psc:p-4'}>
             <div className={'psc:flex psc:flex-wrap psc:items-center psc:gap-3'}>
                 <NamedIcon name={STATUS[data.status].icon} size={18} className={cn(STATUS[data.status].tone, data.status === 'running' && 'psc:animate-spin')} />
                 <div className={'psc:min-w-0 psc:flex-1'}>

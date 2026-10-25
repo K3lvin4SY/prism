@@ -4,7 +4,7 @@ import { NamedIcon } from '../icons';
 import type { QuickCommand } from '../config';
 import { useStore, type ServerConsoleStore, type StatsSample } from '../store';
 
-const box = 'pcn:rounded-lg pcn:border pcn:border-border pcn:bg-card';
+const box = 'pt-surface pcn:rounded-lg pcn:border pcn:border-border pcn:bg-card';
 
 function Sparkline({ values, max, className }: { values: number[]; max?: number; className?: string }) {
     if (values.length < 2) return <div className={className} />;

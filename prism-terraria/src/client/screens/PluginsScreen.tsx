@@ -103,7 +103,7 @@ function Catalog({ running, confirm, onInstalled }: { running: boolean; confirm:
                         const sameMajor = testedOnMajor(plugin.tested, catalog.data.tshock);
 
                         return (
-                            <div key={plugin.id} className={'trs:flex trs:gap-3 trs:rounded-lg trs:border trs:border-border trs:bg-card trs:p-4 trs:min-w-0'}>
+                            <div key={plugin.id} className={'pt-surface trs:flex trs:gap-3 trs:rounded-lg trs:border trs:border-border trs:bg-card trs:p-4 trs:min-w-0'}>
                                 <ItemIcon src={null} className={'trs:size-12 trs:shrink-0'} />
                                 <div className={'trs:flex trs:min-w-0 trs:flex-1 trs:flex-col trs:gap-1.5'}>
                                     <div className={'trs:flex trs:flex-wrap trs:items-baseline trs:gap-x-2'}>
@@ -243,7 +243,7 @@ function Installed({ plugins, loading, onChanged }: { plugins: InstalledPlugin[]
                 <p className={'trs:py-8 trs:text-center trs:text-sm trs:text-muted-foreground'}>No plugins installed.</p>
             ) : (
                 plugins.map((plugin) => (
-                    <div key={plugin.id ?? plugin.files.join()} className={'trs:flex trs:flex-wrap trs:items-center trs:gap-3 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-3'}>
+                    <div key={plugin.id ?? plugin.files.join()} className={'pt-surface trs:flex trs:flex-wrap trs:items-center trs:gap-3 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-3'}>
                         <ItemIcon src={null} className={'trs:size-10 trs:shrink-0'} />
                         <div className={'trs:min-w-0 trs:flex-1 trs:basis-48'}>
                             <div className={'trs:flex trs:flex-wrap trs:items-center trs:gap-2'}>

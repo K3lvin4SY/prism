@@ -65,7 +65,7 @@ export default function PatchBukkitCard({ server }: { server: string }) {
     };
 
     return (
-        <div className={'mcs:flex mcs:flex-col mcs:gap-3 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
+        <div className={'pt-surface mcs:flex mcs:flex-col mcs:gap-3 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
             <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-3'}>
                 <span className={'mcs:flex mcs:size-11 mcs:items-center mcs:justify-center mcs:rounded-full mcs:bg-primary/15 mcs:text-primary'}>
                     <NamedIcon name={'puzzle'} size={20} />

@@ -217,7 +217,7 @@ export default function ControlPanel({ identifier, player, state, running, other
         cn('prism-switch-item mcs:inline-flex mcs:flex-1 mcs:cursor-pointer mcs:items-center mcs:justify-center mcs:gap-1.5 mcs:rounded mcs:px-2 mcs:py-1 mcs:text-xs', active ? 'mcs:bg-card mcs:font-semibold mcs:text-foreground mcs:shadow-sm' : 'mcs:text-muted-foreground mcs:hover:text-foreground');
 
     return (
-        <div className={'mcs:overflow-hidden mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card'}>
+        <div className={'pt-surface mcs:overflow-hidden mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card'}>
             <div className={'mcs:flex mcs:items-center mcs:gap-3 mcs:border-b mcs:border-border mcs:bg-muted/30 mcs:px-4 mcs:py-3'}>
                 <h3 className={'mcs:flex-1 mcs:font-semibold'}>Control</h3>
                 <span className={cn('mcs:inline-flex mcs:items-center mcs:gap-1.5 mcs:rounded-full mcs:px-2 mcs:py-0.5 mcs:text-xs mcs:font-medium', online ? 'mcs:bg-success/15 mcs:text-success' : 'mcs:bg-muted mcs:text-muted-foreground')}>

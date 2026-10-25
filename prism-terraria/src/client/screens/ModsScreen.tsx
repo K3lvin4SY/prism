@@ -223,7 +223,7 @@ function WorkshopCard({ hit, busy, onOpen, onInstall }: { hit: WorkshopHit; busy
                     onOpen();
                 }
             }}
-            className={'trs:flex trs:gap-4 trs:rounded-lg trs:border trs:border-border trs:bg-card trs:p-4 trs:cursor-pointer trs:hover:border-primary trs:min-w-0 trs:overflow-hidden'}
+            className={'pt-surface trs:flex trs:gap-4 trs:rounded-lg trs:border trs:border-border trs:bg-card trs:p-4 trs:cursor-pointer trs:hover:border-primary trs:min-w-0 trs:overflow-hidden'}
         >
             <ItemIcon src={hit.icon} className={'trs:size-20 trs:shrink-0'} />
             <div className={'trs:flex trs:min-w-0 trs:flex-1 trs:flex-col trs:gap-1.5'}>
@@ -421,7 +421,7 @@ function InstalledMods({ overview, loading }: { overview: ModsOverview | undefin
             ) : (
                 <div className={'trs:flex trs:flex-col trs:gap-2'}>
                     {mods.map((mod) => (
-                        <div key={mod.id ?? mod.name} className={'trs:flex trs:flex-wrap trs:items-center trs:gap-3 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-3'}>
+                        <div key={mod.id ?? mod.name} className={'pt-surface trs:flex trs:flex-wrap trs:items-center trs:gap-3 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-3'}>
                             <ItemIcon src={mod.icon} className={'trs:size-10 trs:shrink-0'} />
                             <div className={'trs:min-w-0 trs:flex-1 trs:basis-48'}>
                                 <div className={'trs:flex trs:flex-wrap trs:items-center trs:gap-2'}>

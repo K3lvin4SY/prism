@@ -25,7 +25,7 @@ function Overview() {
     const sum = (key: 'cpu' | 'memory' | 'memoryLimit' | 'disk' | 'diskLimit') => servers.reduce((total, server) => total + server[key], 0);
 
     return (
-        <section aria-label='Overview' className='pla:flex pla:flex-col pla:gap-2.5 pla:rounded-lg pla:border pla:border-border pla:bg-card pla:p-3'>
+        <section aria-label='Overview' className='pt-surface pla:flex pla:flex-col pla:gap-2.5 pla:rounded-lg pla:border pla:border-border pla:bg-card pla:p-3'>
             <div className='pla:flex pla:items-baseline pla:gap-1.5'>
                 <span className='pla:font-header pla:text-2xl pla:font-semibold pla:tabular-nums'>{up}</span>
                 <span className='pla:text-sm pla:text-muted-foreground'>of {servers.length} online</span>

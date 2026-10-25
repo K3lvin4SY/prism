@@ -79,7 +79,7 @@ export default function TrashView({ server, items, ignored }: { server: string; 
                 )}
             </div>
 
-            <div className={'pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card'}>
+            <div className={'pt-surface pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card'}>
                 <div className={'pfl:grid pfl:grid-cols-[2rem_minmax(0,1fr)_5rem_7rem_6rem_7.5rem] pfl:items-center pfl:gap-2 pfl:border-b pfl:border-border pfl:px-3 pfl:py-2 pfl:text-xs pfl:uppercase pfl:tracking-wide pfl:text-muted-foreground'}>
                     <Checkbox checked={shown.length > 0 && shown.every((item) => selected.has(item.id))} onChange={(checked) => setSelected(new Set(checked ? shown.map((item) => item.id) : []))} />
                     <span>Original location</span>
@@ -135,7 +135,7 @@ export default function TrashView({ server, items, ignored }: { server: string; 
             </div>
 
             {selected.size > 0 && (
-                <div className={'pfl:sticky pfl:bottom-4 pfl:mx-auto pfl:flex pfl:items-center pfl:gap-2 pfl:rounded-full pfl:border pfl:border-border pfl:bg-card pfl:px-4 pfl:py-2 pfl:shadow-2xl'}>
+                <div className={'pt-surface pt-overlay pfl:sticky pfl:bottom-4 pfl:mx-auto pfl:flex pfl:items-center pfl:gap-2 pfl:rounded-full pfl:border pfl:border-border pfl:bg-card pfl:px-4 pfl:py-2 pfl:shadow-2xl'}>
                     <span className={'pfl:text-sm'}>{selected.size} selected</span>
                     {permissions.create && (
                         <Button size={'small'} disabled={busy} onClick={() => restore([...selected], 'skip')}>

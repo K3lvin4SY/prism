@@ -68,7 +68,7 @@ export function FilterSection({ title, children, action, defaultOpen = true }: {
     const [open, setOpen] = useState(defaultOpen);
 
     return (
-        <section className={'mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card'}>
+        <section className={'pt-surface mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card'}>
             <div className={'mcs:flex mcs:items-center mcs:gap-2 mcs:px-4 mcs:py-3'}>
                 <button
                     type={'button'}

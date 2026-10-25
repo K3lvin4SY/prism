@@ -97,7 +97,7 @@ function Card({ schedule, state, run, onOpen }: { schedule: Schedule; state: Sta
     };
 
     return (
-        <div className={cn('psc:flex psc:flex-col psc:gap-3 psc:overflow-hidden psc:rounded-lg psc:border psc:border-border psc:bg-card psc:p-4', !schedule.enabled && 'psc:opacity-70')} style={{ borderLeft: `4px solid ${schedule.color ?? 'var(--primary)'}` }}>
+        <div className={cn('pt-surface psc:flex psc:flex-col psc:gap-3 psc:overflow-hidden psc:rounded-lg psc:border psc:border-border psc:bg-card psc:p-4', !schedule.enabled && 'psc:opacity-70')} style={{ borderLeft: `4px solid ${schedule.color ?? 'var(--primary)'}` }}>
             <div className={'psc:flex psc:items-start psc:gap-3'}>
                 <button type={'button'} onClick={() => onOpen(schedule.id)} className={'psc:min-w-0 psc:flex-1 psc:cursor-pointer psc:text-left'}>
                     <p className={'psc:truncate psc:font-semibold'}>{schedule.name}</p>

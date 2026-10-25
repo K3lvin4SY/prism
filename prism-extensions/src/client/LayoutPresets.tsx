@@ -27,7 +27,7 @@ export const isPreset = (preset: Preset, values: Record<string, unknown>) => (pr
 
 export default function LayoutPresets({ values, onPick }: { values: Record<string, unknown>; onPick: (settings: Record<string, unknown>) => void }) {
     return (
-        <section className={'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
+        <section className={'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
             <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>Presets</h3>
             <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-3 ppx:p-4 ppx:md:grid-cols-3 ppx:2xl:grid-cols-4'}>
                 {PRESETS.map((preset) => (

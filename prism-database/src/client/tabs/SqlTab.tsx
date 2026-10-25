@@ -87,7 +87,7 @@ export default function SqlTab({ database, draft, onDraftUsed }: { database: Pri
                 </span>
             </div>
 
-            <div className={'pdb:overflow-hidden pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card'}>
+            <div className={'pt-surface pdb:overflow-hidden pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card'}>
                 <div className={'pdb:flex pdb:items-center pdb:justify-between pdb:border-b pdb:border-border pdb:px-3 pdb:py-1.5 pdb:text-xs pdb:text-muted-foreground'}>
                     <span className={'pdb:font-mono'}>
                         <span className={'pdb:text-primary'}>{database.username}</span> @ {database.name}
@@ -136,7 +136,7 @@ export default function SqlTab({ database, draft, onDraftUsed }: { database: Pri
 
             {error && <Alert type={'danger'}>{error}</Alert>}
             {results?.map((result, index) => (
-                <div key={index} className={'pdb:overflow-hidden pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card'}>
+                <div key={index} className={'pt-surface pdb:overflow-hidden pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card'}>
                     <div className={'pdb:flex pdb:items-center pdb:gap-2 pdb:border-b pdb:border-border pdb:px-3 pdb:py-1.5 pdb:text-xs'}>
                         <span className={'pdb:min-w-0 pdb:flex-1 pdb:truncate pdb:font-mono pdb:text-muted-foreground'}>{result.sql.replace(/\s+/g, ' ')}</span>
                         <span className={cn(result.error ? 'pdb:text-destructive' : 'pdb:text-success')}>

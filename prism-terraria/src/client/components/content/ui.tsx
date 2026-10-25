@@ -74,7 +74,7 @@ export function FilterSection({ title, children }: { title: string; children: Re
     const [open, setOpen] = useState(true);
 
     return (
-        <section className={'trs:rounded-lg trs:border trs:border-border trs:bg-card'}>
+        <section className={'pt-surface trs:rounded-lg trs:border trs:border-border trs:bg-card'}>
             <button
                 type={'button'}
                 onClick={() => setOpen(!open)}

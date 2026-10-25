@@ -170,7 +170,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                 <div className={'mcs:grid mcs:items-start mcs:gap-4 mcs:xl:grid-cols-[minmax(0,1fr)_360px]'}>
                     <div className={'mcs:flex mcs:min-w-0 mcs:flex-col mcs:gap-4'}>
                         {/* Who the player is and where they stand, from the last save. */}
-                        <section className={'mcs:grid mcs:overflow-hidden mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:md:grid-cols-[240px_1fr]'}>
+                        <section className={'pt-surface mcs:grid mcs:overflow-hidden mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:md:grid-cols-[240px_1fr]'}>
                             <div className={'mcs:flex mcs:min-h-[280px] mcs:items-center mcs:justify-center mcs:bg-gradient-to-b mcs:from-[#5b8fd1] mcs:to-[#9ec8f0]'}>
                                 {!featureEnabled('skins') ? <PlayerHead server={identifier} skinKey={uuid} className={'mcs:size-32'} /> : model ? <SkinViewer skin={model} width={220} height={300} /> : <Spinner />}
                             </div>
@@ -252,7 +252,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                         </section>
 
                         {player && (
-                            <div className={'mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:flex mcs:flex-col mcs:gap-3'}>
+                            <div className={'pt-surface mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:flex mcs:flex-col mcs:gap-3'}>
                                 <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:justify-between mcs:gap-2'}>
                                     <div className={'prism-switch mcs:flex mcs:rounded-md mcs:bg-muted mcs:p-0.5'}>
                                         {(

@@ -18,7 +18,7 @@ export const themeSections = (_list?: ThemeSetting[]) => SECTIONS;
 /** The section a setting is edited in: both color tabs are the one Colors section. */
 export const sectionOf = (setting: Pick<ThemeSetting, 'tab'>) => (setting.tab === 'Dark colors' || setting.tab === 'Light colors' ? 'Colors' : (setting.tab ?? 'Presets'));
 
-const box = 'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card';
+const box = 'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card';
 const MODES: [Mode, string][] = [
     ['d', 'Dark'],
     ['l', 'Light'],

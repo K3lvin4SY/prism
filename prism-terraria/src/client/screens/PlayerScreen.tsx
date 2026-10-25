@@ -121,7 +121,7 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
 
                 <div className={'trs:grid trs:gap-4 trs:lg:grid-cols-[1fr_320px]'}>
                     <div className={'trs:flex trs:flex-col trs:gap-4 trs:min-w-0'}>
-                        <div className={'trs:flex trs:flex-wrap trs:items-center trs:gap-4 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-4'}>
+                        <div className={'pt-surface trs:flex trs:flex-wrap trs:items-center trs:gap-4 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-4'}>
                             <span className={'trs:flex trs:size-12 trs:items-center trs:justify-center trs:rounded-lg trs:bg-primary/15 trs:text-primary'}>
                                 <NamedIcon name={'user'} size={22} />
                             </span>

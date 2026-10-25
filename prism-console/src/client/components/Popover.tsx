@@ -44,7 +44,7 @@ export function Popover({ icon, label, children, width = 'pcn:w-64' }: { icon: s
         <div ref={root} className={'pcn:relative'}>
             <IconButton icon={icon} label={label} active={open} onClick={() => setOpen(!open)} />
             {open && (
-                <div className={cn('pcn:absolute pcn:right-0 pcn:top-full pcn:z-30 pcn:mt-1 pcn:rounded-lg pcn:border pcn:border-border pcn:bg-card pcn:p-2 pcn:text-foreground pcn:shadow-xl', width)}>
+                <div className={cn('pt-surface pt-overlay pcn:absolute pcn:right-0 pcn:top-full pcn:z-30 pcn:mt-1 pcn:rounded-lg pcn:border pcn:border-border pcn:bg-card pcn:p-2 pcn:text-foreground pcn:shadow-xl', width)}>
                     {children(() => setOpen(false))}
                 </div>
             )}

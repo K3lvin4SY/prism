@@ -599,7 +599,7 @@ function DiffView({ path, original, modified, theme, changed, onClose, onOverwri
 
     return (
         <div className={'pfl:fixed pfl:inset-0 pfl:z-50 pfl:flex pfl:items-center pfl:justify-center pfl:bg-black/50 pfl:p-4'} onMouseDown={onClose}>
-            <div className={'pfl:flex pfl:h-[85vh] pfl:w-[min(90rem,96vw)] pfl:flex-col pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card pfl:shadow-2xl'} onMouseDown={(event) => event.stopPropagation()}>
+            <div className={'pt-surface pt-overlay pfl:flex pfl:h-[85vh] pfl:w-[min(90rem,96vw)] pfl:flex-col pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card pfl:shadow-2xl'} onMouseDown={(event) => event.stopPropagation()}>
                 <div className={'pfl:flex pfl:flex-wrap pfl:items-center pfl:gap-2 pfl:border-b pfl:border-border pfl:px-4 pfl:py-3'}>
                     <NamedIcon name={changed ? 'triangle-alert' : 'git-compare'} size={16} className={changed ? 'pfl:text-amber-400' : ''} />
                     <div className={'pfl:min-w-0 pfl:flex-1'}>

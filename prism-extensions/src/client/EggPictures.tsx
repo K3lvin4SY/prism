@@ -28,7 +28,7 @@ export default function EggPictures() {
     const eggs = useQuery({ queryKey: KEY, queryFn: async () => (await http.get<{ data: EggPicture[] }>(URL_BASE)).data.data });
 
     return (
-        <section className={'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
+        <section className={'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
             <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>Pictures and logos by game</h3>
             <p className={'ppx:px-4 ppx:pt-3 ppx:text-xs ppx:text-muted-foreground'}>
                 Each egg&apos;s picture on Banner cards, and its logo on Rows cards when cards show the game by logo. Without a logo, Minecraft, Terraria, Rust, Garry&apos;s Mod, Source and voice eggs use a built-in one by their tag, and other eggs a server icon. People who can rename a server can give it its own picture on the server&apos;s Settings page. Saved straight away.

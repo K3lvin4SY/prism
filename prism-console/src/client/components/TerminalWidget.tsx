@@ -218,7 +218,7 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
     } as CSSProperties;
 
     return (
-        <div ref={widget} className={'pcn-terminal pcn:flex pcn:min-w-0 pcn:flex-col pcn:overflow-hidden pcn:rounded-lg pcn:border pcn:border-border'}>
+        <div ref={widget} className={'pt-surface pt-solid pcn-terminal pcn:flex pcn:min-w-0 pcn:flex-col pcn:overflow-hidden pcn:rounded-lg pcn:border pcn:border-border'}>
             <div className={'pcn:flex pcn:flex-wrap pcn:items-center pcn:gap-1 pcn:border-b pcn:border-white/10 pcn:px-2 pcn:py-1.5'}>
                 {config.features.filters && (
                     <div className={'pcn:flex pcn:flex-wrap pcn:gap-1'}>

@@ -132,7 +132,7 @@ export default function PlayersScreen() {
                     </div>
 
                     {shown.length === 0 ? (
-                        <div className={'mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-8 mcs:text-center mcs:text-sm mcs:text-muted-foreground'}>
+                        <div className={'pt-surface mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-8 mcs:text-center mcs:text-sm mcs:text-muted-foreground'}>
                             {data.players.length === 0 ? 'Nobody has joined this server yet.' : 'No players match.'}
                         </div>
                     ) : (

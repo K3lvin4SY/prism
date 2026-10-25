@@ -65,7 +65,7 @@ export default function PlayersScreen() {
                         ) : (
                             <div className={'trs:flex trs:flex-col trs:gap-2'}>
                                 {data.online.map((player) => (
-                                    <div key={player.name} className={'trs:flex trs:flex-wrap trs:items-center trs:gap-2 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-3'}>
+                                    <div key={player.name} className={'pt-surface trs:flex trs:flex-wrap trs:items-center trs:gap-2 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-3'}>
                                         <span className={'trs:size-2 trs:rounded-full trs:bg-green-500'} />
                                         <span className={'trs:font-medium trs:flex-1 trs:min-w-0 trs:truncate'}>{player.name}</span>
                                         {player.ip && <span className={'trs:font-mono trs:text-xs trs:text-muted-foreground'}>{player.ip}</span>}
@@ -186,7 +186,7 @@ export default function PlayersScreen() {
                             <div className={'trs:flex trs:flex-col trs:gap-2'}>
                                 {tshock
                                     ? (data.bans as TShockBan[]).map((ban) => (
-                                          <div key={ban.ticket} className={'trs:flex trs:flex-wrap trs:items-center trs:gap-2 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-3'}>
+                                          <div key={ban.ticket} className={'pt-surface trs:flex trs:flex-wrap trs:items-center trs:gap-2 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-3'}>
                                               <Badge size={'sm'} tone={'neutral'}>
                                                   {{ acc: 'Account', name: 'Name', ip: 'IP', uuid: 'UUID' }[ban.type] ?? ban.type}
                                               </Badge>
@@ -204,7 +204,7 @@ export default function PlayersScreen() {
                                           </div>
                                       ))
                                     : (data.bans as VanillaBan[]).map((ban) => (
-                                          <div key={ban.name} className={'trs:flex trs:flex-wrap trs:items-center trs:gap-2 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-3'}>
+                                          <div key={ban.name} className={'pt-surface trs:flex trs:flex-wrap trs:items-center trs:gap-2 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-3'}>
                                               <div className={'trs:min-w-0 trs:flex-1'}>
                                                   <p className={'trs:font-medium trs:truncate'}>{ban.name}</p>
                                                   {ban.ip && <p className={'trs:font-mono trs:text-xs trs:text-muted-foreground'}>{ban.ip}</p>}

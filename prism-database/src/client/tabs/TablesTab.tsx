@@ -147,7 +147,7 @@ function TableView({ database, table, onQuery, onChanged, onDropped }: { databas
                     <Alert type={'danger'}>{httpErrorToHuman(structure.error)}</Alert>
                 ) : (
                     <div className={'pdb:flex pdb:flex-col pdb:gap-4'}>
-                        <div className={'pdb:overflow-x-auto pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card'}>
+                        <div className={'pt-surface pdb:overflow-x-auto pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card'}>
                             <table className={'pdb:w-full pdb:text-sm'}>
                                 <thead className={'pdb:text-left pdb:text-xs pdb:uppercase pdb:text-muted-foreground'}>
                                     <tr>
@@ -173,7 +173,7 @@ function TableView({ database, table, onQuery, onChanged, onDropped }: { databas
                                 </tbody>
                             </table>
                         </div>
-                        <div className={'pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:p-3'}>
+                        <div className={'pt-surface pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:p-3'}>
                             <p className={'pdb:mb-2 pdb:text-xs pdb:font-semibold pdb:uppercase pdb:tracking-wide'}>Indexes</p>
                             {structure.data.indexes.length === 0 ? (
                                 <p className={'pdb:text-sm pdb:text-muted-foreground'}>No indexes.</p>
@@ -189,7 +189,7 @@ function TableView({ database, table, onQuery, onChanged, onDropped }: { databas
                                 ))
                             )}
                         </div>
-                        <div className={'pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:p-3'}>
+                        <div className={'pt-surface pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:p-3'}>
                             <div className={'pdb:mb-2 pdb:flex pdb:items-center'}>
                                 <p className={'pdb:flex-1 pdb:text-xs pdb:font-semibold pdb:uppercase pdb:tracking-wide'}>CREATE statement</p>
                                 <Button.Text size={'xsmall'} onClick={() => copy(structure.data!.create, 'CREATE statement copied')}>
@@ -220,7 +220,7 @@ function TableView({ database, table, onQuery, onChanged, onDropped }: { databas
                     {rows.isError && <Alert type={'danger'}>{httpErrorToHuman(rows.error)}</Alert>}
                     {editable && data && data.primaryKey.length === 0 && <Alert type={'info'}>This table has no primary key, so rows are found by every column and only the first match changes.</Alert>}
 
-                    <div className={cn('pdb:overflow-auto pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:max-h-[65vh]', rows.isFetching && 'pdb:opacity-70')}>
+                    <div className={cn('pt-surface pdb:overflow-auto pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:max-h-[65vh]', rows.isFetching && 'pdb:opacity-70')}>
                         {rows.isLoading ? (
                             <div className={'pdb:py-10'}>
                                 <Spinner centered />

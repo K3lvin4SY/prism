@@ -83,7 +83,7 @@ export default function InstalledList({ kind }: { kind: ContentKind }) {
                         const available = updates.data?.[file.file];
 
                         return (
-                            <div key={file.file} className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-3 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-3'}>
+                            <div key={file.file} className={'pt-surface mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-3 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-3'}>
                                 <ProjectIcon src={file.record?.icon} className={'mcs:size-10 mcs:shrink-0'} />
                                 <div className={'mcs:min-w-0 mcs:flex-1 mcs:basis-48'}>
                                     <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>

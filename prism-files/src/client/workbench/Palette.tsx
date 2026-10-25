@@ -116,7 +116,7 @@ export default function Palette({ server, mode, commands, recent, onOpen, onClos
 
     return (
         <div className={'pfl:fixed pfl:inset-0 pfl:z-50 pfl:flex pfl:justify-center pfl:bg-black/30 pfl:pt-[12vh]'} onMouseDown={onClose}>
-            <div className={'pfl:h-fit pfl:w-[min(40rem,92vw)] pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card pfl:shadow-2xl'} onMouseDown={(event) => event.stopPropagation()}>
+            <div className={'pt-surface pt-overlay pfl:h-fit pfl:w-[min(40rem,92vw)] pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card pfl:shadow-2xl'} onMouseDown={(event) => event.stopPropagation()}>
                 <input
                     ref={input}
                     value={query}

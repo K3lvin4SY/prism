@@ -52,7 +52,7 @@ export default function BackupDetail({ model, backup, state, onBack }: { model: 
 
 function Fact({ label, value, detail }: { label: string; value: React.ReactNode; detail?: string }) {
     return (
-        <div className={'pbk:min-w-0 pbk:rounded-lg pbk:border pbk:border-border pbk:bg-card pbk:p-4'}>
+        <div className={'pt-surface pbk:min-w-0 pbk:rounded-lg pbk:border pbk:border-border pbk:bg-card pbk:p-4'}>
             <p className={'pbk:text-xs pbk:uppercase pbk:tracking-wide pbk:text-muted-foreground'}>{label}</p>
             <div className={'pbk:mt-1 pbk:truncate pbk:font-semibold'}>{value}</div>
             {detail && <p className={'pbk:truncate pbk:text-xs pbk:text-muted-foreground'}>{detail}</p>}

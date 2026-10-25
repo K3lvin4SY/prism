@@ -70,7 +70,7 @@ export default function VersionsScreen() {
             <div className={'trs:flex trs:flex-col trs:gap-4'}>
                 {activeJob && <JobProgress key={activeJob} job={activeJob} onFinished={finished} />}
 
-                <div className={'trs:flex trs:flex-wrap trs:items-center trs:gap-4 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-4'}>
+                <div className={'pt-surface trs:flex trs:flex-wrap trs:items-center trs:gap-4 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-4'}>
                     <span className={'trs:flex trs:size-12 trs:items-center trs:justify-center trs:rounded-lg trs:bg-primary/15 trs:text-primary'}>
                         <NamedIcon name={ICONS[kind]} size={22} />
                     </span>

@@ -22,7 +22,7 @@ interface Source {
     fields: { key: string; label: string; value: unknown; options?: readonly { value: unknown; label: string }[] }[];
 }
 
-const box = 'ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card';
+const box = 'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card';
 
 function sourcesOf(installed: { extension: PrismExtension; schema: SettingField[] }[], theme: ThemeSetting[] | undefined): Source[] {
     const list: Source[] = installed.map(({ extension, schema }) => ({

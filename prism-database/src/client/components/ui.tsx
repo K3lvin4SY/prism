@@ -26,7 +26,7 @@ export function Pills<T extends string>({ value, options, onChange, size = 'md' 
 
 export function Section({ title, actions, children, className }: { title: string; actions?: ReactNode; children: ReactNode; className?: string }) {
     return (
-        <section className={cn('pdb:flex pdb:flex-col pdb:overflow-hidden pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card', className)}>
+        <section className={cn('pt-surface pdb:flex pdb:flex-col pdb:overflow-hidden pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card', className)}>
             <div className={'pdb:flex pdb:min-h-12 pdb:items-center pdb:gap-2 pdb:border-b pdb:border-border pdb:px-4 pdb:py-2'}>
                 <h3 className={'pdb:flex-1 pdb:text-xs pdb:font-semibold pdb:uppercase pdb:tracking-wide'}>{title}</h3>
                 {actions}
@@ -38,7 +38,7 @@ export function Section({ title, actions, children, className }: { title: string
 
 export function Tile({ label, value, detail }: { label: string; value: ReactNode; detail?: ReactNode }) {
     return (
-        <div className={'pdb:min-w-0 pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:p-4'}>
+        <div className={'pt-surface pdb:min-w-0 pdb:rounded-lg pdb:border pdb:border-border pdb:bg-card pdb:p-4'}>
             <p className={'pdb:text-xs pdb:uppercase pdb:tracking-wide pdb:text-muted-foreground'}>{label}</p>
             <p className={'pdb:mt-1 pdb:truncate pdb:text-2xl pdb:font-semibold pdb:tabular-nums'}>{value}</p>
             {detail && <p className={'pdb:truncate pdb:text-xs pdb:text-muted-foreground'}>{detail}</p>}

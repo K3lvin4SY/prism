@@ -54,7 +54,7 @@ export default function StepList({ steps, onChange, schedules, disabled, depth }
                             setDragging(null);
                             setOver(null);
                         }}
-                        className={cn('psc:rounded-lg psc:border psc:bg-card psc:transition-colors', over === index && dragging !== null && dragging !== index ? 'psc:border-primary' : 'psc:border-border', dragging === index && 'psc:opacity-50')}
+                        className={cn('pt-surface psc:rounded-lg psc:border psc:bg-card psc:transition-colors', over === index && dragging !== null && dragging !== index ? 'psc:border-primary' : 'psc:border-border', dragging === index && 'psc:opacity-50')}
                     >
                         <div className={'psc:flex psc:items-center psc:gap-2 psc:px-2 psc:py-2'}>
                             {!disabled && (

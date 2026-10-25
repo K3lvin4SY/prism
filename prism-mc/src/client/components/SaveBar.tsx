@@ -53,7 +53,7 @@ export default function SaveBar({ changes, saving, onSave, onDiscard, onUndo, ex
         <>
             <div
                 className={cn(
-                    'mcs:sticky mcs:bottom-4 mcs:z-10 mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-3 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-3 mcs:shadow-lg mcs:transition-opacity',
+                    'pt-surface pt-overlay mcs:sticky mcs:bottom-4 mcs:z-10 mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-3 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-3 mcs:shadow-lg mcs:transition-opacity',
                     always || dirty ? 'mcs:opacity-100' : 'mcs:pointer-events-none mcs:opacity-0'
                 )}
             >
@@ -78,7 +78,7 @@ export default function SaveBar({ changes, saving, onSave, onDiscard, onUndo, ex
                         </button>
                     )}
                     {dirty && peek && (
-                        <div role={'tooltip'} className={'mcs:absolute mcs:bottom-full mcs:left-0 mcs:z-20 mcs:mb-3 mcs:w-80 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-popover mcs:p-3 mcs:text-xs mcs:shadow-xl'}>
+                        <div role={'tooltip'} className={'pt-surface pt-overlay mcs:absolute mcs:bottom-full mcs:left-0 mcs:z-20 mcs:mb-3 mcs:w-80 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-popover mcs:p-3 mcs:text-xs mcs:shadow-xl'}>
                             <ul className={'mcs:flex mcs:flex-col mcs:gap-1.5'}>
                                 {changes.slice(0, 8).map((change) => (
                                     <li key={change.key} className={'mcs:flex mcs:min-w-0 mcs:flex-col'}>

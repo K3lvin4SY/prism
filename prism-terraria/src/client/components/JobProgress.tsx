@@ -37,7 +37,7 @@ export default function JobProgress({ job, onFinished }: Props) {
     }
 
     return (
-        <div className={'trs:flex trs:flex-col trs:gap-2 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-4'}>
+        <div className={'pt-surface trs:flex trs:flex-col trs:gap-2 trs:rounded-md trs:border trs:border-border trs:bg-card trs:p-4'}>
             <div className={'trs:flex trs:justify-between trs:text-sm'}>
                 <span>{reinstalling ? 'The egg is reinstalling the server…' : (data?.message ?? 'Starting…')}</span>
                 <span className={'trs:text-muted-foreground'}>{data?.percent ?? 0}%</span>

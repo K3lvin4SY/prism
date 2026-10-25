@@ -200,7 +200,7 @@ function JavaVersions({ identifier, overview, onStarted }: { identifier: string;
                                         setSelected(version);
                                     }}
                                     className={cn(
-                                        'mcs:flex mcs:items-center mcs:gap-3 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-3 mcs:text-left mcs:cursor-pointer mcs:hover:border-primary',
+                                        'pt-surface mcs:flex mcs:items-center mcs:gap-3 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-3 mcs:text-left mcs:cursor-pointer mcs:hover:border-primary',
                                         info.mcjarsType === type && info.version === version.id && 'mcs:border-primary'
                                     )}
                                 >
@@ -270,7 +270,7 @@ function CurrentCard({
 
 
     return (
-        <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-4 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
+        <div className={'pt-surface mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-4 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
             {type ? <img src={type.icon} alt={''} className={'mcs:size-12 mcs:rounded'} /> : <div className={'mcs:size-12 mcs:rounded mcs:bg-muted'} />}
             <div className={'mcs:min-w-0 mcs:flex-1'}>
                 <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
@@ -496,7 +496,7 @@ function BedrockVersions({ identifier, current, busy, onStarted }: { identifier:
 
     return (
         <>
-            <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-4 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
+            <div className={'pt-surface mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-4 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
                 <div className={'mcs:flex-1'}>
                     <p className={'mcs:text-lg mcs:font-semibold'}>Bedrock Dedicated Server {current ?? ''}</p>
                     <p className={'mcs:text-xs mcs:text-muted-foreground'}>Worlds, server.properties, allowlist.json and permissions.json are kept when you switch versions.</p>

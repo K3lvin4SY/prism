@@ -19,7 +19,7 @@ export default function ContextMenu({ menu, items, onClose }: { menu: { x: numbe
 
     return (
         <div
-            className={'pfl:fixed pfl:z-50 pfl:min-w-48 pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card pfl:p-1 pfl:shadow-xl'}
+            className={'pt-surface pt-overlay pfl:fixed pfl:z-50 pfl:min-w-48 pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card pfl:p-1 pfl:shadow-xl'}
             style={{ left: Math.min(menu.x, window.innerWidth - 220), top: Math.min(menu.y, window.innerHeight - 280) }}
             onMouseDown={(event) => event.stopPropagation()}
         >

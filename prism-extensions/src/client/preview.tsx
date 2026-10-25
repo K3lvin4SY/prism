@@ -100,7 +100,7 @@ export function PreviewControls({ children }: { children?: ReactNode }) {
     };
 
     return (
-        <div className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
+        <div className={'pt-surface ppx:flex ppx:flex-col ppx:gap-3 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
             <p className={'ppx:text-sm ppx:font-semibold'}>Live preview</p>
             <p className={'ppx:text-sm ppx:text-muted-foreground'}>The real panel in its own window, sized like the device you pick. Each change shows there at once; nobody else sees anything until you save.</p>
             <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2'}>

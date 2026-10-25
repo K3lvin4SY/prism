@@ -176,7 +176,7 @@ export default function InventoryEditor({ server, uuid, name, dat, hash, version
 
     return (
         <div className={'mcs:fixed mcs:inset-0 mcs:z-50 mcs:flex mcs:items-center mcs:justify-center mcs:bg-black/60 mcs:p-4'} role={'dialog'} aria-modal={'true'} aria-label={`Edit ${name}'s items`}>
-            <div className={'mcs:flex mcs:h-[min(94vh,880px)] mcs:w-full mcs:max-w-[1180px] mcs:flex-col mcs:overflow-hidden mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:shadow-2xl'}>
+            <div className={'pt-surface pt-overlay mcs:flex mcs:h-[min(94vh,880px)] mcs:w-full mcs:max-w-[1180px] mcs:flex-col mcs:overflow-hidden mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:shadow-2xl'}>
                 <header className={'mcs:flex mcs:items-center mcs:gap-3 mcs:border-b mcs:border-border mcs:px-5 mcs:py-3'}>
                     <NamedIcon name={'pencil'} size={18} className={'mcs:text-primary'} />
                     <div className={'mcs:min-w-0 mcs:flex-1'}>

@@ -40,7 +40,7 @@ export default function BackupsTab({ model, state, onOpen }: { model: Model; sta
             {groups.map((group) => (
                 <section key={group.day} className={'pbk:flex pbk:flex-col pbk:gap-2'}>
                     <h3 className={'pbk:text-xs pbk:font-semibold pbk:uppercase pbk:tracking-wide pbk:text-muted-foreground'}>{group.day}</h3>
-                    <div className={'pbk:flex pbk:flex-col pbk:divide-y pbk:divide-border pbk:overflow-hidden pbk:rounded-lg pbk:border pbk:border-border pbk:bg-card'}>
+                    <div className={'pt-surface pbk:flex pbk:flex-col pbk:divide-y pbk:divide-border pbk:overflow-hidden pbk:rounded-lg pbk:border pbk:border-border pbk:bg-card'}>
                         {group.backups.map((backup) => (
                             <Row key={backup.uuid} model={model} backup={backup} profile={state.meta[backup.uuid] ?? null} opened={state.opened.includes(backup.uuid)} onOpen={() => onOpen(backup.uuid)} onRemove={() => setRemoving(backup)} />
                         ))}

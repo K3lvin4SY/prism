@@ -46,7 +46,7 @@ export default function ProfilesTab({ model, state, onBackUp }: { model: Model; 
                         const patterns = lines(profile.patterns);
 
                         return (
-                            <div key={profile.id} className={'pbk:flex pbk:flex-col pbk:gap-3 pbk:rounded-lg pbk:border pbk:border-border pbk:bg-card pbk:p-4'}>
+                            <div key={profile.id} className={'pt-surface pbk:flex pbk:flex-col pbk:gap-3 pbk:rounded-lg pbk:border pbk:border-border pbk:bg-card pbk:p-4'}>
                                 <div className={'pbk:flex pbk:items-center pbk:gap-2'}>
                                     <NamedIcon name={profile.mode === 'include' ? 'list-checks' : 'list-x'} size={18} className={'pbk:text-primary'} />
                                     <span className={'pbk:min-w-0 pbk:flex-1 pbk:truncate pbk:font-semibold'}>{profile.name}</span>

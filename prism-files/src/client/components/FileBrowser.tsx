@@ -219,7 +219,7 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
             {files.isError && <Alert type={'danger'}>{httpErrorToHuman(files.error)}</Alert>}
 
             {/* Listing */}
-            <div className={'pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card'}>
+            <div className={'pt-surface pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card'}>
                 {view === 'list' && (
                     <div className={'pfl:grid pfl:grid-cols-[2rem_minmax(0,1fr)_6rem_9rem_2rem] pfl:items-center pfl:gap-2 pfl:border-b pfl:border-border pfl:px-3 pfl:py-2 pfl:text-xs pfl:uppercase pfl:tracking-wide pfl:text-muted-foreground'}>
                         <Checkbox checked={entries.length > 0 && chosen.length === entries.length} onChange={(checked) => setSelected(new Set(checked ? entries.map((entry) => entry.name) : []))} />
@@ -332,7 +332,7 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
 
             {/* Bulk actions */}
             {chosen.length > 0 && (
-                <div className={'pfl:sticky pfl:bottom-4 pfl:z-20 pfl:mx-auto pfl:flex pfl:flex-wrap pfl:items-center pfl:gap-2 pfl:rounded-full pfl:border pfl:border-border pfl:bg-card pfl:px-4 pfl:py-2 pfl:shadow-2xl'}>
+                <div className={'pt-surface pt-overlay pfl:sticky pfl:bottom-4 pfl:z-20 pfl:mx-auto pfl:flex pfl:flex-wrap pfl:items-center pfl:gap-2 pfl:rounded-full pfl:border pfl:border-border pfl:bg-card pfl:px-4 pfl:py-2 pfl:shadow-2xl'}>
                     <span className={'pfl:text-sm pfl:font-medium'}>{chosen.length} selected</span>
                     {permissions.update && (
                         <Button size={'small'} isSecondary disabled={busy} onClick={() => !blocked(chosen) && setDialog({ kind: 'move', entries: chosen })}>

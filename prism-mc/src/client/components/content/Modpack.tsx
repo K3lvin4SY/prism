@@ -23,7 +23,7 @@ export function CurrentModpack() {
         <div className={'mcs:flex mcs:flex-col mcs:gap-3'}>
             {job && <JobProgress key={job} job={job} onFinished={() => queryClient.invalidateQueries({ queryKey: ['prism-mc', identifier] })} />}
             {modpack ? (
-                <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-4 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
+                <div className={'pt-surface mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-4 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:p-4'}>
                     <ProjectIcon src={modpack.icon} className={'mcs:size-14 mcs:shrink-0'} />
                     <div className={'mcs:min-w-0 mcs:flex-1'}>
                         <p className={'mcs:text-lg mcs:font-semibold'}>

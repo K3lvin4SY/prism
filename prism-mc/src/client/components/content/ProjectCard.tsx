@@ -101,7 +101,7 @@ export default function ProjectCard({ hit, layout, categories, loaders, onOpen, 
                 }
             }}
             className={
-                'mcs:relative mcs:flex mcs:gap-4 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:text-left mcs:cursor-pointer mcs:hover:border-primary mcs:min-w-0 mcs:overflow-hidden mcs:focus-visible:outline-2 mcs:focus-visible:outline-primary'
+                'pt-surface mcs:relative mcs:flex mcs:gap-4 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:text-left mcs:cursor-pointer mcs:hover:border-primary mcs:min-w-0 mcs:overflow-hidden mcs:focus-visible:outline-2 mcs:focus-visible:outline-primary'
             }
         >
             <ProjectIcon src={hit.icon} className={cn('mcs:shrink-0', layout === 'list' ? 'mcs:size-20' : 'mcs:size-16')} />
