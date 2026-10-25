@@ -6,7 +6,8 @@
     "requires": {
         "panel": "^2.0.0-dev",
         "sdk": ">=2.0.0-beta.6 <3.0",
-        "php": "^8.3"
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
     },
     "description": "Players, the world map, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.",
     "author": "Donkare",

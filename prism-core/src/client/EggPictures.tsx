@@ -15,7 +15,7 @@ interface EggPicture {
 type Kind = 'picture' | 'logo';
 
 const URL_BASE = '/api/admin/extensions/prism-layout/pictures/eggs';
-const KEY = ['prism-extensions', 'egg-pictures'] as const;
+const KEY = ['prism-core', 'egg-pictures'] as const;
 const ACCEPT = 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml';
 
 /**

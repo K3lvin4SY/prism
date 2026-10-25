@@ -6,7 +6,8 @@
     "requires": {
         "panel": "^2.0.0-dev",
         "sdk": ">=2.0.0-beta.6 <3.0",
-        "php": "^8.3"
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
     },
     "description": "Better schedules: countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets, a week calendar and run history with live progress.",
     "author": "Donkare",

@@ -2,7 +2,7 @@
 /**
  * Writes src/client/icons.tsx in every Prism extension: a `NamedIcon` that takes the panel's lucide
  * names and draws the Tabler icon for each, from scripts/tabler-icons.json. Each extension gets the
- * icons it names in its source and manifest; Prism Layout and Prism Extensions draw icons named by
+ * icons it names in its source and manifest; Prism Layout and Prism Core draw icons named by
  * other extensions (navigation, settings) and get them all. Names without a Tabler icon fall back to
  * the panel's own set.
  *
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const map = JSON.parse(readFileSync(join(root, 'scripts', 'tabler-icons.json'), 'utf8'));
-const EVERY = new Set(['prism-layout', 'prism-extensions']);
+const EVERY = new Set(['prism-layout', 'prism-core']);
 
 const walk = (dir) =>
     readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

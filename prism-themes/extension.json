@@ -9,7 +9,8 @@
     "icon": "palette",
     "requires": {
         "panel": "^2.0.0-dev",
-        "sdk": ">=2.0.0-beta.6 <3.0"
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "extensions": { "prism-core": ">=0.1.0" }
     },
     "ui": {
         "entry": "dist/client.js"

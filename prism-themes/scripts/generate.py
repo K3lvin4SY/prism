@@ -1,5 +1,5 @@
 # Writes extension.json (the theme settings) and the built-in presets for Prism Properties
-# (prism-extensions/src/client/themes/builtins.json). Run from prism-themes: python scripts/generate.py .
+# (prism-core/src/client/themes/builtins.json). Run from prism-themes: python scripts/generate.py .
 #
 # A theme is one set of values for the settings below: two color palettes (dark and light) of
 # the same roles, type and shape, surfaces, background and motion. A preset is a named set of
@@ -7,7 +7,7 @@
 import json, os, sys
 
 root = sys.argv[1]
-extensions = os.path.join(root, '..', 'prism-extensions', 'src', 'client', 'themes')
+extensions = os.path.join(root, '..', 'prism-core', 'src', 'client', 'themes')
 
 # role: (label, help, group)
 ROLES = {

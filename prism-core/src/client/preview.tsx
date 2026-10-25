@@ -77,7 +77,7 @@ const pill = (active: boolean) =>
 
 /** The page and device pickers and the button that opens the preview window. */
 export function PreviewControls({ children }: { children?: ReactNode }) {
-    const firstServer = useQuery({ queryKey: ['prism-extensions', 'first-server'], queryFn: async () => (await http.get<{ data: { attributes: { identifier: string } }[] }>('/api/client', { params: { per_page: 1 } })).data.data[0]?.attributes.identifier ?? null });
+    const firstServer = useQuery({ queryKey: ['prism-core', 'first-server'], queryFn: async () => (await http.get<{ data: { attributes: { identifier: string } }[] }>('/api/client', { params: { per_page: 1 } })).data.data[0]?.attributes.identifier ?? null });
     const open = usePreviewOpen();
     const [page, setPage] = useState<Page>('dashboard');
     const [device, setDevice] = useState<Device>('desktop');

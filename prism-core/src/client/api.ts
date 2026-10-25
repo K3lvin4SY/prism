@@ -33,7 +33,7 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-terraria', name: 'Prism Terraria', icon: 'pickaxe', description: 'Players, settings, versions, the world map, tModLoader mods and TShock plugins for Terraria servers.' },
 ];
 
-export const settingsKey = (id: PrismId) => ['prism-extensions', 'settings', id] as const;
+export const settingsKey = (id: PrismId) => ['prism-core', 'settings', id] as const;
 
 /**
  * The extension's settings schema, or null when it is not installed or is disabled, in which

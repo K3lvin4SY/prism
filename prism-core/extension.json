@@ -1,13 +1,13 @@
 {
     "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
-    "id": "prism-extensions",
-    "name": "Prism Extensions",
+    "id": "prism-core",
+    "name": "Prism Core",
     "version": "0.1.0",
     "requires": {
         "panel": "^2.0.0-dev",
         "sdk": ">=2.0.0-beta.6 <3.0"
     },
-    "description": "Prism Properties: one admin page for the settings of Prism Console, Prism File Browser and Prism Database Manager.",
+    "description": "Prism Properties, one admin page for every Prism extension's settings, and the live preview. Every Prism extension needs it.",
     "author": "Donkare",
     "icon": "sparkles",
     "ui": {

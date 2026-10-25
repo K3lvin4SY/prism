@@ -32,8 +32,8 @@ const settingsUrl = `/api/admin/themes/${THEME_ID}/settings`;
 const unwrap = (data: Settings) => data.data.map((item) => item.attributes);
 
 export const themeKeys = {
-    themes: ['prism-extensions', 'themes'] as const,
-    settings: ['prism-extensions', 'themes', THEME_ID, 'settings'] as const,
+    themes: ['prism-core', 'themes'] as const,
+    settings: ['prism-core', 'themes', THEME_ID, 'settings'] as const,
 };
 
 export const themeApi = {
