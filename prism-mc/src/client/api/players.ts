@@ -69,6 +69,7 @@ export type PlayerAction =
     | 'clear'
     | 'message'
     | 'kick'
+    | 'teleport'
     | 'op'
     | 'deop'
     | 'whitelist-add'
@@ -98,10 +99,13 @@ export async function getPlayer(server: string, uuid: string): Promise<PlayerDet
     return (await http.get<PlayerDetails>(`${base(server)}/players/${uuid}`)).data;
 }
 
+/** Where to teleport a player: to another player, or to a place in a dimension. */
+export type TeleportTarget = { player: string } | { x: number; y: number; z: number; dimension?: 'overworld' | 'the_nether' | 'the_end' };
+
 export async function playerAction(
     server: string,
     action: PlayerAction,
-    input: { name?: string | null; uuid?: string | null; value?: string | number; reason?: string } = {}
+    input: { name?: string | null; uuid?: string | null; value?: string | number | TeleportTarget; reason?: string } = {}
 ): Promise<'command' | 'file'> {
     return (await http.post<{ applied: 'command' | 'file' }>(`${base(server)}/players/action`, { action, ...input })).data.applied;
 }

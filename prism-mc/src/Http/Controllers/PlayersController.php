@@ -32,7 +32,10 @@ class PlayersController extends Controller
     private const array GAME_MODES = ['survival', 'creative', 'adventure', 'spectator'];
 
     /** Actions that only work while the player is online. */
-    private const array ONLINE_ACTIONS = ['gamemode', 'xp-set', 'xp-add', 'heal', 'feed', 'starve', 'kill', 'clear', 'message', 'kick'];
+    private const array ONLINE_ACTIONS = ['gamemode', 'xp-set', 'xp-add', 'heal', 'feed', 'starve', 'kill', 'clear', 'message', 'kick', 'teleport'];
+
+    /** Where a player can be teleported to. */
+    private const array DIMENSIONS = ['overworld', 'the_nether', 'the_end'];
 
     /** Actions that also work while the server is stopped, by editing the list files. */
     private const array ACCESS_ACTIONS = ['op', 'deop', 'whitelist-add', 'whitelist-remove', 'ban', 'pardon'];
@@ -383,6 +386,7 @@ class PlayersController extends Controller
             'clear' => "clear $target",
             'message' => $this->message($target, (string) ($data['value'] ?? '')),
             'kick' => trim("kick $target $reason"),
+            'teleport' => $this->teleport($target, $data['value'] ?? null, $bedrock),
             'op' => "op $target",
             'deop' => "deop $target",
             'whitelist-add' => ($bedrock ? 'allowlist' : 'whitelist')." add $target",
@@ -392,7 +396,8 @@ class PlayersController extends Controller
         };
 
         Daemon::server($server)->commands(explode("\n", $command));
-        Activity::event('server:prism-mc.players.'.$action)->property(array_filter(['player' => $name ?: null, 'value' => is_scalar($data['value'] ?? null) ? $data['value'] : null]))->log();
+        $value = $data['value'] ?? null;
+        Activity::event('server:prism-mc.players.'.$action)->property(array_filter(['player' => $name ?: null, 'value' => is_scalar($value) ? $value : (is_array($value) ? json_encode($value) : null)]))->log();
 
         return new JsonResponse(['applied' => 'command']);
     }
@@ -517,6 +522,41 @@ class PlayersController extends Controller
         abort_if($levels < ($signed ? -24791 : 0) || $levels > 24791, 422, 'Levels must be between 0 and 24791.');
 
         return $levels;
+    }
+
+    /**
+     * A teleport to another player, {player}, or to a place, {x, y, z, dimension}. Coordinates are
+     * whole or decimal blocks inside the world border's furthest reach.
+     */
+    private function teleport(string $target, mixed $value, bool $bedrock): string
+    {
+        abort_unless(is_array($value), 422, 'Pick a player or a place to teleport to.');
+
+        if (isset($value['player'])) {
+            $to = (string) $value['player'];
+            abort_unless(preg_match($bedrock ? self::BEDROCK_NAME : self::JAVA_NAME, $to) === 1, 422, 'Pick a player to teleport to.');
+
+            return sprintf('tp %s %s', $target, $bedrock ? '"'.$to.'"' : $to);
+        }
+
+        $coordinates = [];
+        foreach (['x' => 30000000, 'y' => 4096, 'z' => 30000000] as $axis => $limit) {
+            $number = $value[$axis] ?? null;
+            abort_unless(is_numeric($number) && abs((float) $number) <= $limit, 422, 'Use numbers for x, y and z.');
+            $coordinates[] = rtrim(rtrim(number_format((float) $number, 3, '.', ''), '0'), '.');
+        }
+
+        $dimension = (string) ($value['dimension'] ?? '');
+        abort_unless($dimension === '' || in_array($dimension, self::DIMENSIONS, true), 422, 'Pick the Overworld, the Nether or the End.');
+        $tp = sprintf('tp %s %s', $target, implode(' ', $coordinates));
+        if ($dimension === '') {
+            return $tp;
+        }
+
+        // Bedrock names the dimensions without the namespace and calls the Nether just nether.
+        $in = $bedrock ? ['overworld' => 'overworld', 'the_nether' => 'nether', 'the_end' => 'the_end'][$dimension] : 'minecraft:'.$dimension;
+
+        return "execute in $in run $tp";
     }
 
     private function message(string $target, string $text): string

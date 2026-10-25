@@ -4,6 +4,7 @@ import {
     Alert,
     Badge,
     Button,
+    CopyOnClick,
     PanelLink,
     ServerContentBlock,
     Spinner,
@@ -55,16 +56,14 @@ function usePlayerState(dat: string | null | undefined, bedrock: boolean) {
     return state;
 }
 
+/** One tile in the facts grid: a small label over its value. */
 function Fact({ icon, label, children }: { icon: string; label: string; children: ReactNode }) {
     return (
-        <div className={'mcs:flex mcs:items-center mcs:gap-3'}>
-            <span className={'mcs:flex mcs:size-9 mcs:shrink-0 mcs:items-center mcs:justify-center mcs:rounded-md mcs:bg-muted mcs:text-muted-foreground'}>
-                <NamedIcon name={icon} size={18} />
-            </span>
-            <div className={'mcs:min-w-0'}>
-                <p className={'mcs:text-xs mcs:text-muted-foreground'}>{label}</p>
-                <p className={'mcs:text-sm mcs:font-medium mcs:truncate'}>{children}</p>
-            </div>
+        <div className={'mcs:flex mcs:min-w-0 mcs:flex-col mcs:justify-center mcs:gap-1 mcs:bg-card mcs:px-4 mcs:py-3'}>
+            <p className={'mcs:flex mcs:items-center mcs:gap-1.5 mcs:text-xs mcs:text-muted-foreground'}>
+                <NamedIcon name={icon} size={13} /> {label}
+            </p>
+            <p className={'mcs:truncate mcs:text-sm mcs:font-semibold'}>{children}</p>
         </div>
     );
 }
@@ -168,81 +167,90 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                     <NamedIcon name={'arrow-left'} size={14} /> All players
                 </PanelLink>
 
-                <div className={'mcs:grid mcs:gap-4 mcs:xl:grid-cols-[1fr_320px]'}>
-                    <div className={'mcs:flex mcs:flex-col mcs:gap-4 mcs:min-w-0'}>
-                        <div className={'mcs:grid mcs:gap-4 mcs:md:grid-cols-[260px_1fr] mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:overflow-hidden'}>
-                            <div className={'mcs:flex mcs:items-center mcs:justify-center mcs:bg-gradient-to-b mcs:from-[#5b8fd1] mcs:to-[#9ec8f0] mcs:min-h-[300px]'}>
-                                {!featureEnabled('skins') ? <PlayerHead server={identifier} skinKey={uuid} className={'mcs:size-32'} /> : model ? <SkinViewer skin={model} width={240} height={320} /> : <Spinner />}
-                            </div>
-                            <div className={'mcs:flex mcs:flex-col mcs:gap-4 mcs:p-4'}>
-                                <div className={'mcs:flex mcs:items-center mcs:gap-3'}>
-                                    <PlayerHead server={identifier} skinKey={uuid} className={'mcs:size-11'} />
-                                    <div className={'mcs:min-w-0'}>
-                                        <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
-                                            <h2 className={'mcs:text-xl mcs:font-bold'}>{name}</h2>
-                                            {summary?.online && (
-                                                <Badge size={'sm'} tone={'success'}>
-                                                    Online
-                                                </Badge>
-                                            )}
-                                            {summary?.op != null && (
-                                                <Badge size={'sm'} tone={'warning'}>
-                                                    OP
-                                                </Badge>
-                                            )}
-                                            {summary?.whitelisted && (
-                                                <Badge size={'sm'} tone={'info'}>
-                                                    Whitelisted
-                                                </Badge>
-                                            )}
-                                            {summary?.banned && (
-                                                <Badge size={'sm'} tone={'danger'}>
-                                                    Banned
-                                                </Badge>
-                                            )}
-                                        </div>
-                                        <p className={'mcs:font-mono mcs:text-xs mcs:text-muted-foreground'}>{uuid}</p>
-                                    </div>
+                {/* Who the player is and where they stand, from the last save. */}
+                <section className={'mcs:grid mcs:overflow-hidden mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:md:grid-cols-[240px_1fr]'}>
+                    <div className={'mcs:flex mcs:min-h-[280px] mcs:items-center mcs:justify-center mcs:bg-gradient-to-b mcs:from-[#5b8fd1] mcs:to-[#9ec8f0]'}>
+                        {!featureEnabled('skins') ? <PlayerHead server={identifier} skinKey={uuid} className={'mcs:size-32'} /> : model ? <SkinViewer skin={model} width={220} height={300} /> : <Spinner />}
+                    </div>
+                    <div className={'mcs:flex mcs:min-w-0 mcs:flex-col'}>
+                        <header className={'mcs:flex mcs:items-center mcs:gap-4 mcs:border-b mcs:border-border mcs:p-5'}>
+                            <PlayerHead server={identifier} skinKey={uuid} className={'mcs:size-14 mcs:shrink-0 mcs:rounded-md mcs:shadow-md'} />
+                            <div className={'mcs:min-w-0 mcs:flex-1'}>
+                                <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
+                                    <h2 className={'mcs:truncate mcs:text-2xl mcs:font-bold'}>{name}</h2>
+                                    {summary?.op != null && (
+                                        <Badge size={'sm'} tone={'warning'}>
+                                            OP
+                                        </Badge>
+                                    )}
+                                    {summary?.whitelisted && (
+                                        <Badge size={'sm'} tone={'info'}>
+                                            Whitelisted
+                                        </Badge>
+                                    )}
+                                    {summary?.banned && (
+                                        <Badge size={'sm'} tone={'danger'}>
+                                            Banned
+                                        </Badge>
+                                    )}
                                 </div>
-                                {player ? (
-                                    <div className={'mcs:grid mcs:gap-4 mcs:sm:grid-cols-2'}>
-                                        <Fact icon={'swords'} label={'Mode'}>
-                                            {prettyId(player.gameMode)}
-                                        </Fact>
-                                        <Fact icon={'globe'} label={'Dimension'}>
-                                            {prettyId(player.dimension)}
-                                        </Fact>
-                                        <Fact icon={'map-pin'} label={'Position'}>
-                                            {player.position ? player.position.map((value) => Math.floor(value)).join(', ') : 'Unknown'}
-                                        </Fact>
-                                        <Fact icon={'sparkles'} label={'Total XP'}>
-                                            {player.xpTotal.toLocaleString()}
-                                        </Fact>
-                                        {!bedrock && (
-                                            <>
+                                <p className={'mcs:mt-1 mcs:flex mcs:items-center mcs:gap-1.5 mcs:text-sm'}>
+                                    <span className={cn('mcs:size-2 mcs:rounded-full', summary?.online ? 'mcs:bg-success' : 'mcs:bg-muted-foreground/60')} />
+                                    <span className={summary?.online ? 'mcs:text-success' : 'mcs:text-muted-foreground'}>
+                                        {summary?.online ? 'Online now' : summary?.lastSeen ? `Last seen ${formatDate(new Date(summary.lastSeen), 'MMM D, YYYY HH:mm')}` : 'Offline'}
+                                    </span>
+                                </p>
+                                <CopyOnClick text={uuid}>
+                                    <button type={'button'} className={'mcs:mt-1 mcs:inline-flex mcs:max-w-full mcs:cursor-pointer mcs:items-center mcs:gap-1.5 mcs:font-mono mcs:text-xs mcs:text-muted-foreground mcs:hover:text-foreground'} title={'Copy'}>
+                                        <NamedIcon name={'copy'} size={12} className={'mcs:shrink-0'} />
+                                        <span className={'mcs:truncate'}>{uuid}</span>
+                                    </button>
+                                </CopyOnClick>
+                            </div>
+                        </header>
+                        {player ? (
+                            <div className={cn('mcs:grid mcs:flex-1 mcs:auto-rows-fr mcs:gap-px mcs:bg-border mcs:grid-cols-2', bedrock ? 'mcs:lg:grid-cols-2' : 'mcs:lg:grid-cols-4')}>
+                                <Fact icon={'swords'} label={'Mode'}>
+                                    {prettyId(player.gameMode)}
+                                </Fact>
+                                <Fact icon={'globe'} label={'Dimension'}>
+                                    {prettyId(player.dimension)}
+                                </Fact>
+                                <Fact icon={'map-pin'} label={'Position'}>
+                                    {player.position ? player.position.map((value) => Math.floor(value)).join(', ') : 'Unknown'}
+                                </Fact>
+                                <Fact icon={'sparkles'} label={'Experience'}>
+                                    Level {player.xpLevel} · {player.xpTotal.toLocaleString()} total
+                                </Fact>
+                                {!bedrock && (
+                                    <>
                                         <Fact icon={'clock'} label={'Play time'}>
                                             {formatTicks(custom('play_time') || custom('play_one_minute'))}
                                         </Fact>
                                         <Fact icon={'log-in'} label={'Sessions'}>
                                             {custom('leave_game') + (summary?.online ? 1 : 0)}
                                         </Fact>
-                                        <Fact icon={'skull'} label={'Since last death'}>
-                                            {formatTicks(custom('time_since_death'))} · {custom('deaths')} deaths
+                                        <Fact icon={'skull'} label={'Deaths'}>
+                                            {custom('deaths')} · last {formatTicks(custom('time_since_death'))} ago
                                         </Fact>
                                         <Fact icon={'cake'} label={'First joined'}>
                                             {player.firstPlayed ? formatDate(new Date(player.firstPlayed), 'MMM D, YYYY') : 'Not recorded'}
                                         </Fact>
-                                            </>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <Alert type={error ? 'danger' : 'info'}>
-                                        {error ? `The player file could not be read: ${error}` : 'No saved data yet. It appears after the player has played and the server has saved.'}
-                                    </Alert>
+                                    </>
                                 )}
                             </div>
-                        </div>
+                        ) : (
+                            <div className={'mcs:p-5'}>
+                                <Alert type={error ? 'danger' : 'info'}>
+                                    {error ? `The player file could not be read: ${error}` : 'No saved data yet. It appears after the player has played and the server has saved.'}
+                                </Alert>
+                            </div>
+                        )}
+                    </div>
+                </section>
 
+                <div className={'mcs:grid mcs:items-start mcs:gap-4 mcs:xl:grid-cols-[minmax(0,1fr)_360px]'}>
+                    <div className={'mcs:flex mcs:min-w-0 mcs:flex-col mcs:gap-4'}>
                         {player && (
                             <div className={'mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:flex mcs:flex-col mcs:gap-3'}>
                                 <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:justify-between mcs:gap-2'}>
@@ -292,14 +300,20 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                 <p className={'mcs:text-xs mcs:text-muted-foreground'}>This is the last save. Online players are saved every few minutes, or right away with Update.</p>
                             </div>
                         )}
-                    </div>
-
-                    <div className={'mcs:flex mcs:flex-col mcs:gap-4'}>
-                        {list.data?.canManage && summary && (
-                            <ControlPanel identifier={identifier} player={summary} state={player} running={list.data.running} onDone={refresh} onClearOffline={!bedrock && detail.data?.dat && detail.data.hash ? clearOffline : undefined} />
-                        )}
                         {!bedrock && <Advancements items={detail.data?.advancements ?? []} />}
                     </div>
+
+                    {list.data?.canManage && summary && (
+                        <ControlPanel
+                            identifier={identifier}
+                            player={summary}
+                            state={player}
+                            running={list.data.running}
+                            others={list.data.players.filter((entry) => entry.online && entry.name && entry.uuid !== uuid).map((entry) => entry.name!)}
+                            onDone={refresh}
+                            onClearOffline={!bedrock && detail.data?.dat && detail.data.hash ? clearOffline : undefined}
+                        />
+                    )}
                 </div>
             </div>
             {editing && detail.data?.dat && detail.data.hash && (
