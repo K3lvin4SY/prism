@@ -9,6 +9,9 @@ import { applyConfig, getConfig, type TerminalSettings } from '../config';
 import { LAYOUTS, normaliseCustom } from '../layouts';
 import { storeFor, useStore } from '../store';
 
+/** How much of a stretched column's spare height a widget takes, by how many boxes it has. */
+const GROW: Partial<Record<WidgetId, number>> = { terminal: 1, tiles: 5, charts: 3, info: 1, quick: 1 };
+
 const NOTICES = {
     maintenance: 'This node is under maintenance, so the server cannot be controlled.',
     installing: 'The server is installing; most actions wait until it finishes.',
@@ -76,7 +79,23 @@ function PrismConsole({ model, active }: Pick<ViewProps<'page.server.console'>, 
 
     // With the chart cards on screen, the tiles leave out their own small graphs.
     const showsCharts = config.features.charts && widgets.some((entry) => entry.widget === 'charts' && entry.area !== 'hidden');
-    const area = (name: Area) => widgets.filter((entry) => entry.area === name).map((entry) => <div key={entry.widget}>{render(entry.widget, name)}</div>);
+    /*
+     * Beside each other, the main and side columns are as tall as the taller one: the terminal
+     * grows, and in the side column the boxes share what is left, a widget with more boxes taking
+     * more. The power buttons keep their size.
+     */
+    const area = (name: Area) =>
+        widgets
+            .filter((entry) => entry.area === name)
+            .map((entry) => {
+                const grow = (name === 'main' || name === 'side') && entry.widget !== 'power' ? (GROW[entry.widget] ?? 1) : 0;
+
+                return (
+                    <div key={entry.widget} className={grow ? 'pcn:flex pcn:min-h-0 pcn:flex-col' : undefined} style={grow ? { flexGrow: grow } : undefined}>
+                        {render(entry.widget, name)}
+                    </div>
+                );
+            });
     const side = area('side');
     const bottom = area('bottom');
 

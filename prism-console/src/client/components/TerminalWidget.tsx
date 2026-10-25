@@ -218,7 +218,7 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
     } as CSSProperties;
 
     return (
-        <div ref={widget} className={'pt-surface pt-solid pcn-terminal pcn:flex pcn:min-w-0 pcn:flex-col pcn:overflow-hidden pcn:rounded-lg pcn:border pcn:border-border'}>
+        <div ref={widget} className={'pt-surface pt-solid pcn-terminal pcn:flex pcn:min-w-0 pcn:flex-1 pcn:flex-col pcn:overflow-hidden pcn:rounded-lg pcn:border pcn:border-border'}>
             <div className={'pcn:flex pcn:flex-wrap pcn:items-center pcn:gap-1 pcn:border-b pcn:border-white/10 pcn:px-2 pcn:py-1.5'}>
                 {config.features.filters && (
                     <div className={'pcn:flex pcn:flex-wrap pcn:gap-1'}>
@@ -323,14 +323,15 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                 </div>
             )}
 
-            <div className={'pcn:relative pcn:min-h-0 pcn:flex-1'}>
+            {/* At least the layout's height; taller when the column beside it is, so neither leaves a gap. */}
+            <div className={cn('pcn:relative pcn:flex-1', tall ? 'pcn:min-h-[calc(100vh-15rem)]' : compact ? 'pcn:min-h-[22rem]' : 'pcn:min-h-[min(62vh,40rem)]')}>
                 <div
                     ref={scroller}
                     onScroll={(event) => {
                         const element = event.currentTarget;
                         setStick(element.scrollHeight - element.scrollTop - element.clientHeight < 24);
                     }}
-                    className={cn('pcn:overflow-auto pcn:px-3 pcn:py-2', tall ? 'pcn:h-[calc(100vh-15rem)]' : compact ? 'pcn:h-[22rem]' : 'pcn:h-[min(62vh,40rem)]')}
+                    className={'pcn:absolute pcn:inset-0 pcn:overflow-auto pcn:px-3 pcn:py-2'}
                     style={style}
                     role={'log'}
                     aria-live={'off'}

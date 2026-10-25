@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Badge, Button, Dialog, bytesToString, cn, toast, useSendServerCommand, useServerPermission, useServerResources, type SdkServer } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import type { QuickCommand } from '../config';
@@ -6,18 +6,39 @@ import { useStore, type ServerConsoleStore, type StatsSample } from '../store';
 
 const box = 'pt-surface pcn:rounded-lg pcn:border pcn:border-border pcn:bg-card';
 
-function Sparkline({ values, max, className }: { values: number[]; max?: number; className?: string }) {
-    if (values.length < 2) return <div className={className} />;
-    const top = Math.max(max ?? 0, ...values, 1);
-    const points = values.map((value, index) => `${(index / (values.length - 1)) * 100},${30 - (value / top) * 28}`).join(' ');
+interface Series {
+    values: number[];
+    /** Fill and stroke classes; the primary color without. */
+    fill?: string;
+    stroke?: string;
+}
+
+/** One or more lines on a shared scale, each with the area under it shaded. */
+function Sparkline({ values, series, max, className }: { values?: number[]; series?: Series[]; max?: number; className?: string }) {
+    const lines = series ?? [{ values: values ?? [] }];
+    if (lines.every((line) => line.values.length < 2)) return <div className={className} />;
+    const top = Math.max(max ?? 0, ...lines.flatMap((line) => line.values), 1);
+    const pointsOf = (list: number[]) => list.map((value, index) => `${(index / Math.max(1, list.length - 1)) * 100},${30 - (value / top) * 28}`).join(' ');
 
     return (
         <svg viewBox={'0 0 100 30'} preserveAspectRatio={'none'} className={className} aria-hidden>
-            <polygon points={`0,30 ${points} 100,30`} className={'pcn:fill-primary/15'} />
-            <polyline points={points} fill={'none'} className={'pcn:stroke-primary'} strokeWidth={1.5} vectorEffect={'non-scaling-stroke'} />
+            {lines.map((line, index) =>
+                line.values.length < 2 ? null : (
+                    <g key={index}>
+                        <polygon points={`0,30 ${pointsOf(line.values)} 100,30`} className={line.fill ?? 'pcn:fill-primary/15'} />
+                        <polyline points={pointsOf(line.values)} fill={'none'} className={line.stroke ?? 'pcn:stroke-primary'} strokeWidth={1.5} vectorEffect={'non-scaling-stroke'} />
+                    </g>
+                )
+            )}
         </svg>
     );
 }
+
+/** Received and sent, as the network chart draws them. */
+const NETWORK = {
+    in: { fill: 'pcn:fill-success/15', stroke: 'pcn:stroke-success', text: 'pcn:text-success' },
+    out: { fill: 'pcn:fill-primary/15', stroke: 'pcn:stroke-primary', text: 'pcn:text-primary' },
+};
 
 function uptime(milliseconds: number): string {
     const seconds = Math.floor(milliseconds / 1000);
@@ -77,9 +98,9 @@ export function Tiles({ server, store, vertical, compact, sparklines = true }: {
     ];
 
     return (
-        <div className={cn('pcn:grid pcn:gap-2', vertical ? 'pcn:grid-cols-1' : compact ? 'pcn:grid-cols-2 pcn:sm:grid-cols-5' : 'pcn:grid-cols-2 pcn:md:grid-cols-5')}>
+        <div className={cn('pcn:grid pcn:gap-2', vertical ? 'pcn:flex-1 pcn:auto-rows-fr pcn:grid-cols-1' : compact ? 'pcn:grid-cols-2 pcn:sm:grid-cols-5' : 'pcn:grid-cols-2 pcn:md:grid-cols-5')}>
             {tiles.map((tile) => (
-                <div key={tile.label} className={cn(box, 'pcn:relative pcn:overflow-hidden', compact ? 'pcn:px-3 pcn:py-2' : 'pcn:p-3')}>
+                <div key={tile.label} className={cn(box, 'pcn:relative pcn:overflow-hidden', vertical && 'pcn:flex pcn:flex-col pcn:justify-center', compact ? 'pcn:px-3 pcn:py-2' : 'pcn:p-3')}>
                     <div className={'pcn:flex pcn:items-center pcn:gap-1.5 pcn:text-xs pcn:uppercase pcn:tracking-wide pcn:text-muted-foreground'}>
                         <NamedIcon name={tile.icon} size={12} /> {tile.label}
                     </div>
@@ -97,27 +118,45 @@ export function Tiles({ server, store, vertical, compact, sparklines = true }: {
     );
 }
 
-/** Larger live charts of CPU, memory and network. */
+/** Larger live charts of CPU, memory and network, the network with what comes in and goes out. */
 export function Charts({ server, store, vertical }: { server: SdkServer; store: ServerConsoleStore; vertical?: boolean }) {
     const usage = useUsage(server, store);
-    const charts = [
-        { label: 'CPU load', value: `${usage.cpu.toFixed(1)}%`, values: store.samples.map((sample) => sample.cpu), max: usage.limits.cpu || undefined },
-        { label: 'Memory', value: bytesToString(usage.memory), values: store.samples.map((sample) => sample.memory), max: usage.limits.memory || undefined },
-        { label: 'Network in', value: `${bytesToString(usage.rx[usage.rx.length - 1] ?? 0)}/s`, values: usage.rx },
+    const received = usage.rx[usage.rx.length - 1] ?? 0;
+    const sent = usage.tx[usage.tx.length - 1] ?? 0;
+    const charts: { label: string; value: ReactNode; series: Series[]; max?: number }[] = [
+        { label: 'CPU load', value: `${usage.cpu.toFixed(1)}%`, series: [{ values: store.samples.map((sample) => sample.cpu) }], max: usage.limits.cpu || undefined },
+        { label: 'Memory', value: bytesToString(usage.memory), series: [{ values: store.samples.map((sample) => sample.memory) }], max: usage.limits.memory || undefined },
+        {
+            label: 'Network',
+            value: (
+                <span className={'pcn:flex pcn:gap-2'}>
+                    <span className={NETWORK.in.text} title={'Received'}>
+                        ↓ {bytesToString(received)}/s
+                    </span>
+                    <span className={NETWORK.out.text} title={'Sent'}>
+                        ↑ {bytesToString(sent)}/s
+                    </span>
+                </span>
+            ),
+            series: [
+                { values: usage.rx, fill: NETWORK.in.fill, stroke: NETWORK.in.stroke },
+                { values: usage.tx, fill: NETWORK.out.fill, stroke: NETWORK.out.stroke },
+            ],
+        },
     ];
 
     return (
-        <div className={cn('pcn:grid pcn:gap-3', vertical ? 'pcn:grid-cols-1' : 'pcn:md:grid-cols-3')}>
+        <div className={cn('pcn:grid pcn:gap-3', vertical ? 'pcn:flex-1 pcn:auto-rows-fr pcn:grid-cols-1' : 'pcn:md:grid-cols-3')}>
             {charts.map((chart) => (
-                <div key={chart.label} className={cn(box, 'pcn:p-3')}>
-                    <div className={'pcn:mb-2 pcn:flex pcn:items-baseline pcn:justify-between pcn:text-sm'}>
+                <div key={chart.label} className={cn(box, 'pcn:flex pcn:flex-col pcn:p-3')}>
+                    <div className={'pcn:mb-2 pcn:flex pcn:items-baseline pcn:justify-between pcn:gap-2 pcn:text-sm'}>
                         <span className={'pcn:font-semibold'}>{chart.label}</span>
                         <span className={'pcn:tabular-nums pcn:text-muted-foreground'}>{chart.value}</span>
                     </div>
-                    {chart.values.length < 2 ? (
-                        <div className={'pcn:flex pcn:h-20 pcn:items-center pcn:justify-center pcn:text-xs pcn:text-muted-foreground'}>Waiting for readings…</div>
+                    {chart.series.every((line) => line.values.length < 2) ? (
+                        <div className={cn('pcn:flex pcn:items-center pcn:justify-center pcn:text-xs pcn:text-muted-foreground', vertical ? 'pcn:min-h-20 pcn:flex-1' : 'pcn:h-20')}>Waiting for readings…</div>
                     ) : (
-                        <Sparkline values={chart.values} max={chart.max} className={'pcn:h-20 pcn:w-full'} />
+                        <Sparkline series={chart.series} max={chart.max} className={cn('pcn:w-full', vertical ? 'pcn:min-h-20 pcn:flex-1' : 'pcn:h-20')} />
                     )}
                 </div>
             ))}
@@ -140,7 +179,7 @@ export function Info({ server, store }: { server: SdkServer; store: ServerConsol
     const state = STATES[usage.state] ?? { label: usage.state, tone: 'neutral' as const };
 
     return (
-        <div className={cn(box, 'pcn:flex pcn:flex-col pcn:gap-2 pcn:p-3 pcn:text-sm')}>
+        <div className={cn(box, 'pcn:flex pcn:flex-1 pcn:flex-col pcn:justify-center pcn:gap-2 pcn:p-3 pcn:text-sm')}>
             <div className={'pcn:flex pcn:items-center pcn:justify-between pcn:gap-2'}>
                 <span className={'pcn:truncate pcn:font-semibold'}>{server.attributes.name}</span>
                 <Badge size={'sm'} tone={state.tone}>
@@ -184,7 +223,7 @@ export function QuickCommands({ server, commands, compact }: { server: SdkServer
             .catch(() => toast.error('The command could not be sent. Is the server running?'));
 
     return (
-        <div className={cn(box, compact ? 'pcn:p-2' : 'pcn:p-3')}>
+        <div className={cn(box, 'pcn:flex-1', compact ? 'pcn:p-2' : 'pcn:p-3')}>
             {!compact && <p className={'pcn:mb-2 pcn:text-xs pcn:uppercase pcn:tracking-wide pcn:text-muted-foreground'}>Quick commands</p>}
             <div className={'pcn:flex pcn:flex-wrap pcn:gap-1.5'}>
                 {shown.map((command, index) => (
