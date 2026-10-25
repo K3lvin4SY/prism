@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Input, NumberInput, PageContentBlock, Select, Spinner, TextArea, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { NamedIcon } from './icons';
@@ -96,6 +96,9 @@ export default function PropertiesScreen() {
         setFocus(key ?? null);
     };
     const onDirty = useCallback((id: Target, value: boolean) => setDirty((map) => (map[id] === value ? map : { ...map, [id]: value })), []);
+    const topOffset = useStickyTop();
+    // One set of preview controls for whichever extension is open; export and import has nothing to preview.
+    const preview = current && current.id !== EXPORT_ID ? <PreviewControls extension={current.id} /> : null;
 
     return (
         <PageContentBlock title={'Prism Properties'}>
@@ -106,8 +109,8 @@ export default function PropertiesScreen() {
                 ) : !current ? (
                     <Alert type={'info'}>No Prism extensions are installed and enabled. Install a Prism extension, such as Prism Console, Prism MC or Prism Layout, to change its settings here.</Alert>
                 ) : (
-                    <div className={'ppx:grid ppx:gap-6 ppx:lg:grid-cols-[15rem_minmax(0,1fr)]'}>
-                        <Sidebar entries={entries} current={current} section={sectionFor(current)} dirty={dirty} search={search} onSearch={setSearch} onGo={go} />
+                    <div className={cn('ppx:grid ppx:gap-6 ppx:lg:grid-cols-[15rem_minmax(0,1fr)]', preview && 'ppx:2xl:grid-cols-[15rem_minmax(0,1fr)_19rem]')}>
+                        <Sidebar entries={entries} current={current} section={sectionFor(current)} dirty={dirty} search={search} onSearch={setSearch} onGo={go} preview={preview} />
                         <div className={'ppx:min-w-0'}>
                             {entries
                                 .filter((entry) => visited.includes(entry.id) || entry.id === current.id)
@@ -129,6 +132,12 @@ export default function PropertiesScreen() {
                                     );
                                 })}
                         </div>
+                        {/* Wide enough, the preview has a column of its own beside the settings. */}
+                        {preview && (
+                            <aside className={'ppx:hidden ppx:2xl:sticky ppx:2xl:top-[calc(var(--ppx-top)+1rem)] ppx:2xl:flex ppx:2xl:flex-col ppx:2xl:self-start'} style={{ '--ppx-top': `${topOffset}px` } as React.CSSProperties}>
+                                {preview}
+                            </aside>
+                        )}
                     </div>
                 )}
             </div>
@@ -167,7 +176,26 @@ function useStickyTop(): number {
     return top;
 }
 
-function Sidebar({ entries, current, section, dirty, search, onSearch, onGo }: { entries: Entry[]; current: Entry; section: string; dirty: Partial<Record<Target, boolean>>; search: string; onSearch: (value: string) => void; onGo: (id: Target, section?: string, key?: string) => void }) {
+function Sidebar({
+    entries,
+    current,
+    section,
+    dirty,
+    search,
+    onSearch,
+    onGo,
+    preview,
+}: {
+    entries: Entry[];
+    current: Entry;
+    section: string;
+    dirty: Partial<Record<Target, boolean>>;
+    search: string;
+    onSearch: (value: string) => void;
+    onGo: (id: Target, section?: string, key?: string) => void;
+    /** The live preview controls, here under the navigation until the page is wide enough for a column of their own. */
+    preview: ReactNode;
+}) {
     const query = search.trim().toLowerCase();
     const matches = useMemo(() => {
         if (!query) return [];
@@ -276,6 +304,7 @@ function Sidebar({ entries, current, section, dirty, search, onSearch, onGo }: {
                     </nav>
                 </>
             )}
+            {preview && <div className={'ppx:2xl:hidden'}>{preview}</div>}
         </aside>
     );
 }
@@ -381,7 +410,6 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
                 <Alert type={'info'}>Protected paths are enforced by Prism File Browser. Someone using the panel&apos;s file API directly, such as an API key or SFTP, is not stopped by them.</Alert>
             )}
 
-            <PreviewControls extension={extension.id} />
 
             <SaveBar
                 changes={schema

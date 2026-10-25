@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Dialog, Input, Select, Spinner, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import { ToggleRow } from '../editors';
-import { PreviewControls, reloadPreview, usePreviewDraft } from '../preview';
+import { reloadPreview, usePreviewDraft, usePreviewNote } from '../preview';
 import SaveBar, { describeValue } from '../SaveBar';
 import { THEME_ID, optionsOf, themeApi, themeKeys, type ThemeSetting } from './api';
 import { contrast, normaliseColor, toHex, toOklch } from './color';
@@ -44,6 +44,18 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
     const previewing = themes.data?.preview === THEME_ID;
 
     usePreviewDraft(THEME_ID, values);
+    // In the preview controls: how the theme's preview works, and the look being built.
+    usePreviewNote(
+        THEME_ID,
+        <>
+            {!live && !previewing && <Alert type={'info'}>The window shows the active theme until you choose Preview for me. Only you see a preview.</Alert>}
+            <div className={'ppx:flex ppx:flex-col ppx:gap-2 ppx:border-t ppx:border-border ppx:pt-3'}>
+                <p className={'ppx:text-xs ppx:font-semibold ppx:tracking-wide ppx:text-muted-foreground ppx:uppercase'}>Now</p>
+                <Swatch values={values} />
+                <p className={'ppx:text-sm ppx:text-muted-foreground'}>{currentName(values)}</p>
+            </div>
+        </>
+    );
     useEffect(() => onDirty?.(dirty), [dirty, onDirty]);
 
     // Leaving with unsaved changes asks first.
@@ -129,7 +141,7 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
                 )}
             </div>
 
-            <div className={'ppx:grid ppx:gap-4 ppx:2xl:grid-cols-[minmax(0,1fr)_22rem]'}>
+            <div className={'ppx:flex ppx:min-w-0 ppx:flex-col ppx:gap-4'}>
                 <div className={'ppx:flex ppx:min-w-0 ppx:flex-col ppx:gap-3'}>
                     {section === 'Presets' ? (
                         <Presets values={values} apply={apply} />
@@ -169,14 +181,6 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
                     />
                 </div>
 
-                <div className={'ppx:flex ppx:min-w-0 ppx:flex-col ppx:gap-3'}>
-                    <PreviewControls>{!live && !previewing && <Alert type={'info'}>The window shows the active theme until you choose Preview for me. Only you see a preview.</Alert>}</PreviewControls>
-                    <div className={cn(box, 'ppx:flex ppx:flex-col ppx:gap-3 ppx:p-4')}>
-                        <p className={'ppx:text-sm ppx:font-semibold'}>Now</p>
-                        <Swatch values={values} />
-                        <p className={'ppx:text-sm ppx:text-muted-foreground'}>{currentName(values)}</p>
-                    </div>
-                </div>
             </div>
 
             {activating && (
