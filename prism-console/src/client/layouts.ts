@@ -22,6 +22,7 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'tiles', area: 'side' },
             { widget: 'info', area: 'side' },
             { widget: 'quick', area: 'side' },
+            { widget: 'charts', area: 'bottom' },
         ],
     },
     dashboard: {
@@ -33,6 +34,7 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'power', area: 'side' },
             { widget: 'info', area: 'side' },
             { widget: 'quick', area: 'side' },
+            { widget: 'charts', area: 'bottom' },
         ],
     },
     side: {
@@ -44,6 +46,7 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'info', area: 'side' },
             { widget: 'tiles', area: 'side' },
             { widget: 'quick', area: 'side' },
+            { widget: 'charts', area: 'side' },
         ],
     },
     monitor: {
@@ -60,9 +63,12 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
     },
     focus: {
         label: 'Focus',
-        description: 'a large terminal, nothing else',
+        description: 'a large terminal with the live charts below',
         tall: true,
-        widgets: [{ widget: 'terminal', area: 'main' }],
+        widgets: [
+            { widget: 'terminal', area: 'main' },
+            { widget: 'charts', area: 'bottom' },
+        ],
     },
     compact: {
         label: 'Compact',
@@ -73,6 +79,7 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'power', area: 'bottom' },
             { widget: 'tiles', area: 'bottom' },
             { widget: 'quick', area: 'bottom' },
+            { widget: 'charts', area: 'bottom' },
         ],
     },
 };
