@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import { pictureApi, pictureKeys, type ServerPicture as Picture } from '../pictures';
-import { cssUrlToken, eggColor, useSettings } from '../settings';
+import { cssUrlToken, useEggColor, useSettings } from '../settings';
 
 /**
  * On a server's Settings page: the picture on its dashboard card. The server's own, or else its
@@ -11,6 +11,7 @@ import { cssUrlToken, eggColor, useSettings } from '../settings';
  */
 export default function ServerPicture() {
     const settings = useSettings();
+    const eggColor = useEggColor();
     const server = useCurrentServerRequired().attributes;
     const identifier = server.identifier;
     const queryClient = useQueryClient();

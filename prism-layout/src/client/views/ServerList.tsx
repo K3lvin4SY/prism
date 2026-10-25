@@ -5,7 +5,7 @@ import { Slot, View, type ServerListItem, type ServerListModel, type ViewProps }
 import { NO_FILTERS, matches, publishServers, setFilters, useDashboard, type DashboardServer } from '../dashboard';
 import { GameLogo, useLogos } from '../logos';
 import { usePictures } from '../pictures';
-import { cssUrlToken, eggColor, useSettings } from '../settings';
+import { cssUrlToken, useEggColor, useSettings } from '../settings';
 
 /** Power buttons outside the card's link, so they work without opening the server. */
 function Power({ item }: { item: ServerListItem }) {
@@ -41,6 +41,7 @@ const tagsOf = (item: ServerListItem) => (item.server.attributes as { egg_tags?:
 
 function Card({ item, picture, logo }: { item: ServerListItem; picture: string | null; logo: string | null }) {
     const settings = useSettings();
+    const eggColor = useEggColor();
     const style = settings.cards;
     // Logos are for Rows cards; the other styles show the game by its color instead.
     const showLogo = settings.egg_colors === 'logo' && style === 'rows';

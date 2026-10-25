@@ -1,5 +1,7 @@
-import { useSyncExternalStore } from 'react';
-import { notifyThemeChange, type ExtensionConfig } from '@pterodactyl/sdk';
+import { useCallback, useSyncExternalStore } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { http, notifyThemeChange, type ExtensionConfig } from '@pterodactyl/sdk';
+import { gameTag } from './dashboard';
 
 export type Bars = 'sidebar' | 'top' | 'dock' | 'sidebar_top' | 'rail' | 'rail_top' | 'top_dock';
 export type GameMark = 'none' | 'color' | 'logo';
@@ -212,12 +214,27 @@ export function listenForPreview(): void {
     }
 }
 
-/** A color for a game, from its egg tag, so each game's cards look alike. */
-export function eggColor(tags: readonly string[] | undefined): string | null {
-    const tag = tags?.find((item) => item !== 'minecraft' || tags.length === 1) ?? tags?.[0];
+/**
+ * A color for a game: the color its egg tag has on the panel's Tags page, else one worked out
+ * from the tag's name, so each game's cards look alike.
+ */
+export function eggColor(tags: readonly string[] | undefined, colors?: Readonly<Record<string, string>>): string | null {
+    const tag = gameTag(tags);
     if (!tag) return null;
+    if (colors?.[tag]) return colors[tag];
     let hash = 0;
     for (const char of tag) hash = (hash * 31 + char.charCodeAt(0)) % 360;
 
     return `oklch(0.66 0.15 ${hash})`;
+}
+
+/** The tag colors from the panel, loaded once and shared by every card and filter. */
+export function useEggColor(): (tags: readonly string[] | undefined) => string | null {
+    const colors = useQuery({
+        queryKey: ['prism-layout', 'tag-colors'],
+        queryFn: async () => (await http.get<{ data: Record<string, string> }>('/api/client/extensions/prism-layout/tags')).data.data,
+        staleTime: 5 * 60_000,
+    }).data;
+
+    return useCallback((tags: readonly string[] | undefined) => eggColor(tags, colors), [colors]);
 }

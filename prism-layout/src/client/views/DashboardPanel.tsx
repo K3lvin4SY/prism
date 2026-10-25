@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { PanelLink, bytesToString, cn } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import { NO_FILTERS, filtering, gameTag, matches, readRecent, setFilters, useDashboard, type DashboardServer } from '../dashboard';
-import { eggColor } from '../settings';
+import { useEggColor } from '../settings';
 import { itemClass } from './nav';
 
 const online = (server: DashboardServer) => server.power !== null && server.power !== 'offline';
@@ -57,6 +57,7 @@ const chip = (active: boolean) =>
 
 function FilterPanel() {
     const { servers, filters, paged } = useDashboard();
+    const eggColor = useEggColor();
     const games = useMemo(() => [...new Set(servers.map((server) => gameTag(server.tags)).filter((tag): tag is string => tag !== null))].sort(), [servers]);
     const shown = servers.filter((server) => matches(server, filters)).length;
 
