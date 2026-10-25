@@ -11,6 +11,7 @@ import { ConflictError, documentsFor, type Document } from './documents';
 import Explorer from './Explorer';
 import monaco, { keybinding, matchesChord, themeFor } from './monaco';
 import Palette, { type Command } from './Palette';
+import SettingsDialog, { type EditorPreferences } from './SettingsDialog';
 import { useWorkbench, workbenchFor } from './store';
 
 interface Props {
@@ -21,11 +22,14 @@ interface Props {
     onRevealInFiles: (directory: string) => void;
     /** Opened from the panel's edit page: a file to open first. */
     initialPath?: string | null;
+    /** The person's own editor settings, when the admin lets people change them. */
+    personal?: { defaults: { editor: EditorSettings; keybinds: Keybinds }; onChange: (preferences: EditorPreferences) => void } | null;
 }
 
 type Menu = { x: number; y: number; entry: FileEntry | null; directory: string };
 
-export default function Workbench({ server, editor: settings, keybinds, showHidden, onRevealInFiles, initialPath }: Props) {
+export default function Workbench({ server, editor: settings, keybinds, showHidden, onRevealInFiles, initialPath, personal }: Props) {
+    const [settingsOpen, setSettingsOpen] = useState(false);
     const state = useWorkbench(workbenchFor(server));
     const documents = documentsFor(server, state);
     const actions = useFileActions(server);
@@ -291,7 +295,9 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                 <ActivityButton icon={'square-terminal'} label={'Command palette'} onClick={() => setPalette('commands')} />
                 <div className={'pfl:flex-1'} />
                 <ActivityButton icon={'folder-tree'} label={'Show in the file list'} onClick={() => onRevealInFiles(state.active ? dirname(state.active) : '/')} />
+                {personal && <ActivityButton icon={'settings'} label={'Editor settings'} active={settingsOpen} onClick={() => setSettingsOpen(true)} />}
             </div>
+            {personal && settingsOpen && <SettingsDialog editor={settings} keybinds={keybinds} defaults={personal.defaults} onChange={personal.onChange} onClose={() => setSettingsOpen(false)} />}
 
             {/* Explorer */}
             {state.explorer && (

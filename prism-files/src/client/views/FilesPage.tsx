@@ -152,7 +152,15 @@ function PrismFiles({ initialPath = null }: { initialPath?: string | null }) {
                 <div className={tab === 'editor' ? '' : 'pfl:hidden'}>
                     {/* The editor stays mounted while hidden, so its tabs and cursor survive switching views. */}
                     <Suspense fallback={<Spinner centered />}>
-                        <Workbench server={identifier} editor={editor} keybinds={keybinds} showHidden={preferences.showHidden ?? false} onRevealInFiles={navigate} initialPath={initialPath} />
+                        <Workbench
+                            server={identifier}
+                            editor={editor}
+                            keybinds={keybinds}
+                            showHidden={preferences.showHidden ?? false}
+                            onRevealInFiles={navigate}
+                            initialPath={initialPath}
+                            personal={config.allowEditorSettings ? { defaults: { editor: config.editor, keybinds: config.keybinds }, onChange: update } : null}
+                        />
                     </Suspense>
                 </div>
             )}
