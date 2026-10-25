@@ -7,6 +7,7 @@ namespace PrismLayout\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PrismLayout\Support\Pictures;
@@ -19,9 +20,7 @@ class PicturesController extends Controller
     /** Each listed server's picture by uuid; servers without one are left out. */
     public function index(Request $request): JsonResponse
     {
-        $uuids = array_slice(array_filter(explode(',', (string) $request->query('servers', '')), static fn (string $uuid): bool => preg_match('/^[0-9a-f-]{36}$/', $uuid) === 1), 0, 200);
-        $user = $request->user();
-        $servers = $user->root_admin ? Server::query()->whereIn('uuid', $uuids)->get() : $user->accessibleServers()->whereIn('servers.uuid', $uuids)->get();
+        $servers = $this->servers($request);
 
         $rows = DB::table(Pictures::TABLE)
             ->where(fn ($query) => $query->where('kind', 'server')->whereIn('target_id', $servers->pluck('id')))
@@ -34,6 +33,35 @@ class PicturesController extends Controller
                 ?? $rows->first(fn ($row) => $row->kind === 'egg' && (int) $row->target_id === $server->egg_id);
             if ($row !== null) {
                 $map[$server->uuid] = Pictures::url($row);
+            }
+        }
+
+        return new JsonResponse(['data' => (object) $map]);
+    }
+
+    /**
+     * The servers named in ?servers= (up to 200 uuids) that the person can see.
+     *
+     * @return Collection<int, Server>
+     */
+    private function servers(Request $request): Collection
+    {
+        $uuids = array_slice(array_filter(explode(',', (string) $request->query('servers', '')), static fn (string $uuid): bool => preg_match('/^[0-9a-f-]{36}$/', $uuid) === 1), 0, 200);
+        $user = $request->user();
+
+        return $user->root_admin ? Server::query()->whereIn('uuid', $uuids)->get() : $user->accessibleServers()->whereIn('servers.uuid', $uuids)->get();
+    }
+
+    /** Each listed server's egg logo by uuid, for Rows cards; servers whose egg has none are left out. */
+    public function logos(Request $request): JsonResponse
+    {
+        $servers = $this->servers($request);
+        $rows = DB::table(Pictures::TABLE)->where('kind', 'egg-logo')->whereIn('target_id', $servers->pluck('egg_id')->unique())->get()->keyBy('target_id');
+
+        $map = [];
+        foreach ($servers as $server) {
+            if (isset($rows[$server->egg_id])) {
+                $map[$server->uuid] = Pictures::url($rows[$server->egg_id]);
             }
         }
 

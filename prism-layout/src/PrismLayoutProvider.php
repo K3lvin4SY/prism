@@ -48,11 +48,11 @@ class PrismLayoutProvider extends ExtensionProvider
 
             // Server cards
             Setting::make('cards', 'cards', 'banner', ['required', 'string', 'in:banner,tile,neon,minimal,compact,outline,rows'])->label('Server cards')->tab('Server cards')->field('select', $options(['banner' => 'Banner', 'tile' => 'Tile', 'neon' => 'Neon', 'minimal' => 'Minimal', 'compact' => 'Compact', 'outline' => 'Outline', 'rows' => 'Rows']))->frontend(),
-            Setting::make('status_style', 'status_style', 'badge', ['required', 'string', 'in:badge,dot,bar'])->label('Status')->tab('Server cards')->field('select', $options(['badge' => 'Badge', 'dot' => 'Dot', 'bar' => 'Coloured edge']))->frontend(),
+            Setting::make('status_style', 'status_style', 'badge', ['required', 'string', 'in:badge,dot,bar'])->label('Status')->tab('Server cards')->field('select', $options(['badge' => 'Badge', 'dot' => 'Dot', 'bar' => 'Colored edge']))->frontend(),
             Setting::make('usage_style', 'usage_style', 'bars', ['required', 'string', 'in:bars,numbers,hidden'])->label('Usage')->tab('Server cards')->field('select', $options(['bars' => 'Bars', 'numbers' => 'Numbers', 'hidden' => 'Hidden']))->frontend(),
-            $toggle('egg_colors', true, 'Colour cards by game', 'Server cards', 'Each egg tag gets its own colour.'),
+            Setting::make('egg_colors', 'egg_colors', 'color', ['required', 'string', 'in:none,color,logo'])->label('Show the game on cards')->help("Color gives each egg tag its own color. Logo puts the egg's logo on Rows cards, set for each egg below; other card styles use the color.")->tab('Server cards')->field('select', $options(['none' => 'None', 'color' => 'Color', 'logo' => 'Logo']))->frontend(),
             $toggle('power_buttons', true, 'Power buttons on cards', 'Server cards'),
-            Setting::make('card_image', 'card_image', null)->label('Card picture')->help("Shown on Banner cards. Without one, a pattern in the game's colour.")->tab('Server cards')->file(self::IMAGES, 2048)->frontend(),
+            Setting::make('card_image', 'card_image', null)->label('Card picture')->help("Shown on Banner cards. Without one, a pattern in the game's color.")->tab('Server cards')->file(self::IMAGES, 2048)->frontend(),
 
             // Branding: everything here also reaches the sign-in pages.
             Setting::make('logo', 'logo', null)->label('Logo')->help('PNG, JPG, WebP or SVG, up to 1 MB. A wide logo works best in a top bar.')->tab('Branding')->file(self::IMAGES, 1024)->frontend()->public(),
@@ -67,7 +67,7 @@ class PrismLayoutProvider extends ExtensionProvider
             Setting::make('login_mark', 'login_mark', 'logo', ['required', 'string', 'in:logo,mascot,none'])->label('Beside the form')->help('Your logo, the Pterodactyl mascot, or nothing. Without a logo the mascot stays.')->tab('Sign-in page')->field('select', $options(['logo' => 'Your logo', 'mascot' => 'The mascot', 'none' => 'Nothing']))->frontend()->public(),
             Setting::make('login_logo_size', 'login_logo_size', 160, ['required', 'integer', 'min:48', 'max:320'])->label('Logo size on the sign-in pages')->tab('Sign-in page')->field('number')->frontend()->public(),
             Setting::make('login_tagline', 'login_tagline', '', ['nullable', 'string', 'max:120'])->label('Tagline')->help('A line above the form, or on the picture when it is split.')->tab('Sign-in page')->field('text')->frontend()->public(),
-            Setting::make('login_image', 'login_image', null)->label('Sign-in picture')->help('For the split and backdrop styles. Without one, a gradient in the theme colour.')->tab('Sign-in page')->file(self::IMAGES, 4096)->frontend()->public(),
+            Setting::make('login_image', 'login_image', null)->label('Sign-in picture')->help('For the split and backdrop styles. Without one, a gradient in the theme color.')->tab('Sign-in page')->file(self::IMAGES, 4096)->frontend()->public(),
 
             // Announcement
             $text('announce_text', '', 300, 'Message', 'Announcement', 'Empty shows no banner.'),

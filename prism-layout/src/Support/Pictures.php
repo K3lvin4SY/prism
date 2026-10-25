@@ -11,7 +11,8 @@ use Illuminate\Support\Str;
 use Pterodactyl\Models\Server;
 
 /**
- * Banner card pictures: each egg can have a default, and each server its own in place of it.
+ * Card pictures: each egg can have a default Banner picture and a logo for Rows cards, and each
+ * server its own Banner picture in place of its egg's.
  * The files are kept on the local disk and served through the client API.
  */
 final class Pictures

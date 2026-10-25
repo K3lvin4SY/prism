@@ -3,8 +3,9 @@ import { Button, PageHeading, PanelLink, Spinner, Switch, cn } from '@pterodacty
 import { NamedIcon } from '../icons';
 import { Slot, View, type ServerListItem, type ServerListModel, type ViewProps } from '@pterodactyl/sdk/theme';
 import { NO_FILTERS, matches, publishServers, setFilters, useDashboard, type DashboardServer } from '../dashboard';
+import { GameLogo, useLogos } from '../logos';
 import { usePictures } from '../pictures';
-import { cssUrlToken, eggColour, useSettings } from '../settings';
+import { cssUrlToken, eggColor, useSettings } from '../settings';
 
 /** Power buttons outside the card's link, so they work without opening the server. */
 function Power({ item }: { item: ServerListItem }) {
@@ -38,10 +39,12 @@ function Power({ item }: { item: ServerListItem }) {
 
 const tagsOf = (item: ServerListItem) => (item.server.attributes as { egg_tags?: string[] }).egg_tags;
 
-function Card({ item, picture }: { item: ServerListItem; picture: string | null }) {
+function Card({ item, picture, logo }: { item: ServerListItem; picture: string | null; logo: string | null }) {
     const settings = useSettings();
     const style = settings.cards;
-    const colour = settings.egg_colors ? eggColour(tagsOf(item)) : null;
+    // Logos are for Rows cards; the other styles show the game by its color instead.
+    const showLogo = settings.egg_colors === 'logo' && style === 'rows';
+    const color = settings.egg_colors === 'color' || (settings.egg_colors === 'logo' && !showLogo) ? eggColor(tagsOf(item)) : null;
     const running = item.state.kind === 'ready' && item.state.power === 'running';
 
     return (
@@ -53,14 +56,15 @@ function Card({ item, picture }: { item: ServerListItem; picture: string | null 
                 style === 'neon' && 'pla-card-neon',
                 style === 'tile' && 'pla-card-tile',
                 style === 'minimal' && 'pla:border-transparent pla:bg-card/60 pla:shadow-none',
-                colour && 'pla-card-egg'
+                color && 'pla-card-egg'
             )}
             data-style={style}
-            style={{ ...(colour ? { '--pla-egg': colour } : {}), ...(picture ? { '--pla-card-image': cssUrlToken(picture) } : {}) } as React.CSSProperties}
+            style={{ ...(color ? { '--pla-egg': color } : {}), ...(picture ? { '--pla-card-image': cssUrlToken(picture) } : {}) } as React.CSSProperties}
         >
             {settings.status_style === 'bar' && <span className={cn('pla:absolute pla:inset-y-0 pla:left-0 pla:w-1', running ? 'pla:bg-success' : item.state.kind === 'ready' ? 'pla:bg-destructive' : 'pla:bg-muted')} />}
-            {colour && style === 'compact' && <span className='pla:absolute pla:inset-x-0 pla:top-0 pla:h-1 pla:bg-(--pla-egg)' aria-hidden />}
-            {colour && style === 'rows' && (
+            {color && style === 'compact' && <span className='pla:absolute pla:inset-x-0 pla:top-0 pla:h-1 pla:bg-(--pla-egg)' aria-hidden />}
+            {showLogo && <GameLogo logo={logo} tags={tagsOf(item)} />}
+            {color && style === 'rows' && (
                 <span className='pla:flex pla:size-8 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-md pla:bg-[color-mix(in_oklab,var(--pla-egg)_22%,transparent)] pla:text-(--pla-egg)' aria-hidden>
                     <NamedIcon name='gamepad-2' size={16} />
                 </span>
@@ -107,10 +111,9 @@ function Servers({ model }: { model: ServerListModel }) {
     const { filters } = useDashboard();
     const style = settings.cards;
     const others = model.scope === 'others';
-    const pictures = usePictures(
-        model.servers.map((item) => item.uuid),
-        style === 'banner'
-    );
+    const uuids = model.servers.map((item) => item.uuid);
+    const pictures = usePictures(uuids, style === 'banner');
+    const logos = useLogos(uuids, style === 'rows' && settings.egg_colors === 'logo');
 
     // The sidebar's overview and filters read the servers on this page.
     useEffect(() => {
@@ -146,7 +149,7 @@ function Servers({ model }: { model: ServerListModel }) {
             )}
             <ul className={cn('pla:grid pla:gap-4', style === 'rows' ? 'pla:grid-cols-1 pla:gap-2' : style === 'compact' ? 'pla:grid-cols-1 pla:gap-3 pla:sm:grid-cols-2 pla:lg:grid-cols-3 pla:2xl:grid-cols-4' : 'pla:grid-cols-1 pla:sm:grid-cols-2 pla:xl:grid-cols-3')}>
                 {shown.map((item) => (
-                    <Card key={item.uuid} item={item} picture={pictures.data?.[item.uuid] ?? null} />
+                    <Card key={item.uuid} item={item} picture={pictures.data?.[item.uuid] ?? null} logo={logos.data?.[item.uuid] ?? null} />
                 ))}
             </ul>
             {model.pagination && model.pagination.totalPages > 1 && (

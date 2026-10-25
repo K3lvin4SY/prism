@@ -2,6 +2,8 @@ import { useSyncExternalStore } from 'react';
 import { notifyThemeChange, type ExtensionConfig } from '@pterodactyl/sdk';
 
 export type Bars = 'sidebar' | 'top' | 'dock' | 'sidebar_top' | 'rail' | 'rail_top' | 'top_dock';
+export type GameMark = 'none' | 'color' | 'logo';
+
 export type CardStyle = 'banner' | 'tile' | 'neon' | 'minimal' | 'compact' | 'outline' | 'rows';
 export type LogoMode = 'beside' | 'instead' | 'name';
 export type LoginStyle = 'card' | 'split' | 'backdrop';
@@ -25,7 +27,8 @@ export interface LayoutSettings {
     cards: CardStyle;
     status_style: 'badge' | 'dot' | 'bar';
     usage_style: 'bars' | 'numbers' | 'hidden';
-    egg_colors: boolean;
+    /** How cards show their game: not at all, by a color, or by a logo on Rows cards. */
+    egg_colors: GameMark;
     power_buttons: boolean;
     card_image: string | null;
     logo: string | null;
@@ -84,7 +87,8 @@ export function read(raw: Record<string, unknown>): LayoutSettings {
         cards: oneOf(raw.cards, ['banner', 'tile', 'neon', 'minimal', 'compact', 'outline', 'rows'] as const, 'banner'),
         status_style: oneOf(raw.status_style, ['badge', 'dot', 'bar'] as const, 'badge'),
         usage_style: oneOf(raw.usage_style, ['bars', 'numbers', 'hidden'] as const, 'bars'),
-        egg_colors: bool(raw.egg_colors, true),
+        // Saved before it had three choices, it was on or off.
+        egg_colors: typeof raw.egg_colors === 'boolean' ? (raw.egg_colors ? 'color' : 'none') : oneOf(raw.egg_colors, ['none', 'color', 'logo'] as const, 'color'),
         power_buttons: bool(raw.power_buttons, true),
         card_image: url(raw.card_image),
         logo: url(raw.logo),
@@ -208,8 +212,8 @@ export function listenForPreview(): void {
     }
 }
 
-/** A colour for a game, from its egg tag, so each game's cards look alike. */
-export function eggColour(tags: readonly string[] | undefined): string | null {
+/** A color for a game, from its egg tag, so each game's cards look alike. */
+export function eggColor(tags: readonly string[] | undefined): string | null {
     const tag = tags?.find((item) => item !== 'minecraft' || tags.length === 1) ?? tags?.[0];
     if (!tag) return null;
     let hash = 0;
