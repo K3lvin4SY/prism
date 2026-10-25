@@ -44,6 +44,12 @@ class RunSchedule implements ShouldQueue
                 return;
             }
 
+            // A copy of this job (sent again by the stuck-run recovery, say) arriving before the
+            // run is due finds another already waiting to continue it, and leaves it to that one.
+            if ($started === time() && ($run->state['wakeAt'] ?? 0) > time() + 1) {
+                return;
+            }
+
             try {
                 $delay = Engine::step($run);
             } catch (Throwable $exception) {
