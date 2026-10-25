@@ -22,7 +22,7 @@ const ARMOUR: [keyof PlayerState['equipment'], EmptySlot][] = [
     ['feet', 'boots'],
 ];
 
-/** The survival inventory screen: armour beside the main grid. The hotbar and offhand are on the HUD above. */
+/** The survival inventory screen: armour beside the main grid. The hotbar and offhand are on the HUD below it. */
 export function InventoryView({ player, version }: { player: PlayerState; version: string | null }) {
     const items = slotMap(player.inventory);
 

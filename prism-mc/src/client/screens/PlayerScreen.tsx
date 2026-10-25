@@ -244,12 +244,6 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                         </div>
 
                         {player && (
-                            <div className={'mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:flex mcs:justify-center mcs:overflow-x-auto'}>
-                                <Hud player={player} version={version} />
-                            </div>
-                        )}
-
-                        {player && (
                             <div className={'mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:flex mcs:flex-col mcs:gap-3'}>
                                 <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:justify-between mcs:gap-2'}>
                                     <div className={'prism-switch mcs:flex mcs:rounded-md mcs:bg-muted mcs:p-0.5'}>
@@ -289,6 +283,12 @@ export default function PlayerScreen({ data: route }: ScreenComponentProps) {
                                     {tab === 'inventory' && <InventoryView player={player} version={version} />}
                                     {tab === 'ender' && <EnderChestView player={player} version={version} />}
                                 </div>
+                                {/* The hotbar, offhand and status bars under the inventory, as in game. */}
+                                {tab === 'inventory' && (
+                                    <div className={'mcs:flex mcs:justify-center mcs:overflow-x-auto'}>
+                                        <Hud player={player} version={version} />
+                                    </div>
+                                )}
                                 <p className={'mcs:text-xs mcs:text-muted-foreground'}>This is the last save. Online players are saved every few minutes, or right away with Update.</p>
                             </div>
                         )}
