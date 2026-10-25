@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Avatar, PanelLink, SpinnerOverlay, cn, usePanelLocation } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import { Main, type AppLayoutModel, type ViewProps } from '@pterodactyl/sdk/theme';
@@ -17,7 +17,7 @@ const has = {
 };
 
 /** The logo, beside or instead of the name as Prism Branding says; a square one where space is tight. */
-function Brand({ model, compact }: { model: AppLayoutModel; compact?: boolean }) {
+function Brand({ model, compact, fold }: { model: AppLayoutModel; compact?: boolean; fold?: boolean }) {
     const settings = useSettings();
     const beside = settings.logo_mode === 'beside';
     const logo = settings.logo_mode === 'name' ? null : model.brand.logoUrl;
@@ -41,7 +41,7 @@ function Brand({ model, compact }: { model: AppLayoutModel; compact?: boolean })
         <div id='logo' className='pla:min-w-0'>
             <PanelLink destination={{ to: '/' }} className='pla:flex pla:min-w-0 pla:items-center pla:gap-2.5 pla:px-2 pla:font-header pla:text-lg pla:font-semibold pla:text-foreground pla:no-underline'>
                 {logo && <img src={logo} alt={beside ? '' : model.brand.name} style={{ height: 'var(--pla-logo-height, 2rem)' }} className='pla:w-auto pla:shrink-0' />}
-                {(!logo || beside) && <span className='pla:truncate'>{model.brand.name}</span>}
+                {(!logo || beside) && <span className={cn('pla:truncate', fold && 'pla-fold-label')}>{model.brand.name}</span>}
             </PanelLink>
         </div>
     );
@@ -77,7 +77,9 @@ function User({ model, compact, onPalette }: { model: AppLayoutModel; compact?: 
  * The whole frame: one of seven navigation layouts around the page, the background, the
  * announcement and the Ctrl+K palette.
  */
-export default function Shell({ model, children, Default }: ViewProps<'layout.app'>) {
+export default function Shell({ model: panelModel, children, Default }: ViewProps<'layout.app'>) {
+    // The dashboard is drawn as a dashboard everywhere its link shows, not as the panel's layers.
+    const model = useMemo(() => ({ ...panelModel, links: panelModel.links.map((link) => (link.id === 'dashboard' ? { ...link, icon: 'layout-dashboard' } : link)) }), [panelModel]);
     const settings = useSettings();
     const { pathname } = usePanelLocation();
     const [drawer, setDrawer] = useState(false);
@@ -119,6 +121,8 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
     const openPalette = settings.command_palette ? () => setPalette(true) : null;
     const sideCard = settings.server_card && area.kind === 'server' ? <ServerCard area={area} /> : null;
     const dashboard = settings.dashboard_panel && area.kind === 'dashboard';
+    // Folded, a logo keeps its size and place and only the name beside it fades; without one, the initial shows.
+    const foldLogo = settings.logo_mode !== 'name' && model.brand.logoUrl !== null;
 
     const sidebar = (
         <aside className={cn('pt-bar pla:flex-col pla:gap-4 pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:p-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-sidebar pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-72' : 'pla:hidden')}>
@@ -176,13 +180,13 @@ export default function Shell({ model, children, Default }: ViewProps<'layout.ap
         <aside data-folded={narrow} className={cn('pt-bar pla-fold pla:flex-col pla:gap-3 pla:overflow-x-hidden pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-72' : 'pla:hidden')}>
             {(brandInSide || !has.top(bars)) && (
                 <>
-                    <div className={cn('pla:flex pla:h-10 pla:shrink-0 pla:items-center pla:gap-1', narrow && 'pla:justify-center')}>
+                    <div className={cn('pla:flex pla:h-10 pla:shrink-0 pla:items-center pla:gap-1', narrow && !(brandInSide && foldLogo) && 'pla:justify-center')}>
                         {brandInSide &&
-                            (narrow ? (
+                            (narrow && !foldLogo ? (
                                 <Brand model={model} compact />
                             ) : (
                                 <div className='pla:min-w-0 pla:flex-1'>
-                                    <Brand model={model} />
+                                    <Brand model={model} fold />
                                 </div>
                             ))}
                         {!has.top(bars) && (!narrow || !brandInSide) && collapseButton}

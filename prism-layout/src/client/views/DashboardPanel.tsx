@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { PanelLink, bytesToString, cn } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import { NO_FILTERS, filtering, gameTag, matches, readRecent, setFilters, useDashboard, type DashboardServer } from '../dashboard';
@@ -162,14 +163,37 @@ export default function DashboardPanel({ variant }: { variant: 'list' | 'icons' 
     );
 }
 
-/** An icon on the rail that opens its section beside the rail. */
+/**
+ * An icon on the rail that opens its section beside the rail. The section is drawn on the page's
+ * top layer, placed by the button, so the rail's scrolling and clipping never cut it off.
+ */
 function Popover({ icon, label, marked, children }: { icon: string; label: string; marked?: boolean; children: ReactNode }) {
     const [open, setOpen] = useState(false);
+    const [place, setPlace] = useState<{ left: number; top: number } | null>(null);
     const box = useRef<HTMLDivElement>(null);
+    const panel = useRef<HTMLDivElement>(null);
+
+    useLayoutEffect(() => {
+        if (!open) return;
+        const measure = () => {
+            const button = box.current?.getBoundingClientRect();
+            if (!button) return;
+            const height = panel.current?.offsetHeight ?? 0;
+            setPlace({ left: button.right + 8, top: Math.max(8, Math.min(button.top, window.innerHeight - height - 8)) });
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        window.addEventListener('scroll', measure, true);
+
+        return () => {
+            window.removeEventListener('resize', measure);
+            window.removeEventListener('scroll', measure, true);
+        };
+    }, [open]);
 
     useEffect(() => {
         if (!open) return;
-        const away = (event: MouseEvent) => !box.current?.contains(event.target as Node) && setOpen(false);
+        const away = (event: MouseEvent) => !box.current?.contains(event.target as Node) && !panel.current?.contains(event.target as Node) && setOpen(false);
         const escape = (event: KeyboardEvent) => event.key === 'Escape' && setOpen(false);
         document.addEventListener('mousedown', away);
         document.addEventListener('keydown', escape);
@@ -182,15 +206,23 @@ function Popover({ icon, label, marked, children }: { icon: string; label: strin
 
     return (
         <div ref={box} className='pla:relative'>
-            <button type='button' onClick={() => setOpen(!open)} aria-expanded={open} aria-label={label} title={label} className={cn(itemClass('icons'), 'pla:relative', open && 'pla:bg-sidebar-accent pla:text-foreground')}>
+            <button type='button' onClick={() => { setPlace(null); setOpen(!open); }} aria-expanded={open} aria-label={label} title={label} className={cn(itemClass('icons'), 'pla:relative', open && 'pla:bg-sidebar-accent pla:text-foreground')}>
                 <NamedIcon name={icon} size={16} />
                 {marked && <span className='pla:absolute pla:top-2 pla:right-2 pla:size-1.5 pla:rounded-full pla:bg-primary' />}
             </button>
-            {open && (
-                <div role='dialog' aria-label={label} className='pt-surface pla:absolute pla:top-0 pla:left-full pla:z-50 pla:ml-2 pla:w-64 pla:rounded-lg pla:border pla:border-border pla:bg-popover pla:p-3 pla:shadow-xl'>
-                    {children}
-                </div>
-            )}
+            {open &&
+                createPortal(
+                    <div
+                        ref={panel}
+                        role='dialog'
+                        aria-label={label}
+                        style={{ left: place?.left ?? 0, top: place?.top ?? 0, visibility: place ? 'visible' : 'hidden' }}
+                        className='pt-surface pla:fixed pla:z-50 pla:max-h-[calc(100dvh-1rem)] pla:w-64 pla:overflow-y-auto pla:rounded-lg pla:border pla:border-border pla:bg-popover pla:p-3 pla:shadow-xl'
+                    >
+                        {children}
+                    </div>,
+                    document.body
+                )}
         </div>
     );
 }

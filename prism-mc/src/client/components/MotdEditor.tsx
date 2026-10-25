@@ -50,7 +50,7 @@ function Section({ title, aside, children }: { title: string; aside?: ReactNode;
     );
 }
 
-/** A small square toolbar button that keeps the cursor in the line being edited. */
+/** A toolbar button that keeps the cursor in the line being edited; the tools share the row's width. */
 function Tool({ label, onClick, children, disabled }: { label: string; onClick: () => void; children: ReactNode; disabled?: boolean }) {
     return (
         <Tooltip content={label}>
@@ -60,7 +60,7 @@ function Tool({ label, onClick, children, disabled }: { label: string; onClick: 
                 disabled={disabled}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={onClick}
-                className={'mcs:flex mcs:h-8 mcs:min-w-8 mcs:cursor-pointer mcs:items-center mcs:justify-center mcs:gap-1.5 mcs:rounded-md mcs:px-2 mcs:text-sm mcs:text-muted-foreground mcs:hover:bg-muted mcs:hover:text-foreground mcs:disabled:cursor-not-allowed mcs:disabled:opacity-40'}
+                className={'mcs:flex mcs:h-10 mcs:min-w-8 mcs:max-w-12 mcs:flex-1 mcs:cursor-pointer mcs:items-center mcs:justify-center mcs:gap-1.5 mcs:rounded-md mcs:px-2 mcs:text-sm mcs:text-muted-foreground mcs:hover:bg-muted mcs:hover:text-foreground mcs:disabled:cursor-not-allowed mcs:disabled:opacity-40'}
             >
                 {children}
             </button>
@@ -247,20 +247,21 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
                         <span className={'mcs:mx-1 mcs:h-8 mcs:w-px mcs:bg-border'} />
                         {STYLES.map((style) => (
                             <Tool key={style.code} label={`${style.name} · &${style.code}`} onClick={() => formatWith({ toggle: style.key as StyleKey }, style.code)}>
-                                <NamedIcon name={STYLE_ICONS[style.code] ?? 'type'} size={15} />
+                                <NamedIcon name={STYLE_ICONS[style.code] ?? 'type'} size={18} />
                             </Tool>
                         ))}
                         <Tool label={'Reset formatting · &r'} onClick={() => formatWith({ reset: true }, 'r')}>
-                            <NamedIcon name={'remove-formatting'} size={15} />
+                            <NamedIcon name={'remove-formatting'} size={18} />
                         </Tool>
                         <span className={'mcs:mx-1 mcs:h-8 mcs:w-px mcs:bg-border'} />
                         <Tool label={'Rainbow: color the selection, or the line, along the spectrum'} onClick={() => formatWith({ colors: (count) => rainbowColors(count, hexAllowed) })}>
-                            <NamedIcon name={'rainbow'} size={15} />
+                            <NamedIcon name={'rainbow'} size={18} />
                         </Tool>
                         <DropdownMenu
+                            triggerClassName={'mcs:flex mcs:h-10 mcs:min-w-8 mcs:max-w-12 mcs:flex-1'}
                             triggerContent={
-                                <span title={'Symbols'} aria-label={'Symbols'} className={'mcs:flex mcs:size-8 mcs:cursor-pointer mcs:items-center mcs:justify-center mcs:rounded-md mcs:text-muted-foreground mcs:hover:bg-muted mcs:hover:text-foreground'}>
-                                    <NamedIcon name={'omega'} size={15} />
+                                <span title={'Symbols'} aria-label={'Symbols'} className={'mcs:flex mcs:size-full mcs:cursor-pointer mcs:items-center mcs:justify-center mcs:rounded-md mcs:text-muted-foreground mcs:hover:bg-muted mcs:hover:text-foreground'}>
+                                    <NamedIcon name={'omega'} size={18} />
                                 </span>
                             }
                         >

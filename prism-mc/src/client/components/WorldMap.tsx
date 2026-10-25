@@ -16,6 +16,8 @@ const DIMENSIONS: { value: Dimension; label: string }[] = [
 ];
 
 const REGION = 512;
+/** How long a region stays drawn after leaving the view, so panning back finds it still there. */
+const KEEP = 20_000;
 const ZOOMS = [0.25, 0.5, 1, 2, 4];
 
 interface RegionInfo {
@@ -26,7 +28,7 @@ interface RegionInfo {
 }
 
 /** Draws one region file into a 512×512 canvas, shading by height like an in-game map. */
-function RegionTile({ server, dimension, region }: { server: string; dimension: Dimension; region: RegionInfo }) {
+function RegionTile({ server, dimension, region, hidden }: { server: string; dimension: Dimension; region: RegionInfo; hidden?: boolean }) {
     const canvas = useRef<HTMLCanvasElement>(null);
     const [progress, setProgress] = useState(0);
     const [failed, setFailed] = useState(false);
@@ -84,7 +86,7 @@ function RegionTile({ server, dimension, region }: { server: string; dimension: 
     }, [file.data, dimension]);
 
     return (
-        <div className={'mcs:absolute'} style={{ left: region.x * REGION, top: region.z * REGION, width: REGION, height: REGION }}>
+        <div className={'mcs:absolute'} style={{ left: region.x * REGION, top: region.z * REGION, width: REGION, height: REGION, display: hidden ? 'none' : undefined }}>
             <canvas ref={canvas} width={REGION} height={REGION} className={'mcs-pixelated mcs:size-full'} />
             {(file.isLoading || (progress < 1 && !failed && !file.isError)) && (
                 <div className={'mcs:absolute mcs:inset-0 mcs:flex mcs:items-center mcs:justify-center mcs:bg-black/20 mcs:text-white mcs:text-xs'}>
@@ -190,6 +192,35 @@ export default function WorldMap({ server, markers, focus, height = 560 }: { ser
         [regions.data, center, halfWidth, halfHeight]
     );
 
+    // Regions that left the view stay drawn for a while; ones in another dimension are only hidden.
+    const kept = useRef(new Map<string, { dimension: Dimension; region: RegionInfo; seen: number }>());
+    const inView = useRef(new Set<string>());
+    const [pruned, setPruned] = useState(0);
+    const shown = useMemo(() => {
+        const now = Date.now();
+        inView.current = new Set(visible.map((region) => `${dimension}:${region.x}:${region.z}`));
+        for (const region of visible) kept.current.set(`${dimension}:${region.x}:${region.z}`, { dimension, region, seen: now });
+
+        return [...kept.current.entries()];
+    }, [visible, dimension, pruned]);
+
+    useEffect(() => {
+        const timer = window.setInterval(() => {
+            const now = Date.now();
+            let removed = false;
+            for (const [key, entry] of kept.current) {
+                if (inView.current.has(key)) entry.seen = now;
+                else if (now - entry.seen > KEEP) {
+                    kept.current.delete(key);
+                    removed = true;
+                }
+            }
+            if (removed) setPruned((count) => count + 1);
+        }, 5_000);
+
+        return () => window.clearInterval(timer);
+    }, []);
+
     const onPointerDown = (event: ReactPointerEvent) => {
         (event.target as Element).setPointerCapture?.(event.pointerId);
         drag.current = { x: center[0], z: center[1], pointerX: event.clientX, pointerY: event.clientY };
@@ -244,8 +275,8 @@ export default function WorldMap({ server, markers, focus, height = 560 }: { ser
                     className={'mcs:absolute mcs:left-0 mcs:top-0 mcs:origin-top-left'}
                     style={{ transform: `translate(${size[0] / 2 - center[0] * scale}px, ${size[1] / 2 - center[1] * scale}px) scale(${scale})` }}
                 >
-                    {visible.map((region) => (
-                        <RegionTile key={`${dimension}:${region.x}:${region.z}`} server={server} dimension={dimension} region={region} />
+                    {shown.map(([key, entry]) => (
+                        <RegionTile key={key} server={server} dimension={entry.dimension} region={entry.region} hidden={entry.dimension !== dimension} />
                     ))}
                     {here.map((marker) => (
                         <div key={marker.key} className={'mcs:absolute mcs:flex mcs:flex-col mcs:items-center'} title={`${marker.name}: ${Math.round(marker.position[0])}, ${Math.round(marker.position[1])}, ${Math.round(marker.position[2])}`} style={{ left: marker.position[0], top: marker.position[2], transform: `translate(-50%, -12px) scale(${1 / scale})`, transformOrigin: 'center 12px' }}>
