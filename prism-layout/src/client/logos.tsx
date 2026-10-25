@@ -40,7 +40,7 @@ export function GameLogo({ logo, tags }: { logo: string | null; tags: readonly s
 
     // An image stands on its own; an icon sits on a tile like the color mark.
     return typeof Source === 'string' ? (
-        <img src={Source} alt='' loading='lazy' aria-hidden className='pla:size-8 pla:shrink-0 pla:object-contain' />
+        <img src={Source} alt='' loading='lazy' aria-hidden className='pla:size-8 pla:shrink-0 pla:rounded-md pla:object-contain' />
     ) : (
         <span className='pla:flex pla:size-8 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-md pla:bg-muted pla:text-muted-foreground' aria-hidden>
             <Source size={18} stroke={2} />
