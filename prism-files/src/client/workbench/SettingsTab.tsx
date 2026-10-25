@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent, type ReactNode } from 'react';
-import { Button, Dialog, Input, Select, Switch, cn } from '@pterodactyl/sdk';
+import { Button, Input, Select, Switch, cn } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import type { EditorSettings, Keybinds } from '../config';
 
@@ -114,22 +114,23 @@ function KeyRecorder({ value, onChange, label }: { value: string; onChange: (cho
     );
 }
 
+/** The editor tab that holds the settings; never a file's path, which always starts with a slash. */
+export const SETTINGS_TAB = 'prism:settings';
+
 /**
- * The person's own editor settings and keybinds, over the admin's defaults. Each change applies
- * to the open editor at once and is saved with their preferences.
+ * The person's own editor settings and keybinds, over the admin's defaults, in an editor tab of
+ * their own. Each change applies to the open editor at once and is saved with their preferences.
  */
-export default function SettingsDialog({
+export default function SettingsTab({
     editor,
     keybinds,
     defaults,
     onChange,
-    onClose,
 }: {
     editor: EditorSettings;
     keybinds: Keybinds;
     defaults: { editor: EditorSettings; keybinds: Keybinds };
     onChange: (preferences: EditorPreferences) => void;
-    onClose: () => void;
 }) {
     const setEditor = (patch: Partial<EditorSettings>) => onChange({ editor: changesFrom({ ...editor, ...patch }, defaults.editor), keybinds: changesFrom(keybinds, defaults.keybinds) });
     const setKeybind = (key: keyof Keybinds, chord: string) => onChange({ editor: changesFrom(editor, defaults.editor), keybinds: changesFrom({ ...keybinds, [key]: chord }, defaults.keybinds) });
@@ -137,9 +138,18 @@ export default function SettingsDialog({
     const section = 'pfl:mt-4 pfl:mb-1 pfl:text-xs pfl:font-semibold pfl:tracking-wide pfl:text-muted-foreground pfl:uppercase';
 
     return (
-        <Dialog open onClose={onClose} title={'Editor settings'} description={'Yours only, for every server. They apply at once.'}>
-            <div className={'pfl:flex pfl:max-h-[65vh] pfl:flex-col pfl:overflow-y-auto pfl:pr-1'}>
-                <p className={cn(section, 'pfl:mt-0')}>Look</p>
+        <div className={'pfl:absolute pfl:inset-0 pfl:overflow-y-auto'}>
+            <div className={'pfl:mx-auto pfl:flex pfl:max-w-3xl pfl:flex-col pfl:px-6 pfl:py-5'}>
+                <div className={'pfl:flex pfl:flex-wrap pfl:items-start pfl:gap-3'}>
+                    <div className={'pfl:min-w-0 pfl:flex-1'}>
+                        <h2 className={'pfl:text-lg pfl:font-semibold'}>Editor settings</h2>
+                        <p className={'pfl:text-sm pfl:text-muted-foreground'}>Yours only, for every server. They apply at once and are saved as you change them.</p>
+                    </div>
+                    <Button.Text size={'small'} disabled={!changedAny} onClick={() => onChange({ editor: {}, keybinds: {} })}>
+                        <NamedIcon name={'rotate-ccw'} size={14} /> Use the defaults
+                    </Button.Text>
+                </div>
+                <p className={section}>Look</p>
                 <div className={'pfl:flex pfl:flex-col pfl:divide-y pfl:divide-border'}>
                     <Row label={'Theme'} changed={editor.theme !== defaults.editor.theme} onReset={() => setEditor({ theme: defaults.editor.theme })}>
                         <div className={'pfl:w-56'}>
@@ -191,12 +201,6 @@ export default function SettingsDialog({
                     ))}
                 </div>
             </div>
-            <Dialog.Footer>
-                <Button.Text disabled={!changedAny} onClick={() => onChange({ editor: {}, keybinds: {} })}>
-                    Use the defaults
-                </Button.Text>
-                <Button onClick={onClose}>Done</Button>
-            </Dialog.Footer>
-        </Dialog>
+        </div>
     );
 }

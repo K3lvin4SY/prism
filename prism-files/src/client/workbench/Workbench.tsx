@@ -11,7 +11,7 @@ import { ConflictError, documentsFor, type Document } from './documents';
 import Explorer from './Explorer';
 import monaco, { keybinding, matchesChord, themeFor } from './monaco';
 import Palette, { type Command } from './Palette';
-import SettingsDialog, { type EditorPreferences } from './SettingsDialog';
+import SettingsTab, { SETTINGS_TAB, type EditorPreferences } from './SettingsTab';
 import { useWorkbench, workbenchFor } from './store';
 
 interface Props {
@@ -29,8 +29,10 @@ interface Props {
 type Menu = { x: number; y: number; entry: FileEntry | null; directory: string };
 
 export default function Workbench({ server, editor: settings, keybinds, showHidden, onRevealInFiles, initialPath, personal }: Props) {
-    const [settingsOpen, setSettingsOpen] = useState(false);
     const state = useWorkbench(workbenchFor(server));
+    // The settings tab shows no file: commands about the open file see none.
+    const showingSettings = state.active === SETTINGS_TAB;
+    const file = showingSettings ? null : state.active;
     const documents = documentsFor(server, state);
     const actions = useFileActions(server);
     const permissions = useFilePermissions();
@@ -95,7 +97,7 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
     const open = useCallback(
         (path: string, preview = false) => {
             state.open(path, preview);
-            setRecent((list) => [path, ...list.filter((item) => item !== path)].slice(0, 15));
+            if (path !== SETTINGS_TAB) setRecent((list) => [path, ...list.filter((item) => item !== path)].slice(0, 15));
         },
         [state]
     );
@@ -107,7 +109,7 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
     // Shows the active tab's file.
     useEffect(() => {
         const instance = editorRef.current;
-        const path = state.active;
+        const path = file;
         if (!instance) return;
         if (current) current.viewState = instance.saveViewState();
         if (!path) {
@@ -136,10 +138,10 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state.active]);
+    }, [file]);
 
     const save = useCallback(
-        async (path: string | null = state.active, force = false) => {
+        async (path: string | null = file, force = false) => {
             if (!path || !documents.get(path)) return;
             if (isProtected(path)) {
                 toast.error(`${path} is protected, so it cannot be changed here.`);
@@ -157,7 +159,7 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                 }
             }
         },
-        [documents, isProtected, server, state.active]
+        [documents, isProtected, server, file]
     );
 
     const saveAll = useCallback(async () => {
@@ -188,12 +190,12 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
     const commands: Command[] = [
         { id: 'save', label: 'File: Save', keys: keybinds.save, run: () => save() },
         { id: 'saveAll', label: 'File: Save all', keys: keybinds.saveAll, run: () => saveAll() },
-        { id: 'newFile', label: 'File: New file', run: () => setPrompt({ kind: 'file', directory: state.active ? dirname(state.active) : '/' }) },
-        { id: 'newFolder', label: 'File: New folder', run: () => setPrompt({ kind: 'folder', directory: state.active ? dirname(state.active) : '/' }) },
-        { id: 'revert', label: 'File: Revert to the server copy', run: () => state.active && documents.revert(state.active) },
-        { id: 'compare', label: 'File: Compare with the server copy', run: async () => state.active && setConflict({ path: state.active, server: await readFile(server, state.active), modified: '' }) },
-        { id: 'copyPath', label: 'File: Copy path', run: () => state.active && navigator.clipboard.writeText(state.active) },
-        { id: 'reveal', label: 'File: Reveal in the file list', run: () => onRevealInFiles(state.active ? dirname(state.active) : '/') },
+        { id: 'newFile', label: 'File: New file', run: () => setPrompt({ kind: 'file', directory: file ? dirname(file) : '/' }) },
+        { id: 'newFolder', label: 'File: New folder', run: () => setPrompt({ kind: 'folder', directory: file ? dirname(file) : '/' }) },
+        { id: 'revert', label: 'File: Revert to the server copy', run: () => file && documents.revert(file) },
+        { id: 'compare', label: 'File: Compare with the server copy', run: async () => file && setConflict({ path: file, server: await readFile(server, file), modified: '' }) },
+        { id: 'copyPath', label: 'File: Copy path', run: () => file && navigator.clipboard.writeText(file) },
+        { id: 'reveal', label: 'File: Reveal in the file list', run: () => onRevealInFiles(file ? dirname(file) : '/') },
         { id: 'closeTab', label: 'View: Close tab', keys: keybinds.closeTab, run: () => state.active && close(state.active) },
         { id: 'closeOthers', label: 'View: Close other tabs', run: () => state.active && close(...state.tabs.map((tab) => tab.path).filter((path) => path !== state.active)) },
         { id: 'closeAll', label: 'View: Close all tabs', run: () => close(...state.tabs.map((tab) => tab.path)) },
@@ -252,9 +254,9 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
             settings.autosave === 'delay'
                 ? instance.onDidChangeModelContent(() => {
                       window.clearTimeout(timer);
-                      timer = window.setTimeout(() => state.active && state.dirty.has(state.active) && save(), 1500);
+                      timer = window.setTimeout(() => file && state.dirty.has(file) && save(), 1500);
                   })
-                : instance.onDidBlurEditorText(() => state.active && state.dirty.has(state.active) && save());
+                : instance.onDidBlurEditorText(() => file && state.dirty.has(file) && save());
 
         return () => {
             window.clearTimeout(timer);
@@ -284,7 +286,7 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
         documents.rename(from, to);
     };
 
-    const active = current && state.active === current.path ? current : null;
+    const active = current && file === current.path ? current : null;
 
     return (
         <div className={'pfl-workbench pfl:flex pfl:h-[calc(100vh-13rem)] pfl:min-h-[30rem] pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border'}>
@@ -294,10 +296,9 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                 <ActivityButton icon={'search'} label={'Go to file'} onClick={() => setPalette('files')} />
                 <ActivityButton icon={'square-terminal'} label={'Command palette'} onClick={() => setPalette('commands')} />
                 <div className={'pfl:flex-1'} />
-                <ActivityButton icon={'folder-tree'} label={'Show in the file list'} onClick={() => onRevealInFiles(state.active ? dirname(state.active) : '/')} />
-                {personal && <ActivityButton icon={'settings'} label={'Editor settings'} active={settingsOpen} onClick={() => setSettingsOpen(true)} />}
+                <ActivityButton icon={'folder-tree'} label={'Show in the file list'} onClick={() => onRevealInFiles(file ? dirname(file) : '/')} />
+                {personal && <ActivityButton icon={'settings'} label={'Editor settings'} active={showingSettings} onClick={() => open(SETTINGS_TAB)} />}
             </div>
-            {personal && settingsOpen && <SettingsDialog editor={settings} keybinds={keybinds} defaults={personal.defaults} onChange={personal.onChange} onClose={() => setSettingsOpen(false)} />}
 
             {/* Explorer */}
             {state.explorer && (
@@ -306,8 +307,8 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                         <span className={'pfl:flex-1'}>Explorer</span>
                         {permissions.create && (
                             <>
-                                <SmallButton icon={'file-plus'} label={'New file'} onClick={() => setPrompt({ kind: 'file', directory: state.active ? dirname(state.active) : '/' })} />
-                                <SmallButton icon={'folder-plus'} label={'New folder'} onClick={() => setPrompt({ kind: 'folder', directory: state.active ? dirname(state.active) : '/' })} />
+                                <SmallButton icon={'file-plus'} label={'New file'} onClick={() => setPrompt({ kind: 'file', directory: file ? dirname(file) : '/' })} />
+                                <SmallButton icon={'folder-plus'} label={'New folder'} onClick={() => setPrompt({ kind: 'folder', directory: file ? dirname(file) : '/' })} />
                             </>
                         )}
                         <SmallButton icon={'refresh-cw'} label={'Refresh'} onClick={() => actions.refresh('/')} />
@@ -320,7 +321,9 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
             <div className={'pfl:flex pfl:min-w-0 pfl:flex-1 pfl:flex-col'}>
                 <div className={'pfl:flex pfl:min-h-9 pfl:overflow-x-auto pfl:border-b pfl:border-border'} role={'tablist'}>
                     {state.tabs.map((tab, index) => {
-                        const icon = fileIcon(basename(tab.path), false);
+                        const isSettings = tab.path === SETTINGS_TAB;
+                        const icon = isSettings ? { icon: 'settings', color: 'pfl:text-muted-foreground' } : fileIcon(basename(tab.path), false);
+                        const title = isSettings ? 'Editor settings' : basename(tab.path);
 
                         return (
                             <div
@@ -337,21 +340,21 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                                 onClick={() => state.open(tab.path)}
                                 onDoubleClick={() => state.pin(tab.path)}
                                 onAuxClick={(event) => event.button === 1 && close(tab.path)}
-                                title={tab.path}
+                                title={isSettings ? title : tab.path}
                                 className={cn(
                                     'pfl:group pfl:flex pfl:shrink-0 pfl:cursor-pointer pfl:items-center pfl:gap-1.5 pfl:border-r pfl:border-border pfl:px-3 pfl:text-[13px]',
                                     tab.path === state.active ? 'pfl:bg-[var(--editor-background,transparent)] pfl:shadow-[inset_0_2px_0_var(--primary)]' : 'pfl:text-muted-foreground pfl:hover:bg-muted/40'
                                 )}
                             >
                                 <NamedIcon name={icon.icon} size={14} className={icon.color} />
-                                <span className={cn(tab.preview && 'pfl:italic')}>{basename(tab.path)}</span>
+                                <span className={cn(tab.preview && 'pfl:italic')}>{title}</span>
                                 <button
                                     type={'button'}
                                     onClick={(event) => {
                                         event.stopPropagation();
                                         close(tab.path);
                                     }}
-                                    aria-label={`Close ${basename(tab.path)}`}
+                                    aria-label={`Close ${title}`}
                                     className={'pfl:flex pfl:size-5 pfl:items-center pfl:justify-center pfl:rounded pfl:cursor-pointer pfl:hover:bg-muted'}
                                 >
                                     {state.dirty.has(tab.path) ? <span className={'pfl:size-2 pfl:rounded-full pfl:bg-foreground/80 pfl:group-hover:hidden'} /> : null}
@@ -389,7 +392,8 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                 )}
 
                 <div className={'pfl:relative pfl:min-h-0 pfl:flex-1'}>
-                    <div ref={host} className={cn('pfl:absolute pfl:inset-0', !state.active && 'pfl:invisible')} />
+                    <div ref={host} className={cn('pfl:absolute pfl:inset-0', !file && 'pfl:invisible')} />
+                    {showingSettings && personal && <SettingsTab editor={settings} keybinds={keybinds} defaults={personal.defaults} onChange={personal.onChange} />}
                     {!state.active && (
                         <div className={'pfl:absolute pfl:inset-0 pfl:flex pfl:flex-col pfl:items-center pfl:justify-center pfl:gap-3 pfl:text-sm pfl:text-muted-foreground'}>
                             <NamedIcon name={'code-xml'} size={40} className={'pfl:opacity-40'} />
@@ -434,7 +438,7 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
                             <span>{active.model.getLanguageId()}</span>
                         </>
                     ) : (
-                        <span>{state.tabs.length} open</span>
+                        <span>{showingSettings ? 'Editor settings' : `${state.tabs.length} open`}</span>
                     )}
                 </div>
             </div>
