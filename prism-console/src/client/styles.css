@@ -20,6 +20,16 @@
     min-height: 1em;
 }
 
+/*
+ * Unwrapped, a line is as wide as its text so the terminal scrolls sideways; content-visibility
+ * would clip it to the terminal's width, so it is off then.
+ */
+.pcn-nowrap .pcn-line {
+    content-visibility: visible;
+    width: max-content;
+    min-width: 100%;
+}
+
 .pcn-line-current {
     background: color-mix(in oklab, var(--primary) 12%, transparent);
 }

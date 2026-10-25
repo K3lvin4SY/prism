@@ -331,7 +331,7 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                         const element = event.currentTarget;
                         setStick(element.scrollHeight - element.scrollTop - element.clientHeight < 24);
                     }}
-                    className={'pcn:absolute pcn:inset-0 pcn:overflow-auto pcn:px-3 pcn:py-2'}
+                    className={cn('pcn:absolute pcn:inset-0 pcn:overflow-auto pcn:px-3 pcn:py-2', !settings.wrap && 'pcn-nowrap')}
                     style={style}
                     role={'log'}
                     aria-live={'off'}
