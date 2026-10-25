@@ -215,17 +215,14 @@ export function listenForPreview(): void {
 }
 
 /**
- * A color for a game: the color its egg tag has on the panel's Tags page, else one worked out
- * from the tag's name, so each game's cards look alike.
+ * A color for a game: the color its egg tag has on the panel's Tags page, or the gray the panel
+ * gives a tag without one, so each game's cards look alike.
  */
 export function eggColor(tags: readonly string[] | undefined, colors?: Readonly<Record<string, string>>): string | null {
     const tag = gameTag(tags);
     if (!tag) return null;
-    if (colors?.[tag]) return colors[tag];
-    let hash = 0;
-    for (const char of tag) hash = (hash * 31 + char.charCodeAt(0)) % 360;
 
-    return `oklch(0.66 0.15 ${hash})`;
+    return colors?.[tag] ?? 'var(--muted-foreground)';
 }
 
 /** The tag colors from the panel, loaded once and shared by every card and filter. */
