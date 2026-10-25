@@ -240,6 +240,7 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
                                         formatWith({ color: picked }, picked);
                                     }}
                                     className={'mcs:col-start-9 mcs:col-end-11 mcs:row-start-1 mcs:row-end-3 mcs:size-11'}
+                                    iconSize={24}
                                 />
                             )}
                         </div>

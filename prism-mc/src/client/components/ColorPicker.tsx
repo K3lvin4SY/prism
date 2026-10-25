@@ -67,13 +67,15 @@ interface Props {
     /** Something to show under the picker, such as what the colour applies to. */
     hint?: ReactNode;
     className?: string;
+    /** The pipette's size, for squares larger than the default. */
+    iconSize?: number;
 }
 
 /**
  * A square filled with the colour, with a pipette on it. Clicking it opens a window to pick a
  * colour from a saturation and brightness square and a hue slider, or by typing its hex code.
  */
-export default function ColorPicker({ value, onChange, label, confirm = 'Use this color', hint, className }: Props) {
+export default function ColorPicker({ value, onChange, label, confirm = 'Use this color', hint, className, iconSize = 15 }: Props) {
     const [open, setOpen] = useState(false);
     const hex = HEX.test(value) ? `#${value.replace('#', '').toLowerCase()}` : '#ffffff';
 
@@ -88,7 +90,7 @@ export default function ColorPicker({ value, onChange, label, confirm = 'Use thi
                     className={cn('mcs:flex mcs:shrink-0 mcs:cursor-pointer mcs:items-center mcs:justify-center mcs:rounded-md mcs:shadow-[inset_0_0_0_1px_rgb(0_0_0/0.3)] mcs:transition-transform mcs:hover:scale-105', className ?? 'mcs:size-8')}
                     style={{ backgroundColor: hex, color: inkOn(hex) }}
                 >
-                    <NamedIcon name={'pipette'} size={15} />
+                    <NamedIcon name={'pipette'} size={iconSize} />
                 </button>
             </Tooltip>
             {open && (
