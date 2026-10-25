@@ -1,5 +1,6 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
-import { NamedIcon, Tooltip, cn } from '@pterodactyl/sdk';
+import { Tooltip, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { colourAt, type GradientStop } from '../lib/motd';
 import ColorPicker from './ColorPicker';
 

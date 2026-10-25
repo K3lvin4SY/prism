@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Checkbox, Input, NamedIcon, ProgressBar, bytesToString, cn, httpErrorToHuman, toast, useCurrentServerRequired, useServerPermission } from '@pterodactyl/sdk';
+import { Alert, Button, Checkbox, Input, ProgressBar, bytesToString, cn, httpErrorToHuman, toast, useCurrentServerRequired, useServerPermission } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, keys, type PrismDatabase } from '../api';
 import { Pills, Section } from '../components/ui';
 import { getConfig } from '../config';

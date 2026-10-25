@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
-import { Alert, Button, Dialog, NamedIcon, Spinner, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Dialog, Spinner, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { readFile, type FileEntry } from '../api';
 import { useFileActions, useFilePermissions, useIsProtected, validName } from '../actions';
 import ContextMenu from '../components/ContextMenu';

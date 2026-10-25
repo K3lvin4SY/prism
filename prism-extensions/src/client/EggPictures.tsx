@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, NamedIcon, Spinner, http, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Spinner, http, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from './icons';
 
 interface EggPicture {
     id: number;

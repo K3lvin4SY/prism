@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { NamedIcon, ServerContentBlock, Spinner, cn, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { ServerContentBlock, Spinner, cn, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { Slot, type ViewProps } from '@pterodactyl/sdk/theme';
 import { fileKeys, getState, savePreferences, type Preferences } from '../api';
 import FileBrowser from '../components/FileBrowser';

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { NamedIcon, cn } from '@pterodactyl/sdk';
+import { cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 
 type MenuItem = { icon: string; label: string; danger?: boolean; run: () => unknown } | false | null | undefined | '' | 0;
 

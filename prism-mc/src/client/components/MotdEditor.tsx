@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, ButtonStyle, CopyOnClick, Dialog, DropdownMenu, DropdownMenuItem, Input, Label, NamedIcon, TextArea, Tooltip, cn, http, httpErrorToHuman, toast, useDebouncedCallback } from '@pterodactyl/sdk';
+import { Button, CopyOnClick, Dialog, DropdownMenu, DropdownMenuItem, Input, Label, TextArea, Tooltip, cn, http, httpErrorToHuman, toast, useDebouncedCallback } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { getStatus, keys } from '../api/client';
 import { renameServer } from '../api/properties';
 import { applyCode, formatSelection, insertAt, type Change, type Edited } from '../lib/ampersand';
@@ -257,9 +258,9 @@ export default function MotdEditor({ server, software, motd, icon, serverName, c
                         </Tool>
                         <DropdownMenu
                             triggerContent={
-                                <ButtonStyle as={'span'} size={'small'} isSecondary>
-                                    Symbols
-                                </ButtonStyle>
+                                <span title={'Symbols'} aria-label={'Symbols'} className={'mcs:flex mcs:size-8 mcs:cursor-pointer mcs:items-center mcs:justify-center mcs:rounded-md mcs:text-muted-foreground mcs:hover:bg-muted mcs:hover:text-foreground'}>
+                                    <NamedIcon name={'omega'} size={15} />
+                                </span>
                             }
                         >
                             <div className={'mcs:grid mcs:grid-cols-8 mcs:gap-1 mcs:p-1'}>

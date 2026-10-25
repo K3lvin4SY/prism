@@ -1,4 +1,5 @@
-import { NamedIcon, useSiteSettings } from '@pterodactyl/sdk';
+import { useSiteSettings } from '@pterodactyl/sdk';
+import { NamedIcon } from './icons';
 import type { SettingField } from './api';
 
 /** How Prism Layout's branding and sign-in settings look, with the unsaved changes. */

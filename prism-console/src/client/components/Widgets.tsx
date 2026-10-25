@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Badge, Button, Dialog, NamedIcon, bytesToString, cn, toast, useSendServerCommand, useServerPermission, useServerResources, type SdkServer } from '@pterodactyl/sdk';
+import { Badge, Button, Dialog, bytesToString, cn, toast, useSendServerCommand, useServerPermission, useServerResources, type SdkServer } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { QuickCommand } from '../config';
 import { useStore, type ServerConsoleStore, type StatsSample } from '../store';
 

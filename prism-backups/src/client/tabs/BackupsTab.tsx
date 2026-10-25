@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Button, Dialog, Input, NamedIcon, Spinner, cn } from '@pterodactyl/sdk';
+import { Button, Dialog, Input, Spinner, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { State } from '../api';
 import { bytes, copy, day, duration } from '../components/ui';
 import type { Model } from '../views/BackupsView';

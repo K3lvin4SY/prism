@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Badge, Button, Dialog, Input, NamedIcon, Select, Spinner, Switch, TitledGreyBox, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Badge, Button, Dialog, Input, Select, Spinner, Switch, TitledGreyBox, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 import {
     getProxy,
     proxyKeys,

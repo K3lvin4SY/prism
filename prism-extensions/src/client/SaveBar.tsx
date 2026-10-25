@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { Button, Dialog, NamedIcon, cn } from '@pterodactyl/sdk';
+import { Button, Dialog, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from './icons';
 
 /** One unsaved change, with its old and new values already written for people. */
 export interface Change {

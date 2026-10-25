@@ -1,4 +1,5 @@
-import { Badge, NamedIcon, PanelLink, cn, http, toast, httpErrorToHuman } from '@pterodactyl/sdk';
+import { Badge, PanelLink, cn, http, toast, httpErrorToHuman } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { Navigation, NavigationLink, Slot, type AppArea, type AppLayoutModel, type NavItem, type ServerArea } from '@pterodactyl/sdk/theme';
 import { useState } from 'react';
 

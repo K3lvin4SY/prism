@@ -1,5 +1,6 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
-import { Button, Dialog, Input, Label, NamedIcon, Tooltip, cn } from '@pterodactyl/sdk';
+import { Button, Dialog, Input, Label, Tooltip, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { COLORS } from '../lib/motd';
 
 const HEX = /^#?[0-9a-fA-F]{6}$/;

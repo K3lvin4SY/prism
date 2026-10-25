@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Badge, Button, NamedIcon, Spinner, httpErrorToHuman, toast, useCurrentServerRequired, useSetServerDockerImage } from '@pterodactyl/sdk';
+import { Alert, Badge, Button, Spinner, httpErrorToHuman, toast, useCurrentServerRequired, useSetServerDockerImage } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 import { getPatchBukkit, installPatchBukkit, patchBukkitKey } from '../../api/patchbukkit';
 import JobProgress from '../JobProgress';
 

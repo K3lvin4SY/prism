@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Button, NamedIcon, cn } from '@pterodactyl/sdk';
+import { Button, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { Schedule, State } from '../api';
 import { TRIGGER_ICONS, triggerText } from './ScheduleList';
 

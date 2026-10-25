@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, NamedIcon, Spinner, cn, http } from '@pterodactyl/sdk';
+import { Button, Spinner, cn, http } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { base } from '../api/client';
 import { readRegion } from '../lib/anvil';
 import { blockColor, type Rgb } from '../lib/blockColors';

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Input, NamedIcon, Select, Spinner, Switch, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Input, Select, Spinner, Switch, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 import { contentKeys, getCategories, getDependencies, getProject, install, search, type BrowseKind, type ContentKind, type ProjectHit, type SearchParams, type SortOrder } from '../../api/content';
 import { usePreferences, useSetConfirmInstalls } from '../../api/preferences';
 import { useMcInfo } from '../../hooks/useMcInfo';

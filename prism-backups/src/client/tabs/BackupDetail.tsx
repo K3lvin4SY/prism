@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Dialog, Input, NamedIcon, Spinner, Switch, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Alert, Button, Dialog, Input, Spinner, Switch, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, keys, type Job, type State } from '../api';
 import EntryTree from '../components/EntryTree';
 import { Progress, Section, bytes, copy, duration } from '../components/ui';

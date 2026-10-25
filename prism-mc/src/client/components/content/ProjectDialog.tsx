@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Badge, Button, Checkbox, Dialog, NamedIcon, Spinner, Switch, bytesToString, formatDate, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Badge, Button, Checkbox, Dialog, Spinner, Switch, bytesToString, formatDate, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 import {
     compactNumber,
     contentKeys,

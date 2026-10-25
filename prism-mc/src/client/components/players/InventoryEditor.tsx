@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode } from 'react';
-import { Alert, Button, Input, NamedIcon, Spinner, Switch, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Input, Spinner, Switch, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 import { writePlayerData } from '../../api/players';
 import { ARMOUR_PARTS, applyFields, detectFormat, makeItem, readFields, readSlots, writeSlots, type ArmourPart, type Format, type ItemFields, type SlotKey, type Slots, type TextStyle } from '../../lib/inventoryEdit';
 import { base64ToBytes } from '../../lib/nbt';

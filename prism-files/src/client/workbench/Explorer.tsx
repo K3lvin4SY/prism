@@ -1,6 +1,7 @@
 import { useEffect, useState, type DragEvent, type MouseEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { NamedIcon, Spinner, cn } from '@pterodactyl/sdk';
+import { Spinner, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { fileKeys, listFiles, type FileEntry } from '../api';
 import { getConfig } from '../config';
 import { fileIcon, isEditable, join, matchesAny } from '../lib/paths';

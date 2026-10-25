@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button, NamedIcon, Switch, cn, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Button, Switch, cn, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, keys, toInput, type Run, type Schedule, type State } from '../api';
 import { describe } from '../cron';
 import { describeCondition, flatten } from '../steps';

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { NamedIcon, cn } from '@pterodactyl/sdk';
+import { cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { AppLayoutModel } from '@pterodactyl/sdk/theme';
 import { useSettings } from '../settings';
 

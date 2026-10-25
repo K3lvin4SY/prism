@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Checkbox, Dialog, Input, NamedIcon, Spinner, bytesToString, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Checkbox, Dialog, Input, Spinner, bytesToString, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { chmod, compress, copyFile, decompress, downloadUrl, fileKeys, listFiles, pull, type FileEntry } from '../api';
 import { useFileActions, useFilePermissions, useIsProtected, validName } from '../actions';
 import { getConfig } from '../config';

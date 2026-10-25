@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Badge, Button, Dialog, Input, NamedIcon, Spinner, Switch, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Badge, Button, Dialog, Input, Spinner, Switch, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 import { entryName, getCandidates, link, proxyKeys, type Candidate, type LinkedServer } from '../../api/proxy';
 import SoftwareIcon from './SoftwareIcon';
 

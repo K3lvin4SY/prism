@@ -5,7 +5,6 @@ import {
     Badge,
     Button,
     Dialog,
-    NamedIcon,
     PanelLink,
     Select,
     ServerContentBlock,
@@ -17,6 +16,7 @@ import {
     toast,
     type ScreenComponentProps,
 } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { getAccount, playerAction, playerKeys, type CharacterItem, type PlayerAction } from '../api/players';
 import { GiveDialog, ReasonDialog } from '../components/players/ActionDialogs';
 import ItemSlot from '../components/players/ItemSlot';

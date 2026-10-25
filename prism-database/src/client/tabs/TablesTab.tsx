@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Checkbox, Dialog, Input, NamedIcon, Select, Spinner, TextArea, bytesToString, cn, httpErrorToHuman, toast, useCurrentServerRequired, useServerPermission } from '@pterodactyl/sdk';
+import { Alert, Button, Checkbox, Dialog, Input, Select, Spinner, TextArea, bytesToString, cn, httpErrorToHuman, toast, useCurrentServerRequired, useServerPermission } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, cellText, keys, type Column, type PrismDatabase, type Row, type Table } from '../api';
 import { Pills, copy } from '../components/ui';
 import { getConfig } from '../config';

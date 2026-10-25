@@ -6,7 +6,6 @@ import {
     Button,
     Checkbox,
     Dialog,
-    NamedIcon,
     Select,
     ServerContentBlock,
     Spinner,
@@ -17,6 +16,7 @@ import {
     useCurrentServerRequired,
     useSetServerDockerImage,
 } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { KIND_NAMES } from '../api/client';
 import { getVersions, imageDotnet, installRelease, opensWorld, versionKeys, type Release, type VersionsOverview } from '../api/versions';
 import JobProgress from '../components/JobProgress';

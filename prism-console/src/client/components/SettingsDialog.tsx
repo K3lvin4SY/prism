@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Button, Checkbox, Dialog, Input, NamedIcon, Select, Switch, cn } from '@pterodactyl/sdk';
+import { Button, Checkbox, Dialog, Input, Select, Switch, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { Area, CustomLayout, Preferences, WidgetId } from '../api';
 import { FONTS, getConfig, type LayoutId, type QuickCommand, type TerminalSettings } from '../config';
 import { AREAS, LAYOUTS, WIDGETS, normaliseCustom } from '../layouts';

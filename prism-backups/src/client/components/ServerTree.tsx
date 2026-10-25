@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { NamedIcon, Spinner, cn, httpErrorToHuman, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Spinner, cn, httpErrorToHuman, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, keys } from '../api';
 import { Check, bytes } from './ui';
 

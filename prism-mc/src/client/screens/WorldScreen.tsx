@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
-import { Alert, Badge, NamedIcon, PanelLink, ServerContentBlock, Spinner, cn, fromNow, httpErrorToHuman } from '@pterodactyl/sdk';
+import { Alert, Badge, PanelLink, ServerContentBlock, Spinner, cn, fromNow, httpErrorToHuman } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { getPlayer, getPlayers, playerKeys, type PlayerSummary } from '../api/players';
 import PlayerHead from '../components/players/PlayerHead';
 import WorldMap, { toDimension, type Dimension, type Focus, type Marker } from '../components/WorldMap';

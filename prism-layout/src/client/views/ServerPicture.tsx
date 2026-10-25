@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, NamedIcon, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Button, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { pictureApi, pictureKeys, type ServerPicture as Picture } from '../pictures';
 import { cssUrlToken, eggColour, useSettings } from '../settings';
 

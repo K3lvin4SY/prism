@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { NamedIcon, cn, http, usePanelNavigate, useShortcut } from '@pterodactyl/sdk';
+import { cn, http, usePanelNavigate, useShortcut } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { AppLayoutModel } from '@pterodactyl/sdk/theme';
 
 interface Command {

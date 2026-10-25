@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Button, NamedIcon, Select, cn } from '@pterodactyl/sdk';
+import { Button, Select, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { Schedule, Step, StepType } from '../api';
 import { getConfig } from '../config';
 import { STEP_TYPES, cloneStep, newStep, stepInfo, summary } from '../steps';

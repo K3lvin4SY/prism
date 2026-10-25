@@ -1,5 +1,6 @@
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { NamedIcon, Spinner, cn, fromNow } from '@pterodactyl/sdk';
+import { Spinner, cn, fromNow } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 import { compactNumber, type ProjectHit, type Tag } from '../../api/content';
 import { Chip, LOADER_COLORS, TagIcon, tagIcon, tagLabel } from './tags';
 

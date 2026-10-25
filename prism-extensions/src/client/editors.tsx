@@ -1,4 +1,5 @@
-import { Button, Checkbox, Input, NamedIcon, Switch, TextArea } from '@pterodactyl/sdk';
+import { Button, Checkbox, Input, Switch, TextArea } from '@pterodactyl/sdk';
+import { NamedIcon } from './icons';
 import { BUILTIN_HIGHLIGHTS, KEYBIND_ACTIONS } from './hints';
 
 function parse<T>(value: unknown, fallback: T): T {

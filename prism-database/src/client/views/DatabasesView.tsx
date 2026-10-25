@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Dialog, Input, NamedIcon, Spinner, cn, httpErrorToHuman, useCurrentServerRequired, useServerPermission } from '@pterodactyl/sdk';
+import { Alert, Button, Dialog, Input, Spinner, cn, httpErrorToHuman, useCurrentServerRequired, useServerPermission } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { ViewProps } from '@pterodactyl/sdk/theme';
 import { api, keys, type PrismDatabase } from '../api';
 import { Pills } from '../components/ui';

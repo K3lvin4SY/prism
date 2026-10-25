@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Input, NamedIcon, Switch, TextArea, cn, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Alert, Button, Input, Switch, TextArea, cn, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, keys, type Profile, type ProfileMode } from '../api';
 import ServerTree from '../components/ServerTree';
 import { Pills, Section } from '../components/ui';

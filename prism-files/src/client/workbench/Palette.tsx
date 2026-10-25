@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { NamedIcon, Spinner, cn } from '@pterodactyl/sdk';
+import { Spinner, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { listFiles } from '../api';
 import { getConfig } from '../config';
 import { basename, fileIcon, isEditable, matchesAny } from '../lib/paths';

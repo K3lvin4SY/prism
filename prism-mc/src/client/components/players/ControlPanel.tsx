@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, Dialog, Input, NamedIcon, Spinner, Switch, TitledGreyBox, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Button, Dialog, Input, Spinner, Switch, TitledGreyBox, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 import { playerAction, type PlayerAction, type PlayerSummary } from '../../api/players';
 import type { PlayerState } from '../../lib/player';
 import { ItemIcon } from './ItemSlot';

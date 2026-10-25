@@ -1,4 +1,5 @@
-import { Button, NamedIcon, Switch } from '@pterodactyl/sdk';
+import { Button, Switch } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { Conditions } from '../api';
 import { Section } from '../components/ui';
 import ConditionFields from './ConditionFields';

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Input, NamedIcon, Select, cn, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Input, Select, cn, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, keys, type State, type Trigger, type TriggerType } from '../api';
 import { Section } from '../components/ui';
 import { getConfig } from '../config';

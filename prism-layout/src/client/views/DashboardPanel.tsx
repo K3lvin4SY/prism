@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { NamedIcon, PanelLink, bytesToString, cn } from '@pterodactyl/sdk';
+import { PanelLink, bytesToString, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { NO_FILTERS, filtering, gameTag, matches, readRecent, setFilters, useDashboard, type DashboardServer } from '../dashboard';
 import { eggColour } from '../settings';
 import { itemClass } from './nav';

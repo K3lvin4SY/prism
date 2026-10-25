@@ -6,7 +6,6 @@ import {
     Button,
     Input,
     ListRow,
-    NamedIcon,
     ServerContentBlock,
     Spinner,
     Switch,
@@ -16,6 +15,7 @@ import {
     httpErrorToHuman,
     toast,
 } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { getPlayers, playerAction, playerKeys, setWhitelist, type PlayerEvent, type PlayerSummary } from '../api/players';
 import PlayerHead from '../components/players/PlayerHead';
 import { useMcInfo } from '../hooks/useMcInfo';

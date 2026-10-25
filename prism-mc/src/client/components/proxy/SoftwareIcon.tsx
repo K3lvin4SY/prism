@@ -1,4 +1,5 @@
-import { NamedIcon, cn } from '@pterodactyl/sdk';
+import { cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 
 export default function SoftwareIcon({ src, className }: { src: string | null | undefined; className?: string }) {
     return src ? (

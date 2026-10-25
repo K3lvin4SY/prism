@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, NamedIcon, cn, http } from '@pterodactyl/sdk';
+import { Button, cn, http } from '@pterodactyl/sdk';
+import { NamedIcon } from './icons';
 
 /*
  * One preview window of the real panel for every Prism editor (the panel refuses to be framed).

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Badge, Button, NamedIcon, ProgressBar, ServerContentBlock, Spinner, TitledGreyBox, bytesToString, cn, formatDate, fromNow, httpErrorToHuman } from '@pterodactyl/sdk';
+import { Alert, Badge, Button, ProgressBar, ServerContentBlock, Spinner, TitledGreyBox, bytesToString, cn, formatDate, fromNow, httpErrorToHuman } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { getWorld, getWorldFile, worldKeys } from '../api/world';
 import { useTerrariaInfo } from '../hooks/useTerrariaInfo';
 import { parseWorld, renderTiles, type WorldHeader } from '../lib/wld';

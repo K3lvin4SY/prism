@@ -1,4 +1,5 @@
-import { NamedIcon, ProgressBar, bytesToString, cn } from '@pterodactyl/sdk';
+import { ProgressBar, bytesToString, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { useQueue, type UploadQueue } from '../lib/uploads';
 
 /** The upload queue in the corner: progress, retry, cancel. */

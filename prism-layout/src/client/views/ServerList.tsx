@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Button, NamedIcon, PageHeading, PanelLink, Spinner, Switch, cn } from '@pterodactyl/sdk';
+import { Button, PageHeading, PanelLink, Spinner, Switch, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { Slot, View, type ServerListItem, type ServerListModel, type ViewProps } from '@pterodactyl/sdk/theme';
 import { NO_FILTERS, matches, publishServers, setFilters, useDashboard, type DashboardServer } from '../dashboard';
 import { usePictures } from '../pictures';

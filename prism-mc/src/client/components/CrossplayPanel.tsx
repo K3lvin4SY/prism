@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Dialog, NamedIcon, Spinner, Switch, TitledGreyBox, http, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Dialog, Spinner, Switch, TitledGreyBox, http, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { base } from '../api/client';
 import JobProgress from './JobProgress';
 

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { NamedIcon, cn } from '@pterodactyl/sdk';
+import { cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 import type { Tag } from '../../api/content';
 
 /** Loader colours, as Modrinth shows them. */

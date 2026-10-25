@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, NamedIcon, Spinner, cn, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Alert, Button, Spinner, cn, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { ScheduleListModel, ViewProps } from '@pterodactyl/sdk/theme';
 import { api, keys, type ScheduleInput, type State } from '../api';
 import Calendar from '../components/Calendar';

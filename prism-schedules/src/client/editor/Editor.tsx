@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button, Input, NamedIcon, Switch, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Button, Input, Switch, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, keys, toInput, type Schedule, type ScheduleInput, type State } from '../api';
 import { Pills } from '../components/ui';
 import { getConfig } from '../config';

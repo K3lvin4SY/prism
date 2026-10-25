@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Badge, Button, NamedIcon, Select, cn, httpErrorToHuman, useCurrentServerRequired, useServerPermission } from '@pterodactyl/sdk';
+import { Alert, Badge, Button, Select, cn, httpErrorToHuman, useCurrentServerRequired, useServerPermission } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, cellText, type PrismDatabase, type QueryResult } from '../api';
 import { getConfig } from '../config';
 

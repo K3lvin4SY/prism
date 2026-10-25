@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Badge, Button, Input, ListRow, NamedIcon, ServerContentBlock, Spinner, TitledGreyBox, formatDate, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Badge, Button, Input, ListRow, ServerContentBlock, Spinner, TitledGreyBox, formatDate, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { getPlayers, playerAction, playerKeys, type PlayerAction, type PlayersOverview, type TShockBan, type VanillaBan } from '../api/players';
 import { GiveDialog, ReasonDialog } from '../components/players/ActionDialogs';
 import { useTerrariaInfo } from '../hooks/useTerrariaInfo';

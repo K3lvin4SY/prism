@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Avatar, NamedIcon, PanelLink, SpinnerOverlay, cn, usePanelLocation } from '@pterodactyl/sdk';
+import { Avatar, PanelLink, SpinnerOverlay, cn, usePanelLocation } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { Main, type AppLayoutModel, type ViewProps } from '@pterodactyl/sdk/theme';
 import { remember } from '../dashboard';
 import { cssString, useSettings, type Bars } from '../settings';

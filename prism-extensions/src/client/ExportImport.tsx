@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, NamedIcon, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from './icons';
 import { refresh, saveSettings, settingsKey, type PrismExtension, type PrismId, type SettingField } from './api';
 import { describeValue } from './SaveBar';
 import { THEME_ID, optionsOf, themeApi, themeKeys, type ThemeSetting } from './themes/api';

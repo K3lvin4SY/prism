@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Input, NamedIcon, NumberInput, PageContentBlock, Select, Spinner, TextArea, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Input, NumberInput, PageContentBlock, Select, Spinner, TextArea, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from './icons';
 import { PRISM, getSettings, refresh, saveSettings, setSettingFile, settingsKey, type PrismExtension, type PrismId, type SettingField } from './api';
 import BrandingPreview from './BrandingPreview';
 import SaveBar, { describeValue } from './SaveBar';

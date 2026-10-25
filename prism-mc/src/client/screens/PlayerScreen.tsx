@@ -4,7 +4,6 @@ import {
     Alert,
     Badge,
     Button,
-    NamedIcon,
     PanelLink,
     ServerContentBlock,
     Spinner,
@@ -15,6 +14,7 @@ import {
     toast,
     type ScreenComponentProps,
 } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { getBedrockPlayer, getPlayer, getPlayers, playerAction, playerKeys, useSkin, writePlayerData, type PlayerSummary, type Skin } from '../api/players';
 import ControlPanel from '../components/players/ControlPanel';
 import Hud from '../components/players/Hud';

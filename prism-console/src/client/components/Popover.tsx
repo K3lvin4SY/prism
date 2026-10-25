@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { NamedIcon, cn } from '@pterodactyl/sdk';
+import { cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 
 /** A small icon button for the terminal's toolbar. */
 export function IconButton({ icon, label, active, onClick, disabled }: { icon: string; label: string; active?: boolean; onClick: () => void; disabled?: boolean }) {

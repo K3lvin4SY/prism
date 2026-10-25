@@ -1,5 +1,6 @@
 import { memo, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
-import { NamedIcon, cn, toast, useSendServerCommand, useServerPermission, type SdkServer } from '@pterodactyl/sdk';
+import { cn, toast, useSendServerCommand, useServerPermission, type SdkServer } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { useHistory } from '../api';
 import { getConfig, loadFont, type TerminalSettings } from '../config';
 import { download, exportLines, type ExportFormat } from '../lib/export';

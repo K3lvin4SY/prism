@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button, Dialog, Input, NamedIcon, cn, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Button, Dialog, Input, cn, httpErrorToHuman, toast, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, keys, type Schedule, type ScheduleInput, type State } from '../api';
 import { Check, Section } from '../components/ui';
 

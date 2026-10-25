@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, NamedIcon, Spinner, httpErrorToHuman, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { Alert, Button, Spinner, httpErrorToHuman, useCurrentServerRequired } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { ViewProps } from '@pterodactyl/sdk/theme';
 import { api, keys } from '../api';
 import CreateDialog from '../components/CreateDialog';

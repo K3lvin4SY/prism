@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { NamedIcon, cn } from '@pterodactyl/sdk';
+import { cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { covered, partial, type TreeNode } from '../selection';
 import { Check, bytes } from './ui';
 

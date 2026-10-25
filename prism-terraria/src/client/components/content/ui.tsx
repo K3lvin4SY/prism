@@ -1,5 +1,6 @@
 import { useState, type MouseEvent, type ReactNode } from 'react';
-import { NamedIcon, Spinner, cn } from '@pterodactyl/sdk';
+import { Spinner, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 
 /** Browse / Installed tabs above a content screen. */
 export function Tabs<T extends string>({ value, options, onChange }: { value: T; options: { value: T; label: string }[]; onChange: (value: T) => void }) {

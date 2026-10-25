@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Dialog, Input, NamedIcon, Select, Spinner, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Dialog, Input, Select, Spinner, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { ToggleRow } from '../editors';
 import { PreviewControls, reloadPreview, usePreviewDraft } from '../preview';
 import SaveBar, { describeValue } from '../SaveBar';

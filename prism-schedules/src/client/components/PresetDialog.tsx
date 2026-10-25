@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Dialog, NamedIcon } from '@pterodactyl/sdk';
+import { Dialog } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { ScheduleInput } from '../api';
 import { newStep } from '../steps';
 import { GAMES, PRESETS } from '../presets';

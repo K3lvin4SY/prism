@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Checkbox, Dialog, Input, NamedIcon, bytesToString, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Checkbox, Dialog, Input, bytesToString, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { emptyTrash, fileKeys, ignoreTrash, purgeTrash, restoreTrash, type TrashItem } from '../api';
 import { useFilePermissions } from '../actions';
 import { getConfig } from '../config';

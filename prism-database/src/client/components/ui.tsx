@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { NamedIcon, cn, toast } from '@pterodactyl/sdk';
+import { cn, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 
 export function Pills<T extends string>({ value, options, onChange, size = 'md' }: { value: T; options: { value: T; label: string; disabled?: boolean }[]; onChange: (value: T) => void; size?: 'sm' | 'md' }) {
     return (

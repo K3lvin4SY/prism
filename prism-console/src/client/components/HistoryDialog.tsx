@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Dialog, NamedIcon, cn } from '@pterodactyl/sdk';
+import { Button, Dialog, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import type { History } from '../api';
 
 interface Props {

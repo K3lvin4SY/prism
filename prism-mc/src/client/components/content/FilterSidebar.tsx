@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Checkbox, Input, NamedIcon } from '@pterodactyl/sdk';
+import { Checkbox, Input } from '@pterodactyl/sdk';
+import { NamedIcon } from '../../icons';
 import type { Filters } from '../../api/content';
 import { FilterRow, FilterSection, LOADER_COLORS, TagIcon, tagLabel } from './tags';
 

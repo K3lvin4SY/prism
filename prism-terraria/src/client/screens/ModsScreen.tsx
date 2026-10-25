@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Badge, Button, Checkbox, Dialog, Input, NamedIcon, Select, ServerContentBlock, Spinner, Switch, bytesToString, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Badge, Button, Checkbox, Dialog, Input, Select, ServerContentBlock, Spinner, Switch, bytesToString, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import {
     checkModUpdates,
     compactNumber,

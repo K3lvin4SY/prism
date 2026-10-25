@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Badge, Button, Checkbox, Dialog, Input, NamedIcon, ServerContentBlock, Spinner, Switch, bytesToString, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Badge, Button, Checkbox, Dialog, Input, ServerContentBlock, Spinner, Switch, bytesToString, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { getCatalog, getPlugins, installPlugin, pluginKeys, removePlugin, testedOnMajor, togglePlugin, type CatalogPlugin, type InstalledPlugin } from '../api/plugins';
 import JobProgress from '../components/JobProgress';
 import { Chip, InstallButton, ItemIcon, Tabs } from '../components/content/ui';

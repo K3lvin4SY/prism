@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Input, NamedIcon, Spinner, TextArea, cn, httpErrorToHuman, toast, useCurrentServerRequired, useServerPermission } from '@pterodactyl/sdk';
+import { Alert, Button, Input, Spinner, TextArea, cn, httpErrorToHuman, toast, useCurrentServerRequired, useServerPermission } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { api, keys } from '../api';
 import { Section } from '../components/ui';
 import { compile, decide } from '../patterns';

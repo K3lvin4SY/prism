@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Badge, Input, NamedIcon, Select, Switch, TitledGreyBox, cn } from '@pterodactyl/sdk';
+import { Badge, Input, Select, Switch, TitledGreyBox, cn } from '@pterodactyl/sdk';
+import { NamedIcon } from '../icons';
 import { categories, definitionsFor, managedKeys, validate, type SettingDefinition } from '../api/settings';
 
 interface Props {
