@@ -12,7 +12,7 @@ export function setConfig(value: ExtensionConfig): void {
 const on = (key: string) => (typeof configStore.get()[key] === 'boolean' ? (configStore.get()[key] as boolean) : true);
 
 export function allowSnapshots(): boolean {
-    return on('allow_snapshots');
+    return configStore.get().allow_snapshots === true;
 }
 
 /** Whether the admin shows a server tab, such as `players` or `modpacks`. */

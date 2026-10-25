@@ -23,9 +23,9 @@ describe('built-in presets', () => {
         }
     });
 
-    it('make Studio the defaults', () => {
+    it('make Studio the defaults, with square switches and glass', () => {
         const defaults = Object.fromEntries(lookKeys.map((key) => [key, settings[key].default]));
-        expect(matches(BUILT_IN[0], defaults)).toBe(true);
+        expect(matches({ ...BUILT_IN[0], values: { ...BUILT_IN[0].values, switches: 'square', surface_style: 'glass' } }, defaults)).toBe(true);
     });
 
     it('carry Catppuccin only as colors', () => {

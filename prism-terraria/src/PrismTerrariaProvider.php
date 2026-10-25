@@ -52,7 +52,7 @@ class PrismTerrariaProvider extends ExtensionProvider
             Setting::make('confirm_installs', 'confirm_installs', true, ['required', 'boolean'])->label('Confirm before installing')->help('Ask before a mod or plugin is installed.')->tab('Content')->field('toggle'),
 
             // World
-            Setting::make('max_world_mb', 'max_world_mb', 64, ['required', 'integer', 'min:4', 'max:512'])->label('Largest world for the map')->help('World files bigger than this are not sent to the browser to draw the map.')->tab('World')->field('number'),
+            Setting::make('max_world_mb', 'max_world_mb', 256, ['required', 'integer', 'min:4', 'max:512'])->label('Largest world for the map')->help('World files bigger than this are not sent to the browser to draw the map.')->tab('World')->field('number'),
 
             // API keys
             Setting::make('steam_api_key', 'steam_api_key', '', ['nullable', 'string', 'max:64', 'regex:/^([A-Fa-f0-9]{32})?$/'])->label('Steam Web API key')->help('Needed to browse the tModLoader Workshop. Get one at steamcommunity.com/dev/apikey with any Steam account.')->tab('API keys')->field('password'),

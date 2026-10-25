@@ -3,14 +3,14 @@ import { apply, cssString, cssUrlToken, getSettings, read } from './settings';
 
 describe('read', () => {
     it('falls back to the defaults', () => {
-        expect(read({})).toMatchObject({ dashboard_panel: true, sidebar_collapse: true, brand_place: 'top' });
-        expect(read({ brand_place: 'left' }).brand_place).toBe('top');
-        expect(read({})).toMatchObject({ enabled: true, bars: 'sidebar', sidebar_width: 16, width: 'normal', cards: 'banner', logo: null, logo_mode: 'instead', logo_height: 32, login_style: 'card', login_mark: 'logo', login_logo_size: 160 });
+        expect(read({})).toMatchObject({ dashboard_panel: true, sidebar_collapse: true, brand_place: 'sidebar' });
+        expect(read({ brand_place: 'left' }).brand_place).toBe('sidebar');
+        expect(read({})).toMatchObject({ enabled: true, bars: 'sidebar_top', sidebar_width: 14, width: 'normal', cards: 'rows', logo: null, logo_mode: 'name', logo_height: 32, login_style: 'backdrop', login_mark: 'logo', login_logo_size: 160 });
     });
 
     it('keeps sizes in range and ignores unknown options', () => {
         const settings = read({ logo: '/extension-files/prism-layout/a.png', logo_mode: 'sideways', logo_height: 400, login_logo_size: '12', login_mark: 'none', bars: 'floating', sidebar_width: 30 });
-        expect(settings).toMatchObject({ logo: '/extension-files/prism-layout/a.png', logo_mode: 'instead', logo_height: 64, login_logo_size: 48, login_mark: 'none', bars: 'sidebar', sidebar_width: 22 });
+        expect(settings).toMatchObject({ logo: '/extension-files/prism-layout/a.png', logo_mode: 'name', logo_height: 64, login_logo_size: 48, login_mark: 'none', bars: 'sidebar_top', sidebar_width: 22 });
     });
 });
 

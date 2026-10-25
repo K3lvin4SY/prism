@@ -47,8 +47,8 @@ class PrismFilesProvider extends ExtensionProvider
             Setting::make('trash_days', 'trash_days', 7, ['required', 'integer', 'min:1', 'max:90'])->label('Keep deleted files for (days)')->help('Items older than this are deleted for good once a day.')->tab('Trash')->field('number')->frontend(),
 
             // Limits
-            Setting::make('max_edit_mb', 'max_edit_mb', 4, ['required', 'integer', 'min:1', 'max:50'])->label('Largest file to open in the editor (MB)')->tab('Limits')->field('number')->frontend(),
-            Setting::make('max_upload_mb', 'max_upload_mb', 1024, ['required', 'integer', 'min:1', 'max:10240'])->label('Largest upload (MB)')->tab('Limits')->field('number')->frontend(),
+            Setting::make('max_edit_mb', 'max_edit_mb', 6, ['required', 'integer', 'min:1', 'max:50'])->label('Largest file to open in the editor (MB)')->tab('Limits')->field('number')->frontend(),
+            Setting::make('max_upload_mb', 'max_upload_mb', 4104, ['required', 'integer', 'min:1', 'max:10240'])->label('Largest upload (MB)')->tab('Limits')->field('number')->frontend(),
             Setting::make('parallel_uploads', 'parallel_uploads', 3, ['required', 'integer', 'min:1', 'max:8'])->label('Uploads at the same time')->tab('Limits')->field('number')->frontend(),
 
             // Paths

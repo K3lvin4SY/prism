@@ -10,7 +10,9 @@
     "requires": {
         "panel": "^2.0.0-dev",
         "sdk": ">=2.0.0-beta.6 <3.0",
-        "extensions": { "prism-core": ">=0.1.0" }
+        "extensions": {
+            "prism-core": ">=0.1.0"
+        }
     },
     "ui": {
         "entry": "dist/client.js"
@@ -364,7 +366,7 @@
                     "rounded": "Rounded",
                     "square": "Square"
                 },
-                "default": "rounded",
+                "default": "square",
                 "attribute": "data-pt-switches"
             },
             "surface_style": {
@@ -379,7 +381,7 @@
                     "glow": "Glow",
                     "glass": "Glass"
                 },
-                "default": "raised",
+                "default": "glass",
                 "attribute": "data-pt-surface"
             },
             "blur": {
@@ -467,7 +469,7 @@
                 "label": "Your presets",
                 "help": "Presets made in Prism Properties.",
                 "tab": "Presets",
-                "default": "[]",
+                "default": "[{\"id\":\"own-mvmql8vx-p3cv\",\"name\":\"Catppuccin Mocha Blue\",\"values\":{\"d_background\":\"#1e1e2e\",\"d_surface\":\"#181825\",\"d_sidebar\":\"#11111b\",\"d_raised\":\"#313244\",\"d_deep\":\"#11111b\",\"d_border\":\"#313244\",\"d_text\":\"#cdd6f4\",\"d_muted_text\":\"#a6adc8\",\"d_primary\":\"#cba6f7\",\"d_on_primary\":\"#11111b\",\"d_success\":\"#a6e3a1\",\"d_warning\":\"#f9e2af\",\"d_danger\":\"#f38ba8\",\"d_red\":\"#f38ba8\",\"d_green\":\"#a6e3a1\",\"d_yellow\":\"#f9e2af\",\"d_blue\":\"#89b4fa\",\"d_magenta\":\"#f5c2e7\",\"d_cyan\":\"#94e2d5\",\"l_background\":\"#eff1f5\",\"l_surface\":\"#e6e9ef\",\"l_sidebar\":\"#dce0e8\",\"l_raised\":\"#ccd0da\",\"l_deep\":\"#dce0e8\",\"l_border\":\"#ccd0da\",\"l_text\":\"#4c4f69\",\"l_muted_text\":\"#6c6f85\",\"l_primary\":\"#8839ef\",\"l_on_primary\":\"#dce0e8\",\"l_success\":\"#40a02b\",\"l_warning\":\"#df8e1d\",\"l_danger\":\"#d20f39\",\"l_red\":\"#d20f39\",\"l_green\":\"#40a02b\",\"l_yellow\":\"#df8e1d\",\"l_blue\":\"#1e66f5\",\"l_magenta\":\"#ea76cb\",\"l_cyan\":\"#179299\",\"radius\":12,\"font\":\"plex\",\"font_size\":16,\"switches\":\"rounded\",\"surface_style\":\"flat\",\"blur\":14,\"opacity\":70,\"background\":\"plain\",\"background_dim\":55,\"motion\":\"full\"}}]",
                 "maxLength": 200000
             }
         }

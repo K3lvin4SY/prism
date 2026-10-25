@@ -198,7 +198,7 @@ final class Mrpack
         }
 
         $path = self::archivePath($jobId);
-        $limit = (int) Settings::admin('modpack_max_mb', 500) * 1024 * 1024;
+        $limit = (int) Settings::admin('modpack_max_mb', 2000) * 1024 * 1024;
         $response = Http::withUserAgent(McJars::USER_AGENT)->timeout(55)->sink($path)->get($url);
 
         if (! $response->successful() || ! is_file($path) || filesize($path) === 0) {

@@ -156,7 +156,7 @@ class FilesController
         $this->allow($request, $server, $entry === null ? 'file.create' : 'file.update');
 
         $data = $request->validate([
-            'content' => ['present', 'nullable', 'string', 'max:'.(max(1, (int) Paths::setting('max_edit_mb', 4)) * 1024 * 1024)],
+            'content' => ['present', 'nullable', 'string', 'max:'.(max(1, (int) Paths::setting('max_edit_mb', 6)) * 1024 * 1024)],
             'expected' => ['nullable', 'string', 'max:64'],
             'force' => ['sometimes', 'boolean'],
         ]);

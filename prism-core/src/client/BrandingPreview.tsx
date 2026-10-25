@@ -14,7 +14,7 @@ export default function BrandingPreview({ schema, draft, tab }: { schema: Settin
     const logo = url('logo');
 
     if (tab === 'Sign-in page') {
-        const style = String(value('login_style') ?? 'card');
+        const style = String(value('login_style') ?? 'backdrop');
         const mark = String(value('login_mark') ?? 'logo');
         const size = Number(value('login_logo_size') ?? 160);
         const tagline = String(value('login_tagline') ?? '').trim();
@@ -63,7 +63,7 @@ export default function BrandingPreview({ schema, draft, tab }: { schema: Settin
         );
     }
 
-    const mode = String(value('logo_mode') ?? 'instead');
+    const mode = String(value('logo_mode') ?? 'name');
     const height = Number(value('logo_height') ?? 32);
     const showLogo = logo && mode !== 'name';
     const favicon = url('favicon');

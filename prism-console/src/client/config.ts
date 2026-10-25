@@ -58,7 +58,7 @@ export function read(raw: ExtensionConfig): ConsoleConfig {
     return {
         enabled: bool(get('enabled'), true),
         fullWidth: bool(get('full_width'), false),
-        keepHeader: bool(get('keep_header'), false),
+        keepHeader: bool(get('keep_header'), true),
         floatingProgress: bool(get('floating_progress'), true),
         maxLines: Math.max(200, num(get('max_lines'), 1000)),
         historyLimit: num(get('history_limit'), 50),
@@ -82,7 +82,7 @@ export function read(raw: ExtensionConfig): ConsoleConfig {
             font: String(get('default_font') ?? 'JetBrains Mono'),
             fontSize: num(get('default_font_size'), 13),
             lineHeight: num(get('default_line_height'), 1.4),
-            wrap: bool(get('default_wrap'), true),
+            wrap: bool(get('default_wrap'), false),
             timestamps: bool(get('default_timestamps'), false),
         },
         highlights: json<HighlightSettings>(get('highlights'), { builtin: {}, custom: [] }),

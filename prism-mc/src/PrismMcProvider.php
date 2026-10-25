@@ -58,9 +58,9 @@ class PrismMcProvider extends ExtensionProvider
 
             // Content
             Setting::make('confirm_installs', 'confirm_installs', true, ['required', 'boolean'])->label('Confirm before installing')->help('Ask before a plugin or mod is installed. People can turn this off for themselves; this is the default for those who have not chosen. Modpacks always ask.')->tab('Content')->field('toggle'),
-            Setting::make('allow_snapshots', 'allow_snapshots', true, ['required', 'boolean'])->label('Show snapshots')->help('List snapshot and experimental builds on the Versions tab.')->tab('Content')->field('toggle')->frontend()->frontendType('boolean'),
+            Setting::make('allow_snapshots', 'allow_snapshots', false, ['required', 'boolean'])->label('Show snapshots')->help('List snapshot and experimental builds on the Versions tab.')->tab('Content')->field('toggle')->frontend()->frontendType('boolean'),
             Setting::make('source_pumpkin_market', 'source_pumpkin_market', true, ['required', 'boolean'])->label('Pumpkin Market')->help('List plugins from the Pumpkin Market for Pumpkin servers, beside Modrinth.')->tab('Content')->field('toggle'),
-            Setting::make('modpack_max_mb', 'modpack_max_mb', 500, ['required', 'integer', 'min:10', 'max:4000'])->label('Largest modpack')->help('Modpack archives bigger than this are refused.')->tab('Content')->field('number'),
+            Setting::make('modpack_max_mb', 'modpack_max_mb', 2000, ['required', 'integer', 'min:10', 'max:4000'])->label('Largest modpack')->help('Modpack archives bigger than this are refused.')->tab('Content')->field('number'),
 
             // Status
             Setting::make('ping_timeout', 'ping_timeout', 2, ['required', 'numeric', 'min:0.5', 'max:10'])->label('Status ping timeout')->help('How long to wait for a server to answer a server-list ping, in seconds.')->tab('Status')->field('number'),

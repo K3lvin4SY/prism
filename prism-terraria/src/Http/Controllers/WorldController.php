@@ -66,6 +66,6 @@ class WorldController extends Controller
 
     private function maxBytes(): int
     {
-        return max(4, min(512, (int) Settings::admin('max_world_mb', 64))) * 1048576;
+        return max(4, min(512, (int) Settings::admin('max_world_mb', 256))) * 1048576;
     }
 }

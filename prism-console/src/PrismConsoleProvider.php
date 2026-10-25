@@ -18,7 +18,7 @@ class PrismConsoleProvider extends ExtensionProvider
     ];
 
     /** The built-in highlight rules, each on by default. Custom rules are added in Prism Properties. */
-    public const string DEFAULT_HIGHLIGHTS = '{"builtin":{"errors":true,"warnings":true,"joins":true,"chat":true,"ready":true,"info":false,"debug":false,"ips":true},"custom":[]}';
+    public const string DEFAULT_HIGHLIGHTS = '{"builtin":{"errors":true,"warnings":true,"joins":true,"chat":true,"ready":true,"info":true,"debug":false,"ips":true},"custom":[]}';
 
     public function boot(): void
     {
@@ -30,7 +30,7 @@ class PrismConsoleProvider extends ExtensionProvider
             // General
             Setting::make('enabled', 'enabled', true, ['required', 'boolean'])->label('Use Prism Console')->help('Off puts the panel\'s own console back for everyone.')->tab('General')->field('toggle')->frontend(),
             Setting::make('full_width', 'full_width', false, ['required', 'boolean'])->label('Always full width')->help('Off, the console follows the page width like every other page (set in Prism Layout). On, it always uses the whole page.')->tab('General')->field('toggle')->frontend(),
-            Setting::make('keep_header', 'keep_header', false, ['required', 'boolean'])->label('Keep the panel\'s header')->help('Keeps the server name and description above Prism Console.')->tab('General')->field('toggle')->frontend(),
+            Setting::make('keep_header', 'keep_header', true, ['required', 'boolean'])->label('Keep the panel\'s header')->help('Keeps the server name and description above Prism Console.')->tab('General')->field('toggle')->frontend(),
             Setting::make('floating_progress', 'floating_progress', true, ['required', 'boolean'])->label('Floating progress card')->help('Shows image pull and install progress on other server pages while it runs.')->tab('General')->field('toggle')->frontend(),
             Setting::make('max_lines', 'max_lines', 1000, ['required', 'integer', 'min:200', 'max:20000'])->label('Lines kept in the browser')->help('Older lines are dropped as new ones arrive.')->tab('General')->field('number')->frontend(),
             Setting::make('history_limit', 'history_limit', 50, ['required', 'integer', 'min:10', 'max:500'])->label('Commands remembered per server')->tab('General')->field('number')->frontend(),
@@ -55,7 +55,7 @@ class PrismConsoleProvider extends ExtensionProvider
             Setting::make('default_font', 'default_font', 'JetBrains Mono', ['required', 'string'])->label('Font')->tab('Terminal')->field('select', array_map(static fn (string $font) => ['value' => $font, 'label' => $font], self::FONTS))->frontend(),
             Setting::make('default_font_size', 'default_font_size', 13, ['required', 'integer', 'min:9', 'max:24'])->label('Text size')->tab('Terminal')->field('number')->frontend(),
             Setting::make('default_line_height', 'default_line_height', '1.4', ['required', 'string'])->label('Line height')->tab('Terminal')->field('select', array_map(static fn (string $value) => ['value' => $value, 'label' => $value], ['1.2', '1.3', '1.4', '1.5', '1.7']))->frontend(),
-            Setting::make('default_wrap', 'default_wrap', true, ['required', 'boolean'])->label('Wrap long lines')->tab('Terminal')->field('toggle')->frontend(),
+            Setting::make('default_wrap', 'default_wrap', false, ['required', 'boolean'])->label('Wrap long lines')->tab('Terminal')->field('toggle')->frontend(),
             Setting::make('default_timestamps', 'default_timestamps', false, ['required', 'boolean'])->label('Show timestamps')->tab('Terminal')->field('toggle')->frontend(),
 
             // Highlights and quick commands, as JSON edited by Prism Properties.
