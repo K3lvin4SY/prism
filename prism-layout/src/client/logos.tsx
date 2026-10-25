@@ -38,9 +38,12 @@ export function useLogos(uuids: readonly string[], enabled: boolean) {
 export function GameLogo({ logo, tags }: { logo: string | null; tags: readonly string[] | undefined }) {
     const Source = logo ?? TAG_LOGOS.find(([tag]) => tags?.includes(tag))?.[1] ?? IconServer;
 
-    return (
-        <span className='pla:flex pla:size-8 pla:shrink-0 pla:items-center pla:justify-center pla:overflow-hidden pla:rounded-md pla:bg-muted pla:text-muted-foreground' aria-hidden>
-            {typeof Source === 'string' ? <img src={Source} alt='' loading='lazy' className='pla:size-full pla:object-contain' /> : <Source size={18} stroke={2} />}
+    // An image stands on its own; an icon sits on a tile like the color mark.
+    return typeof Source === 'string' ? (
+        <img src={Source} alt='' loading='lazy' aria-hidden className='pla:size-8 pla:shrink-0 pla:object-contain' />
+    ) : (
+        <span className='pla:flex pla:size-8 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-md pla:bg-muted pla:text-muted-foreground' aria-hidden>
+            <Source size={18} stroke={2} />
         </span>
     );
 }
