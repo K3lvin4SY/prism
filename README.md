@@ -34,6 +34,7 @@ Prism is a set of extensions for Pterodactyl Panel 2.0. Install only the ones yo
 | **[Prism Backups](prism-backups)**           | Backup profiles that choose what gets backed up, browsing inside a backup, restoring single files and a `.pteroignore` editor.                   |
 | **[Prism MC](prism-mc)**                     | Players, a world map, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.                                   |
 | **[Prism Terraria](prism-terraria)**         | Players, settings, versions, a world map, tModLoader mods and TShock plugins.                                                                    |
+| **[Prism Auth](prism-auth)**                 | Sign in with Google, Discord, Steam, GitHub or any OpenID Connect provider (Authentik, Keycloak, Entra ID, ...), and sign-up with a confirmed email. |
 
 ## Requirements
 

@@ -1,0 +1,19 @@
+@import 'tailwindcss/theme.css' layer(theme) prefix(pau);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(pau);
+@import '@pterodactyl/sdk/theme.css';
+@source './**/*.{ts,tsx}';
+
+/* The sign-up bot trap: out of sight and out of reach, but still in the form for scripts. */
+.pau-trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* A provider's own color shows as its button's border. */
+.pau-provider[style*='border-color'] {
+    border-width: 1px;
+}

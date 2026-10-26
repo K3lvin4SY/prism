@@ -1,0 +1,11 @@
+{
+    "description": "Sign in with external providers, linked sign-in methods and verified sign-up.",
+    "autoload": {
+        "psr-4": {
+            "PrismAuth\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismAuthExtension"
+    }
+}

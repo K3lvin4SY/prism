@@ -8,7 +8,7 @@ export interface Hint {
     /** A heading the field is grouped under inside its tab. */
     section?: string;
     slider?: { min: number; max: number; step?: number; unit?: string };
-    editor?: 'highlights' | 'quickCommands' | 'lines' | 'keybinds' | 'datetime';
+    editor?: 'highlights' | 'quickCommands' | 'lines' | 'keybinds' | 'datetime' | 'authProviders';
     /** Draw a select as buttons side by side. */
     segmented?: boolean;
 }
@@ -113,6 +113,27 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
     },
     'prism-terraria': {
         max_world_mb: { slider: { min: 4, max: 512, step: 4, unit: ' MB' } },
+    },
+    'prism-auth': {
+        button_style: { segmented: true },
+        link_by_email: { section: 'Existing accounts' },
+        link_admins: { section: 'Existing accounts' },
+        auto_create: { section: 'New people' },
+        signup_enabled: { section: 'The form' },
+        signup_username: { section: 'The form', segmented: true },
+        signup_names: { section: 'The form' },
+        terms_url: { section: 'The form' },
+        password_min: { section: 'Passwords', slider: { min: 8, max: 64 } },
+        password_mixed: { section: 'Passwords' },
+        password_number: { section: 'Passwords' },
+        domains_allowed: { section: 'Email domains', editor: 'lines' },
+        domains_blocked: { section: 'Email domains', editor: 'lines' },
+        bot_trap: { section: 'Bots and limits' },
+        turnstile_site_key: { section: 'Bots and limits' },
+        turnstile_secret: { section: 'Bots and limits' },
+        limit_per_hour: { section: 'Bots and limits', slider: { min: 1, max: 100 } },
+        verify_hours: { section: 'Bots and limits', slider: { min: 1, max: 168, unit: ' h' } },
+        providers: { editor: 'authProviders' },
     },
 };
 

@@ -27,6 +27,7 @@ Load the matching skill before working in an area:
 | `prism-schedules` | prism-schedules | `psc` | Schedules engine with its own runs and history. |
 | `prism-mc` | prism-mc | `mcs` | Minecraft Java/Bedrock: players, world map, versions, properties, plugins, mods, modpacks, crossplay, proxy. |
 | `prism-terraria` | prism-terraria | `trs` | Terraria/TShock/tModLoader. |
+| `prism-auth` | prism-auth | `pau` | Sign-in providers (OAuth/OIDC/Steam) on the login page, "Sign-in methods" account page, sign-up with email confirmation. Root routes under `/prism-auth`. |
 
 Every extension's `extension.json` has `requires.extensions: { "prism-core": ">=0.1.0" }`; the Panel enables Core first and refuses to disable it while others need it.
 

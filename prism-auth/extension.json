@@ -1,0 +1,30 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-auth",
+    "name": "Prism Auth",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Sign in with Google, Discord, Steam, GitHub or any OpenID Connect provider, link them in the account settings, and let people sign up with a verified email.",
+    "author": "Donkare",
+    "icon": "icon.png",
+    "provider": "PrismAuth\\PrismAuthProvider",
+    "routes": { "root": ["prism-auth"] },
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "pau",
+        "screens": [
+            {
+                "id": "sign-in-methods",
+                "area": "account",
+                "path": "sign-in-methods",
+                "nav": { "label": "Sign-in methods", "icon": "key-round" }
+            }
+        ]
+    }
+}

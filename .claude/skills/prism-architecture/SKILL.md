@@ -15,8 +15,11 @@ prism-core (ppx)  ── Prism Properties admin page (/panel/prism), Prism Expor
    ├── prism-layout (pla) the frame: navigation, server cards, branding, sign-in, announcements
    ├── prism-console (pcn), prism-files (pfl), prism-database (pdb),
    │   prism-backups (pbk), prism-schedules (psc)          better versions of Panel pages
-   └── prism-mc (mcs), prism-terraria (trs)                game-specific server screens
+   ├── prism-mc (mcs), prism-terraria (trs)                game-specific server screens
+   └── prism-auth (pau)  sign-in providers, account sign-in methods, sign-up
 ```
+
+Prism Auth's sign-in flow runs on public root routes under `/prism-auth` (`routes/root.php`, web group with the session): `/<slug>/redirect` sends the browser to the provider with state, PKCE and nonce kept once in the session (`Support/Flow.php`), `/<slug>/callback` signs in through the Panel's `CompletesLogins::complete()` (so two-factor still applies: the login slot fetches `/prism-auth/result` and opens the Panel's checkpoint screen with `useOpenLoginCheckpoint`), links an account, or holds a pending sign-up. Providers live in `prism_auth_providers` with the secret encrypted; Prism Properties edits them through `/api/admin/extensions/prism-auth/providers` (`prism-core/src/client/AuthProviders.tsx`), not as a setting. Sign-up mail goes out with `notifyNow`, not the queue.
 
 Each extension is self-contained: its own `extension.json`, PHP provider (`src/<Name>Provider.php`, except Core and Themes), routes in `routes/{admin,client,server}.php`, migrations in `database/`, and a React client in `src/client` (Themes: `src/`). The Panel loads the PHP provider and the built `dist/client.js`.
 

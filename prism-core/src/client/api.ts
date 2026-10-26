@@ -12,7 +12,7 @@ export interface SettingField {
     value: unknown;
 }
 
-export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria';
+export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-auth';
 
 export interface PrismExtension {
     id: PrismId;
@@ -31,6 +31,7 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-schedules', name: 'Prism Schedules', icon: 'calendar-clock', description: 'Schedules with countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets and a calendar.' },
     { id: 'prism-mc', name: 'Prism MC', icon: 'blocks', description: 'Players, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.' },
     { id: 'prism-terraria', name: 'Prism Terraria', icon: 'tree-pine', description: 'Players, settings, versions, the world map, tModLoader mods and TShock plugins for Terraria servers.' },
+    { id: 'prism-auth', name: 'Prism Auth', icon: 'key-round', description: 'Sign in with Google, Discord, Steam, GitHub or any OpenID Connect provider, linked from the account page, and sign-up with a confirmed email.' },
 ];
 
 export const settingsKey = (id: PrismId) => ['prism-core', 'settings', id] as const;

@@ -208,6 +208,29 @@ No settings of its own. Its admin screen is Prism Properties.
 | World | `max_world_mb` | Largest world for the map | `256` | number |
 | API keys | `steam_api_key` | Steam Web API key | `''` | password |
 
+### prism-auth
+
+| Tab | Key | Label | Default | Field |
+| --- | --- | --- | --- | --- |
+| Sign-in | `button_style` | Provider buttons (`rows`, `icons`) | `'rows'` | select, public |
+| Sign-in | `divider_text` | Divider text | `'Or continue with'` | text, public |
+| Accounts | `link_by_email` | Match accounts by email | `true` | toggle |
+| Accounts | `link_admins` | Match admin accounts too | `false` | toggle |
+| Accounts | `auto_create` | Make an account on first sign-in | `false` | toggle, public |
+| Sign-up | `signup_enabled` | Let people sign up | `false` | toggle, public |
+| Sign-up | `signup_username` | Username (`choose`, `generate`) | `'choose'` | select, public |
+| Sign-up | `signup_names` | Ask for first and last name | `true` | toggle, public |
+| Sign-up | `password_min`, `password_mixed`, `password_number` | Password rules | `8`, `false`, `false` | number/toggle, public |
+| Sign-up | `domains_allowed`, `domains_blocked` | Email domain lists | `''` | textarea (lines) |
+| Sign-up | `terms_url` | Terms page | `''` | text, public |
+| Sign-up | `bot_trap` | Bot trap | `true` | toggle, public |
+| Sign-up | `turnstile_site_key` / `turnstile_secret` | Cloudflare Turnstile | `''` | text, public / password |
+| Sign-up | `limit_per_hour` | Sign-ups per network per hour | `5` | number |
+| Sign-up | `verify_hours` | Email link works for | `24` | number |
+| Providers | `providers` | Sign-in providers | `''` | textarea, drawn as `ProvidersEditor` (the providers themselves are rows in `prism_auth_providers`, saved through the admin API) |
+
+"Public" settings are `->frontend()->public()`: the sign-in page gets them before anyone signs in.
+
 
 ## Notes on particular settings
 

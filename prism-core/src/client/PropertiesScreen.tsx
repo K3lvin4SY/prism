@@ -14,6 +14,7 @@ import { PreviewControls, closePreview, usePreviewDraft } from './preview';
 import { THEME_ID, themeApi, themeKeys } from './themes/api';
 import ThemeEditor, { sectionOf as themeSectionOf, themeSections } from './themes/ThemeEditor';
 import { isLook } from './themes/presets';
+import { ProvidersEditor } from './AuthProviders';
 import { HighlightsEditor, KeybindsEditor, LinesEditor, QuickCommandsEditor, ToggleRow } from './editors';
 import { HINTS, type Hint } from './hints';
 
@@ -561,7 +562,9 @@ function Field({ field, hint, value, onChange }: { field: SettingField; hint: Hi
             ) : hint.editor === 'keybinds' ? (
                 <KeybindsEditor value={value} onChange={onChange} />
             ) : hint.editor === 'lines' ? (
-                <LinesEditor value={value} onChange={onChange} />
+                <LinesEditor value={value} onChange={onChange} placeholder={field.input.startsWith('domains_') ? 'example.com' : undefined} />
+            ) : hint.editor === 'authProviders' ? (
+                <ProvidersEditor />
             ) : (
                 <TextArea value={typeof value === 'string' ? value : ''} onChange={(event) => onChange(event.target.value)} rows={5} className={'ppx:w-full'} />
             );

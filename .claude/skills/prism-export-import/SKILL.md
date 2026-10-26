@@ -12,7 +12,8 @@ Prism Properties (`/panel/prism`) has an **Export and import** entry (`prism-cor
 - One section per installed, enabled Prism extension that registers settings (the `PRISM` list in `prism-core/src/client/api.ts`), plus **Prism Themes** (`prism-themes`) when the theme is installed.
 - Every setting **except files**: `field: 'file'` settings (Prism Layout's logo, square logo, favicon, card picture, sign-in picture) and Prism Themes' `background_image` are left out. Pictures stored by extensions themselves (Prism Layout egg pictures and logos, server pictures) are not settings and are not exported either.
 - **Saved** values only; unsaved drafts in the editors are not included.
-- Secrets (`password` fields such as `pumpkin_market_key`, `steam_api_key`) come back from the Panel as a mask, so the file holds the mask, never the key.
+- Secrets (`password` fields such as `pumpkin_market_key`, `steam_api_key`, `turnstile_secret`) come back from the Panel as a mask, so the file holds the mask, never the key.
+- Prism Auth's sign-in providers are not settings (they are rows with encrypted client secrets) and are not exported; set them up again on the other panel. Its `providers` setting is an empty placeholder for the editor.
 - Prism Themes' `presets` setting (the admin's own presets as JSON) is a normal setting, so custom presets travel with an export.
 - People's personal preferences (console, editor) are per user and are not part of an export.
 
