@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, such as v0.1.0
+        required: true
+      prerelease:
+        description: Mark as a pre-release
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+env:
+  # The Panel the extensions build against; they link its SDK from .panel/packages/sdk.
+  PANEL_REF: v2.0.0-beta.2
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out the Panel
+        uses: actions/checkout@v4
+        with:
+          repository: pterodactyl/panel
+          ref: ${{ env.PANEL_REF }}
+          path: .panel
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: prism-*/package-lock.json
+
+      - name: Build the extensions
+        run: |
+          for extension in prism-*/; do
+            echo "::group::${extension%/}"
+            (cd "$extension" && npm ci && npm run build)
+            echo "::endgroup::"
+          done
+
+      - name: Package the extensions
+        run: node scripts/pack.mjs --out release prism-*/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prism-${{ inputs.tag }}
+          path: release/*.pteroext
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          gh release create "$TAG" release/*.pteroext \
+            --target "$GITHUB_SHA" \
+            --title "Prism $TAG" \
+            --generate-notes \
+            $([ "$PRERELEASE" = true ] && echo --prerelease)

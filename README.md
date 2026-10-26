@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- Replace assets/icon.svg with the project icon. -->
-<img src="assets/icon.svg" alt="Prism" width="128" height="128">
+<img src="assets/core.png" alt="Prism" width="128" height="128">
 
 # Prism
 
@@ -22,18 +22,18 @@ Prism is a set of extensions for Pterodactyl Panel 2.0. Install only the ones yo
 
 ## Extensions
 
-| Extension | Description |
-| --- | --- |
-| **[Prism Core](prism-core)** | Shared settings for every Prism extension on one admin page, with a live preview. Required by all other extensions. |
-| **[Prism Themes](prism-themes)** | Colors for dark and light mode, type, shape, surfaces, backgrounds and motion. Includes presets such as Catppuccin, and you can add your own. |
-| **[Prism Layout](prism-layout)** | Seven navigation layouts, server card styles, announcements, a Ctrl+K command palette, custom logo and favicon, and a custom sign-in page. |
-| **[Prism Console](prism-console)** | Console layouts, history, search, highlights, filters, exports and image pull progress. |
-| **[Prism File Browser](prism-files)** | A VS Code style editor with tabs, a trash bin, bulk actions, previews and an upload queue. |
-| **[Prism Database Manager](prism-database)** | Browse and edit tables, run SQL, import and export data, schedule backups and share a database between servers. |
-| **[Prism Schedules](prism-schedules)** | Countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets, a week calendar and run history with live progress. |
-| **[Prism Backups](prism-backups)** | Backup profiles that choose what gets backed up, browsing inside a backup, restoring single files and a `.pteroignore` editor. |
-| **[Prism MC](prism-mc)** | Players, a world map, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers. |
-| **[Prism Terraria](prism-terraria)** | Players, settings, versions, a world map, tModLoader mods and TShock plugins. |
+| Extension                                    | Description                                                                                                                                      |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **[Prism Core](prism-core)**                 | Shared settings for every Prism extension on one admin page, with a live preview. Required by all other extensions.                              |
+| **[Prism Themes](prism-themes)**             | Colors for dark and light mode, type, shape, surfaces, backgrounds and motion. Includes presets such as Catppuccin, and you can add your own.    |
+| **[Prism Layout](prism-layout)**             | Seven navigation layouts, server card styles, announcements, a Ctrl+K command palette, custom logo and favicon, and a custom sign-in page.       |
+| **[Prism Console](prism-console)**           | Console layouts, history, search, highlights, filters, exports and image pull progress.                                                          |
+| **[Prism File Browser](prism-files)**        | A VS Code style editor with tabs, a trash bin, bulk actions, previews and an upload queue.                                                       |
+| **[Prism Database Manager](prism-database)** | Browse and edit tables, run SQL, import and export data, schedule backups and share a database between servers.                                  |
+| **[Prism Schedules](prism-schedules)**       | Countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets, a week calendar and run history with live progress. |
+| **[Prism Backups](prism-backups)**           | Backup profiles that choose what gets backed up, browsing inside a backup, restoring single files and a `.pteroignore` editor.                   |
+| **[Prism MC](prism-mc)**                     | Players, a world map, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.                                   |
+| **[Prism Terraria](prism-terraria)**         | Players, settings, versions, a world map, tModLoader mods and TShock plugins.                                                                    |
 
 ## Requirements
 
@@ -69,12 +69,12 @@ Install **Prism Core** before any other Prism extension.
 
 Each extension supports the same scripts:
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Rebuild on every change |
-| `npm run build` | Build for production |
-| `npm run typecheck` | Check types |
-| `npm test` | Run the tests |
+| Command             | Purpose                 |
+| ------------------- | ----------------------- |
+| `npm run dev`       | Rebuild on every change |
+| `npm run build`     | Build for production    |
+| `npm run typecheck` | Check types             |
+| `npm test`          | Run the tests           |
 
 The [`scripts/`](scripts) folder holds helpers for deploying to a Panel running under Portainer, calling the Panel API and generating game data. For example:
 
