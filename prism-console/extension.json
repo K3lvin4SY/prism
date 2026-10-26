@@ -11,7 +11,7 @@
     },
     "description": "A better console for every server: layouts, history, search, highlights, filters, exports and image pull progress.",
     "author": "Donkare",
-    "icon": "terminal",
+    "icon": "icon.png",
     "provider": "PrismConsole\\PrismConsoleProvider",
     "ui": {
         "entry": "dist/client.js",

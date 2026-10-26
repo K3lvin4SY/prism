@@ -6,7 +6,7 @@
     "version": "0.2.0",
     "description": "One theme tool: colors for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.",
     "author": "Donkare",
-    "icon": "palette",
+    "icon": "icon.png",
     "requires": {
         "panel": "^2.0.0-dev",
         "sdk": ">=2.0.0-beta.6 <3.0",

@@ -132,8 +132,8 @@ No settings of its own. Its admin screen is Prism Properties.
 | --- | --- | --- | --- | --- |
 | Navigation | `enabled` | Use Prism Layout | `true` | toggle |
 | Navigation | `bars` | Navigation on computers (≥1024px) | `'sidebar_top'` | select |
-| Navigation | `bars_tablet` | Navigation on tablets (768–1023px) | `'same'` | select |
-| Navigation | `bars_mobile` | Navigation on phones (<768px) | `'same'` | select |
+| Navigation | `bars_tablet` | Navigation on tablets (768–1023px) | `'top_dock'` | select |
+| Navigation | `bars_mobile` | Navigation on phones (<768px) | `'dock_expand'` | select |
 | Navigation | `sidebar_width` | Sidebar width | `14` | number |
 | Navigation | `dock_magnify` | Dock icons grow under the pointer | `true` | toggle |
 | Navigation | `group_nav` | Group the server pages | `true` | toggle |

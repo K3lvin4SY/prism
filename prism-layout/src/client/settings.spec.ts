@@ -53,8 +53,13 @@ describe('apply', () => {
 });
 
 describe('navigation per device', () => {
-    it('follows the next size up until a device has its own', () => {
+    it('gives tablets the top bar and dock and phones the expandable dock by default', () => {
         const settings = read({ bars: 'sidebar_top' });
+        expect(['desktop', 'tablet', 'mobile'].map((device) => barsFor(settings, device as Device))).toEqual(['sidebar_top', 'top_dock', 'dock_expand']);
+    });
+
+    it('follows the next size up when set to same', () => {
+        const settings = read({ bars: 'sidebar_top', bars_tablet: 'same', bars_mobile: 'same' });
         expect(['desktop', 'tablet', 'mobile'].map((device) => barsFor(settings, device as Device))).toEqual(['sidebar_top', 'sidebar_top', 'sidebar_top']);
     });
 
@@ -63,9 +68,9 @@ describe('navigation per device', () => {
         expect(['desktop', 'tablet', 'mobile'].map((device) => barsFor(settings, device as Device))).toEqual(['sidebar_top', 'top_dock', 'sidebar']);
     });
 
-    it('gives phones the tablet choice when they have none, and reads the expandable dock', () => {
-        const settings = read({ bars: 'top', bars_tablet: 'dock_expand' });
-        expect(barsFor(settings, 'mobile')).toBe('dock_expand');
-        expect(read({ bars: 'nonsense', bars_mobile: 'nonsense' })).toMatchObject({ bars: 'sidebar_top', bars_mobile: 'same' });
+    it('gives phones the tablet choice when set to same, and falls back to the defaults', () => {
+        const settings = read({ bars: 'top', bars_tablet: 'rail', bars_mobile: 'same' });
+        expect(barsFor(settings, 'mobile')).toBe('rail');
+        expect(read({ bars: 'nonsense', bars_tablet: 'nonsense', bars_mobile: 'nonsense' })).toMatchObject({ bars: 'sidebar_top', bars_tablet: 'top_dock', bars_mobile: 'dock_expand' });
     });
 });

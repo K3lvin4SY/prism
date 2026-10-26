@@ -11,7 +11,7 @@
     },
     "description": "Players, the world map, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.",
     "author": "Donkare",
-    "icon": "blocks",
+    "icon": "icon.png",
     "provider": "PrismMc\\PrismMcProvider",
     "ui": {
         "entry": "dist/client.js",

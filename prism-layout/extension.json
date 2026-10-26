@@ -11,7 +11,7 @@
     },
     "description": "Seven navigation layouts, server card styles, announcements, a Ctrl+K palette, your logo and favicon, and the sign-in page. Works with any theme.",
     "author": "Donkare",
-    "icon": "layout-dashboard",
+    "icon": "icon.png",
     "provider": "PrismLayout\\PrismLayoutProvider",
     "ui": {
         "entry": "dist/client.js",

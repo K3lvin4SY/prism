@@ -81,8 +81,11 @@ for (const folder of folders) {
 
     const composer = lstatSync(join(root, 'composer.json'), { throwIfNoEntry: false }) ? JSON.parse(readFileSync(join(root, 'composer.json'), 'utf8')) : null;
     const autoload = Object.values(manifest.autoload ?? composer?.autoload?.['psr-4'] ?? {}).map((path) => path.replace(/\/+$/, ''));
+    // An image icon named in the manifest (icon.png, say) goes along, as in p:extension:pack.
+    const icon = typeof manifest.icon === 'string' && /\.(png|jpe?g|webp)$/i.test(manifest.icon) && lstatSync(join(root, manifest.icon), { throwIfNoEntry: false })?.isFile() ? [manifest.icon] : [];
     const names = [
         'extension.json',
+        ...icon,
         ...(composer ? ['composer.json'] : []),
         ...[...new Set(['routes', 'database', 'resources', 'dist', 'vendor', ...autoload])].flatMap((directory) => files(root, directory)),
     ];

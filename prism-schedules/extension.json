@@ -11,7 +11,7 @@
     },
     "description": "Better schedules: countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets, a week calendar and run history with live progress.",
     "author": "Donkare",
-    "icon": "calendar-clock",
+    "icon": "icon.png",
     "provider": "PrismSchedules\\PrismSchedulesProvider",
     "ui": {
         "entry": "dist/client.js",

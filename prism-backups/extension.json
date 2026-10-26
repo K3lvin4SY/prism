@@ -11,7 +11,7 @@
     },
     "description": "Better backups: profiles that choose what is backed up, browsing inside a backup, restoring single files, and a .pteroignore editor with a path tester.",
     "author": "Donkare",
-    "icon": "archive",
+    "icon": "icon.png",
     "provider": "PrismBackups\\PrismBackupsProvider",
     "ui": {
         "entry": "dist/client.js",

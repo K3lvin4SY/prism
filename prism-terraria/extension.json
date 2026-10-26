@@ -11,7 +11,7 @@
     },
     "description": "Players, settings, versions, world map, tModLoader mods and TShock plugins for Terraria servers.",
     "author": "Donkare",
-    "icon": "pickaxe",
+    "icon": "icon.png",
     "provider": "PrismTerraria\\PrismTerrariaProvider",
     "ui": {
         "entry": "dist/client.js",

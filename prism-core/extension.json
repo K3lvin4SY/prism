@@ -9,7 +9,7 @@
     },
     "description": "Prism Properties, one admin page for every Prism extension's settings, and the live preview. Every Prism extension needs it.",
     "author": "Donkare",
-    "icon": "sparkles",
+    "icon": "icon.png",
     "ui": {
         "entry": "dist/client.js",
         "mode": "native",
@@ -19,7 +19,7 @@
                 "id": "properties",
                 "area": "admin",
                 "path": "prism",
-                "nav": { "label": "Prism Properties", "icon": "sparkles" }
+                "nav": { "label": "Prism Properties", "icon": "pyramid" }
             }
         ]
     }

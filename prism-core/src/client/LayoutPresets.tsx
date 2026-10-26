@@ -8,7 +8,7 @@ interface Preset {
 }
 
 /** Every setting a preset decides, so picking one gives the same layout whatever was set before. */
-const base = { enabled: true, bars: 'sidebar', bars_tablet: 'same', bars_mobile: 'same', cards: 'banner', width: 'normal', density: 'cozy', group_nav: true, server_card: true, status_style: 'badge', usage_style: 'bars' };
+const base = { enabled: true, bars: 'sidebar', cards: 'banner', width: 'normal', density: 'cozy', group_nav: true, server_card: true, status_style: 'badge', usage_style: 'bars' };
 
 /** Prism Layout's finished arrangements; picking one sets its settings, which can be changed after. */
 export const PRESETS: Preset[] = [

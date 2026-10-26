@@ -11,7 +11,7 @@
     },
     "description": "A better file manager: a VS Code style editor, tabs, a trash bin, bulk actions, previews and an upload queue.",
     "author": "Donkare",
-    "icon": "folder-open",
+    "icon": "icon.png",
     "provider": "PrismFiles\\PrismFilesProvider",
     "ui": {
         "entry": "dist/client.js",

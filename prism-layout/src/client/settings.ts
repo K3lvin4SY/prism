@@ -17,7 +17,7 @@ export type LoginMark = 'logo' | 'mascot' | 'none';
 /** The admin's Prism Layout settings, from Prism Properties; see PrismLayoutProvider for each. */
 export interface LayoutSettings {
     enabled: boolean;
-    /** On computers; tablets and phones follow the next size up unless they have their own. */
+    /** On computers; tablets and phones have their own, or follow the next size up when set to same. */
     bars: Bars;
     bars_tablet: Bars | 'same';
     bars_mobile: Bars | 'same';
@@ -81,8 +81,8 @@ export function read(raw: Record<string, unknown>): LayoutSettings {
     return {
         enabled: bool(raw.enabled, true),
         bars: oneOf(raw.bars, BARS, 'sidebar_top'),
-        bars_tablet: oneOf(raw.bars_tablet, ['same', ...BARS] as const, 'same'),
-        bars_mobile: oneOf(raw.bars_mobile, ['same', ...BARS] as const, 'same'),
+        bars_tablet: oneOf(raw.bars_tablet, ['same', ...BARS] as const, 'top_dock'),
+        bars_mobile: oneOf(raw.bars_mobile, ['same', ...BARS] as const, 'dock_expand'),
         sidebar_width: clamp(raw.sidebar_width, 12, 22, 14),
         dock_magnify: bool(raw.dock_magnify, true),
         group_nav: bool(raw.group_nav, true),
