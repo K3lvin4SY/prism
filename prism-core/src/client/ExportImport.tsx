@@ -52,8 +52,8 @@ export default function ExportImport({ section, installed, theme }: { section: s
     return (
         <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
             <div className={`${box} ppx:flex ppx:items-center ppx:gap-4 ppx:p-4`}>
-                <div className={'ppx:flex ppx:size-11 ppx:shrink-0 ppx:items-center ppx:justify-center ppx:rounded-lg ppx:bg-primary/15 ppx:text-primary'}>
-                    <NamedIcon name={'package'} size={22} />
+                <div className={'ppx:flex ppx:size-17 ppx:shrink-0 ppx:items-center ppx:justify-center ppx:rounded-xl ppx:bg-primary/15 ppx:text-primary'}>
+                    <NamedIcon name={'package'} size={32} />
                 </div>
                 <div className={'ppx:min-w-0'}>
                     <h2 className={'ppx:text-lg ppx:font-semibold'}>Prism Export</h2>

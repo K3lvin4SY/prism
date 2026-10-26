@@ -15,15 +15,18 @@ function useExtensionIcons() {
     });
 }
 
-/** An extension's own picture in its settings header; its icon on a tile until the picture is known, or without one. */
+/**
+ * An extension's own picture in its settings header, as tall as the name and two lines of
+ * description beside it; its icon on a tile until the picture is known, or without one.
+ */
 export default function ExtensionMark({ id, icon }: { id: string; icon: string }) {
     const url = useExtensionIcons().data?.[id];
 
     return url ? (
-        <img src={url} alt={''} className={'ppx:size-11 ppx:shrink-0 ppx:rounded-lg ppx:object-cover'} />
+        <img src={url} alt={''} className={'ppx:size-17 ppx:shrink-0 ppx:rounded-xl ppx:object-cover'} />
     ) : (
-        <div className={'ppx:flex ppx:size-11 ppx:shrink-0 ppx:items-center ppx:justify-center ppx:rounded-lg ppx:bg-primary/15 ppx:text-primary'}>
-            <NamedIcon name={icon} size={22} />
+        <div className={'ppx:flex ppx:size-17 ppx:shrink-0 ppx:items-center ppx:justify-center ppx:rounded-xl ppx:bg-primary/15 ppx:text-primary'}>
+            <NamedIcon name={icon} size={32} />
         </div>
     );
 }
