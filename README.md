@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- Replace assets/icon.svg with the project icon. -->
-<img src="assets/core.png" alt="Prism" width="128" height="128">
+<img src="assets/core_original.png" alt="Prism" width="128" height="128">
 
 # Prism
 
