@@ -108,7 +108,7 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
 
     return (
         <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
-            <div className={cn(box, 'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-3 ppx:p-4')}>
+            <div className={cn(box, 'ppx:flex ppx:flex-wrap ppx:items-start ppx:gap-3 ppx:p-4')}>
                 <ExtensionMark id={THEME_ID} icon={'palette'} />
                 <div className={'ppx:min-w-56 ppx:flex-1'}>
                     <h2 className={'ppx:text-lg ppx:font-semibold'}>Prism Themes</h2>

@@ -52,7 +52,7 @@ export default function ExportImport({ section, installed, theme }: { section: s
 
     return (
         <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
-            <div className={`${box} ppx:flex ppx:items-center ppx:gap-4 ppx:p-4`}>
+            <div className={`${box} ppx:flex ppx:items-start ppx:gap-4 ppx:p-4`}>
                 <ExtensionMark id={'prism-export'} icon={'package'} />
                 <div className={'ppx:min-w-0'}>
                     <h2 className={'ppx:text-lg ppx:font-semibold'}>Prism Export</h2>

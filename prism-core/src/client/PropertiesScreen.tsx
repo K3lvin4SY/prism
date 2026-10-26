@@ -375,7 +375,7 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
 
     return (
         <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
-            <div className={'pt-surface ppx:flex ppx:items-center ppx:gap-4 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
+            <div className={'pt-surface ppx:flex ppx:items-start ppx:gap-4 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
                 <ExtensionMark id={extension.id} icon={extension.icon} />
                 <div className={'ppx:min-w-0'}>
                     <h2 className={'ppx:text-lg ppx:font-semibold'}>{extension.name}</h2>
