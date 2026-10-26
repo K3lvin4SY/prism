@@ -17,10 +17,12 @@ function useExtensionIcons() {
 
 /**
  * An extension's own picture in its settings header, as tall as the name and two lines of
- * description beside it; its icon on a tile until the picture is known, or without one.
+ * description beside it. Without one (Prism Export, say) Prism Core's stands in; its icon on a
+ * tile only until the pictures are known.
  */
 export default function ExtensionMark({ id, icon }: { id: string; icon: string }) {
-    const url = useExtensionIcons().data?.[id];
+    const icons = useExtensionIcons().data;
+    const url = icons?.[id] ?? icons?.['prism-core'];
 
     return url ? (
         <img src={url} alt={''} className={'ppx:size-17 ppx:shrink-0 ppx:rounded-xl ppx:object-cover'} />

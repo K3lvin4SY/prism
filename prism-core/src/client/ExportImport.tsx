@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import ExtensionMark from './ExtensionMark';
 import { NamedIcon } from './icons';
 import { refresh, saveSettings, settingsKey, type PrismExtension, type PrismId, type SettingField } from './api';
 import { describeValue } from './SaveBar';
@@ -52,9 +53,7 @@ export default function ExportImport({ section, installed, theme }: { section: s
     return (
         <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
             <div className={`${box} ppx:flex ppx:items-center ppx:gap-4 ppx:p-4`}>
-                <div className={'ppx:flex ppx:size-17 ppx:shrink-0 ppx:items-center ppx:justify-center ppx:rounded-xl ppx:bg-primary/15 ppx:text-primary'}>
-                    <NamedIcon name={'package'} size={32} />
-                </div>
+                <ExtensionMark id={'prism-export'} icon={'package'} />
                 <div className={'ppx:min-w-0'}>
                     <h2 className={'ppx:text-lg ppx:font-semibold'}>Prism Export</h2>
                     <p className={'ppx:text-sm ppx:text-muted-foreground'}>Save the settings of your Prism extensions to a file, and load them here or on another panel. Uploaded pictures are not included.</p>
