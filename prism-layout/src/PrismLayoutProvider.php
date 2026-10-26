@@ -13,6 +13,18 @@ class PrismLayoutProvider extends ExtensionProvider
 {
     private const array IMAGES = [...ExtensionSettingFiles::IMAGES, 'image/svg+xml'];
 
+    /** The navigation layouts, for computers, tablets and phones alike. */
+    private const array BARS = [
+        'sidebar' => 'Sidebar',
+        'top' => 'Top bar',
+        'dock' => 'Dock',
+        'dock_expand' => 'Expandable dock',
+        'sidebar_top' => 'Sidebar and top bar',
+        'rail' => 'Icon rail',
+        'rail_top' => 'Icon rail and top bar',
+        'top_dock' => 'Top bar and dock',
+    ];
+
     private const array FAVICON_TYPES = ['image/png', 'image/x-icon', 'image/svg+xml', 'image/webp', 'image/gif'];
 
     public function boot(): void
@@ -32,7 +44,9 @@ class PrismLayoutProvider extends ExtensionProvider
         $settings = [
             // Navigation
             $toggle('enabled', true, 'Use Prism Layout', 'Navigation', 'Off gives the panel its own layout back, keeping the logo, favicon and sign-in page.'),
-            Setting::make('bars', 'bars', 'sidebar_top', ['required', 'string', 'in:sidebar,top,dock,sidebar_top,rail,rail_top,top_dock'])->label('Navigation')->tab('Navigation')->field('select', $options(['sidebar' => 'Sidebar', 'top' => 'Top bar', 'dock' => 'Dock', 'sidebar_top' => 'Sidebar and top bar', 'rail' => 'Icon rail', 'rail_top' => 'Icon rail and top bar', 'top_dock' => 'Top bar and dock']))->frontend(),
+            Setting::make('bars', 'bars', 'sidebar_top', ['required', 'string', 'in:'.implode(',', array_keys(self::BARS))])->label('Navigation on computers')->help('Screens 1024 pixels wide and more.')->tab('Navigation')->field('select', $options(self::BARS))->frontend(),
+            Setting::make('bars_tablet', 'bars_tablet', 'same', ['required', 'string', 'in:same,'.implode(',', array_keys(self::BARS))])->label('Navigation on tablets')->help('Screens 768 to 1023 pixels wide.')->tab('Navigation')->field('select', $options(['same' => 'Same as on computers'] + self::BARS))->frontend(),
+            Setting::make('bars_mobile', 'bars_mobile', 'same', ['required', 'string', 'in:same,'.implode(',', array_keys(self::BARS))])->label('Navigation on phones')->help('Screens narrower than 768 pixels. A sidebar or icon rail opens from a menu button there.')->tab('Navigation')->field('select', $options(['same' => 'Same as on tablets'] + self::BARS))->frontend(),
             Setting::make('sidebar_width', 'sidebar_width', 14, ['required', 'integer', 'min:12', 'max:22'])->label('Sidebar width')->help('In rem; 16 is about 256 pixels.')->tab('Navigation')->field('number')->frontend(),
             $toggle('dock_magnify', true, 'Dock icons grow under the pointer', 'Navigation'),
             $toggle('group_nav', true, 'Group the server pages', 'Navigation', 'Manage, Files and data, and Configuration.'),

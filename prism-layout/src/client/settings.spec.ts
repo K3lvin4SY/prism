@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { apply, cssString, cssUrlToken, getSettings, read } from './settings';
+import { apply, barsFor, cssString, cssUrlToken, getSettings, read, type Device } from './settings';
 
 describe('read', () => {
     it('falls back to the defaults', () => {
@@ -49,5 +49,23 @@ describe('apply', () => {
         (window as unknown as { PterodactylUser?: unknown }).PterodactylUser = { uuid: 'x' };
         apply(read({ login_style: 'backdrop' }));
         expect(root.dataset.plaSignin).toBeUndefined();
+    });
+});
+
+describe('navigation per device', () => {
+    it('follows the next size up until a device has its own', () => {
+        const settings = read({ bars: 'sidebar_top' });
+        expect(['desktop', 'tablet', 'mobile'].map((device) => barsFor(settings, device as Device))).toEqual(['sidebar_top', 'sidebar_top', 'sidebar_top']);
+    });
+
+    it('lets tablets and phones choose their own', () => {
+        const settings = read({ bars: 'sidebar_top', bars_tablet: 'top_dock', bars_mobile: 'sidebar' });
+        expect(['desktop', 'tablet', 'mobile'].map((device) => barsFor(settings, device as Device))).toEqual(['sidebar_top', 'top_dock', 'sidebar']);
+    });
+
+    it('gives phones the tablet choice when they have none, and reads the expandable dock', () => {
+        const settings = read({ bars: 'top', bars_tablet: 'dock_expand' });
+        expect(barsFor(settings, 'mobile')).toBe('dock_expand');
+        expect(read({ bars: 'nonsense', bars_mobile: 'nonsense' })).toMatchObject({ bars: 'sidebar_top', bars_mobile: 'same' });
     });
 });

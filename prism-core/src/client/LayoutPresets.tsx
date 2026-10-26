@@ -8,7 +8,7 @@ interface Preset {
 }
 
 /** Every setting a preset decides, so picking one gives the same layout whatever was set before. */
-const base = { enabled: true, bars: 'sidebar', cards: 'banner', width: 'normal', density: 'cozy', group_nav: true, server_card: true, status_style: 'badge', usage_style: 'bars' };
+const base = { enabled: true, bars: 'sidebar', bars_tablet: 'same', bars_mobile: 'same', cards: 'banner', width: 'normal', density: 'cozy', group_nav: true, server_card: true, status_style: 'badge', usage_style: 'bars' };
 
 /** Prism Layout's finished arrangements; picking one sets its settings, which can be changed after. */
 export const PRESETS: Preset[] = [
@@ -55,7 +55,7 @@ function Wireframe({ settings }: { settings: Record<string, unknown> }) {
     const bars = classic ? 'top' : String(settings.bars);
     const side = bars === 'sidebar' || bars === 'sidebar_top' ? 20 : bars === 'rail' || bars === 'rail_top' ? 7 : 0;
     const top = bars === 'top' || bars.endsWith('_top') || bars === 'top_dock';
-    const dock = bars === 'dock' || bars === 'top_dock';
+    const dock = bars === 'dock' || bars === 'top_dock' || bars === 'dock_expand';
     const inset = settings.width === 'full' ? 2 : settings.width === 'wide' ? 4 : 8;
     const left = side + inset;
     const span = 100 - left - inset;

@@ -1,10 +1,12 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { onDraft, readDraft } from './configStore';
 import { http, notifyThemeChange, type ExtensionConfig } from '@pterodactyl/sdk';
 import { gameTag } from './dashboard';
 
-export type Bars = 'sidebar' | 'top' | 'dock' | 'sidebar_top' | 'rail' | 'rail_top' | 'top_dock';
+export type Bars = 'sidebar' | 'top' | 'dock' | 'dock_expand' | 'sidebar_top' | 'rail' | 'rail_top' | 'top_dock';
+
+const BARS = ['sidebar', 'top', 'dock', 'dock_expand', 'sidebar_top', 'rail', 'rail_top', 'top_dock'] as const;
 export type GameMark = 'none' | 'color' | 'logo';
 
 export type CardStyle = 'banner' | 'tile' | 'neon' | 'minimal' | 'compact' | 'outline' | 'rows';
@@ -15,7 +17,10 @@ export type LoginMark = 'logo' | 'mascot' | 'none';
 /** The admin's Prism Layout settings, from Prism Properties; see PrismLayoutProvider for each. */
 export interface LayoutSettings {
     enabled: boolean;
+    /** On computers; tablets and phones follow the next size up unless they have their own. */
     bars: Bars;
+    bars_tablet: Bars | 'same';
+    bars_mobile: Bars | 'same';
     sidebar_width: number;
     dock_magnify: boolean;
     group_nav: boolean;
@@ -75,7 +80,9 @@ const clamp = (value: unknown, min: number, max: number, fallback: number) => {
 export function read(raw: Record<string, unknown>): LayoutSettings {
     return {
         enabled: bool(raw.enabled, true),
-        bars: oneOf(raw.bars, ['sidebar', 'top', 'dock', 'sidebar_top', 'rail', 'rail_top', 'top_dock'] as const, 'sidebar_top'),
+        bars: oneOf(raw.bars, BARS, 'sidebar_top'),
+        bars_tablet: oneOf(raw.bars_tablet, ['same', ...BARS] as const, 'same'),
+        bars_mobile: oneOf(raw.bars_mobile, ['same', ...BARS] as const, 'same'),
         sidebar_width: clamp(raw.sidebar_width, 12, 22, 14),
         dock_magnify: bool(raw.dock_magnify, true),
         group_nav: bool(raw.group_nav, true),
@@ -219,4 +226,36 @@ export function useEggColor(): (tags: readonly string[] | undefined) => string |
     }).data;
 
     return useCallback((tags: readonly string[] | undefined) => eggColor(tags, colors), [colors]);
+}
+
+export type Device = 'desktop' | 'tablet' | 'mobile';
+
+/** Phones are narrower than 768 pixels and tablets than 1024, as Tailwind's md and lg. */
+const TABLET = '(min-width: 768px)';
+const DESKTOP = '(min-width: 1024px)';
+
+const deviceNow = (): Device => (typeof window === 'undefined' || window.matchMedia(DESKTOP).matches ? 'desktop' : window.matchMedia(TABLET).matches ? 'tablet' : 'mobile');
+
+/** The kind of device the page is shown on, by its width, following resizes and turns. */
+export function useDevice(): Device {
+    const [device, setDevice] = useState(deviceNow);
+
+    useEffect(() => {
+        const queries = [window.matchMedia(TABLET), window.matchMedia(DESKTOP)];
+        const update = () => setDevice(deviceNow());
+        queries.forEach((query) => query.addEventListener('change', update));
+
+        return () => queries.forEach((query) => query.removeEventListener('change', update));
+    }, []);
+
+    return device;
+}
+
+/** The navigation for a device: phones follow tablets and tablets follow computers unless set. */
+export function barsFor(settings: LayoutSettings, device: Device): Bars {
+    const tablet = settings.bars_tablet === 'same' ? settings.bars : settings.bars_tablet;
+    if (device === 'desktop') return settings.bars;
+    if (device === 'tablet') return tablet;
+
+    return settings.bars_mobile === 'same' ? tablet : settings.bars_mobile;
 }

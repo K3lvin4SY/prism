@@ -17,6 +17,8 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
     'prism-layout': {
         enabled: { section: 'Prism Layout' },
         bars: { section: 'Bars' },
+        bars_tablet: { section: 'Bars' },
+        bars_mobile: { section: 'Bars' },
         sidebar_width: { section: 'Bars', slider: { min: 12, max: 22, unit: ' rem' } },
         dock_magnify: { section: 'Bars' },
         group_nav: { section: 'In the navigation' },

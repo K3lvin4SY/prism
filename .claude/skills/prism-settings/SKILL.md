@@ -131,7 +131,9 @@ No settings of its own. Its admin screen is Prism Properties.
 | Tab | Key | Label | Default | Field |
 | --- | --- | --- | --- | --- |
 | Navigation | `enabled` | Use Prism Layout | `true` | toggle |
-| Navigation | `bars` | Navigation | `'sidebar_top'` | select |
+| Navigation | `bars` | Navigation on computers (≥1024px) | `'sidebar_top'` | select |
+| Navigation | `bars_tablet` | Navigation on tablets (768–1023px) | `'same'` | select |
+| Navigation | `bars_mobile` | Navigation on phones (<768px) | `'same'` | select |
 | Navigation | `sidebar_width` | Sidebar width | `14` | number |
 | Navigation | `dock_magnify` | Dock icons grow under the pointer | `true` | toggle |
 | Navigation | `group_nav` | Group the server pages | `true` | toggle |
@@ -209,6 +211,7 @@ No settings of its own. Its admin screen is Prism Properties.
 
 ## Notes on particular settings
 
+- **Prism Layout navigation**: `bars`, `bars_tablet`, `bars_mobile` take `sidebar`, `top`, `dock`, `dock_expand` (expandable dock: main pages plus a button that opens the area's pages upwards), `sidebar_top`, `rail`, `rail_top`, `top_dock`; tablets and phones also `same` (follow the next size up). `barsFor(settings, useDevice())` in `prism-layout/src/client/settings.ts` picks the one for the device; on phones a sidebar or rail opens from a menu button, on tablets and computers it sits beside the page.
 - **Prism Layout `egg_colors`** is `none`, `color` or `logo`; older saved booleans read as `color` (true) or `none` (false). Logos show on Rows cards only; egg logos are uploaded per egg in Prism Properties (stored in `prism_layout_pictures`, kind `egg-logo`), with built-in tag defaults in `prism-layout/src/client/logos/`. Card colors come from the Panel's tag colors (`/api/client/extensions/prism-layout/tags`).
 - **Prism Console** settings are defaults; people's own choices (`allow_*`) are stored as preferences and win.
 - **Prism File Browser** editor settings and `keybinds` are defaults; people override them in the editor's settings tab when `allow_editor_settings` is on. `hidden_paths`/`protected_paths` are newline lists of glob patterns, enforced by its PHP.

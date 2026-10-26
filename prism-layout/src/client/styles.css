@@ -86,45 +86,44 @@ html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:has(+ .pla-dock-ite
 }
 /* #endregion dock */
 
-/* #region the folding sidebar: one element easing between the sidebar's width and the rail's */
-@media (min-width: 1024px) {
-    .pla-fold {
-        width: var(--pla-sidebar-width, 16rem);
-        transition: width 200ms ease;
-    }
+/* #region the folding sidebar: one element easing between the sidebar's width and the rail's; it is
+   only drawn beside the page (on a phone a sidebar is a menu instead) */
+.pla-fold {
+    width: var(--pla-sidebar-width, 16rem);
+    transition: width 200ms ease;
+}
 
-    .pla-fold[data-folded='true'] {
-        width: 4rem;
-    }
+.pla-fold[data-folded='true'] {
+    width: 4rem;
+}
 
-    .pla-fold-label {
-        transition: opacity 150ms ease;
-        white-space: nowrap;
-    }
+.pla-fold-label {
+    transition: opacity 150ms ease;
+    white-space: nowrap;
+}
 
-    .pla-fold[data-folded='true'] .pla-fold-label {
-        opacity: 0;
-        pointer-events: none;
-    }
+.pla-fold[data-folded='true'] .pla-fold-label {
+    opacity: 0;
+    pointer-events: none;
+}
 
-    /* A heading keeps its height when folded, as a line, so the pages under it stay put. */
-    .pla-fold-heading {
-        transition: color 150ms ease;
-    }
+/* A heading keeps its height when folded, as a line, so the pages under it stay put. */
+.pla-fold-heading {
+    transition: color 150ms ease;
+}
 
-    .pla-fold[data-folded='true'] .pla-fold-heading {
-        color: transparent;
-    }
+.pla-fold[data-folded='true'] .pla-fold-heading {
+    color: transparent;
+}
 
-    .pla-fold[data-folded='true'] .pla-fold-heading::before {
-        content: '';
-        position: absolute;
-        right: 0.5rem;
-        bottom: 0.6rem;
-        left: 0.5rem;
-        height: 1px;
-        background: var(--border);
-    }
+.pla-fold[data-folded='true'] .pla-fold-heading::before {
+    content: '';
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.6rem;
+    left: 0.5rem;
+    height: 1px;
+    background: var(--border);
 }
 
 @media (prefers-reduced-motion: reduce) {

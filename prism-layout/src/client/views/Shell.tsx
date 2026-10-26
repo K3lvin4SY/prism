@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Avatar, PanelLink, SpinnerOverlay, cn, usePanelLocation } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import { Main, type AppLayoutModel, type ViewProps } from '@pterodactyl/sdk/theme';
 import { remember } from '../dashboard';
-import { cssString, useSettings, type Bars } from '../settings';
+import { barsFor, cssString, useDevice, useSettings, type Bars } from '../settings';
 import Announcement from './Announcement';
 import CommandPalette from './CommandPalette';
 import DashboardPanel from './DashboardPanel';
@@ -13,7 +13,7 @@ const has = {
     sidebar: (bars: Bars) => bars === 'sidebar' || bars === 'sidebar_top',
     rail: (bars: Bars) => bars === 'rail' || bars === 'rail_top',
     top: (bars: Bars) => bars === 'top' || bars === 'sidebar_top' || bars === 'rail_top' || bars === 'top_dock',
-    dock: (bars: Bars) => bars === 'dock' || bars === 'top_dock',
+    dock: (bars: Bars) => bars === 'dock' || bars === 'top_dock' || bars === 'dock_expand',
 };
 
 /** The logo, beside or instead of the name as Prism Branding says; a square one where space is tight. */
@@ -86,8 +86,11 @@ export default function Shell({ model: panelModel, children, Default }: ViewProp
     const [palette, setPalette] = useState(false);
     const [collapsed, setCollapsed] = useState(readCollapsed);
     const area = model.area;
+    // Each kind of device can have its own navigation; phones get sidebars as a menu.
+    const device = useDevice();
+    const inline = device !== 'mobile';
 
-    useEffect(() => setDrawer(false), [pathname]);
+    useEffect(() => setDrawer(false), [pathname, inline]);
     useEffect(() => {
         if (area.kind === 'server') remember({ identifier: area.identifier, name: area.name });
     }, [area]);
@@ -95,18 +98,17 @@ export default function Shell({ model: panelModel, children, Default }: ViewProp
     // Off, or in an admin area kept as it was: the panel's own frame, with the logo choice.
     if (!settings.enabled || (area.kind === 'admin' && !settings.admin_styled)) return <PanelFrame model={model} Default={Default} />;
 
-    // A collapsible sidebar is one element that narrows into a rail, so nothing jumps.
-    const collapsible = settings.sidebar_collapse && has.sidebar(settings.bars);
+    const bars: Bars = barsFor(settings, device);
+    // A collapsible sidebar is one element that narrows into a rail, so nothing jumps; on a phone it is a menu.
+    const collapsible = settings.sidebar_collapse && has.sidebar(bars) && inline;
     const folded = collapsible && collapsed;
-    // The phone drawer always opens wide.
-    const narrow = folded && !drawer;
-    const bars: Bars = settings.bars;
+    const narrow = folded;
     const toggle = () => {
         setCollapsed(!collapsed);
         writeCollapsed(!collapsed);
     };
     const collapseButton = collapsible && (
-        <button type='button' onClick={toggle} className={cn(itemClass('icons'), 'pla:hidden pla:shrink-0 pla:lg:flex')} title={folded ? 'Expand the sidebar' : 'Collapse the sidebar'} aria-label={folded ? 'Expand the sidebar' : 'Collapse the sidebar'} aria-expanded={!folded}>
+        <button type='button' onClick={toggle} className={cn(itemClass('icons'), 'pla:shrink-0')} title={folded ? 'Expand the sidebar' : 'Collapse the sidebar'} aria-label={folded ? 'Expand the sidebar' : 'Collapse the sidebar'} aria-expanded={!folded}>
             <NamedIcon name={folded ? 'panel-left-open' : 'panel-left-close'} size={17} />
         </button>
     );
@@ -114,6 +116,8 @@ export default function Shell({ model: panelModel, children, Default }: ViewProp
     const side = has.sidebar(bars) || has.rail(bars);
     const brandSide = settings.brand_place === 'sidebar' && has.top(bars) && side;
     const brandInSide = !has.top(bars) || brandSide;
+    // Beside the page, or a drawer opened from the menu button.
+    const placed = (width: string, drawerWidth: string) => (inline ? cn('pla:sticky pla:top-0 pla:flex pla:h-dvh pla:shrink-0', width) : drawer ? cn('pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:overflow-y-auto', drawerWidth) : 'pla:hidden');
 
     const links = [1, 2, 3]
         .map((n) => ({ label: String(settings[`link${n}_label` as keyof typeof settings] ?? ''), url: String(settings[`link${n}_url` as keyof typeof settings] ?? '') }))
@@ -125,7 +129,7 @@ export default function Shell({ model: panelModel, children, Default }: ViewProp
     const foldLogo = settings.logo_mode !== 'name' && model.brand.logoUrl !== null;
 
     const sidebar = (
-        <aside className={cn('pt-bar pla:flex-col pla:gap-4 pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:p-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-sidebar pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-72' : 'pla:hidden')}>
+        <aside className={cn('pt-bar pla:flex-col pla:gap-4 pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:p-3', placed('pla:w-sidebar', 'pla:w-72'))}>
             {(brandInSide || (collapseButton && !has.top(bars))) && (
                 <div className='pla:flex pla:items-center pla:gap-1'>
                     {brandInSide && (
@@ -152,7 +156,7 @@ export default function Shell({ model: panelModel, children, Default }: ViewProp
     );
 
     const rail = (
-        <aside className={cn('pt-bar pla:flex-col pla:items-center pla:gap-3 pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:w-16 pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-16 pla:overflow-y-auto' : 'pla:hidden')}>
+        <aside className={cn('pt-bar pla:flex-col pla:items-center pla:gap-3 pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3', placed('pla:w-16', 'pla:w-16'))}>
             {brandInSide && <Brand model={model} compact />}
             {!has.top(bars) && collapseButton}
             {!has.top(bars) && (
@@ -177,7 +181,7 @@ export default function Shell({ model: panelModel, children, Default }: ViewProp
      * pages line up in both widths.
      */
     const foldSidebar = (
-        <aside data-folded={narrow} className={cn('pt-bar pla-fold pla:flex-col pla:gap-3 pla:overflow-x-hidden pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3 pla:lg:sticky pla:lg:top-0 pla:lg:flex pla:lg:h-dvh pla:lg:shrink-0', drawer ? 'pla:fixed pla:inset-y-0 pla:left-0 pla:z-40 pla:flex pla:w-72' : 'pla:hidden')}>
+        <aside data-folded={narrow} className={cn('pt-bar pla-fold pla:sticky pla:top-0 pla:flex pla:h-dvh pla:shrink-0 pla:flex-col pla:gap-3 pla:overflow-x-hidden pla:overflow-y-auto pla:border-r pla:border-sidebar-border pla:bg-sidebar pla:px-2 pla:py-3')}>
             {(brandInSide || !has.top(bars)) && (
                 <>
                     <div className={cn('pla:flex pla:h-10 pla:shrink-0 pla:items-center pla:gap-1', narrow && !(brandInSide && foldLogo) && 'pla:justify-center')}>
@@ -220,14 +224,14 @@ export default function Shell({ model: panelModel, children, Default }: ViewProp
                  * the page is wide enough for the margins to hold it, the row makes room. The menu
                  * button takes its place on narrow screens.
                  */}
-                {collapseButton && <div className='pla:absolute pla:inset-y-0 pla:left-3 pla:z-10 pla:hidden pla:items-center pla:lg:flex'>{collapseButton}</div>}
-                <div className={cn('pla:mx-auto pla:flex pla:h-14 pla:w-full pla:min-w-0 pla:max-w-panel pla:items-center pla:gap-3 pla:px-3', collapseButton && 'pla:lg:pl-16 pla:2xl:pl-3')}>
-                    {(has.sidebar(bars) || has.rail(bars)) && (
-                        <button type='button' onClick={() => setDrawer(!drawer)} className={cn(itemClass('icons'), 'pla:lg:hidden')} aria-label='Menu' aria-expanded={drawer}>
+                {collapseButton && <div className='pla:absolute pla:inset-y-0 pla:left-3 pla:z-10 pla:flex pla:items-center'>{collapseButton}</div>}
+                <div className={cn('pla:mx-auto pla:flex pla:h-14 pla:w-full pla:min-w-0 pla:max-w-panel pla:items-center pla:gap-3 pla:px-3', collapseButton && 'pla:pl-16 pla:2xl:pl-3')}>
+                    {(has.sidebar(bars) || has.rail(bars)) && !inline && (
+                        <button type='button' onClick={() => setDrawer(!drawer)} className={itemClass('icons')} aria-label='Menu' aria-expanded={drawer}>
                             <NamedIcon name='menu' size={18} />
                         </button>
                     )}
-                    <div className={cn('pla:min-w-0', brandSide && 'pla:lg:hidden')}>
+                    <div className={cn('pla:min-w-0', brandSide && inline && 'pla:hidden')}>
                         <Brand model={model} />
                     </div>
                     <nav aria-label='Main' className='pla:flex pla:min-w-0 pla:flex-1 pla:items-center pla:gap-1 pla:overflow-x-auto'>
@@ -282,15 +286,15 @@ export default function Shell({ model: panelModel, children, Default }: ViewProp
     return (
         <div className='pla:flex pla:min-h-dvh'>
             <SpinnerOverlay visible={model.signingOut} fixed />
-            {drawer && <button type='button' aria-label='Close the menu' className='pla:fixed pla:inset-0 pla:z-30 pla:bg-black/40 pla:lg:hidden' onClick={() => setDrawer(false)} />}
+            {drawer && !inline && <button type='button' aria-label='Close the menu' className='pla:fixed pla:inset-0 pla:z-30 pla:bg-black/40' onClick={() => setDrawer(false)} />}
             {has.sidebar(bars) && (collapsible ? foldSidebar : sidebar)}
             {has.rail(bars) && rail}
             <div className='pla:flex pla:min-w-0 pla:flex-1 pla:flex-col'>
-                {has.top(bars) ? top : bars === 'dock' ? smallHeader : <MobileBar model={model} onMenu={() => setDrawer(!drawer)} open={drawer} />}
+                {has.top(bars) ? top : bars === 'dock' || bars === 'dock_expand' ? smallHeader : !inline && <MobileBar model={model} onMenu={() => setDrawer(!drawer)} open={drawer} />}
                 <Announcement model={model} />
                 <Main className={cn('pla:min-w-0 pla:flex-1', has.dock(bars) && 'pla:pb-24')}>{children as ReactNode}</Main>
             </div>
-            {has.dock(bars) && dock}
+            {has.dock(bars) && (bars === 'dock_expand' ? <ExpandableDock model={model} links={links} /> : dock)}
             {settings.command_palette && <CommandPalette model={model} open={palette} onOpen={() => setPalette(true)} onClose={() => setPalette(false)} />}
         </div>
     );
@@ -345,10 +349,76 @@ function DockArea({ model }: { model: AppLayoutModel }) {
     );
 }
 
+/**
+ * The expandable dock: the main pages (dashboard, admin, account) and a button that opens the
+ * rest upwards, the area's pages as a list, so the dock stays small whatever the area has.
+ */
+function ExpandableDock({ model, links }: { model: AppLayoutModel; links: { label: string; url: string }[] }) {
+    const settings = useSettings();
+    const { pathname } = usePanelLocation();
+    const [open, setOpen] = useState(false);
+    const box = useRef<HTMLDivElement>(null);
+    const area = model.area;
+    const dashboard = settings.dashboard_panel && area.kind === 'dashboard';
+    const more = area.kind !== 'dashboard' || dashboard || links.length > 0;
+
+    useEffect(() => setOpen(false), [pathname]);
+    useEffect(() => {
+        if (!open) return;
+        const away = (event: MouseEvent) => !box.current?.contains(event.target as Node) && setOpen(false);
+        const escape = (event: KeyboardEvent) => event.key === 'Escape' && setOpen(false);
+        document.addEventListener('mousedown', away);
+        document.addEventListener('keydown', escape);
+
+        return () => {
+            document.removeEventListener('mousedown', away);
+            document.removeEventListener('keydown', escape);
+        };
+    }, [open]);
+
+    return (
+        <nav aria-label='Dock' className='pla:pointer-events-none pla:fixed pla:inset-x-0 pla:bottom-3 pla:z-30 pla:flex pla:justify-center pla:px-3'>
+            <div ref={box} className='pla:pointer-events-auto pla:flex pla:max-w-full pla:flex-col pla:items-center pla:gap-2'>
+                {open && (
+                    <div id='pla-dock-more' className='pt-surface pt-overlay pla:flex pla:max-h-[min(65dvh,36rem)] pla:w-[min(24rem,calc(100vw-1.5rem))] pla:flex-col pla:gap-3 pla:overflow-y-auto pla:rounded-2xl pla:border pla:border-border pla:bg-sidebar/95 pla:p-3 pla:shadow-xl pla:backdrop-blur'>
+                        {area.kind === 'server' && settings.server_card && <ServerCard area={area} />}
+                        {dashboard && <DashboardPanel variant='list' />}
+                        <AreaNav area={area} variant='list' grouped={settings.group_nav} />
+                        <FooterLinks links={links} variant='list' />
+                    </div>
+                )}
+                <div className='pt-bar pla-dock pla:flex pla:max-w-full pla:items-end pla:gap-1 pla:rounded-2xl pla:border pla:border-border pla:bg-sidebar/90 pla:px-2 pla:py-1.5 pla:shadow-xl pla:backdrop-blur'>
+                    {model.links.map((link) => (
+                        <PanelLink key={link.id} destination={link.destination} exact={link.exact} className={cn(itemClass('icons'), 'pla-dock-item')} title={link.label} aria-label={link.label}>
+                            <NamedIcon name={link.icon} size={18} />
+                        </PanelLink>
+                    ))}
+                    {more && (
+                        <>
+                            <span className='pla:mx-1 pla:h-8 pla:w-px pla:self-center pla:bg-border' />
+                            <button
+                                type='button'
+                                onClick={() => setOpen(!open)}
+                                aria-expanded={open}
+                                aria-controls='pla-dock-more'
+                                title={open ? 'Close' : 'More'}
+                                aria-label={open ? 'Close the menu' : 'More pages'}
+                                className={cn(itemClass('icons'), 'pla-dock-item', open && 'pla:bg-sidebar-accent pla:text-foreground')}
+                            >
+                                <NamedIcon name={open ? 'chevron-down' : 'layout-grid'} size={18} />
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
+        </nav>
+    );
+}
+
 /** On phones, a bar with the menu button for the sidebar and rail layouts. */
 function MobileBar({ model, onMenu, open }: { model: AppLayoutModel; onMenu: () => void; open: boolean }) {
     return (
-        <div className='pt-bar pla:sticky pla:top-0 pla:z-30 pla:flex pla:h-12 pla:items-center pla:gap-2 pla:border-b pla:border-border pla:bg-sidebar pla:px-2 pla:lg:hidden'>
+        <div className='pt-bar pla:sticky pla:top-0 pla:z-30 pla:flex pla:h-12 pla:items-center pla:gap-2 pla:border-b pla:border-border pla:bg-sidebar pla:px-2'>
             <button type='button' onClick={onMenu} className={itemClass('icons')} aria-label='Menu' aria-expanded={open}>
                 <NamedIcon name='menu' size={18} />
             </button>
