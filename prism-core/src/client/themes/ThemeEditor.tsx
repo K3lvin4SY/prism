@@ -4,6 +4,7 @@ import { Alert, Button, Dialog, Input, Select, Spinner, cn, httpErrorToHuman, to
 import { NamedIcon } from '../icons';
 import { ToggleRow } from '../editors';
 import { reloadPreview, usePreviewDraft, usePreviewNote } from '../preview';
+import ExtensionMark from '../ExtensionMark';
 import SaveBar, { describeValue } from '../SaveBar';
 import { THEME_ID, optionsOf, themeApi, themeKeys, type ThemeSetting } from './api';
 import { contrast, normaliseColor, toHex, toOklch } from './color';
@@ -108,9 +109,7 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
     return (
         <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
             <div className={cn(box, 'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-3 ppx:p-4')}>
-                <div className={'ppx:flex ppx:size-11 ppx:shrink-0 ppx:items-center ppx:justify-center ppx:rounded-lg ppx:bg-primary/15 ppx:text-primary'}>
-                    <NamedIcon name={'palette'} size={22} />
-                </div>
+                <ExtensionMark id={THEME_ID} icon={'palette'} />
                 <div className={'ppx:min-w-56 ppx:flex-1'}>
                     <h2 className={'ppx:text-lg ppx:font-semibold'}>Prism Themes</h2>
                     <p className={'ppx:text-sm ppx:text-muted-foreground'}>

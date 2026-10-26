@@ -30,7 +30,7 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-backups', name: 'Prism Backups', icon: 'archive', description: 'Backup profiles, browsing inside backups, restoring single files and a .pteroignore editor.' },
     { id: 'prism-schedules', name: 'Prism Schedules', icon: 'calendar-clock', description: 'Schedules with countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets and a calendar.' },
     { id: 'prism-mc', name: 'Prism MC', icon: 'blocks', description: 'Players, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.' },
-    { id: 'prism-terraria', name: 'Prism Terraria', icon: 'pickaxe', description: 'Players, settings, versions, the world map, tModLoader mods and TShock plugins for Terraria servers.' },
+    { id: 'prism-terraria', name: 'Prism Terraria', icon: 'tree-pine', description: 'Players, settings, versions, the world map, tModLoader mods and TShock plugins for Terraria servers.' },
 ];
 
 export const settingsKey = (id: PrismId) => ['prism-core', 'settings', id] as const;

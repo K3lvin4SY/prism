@@ -7,6 +7,7 @@ import BrandingPreview from './BrandingPreview';
 import SaveBar, { describeValue } from './SaveBar';
 import DateTimeField from './DateTimeField';
 import EggPictures from './EggPictures';
+import ExtensionMark from './ExtensionMark';
 import ExportImport from './ExportImport';
 import LayoutPresets from './LayoutPresets';
 import { PreviewControls, closePreview, usePreviewDraft } from './preview';
@@ -375,9 +376,7 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
     return (
         <div className={'ppx:flex ppx:flex-col ppx:gap-4'}>
             <div className={'pt-surface ppx:flex ppx:items-center ppx:gap-4 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-4'}>
-                <div className={'ppx:flex ppx:size-11 ppx:shrink-0 ppx:items-center ppx:justify-center ppx:rounded-lg ppx:bg-primary/15 ppx:text-primary'}>
-                    <NamedIcon name={extension.icon} size={22} />
-                </div>
+                <ExtensionMark id={extension.id} icon={extension.icon} />
                 <div className={'ppx:min-w-0'}>
                     <h2 className={'ppx:text-lg ppx:font-semibold'}>{extension.name}</h2>
                     <p className={'ppx:text-sm ppx:text-muted-foreground'}>{extension.description}</p>
