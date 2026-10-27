@@ -82,7 +82,7 @@ Each extension supports the same scripts:
 The [`scripts/`](scripts) folder holds helpers for deploying to a Panel running under Portainer, calling the Panel API and generating game data. For example:
 
 ```bash
-PORTAINER_PASS=... node scripts/deploy.mjs --ext prism-files
+PORTAINER_API_TOKEN=... node scripts/deploy.mjs --ext prism-files
 ```
 
 ## Project structure

@@ -17,7 +17,7 @@ node --env-file=.env scripts/deploy.mjs --ext <folder> --skip-build
 node --env-file=.env scripts/deploy.mjs --ext <folder> --doctor     # also p:extension:doctor (manifest checks)
 ```
 
-- `.env` holds `PORTAINER_PASS`. `scripts/portainer.mjs` reaches the Panel container (`PORTAINER_URL`, `PORTAINER_ENDPOINT`, `PANEL_CONTAINER`, `PORTAINER_USER` have defaults).
+- `.env` holds `PORTAINER_API_TOKEN` (a Portainer access token; it acts as its owner, so no username is needed). `scripts/portainer.mjs` reaches the Panel container (`PORTAINER_URL`, `PORTAINER_ENDPOINT`, `PANEL_CONTAINER` have defaults).
 - The folder name is the extension id. The last line of the output is the `p:extension:list` row: it should say `enabled` with no error.
 - Deploy **prism-core first** when its manifest or the shared files change; every other extension requires it.
 - After deploying, a page that was loaded mid-deploy can show a 404 or miss screens: reload.
