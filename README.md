@@ -5,7 +5,7 @@
 
 # Prism
 
-**A suite of extensions for the Pterodactyl Panel: better tools for every server, plus built-in support for Minecraft and Terraria.**
+**A suite of extensions for the Pterodactyl Panel: better tools for every server, plus built-in support for Minecraft, Terraria and Core Keeper.**
 
 ![Pterodactyl](https://img.shields.io/badge/Pterodactyl-2.0-0e4688)
 ![PHP](https://img.shields.io/badge/PHP-8.3-777bb4)
