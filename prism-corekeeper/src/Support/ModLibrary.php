@@ -86,7 +86,8 @@ final class ModLibrary
             }
 
             foreach ($entries as $name => $entry) {
-                if ($entry['file'] || count($folders) >= 100) {
+                // The Prism server mod is turned on and off in Properties, not here.
+                if ($entry['file'] || $name === basename(ServerMod::FOLDER) || count($folders) >= 100) {
                     continue;
                 }
 

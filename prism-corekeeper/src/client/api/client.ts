@@ -19,7 +19,9 @@ export const keys = {
     properties: (server: string) => ['prism-corekeeper', server, 'properties'] as const,
     players: (server: string) => ['prism-corekeeper', server, 'players'] as const,
     versions: (server: string) => ['prism-corekeeper', server, 'versions'] as const,
-    world: (server: string) => ['prism-corekeeper', server, 'world'] as const,
+    map: (server: string) => ['prism-corekeeper', server, 'map'] as const,
+    player: (server: string, player: string) => ['prism-corekeeper', server, 'players', player] as const,
+    serverMod: (server: string) => ['prism-corekeeper', server, 'servermod'] as const,
     mods: (server: string) => ['prism-corekeeper', server, 'mods'] as const,
 };
 

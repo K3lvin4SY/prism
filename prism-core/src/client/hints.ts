@@ -120,7 +120,6 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         steam_api_key: { section: 'Where mods come from' },
         steam_username: { section: 'Steam Workshop downloads' },
         steam_password: { section: 'Steam Workshop downloads' },
-        max_world_mb: { slider: { min: 4, max: 512, step: 4, unit: ' MB' } },
     },
     'prism-auth': {
         button_style: { segmented: true },

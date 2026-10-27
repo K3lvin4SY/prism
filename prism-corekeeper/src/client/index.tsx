@@ -18,7 +18,8 @@ export default definePterodactylExtension({
         setConfig(config);
 
         screens.register('players', () => import('./screens/PlayersScreen').then(configStore.liveModule), { visible: showFor('players') });
-        screens.register('world', () => import('./screens/WorldScreen').then(configStore.liveModule), { visible: showFor('world') });
+        screens.register('world', () => import('./screens/MapScreen').then(configStore.liveModule), { visible: showFor('world') });
+        screens.register('player', () => import('./screens/PlayerScreen').then(configStore.liveModule), { visible: showFor('players') });
         screens.register('mods', () => import('./screens/ModsScreen').then(configStore.liveModule), { visible: showFor('mods') });
         screens.register('versions', () => import('./screens/VersionsScreen').then(configStore.liveModule), { visible: showFor('versions') });
         screens.register('properties', () => import('./screens/PropertiesScreen').then(configStore.liveModule), { visible: showFor('properties') });

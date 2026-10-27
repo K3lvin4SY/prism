@@ -27,7 +27,7 @@ Load the matching skill before working in an area:
 | `prism-schedules` | prism-schedules | `psc` | Schedules engine with its own runs and history. |
 | `prism-mc` | prism-mc | `mcs` | Minecraft Java/Bedrock: players, world map, versions, properties, plugins, mods, modpacks, crossplay, proxy. |
 | `prism-terraria` | prism-terraria | `trs` | Terraria/TShock/tModLoader. |
-| `prism-corekeeper` | prism-corekeeper | `cks` | Core Keeper: players, map (mapparts.gzip), mods from mod.io + Steam Workshop, Steam branch versions, properties. A start step (`.cks/start.sh`) on the server's startup does Workshop downloads and branch switches. |
+| `prism-corekeeper` | prism-corekeeper | `cks` | Core Keeper: players and player pages, the Cartography Table map (servermaps/*.mapparts.gzip), an optional server-side mod for player details and syncs, mods from mod.io + Steam Workshop, Steam branch versions, properties. A start step (`.cks/start.sh`) on the server's startup does Workshop downloads and branch switches. |
 | `prism-auth` | prism-auth | `pau` | Sign-in providers (OAuth/OIDC/Steam) on the login page, "Sign-in methods" account page, sign-up with email confirmation. Root routes under `/prism-auth`. |
 
 Every extension's `extension.json` has `requires.extensions: { "prism-core": ">=0.1.0" }`; the Panel enables Core first and refuses to disable it while others need it.

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Badge, Button, Input, ServerContentBlock, Spinner, fromNow, httpErrorToHuman, toast, useServerPermission } from '@pterodactyl/sdk';
+import { Alert, Badge, Button, Input, PanelLink, ServerContentBlock, Spinner, fromNow, httpErrorToHuman, toast, useServerPermission } from '@pterodactyl/sdk';
 import { keys } from '../api/client';
 import { getPlayers, setAdmins, type PlayersOverview } from '../api/players';
 import { useCoreKeeperInfo } from '../hooks/useCoreKeeperInfo';
@@ -74,7 +74,7 @@ export default function PlayersScreen() {
                                 {data.online.map((player) => (
                                     <li key={player.id} className={'cks:flex cks:items-center cks:gap-3 cks:rounded-md cks:px-2 cks:py-1.5 cks:hover:bg-muted/40'}>
                                         <span className={'cks:size-2 cks:rounded-full cks:bg-success'} />
-                                        <span className={'cks:flex-1 cks:font-medium'}>{player.name}</span>
+                                        <PlayerLink identifier={identifier} id={player.id} name={player.name} className={'cks:flex-1 cks:font-medium'} />
                                         {player.steamId && <SteamLink id={player.steamId} />}
                                     </li>
                                 ))}
@@ -89,7 +89,7 @@ export default function PlayersScreen() {
                             <ul className={'cks:flex cks:flex-col cks:divide-y cks:divide-border'}>
                                 {data.history.map((player) => (
                                     <li key={player.id} className={'cks:flex cks:flex-wrap cks:items-center cks:gap-3 cks:py-2'}>
-                                        <span className={'cks:flex-1 cks:font-medium'}>{player.name}</span>
+                                        <PlayerLink identifier={identifier} id={player.id} name={player.name} className={'cks:flex-1 cks:font-medium'} />
                                         {player.steamId && <SteamLink id={player.steamId} />}
                                         {player.online && (
                                             <Badge size={'sm'} tone={'success'}>
@@ -103,7 +103,7 @@ export default function PlayersScreen() {
                                 ))}
                             </ul>
                         )}
-                        <p className={'cks:text-xs cks:text-muted-foreground'}>Characters are saved on the players' own computers, so the server only knows names and when they were here.</p>
+                        <p className={'cks:text-xs cks:text-muted-foreground'}>Open a player to see their latest map sync, and with the Prism server mod (Properties) their skills and gear from their last visit.</p>
                     </Card>
                 </div>
 
@@ -113,6 +113,15 @@ export default function PlayersScreen() {
                 </div>
             </div>
         </ServerContentBlock>
+    );
+}
+
+/** A player's name, linking to their page. */
+function PlayerLink({ identifier, id, name, className }: { identifier: string; id: string; name: string; className?: string }) {
+    return (
+        <PanelLink destination={{ extension: 'prism-corekeeper', screen: 'player', params: { id: identifier, player: id } }} className={`${className ?? ''} cks:truncate cks:hover:underline`}>
+            {name}
+        </PanelLink>
     );
 }
 
@@ -184,7 +193,11 @@ function AdminsCard({ identifier, data }: { identifier: string; data: PlayersOve
                         {data.admins.map((admin) => (
                             <li key={admin.steamId} className={'cks:flex cks:items-center cks:gap-2 cks:rounded-md cks:px-2 cks:py-1 cks:hover:bg-muted/40'}>
                                 <span className={'cks:flex cks:min-w-0 cks:flex-1 cks:flex-col'}>
-                                    <span className={'cks:truncate cks:text-sm cks:font-medium'}>{admin.name || known(admin.steamId) || 'Unknown player'}</span>
+                                    {known(admin.steamId) ? (
+                                        <PlayerLink identifier={identifier} id={admin.steamId} name={admin.name || known(admin.steamId)!} className={'cks:text-sm cks:font-medium'} />
+                                    ) : (
+                                        <span className={'cks:truncate cks:text-sm cks:font-medium'}>{admin.name || 'Unknown player'}</span>
+                                    )}
                                     <SteamLink id={admin.steamId} />
                                 </span>
                                 {canManage && (

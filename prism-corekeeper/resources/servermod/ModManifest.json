@@ -1,0 +1,13 @@
+{
+    "guid": "f3b1c2a4e5d64f7a8b9c0d1e2f3a4b5c",
+    "name": "PrismCoreKeeper",
+    "displayName": "Prism Core Keeper (server only: reports players and Cartography Table syncs to the Panel)",
+    "version": "{{VERSION}}",
+    "skipSafetyChecks": true,
+    "disableScripts": false,
+    "accessesExtraAssemblies": true,
+    "disableHarmonyPatching": true,
+    "requiredOn": 0,
+    "files": [{ "path": "Scripts/PrismCoreKeeperMod.cs" }],
+    "dependencies": []
+}

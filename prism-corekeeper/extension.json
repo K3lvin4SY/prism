@@ -9,7 +9,7 @@
         "php": "^8.3",
         "extensions": { "prism-core": ">=0.1.0" }
     },
-    "description": "Players, the world map, mods from mod.io and the Steam Workshop, versions and properties for Core Keeper servers.",
+    "description": "Players, the shared Cartography Table map, mods from mod.io and the Steam Workshop, versions and properties for Core Keeper servers.",
     "author": "Donkare",
     "icon": "icon.png",
     "provider": "PrismCoreKeeper\\PrismCoreKeeperProvider",
@@ -27,10 +27,17 @@
                 "when": { "runtime": true }
             },
             {
+                "id": "player",
+                "area": "server",
+                "path": "corekeeper-players/$player",
+                "permission": ["ext.prism-corekeeper.players-view"],
+                "when": { "runtime": true }
+            },
+            {
                 "id": "world",
                 "area": "server",
-                "path": "corekeeper-world",
-                "nav": { "label": "World", "icon": "map", "order": 2 },
+                "path": "corekeeper-map",
+                "nav": { "label": "Map", "icon": "map", "order": 2 },
                 "permission": ["ext.prism-corekeeper.world"],
                 "when": { "runtime": true }
             },

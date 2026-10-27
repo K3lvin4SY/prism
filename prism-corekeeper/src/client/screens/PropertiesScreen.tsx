@@ -4,6 +4,7 @@ import { Alert, ServerContentBlock, Spinner, httpErrorToHuman, toast } from '@pt
 import { keys } from '../api/client';
 import { categories, definitionsFor, getSettings, updateSettings, validate, type SettingsResponse } from '../api/settings';
 import SaveBar, { describeValue } from '../components/SaveBar';
+import ServerModCard from '../components/ServerModCard';
 import SettingsBrowser from '../components/SettingsBrowser';
 import { useCoreKeeperInfo } from '../hooks/useCoreKeeperInfo';
 
@@ -72,9 +73,13 @@ export default function PropertiesScreen() {
             ) : query.isError || !query.data ? (
                 <Alert type={'danger'}>{httpErrorToHuman(query.error)}</Alert>
             ) : !query.data.exists ? (
-                <Alert type={'info'}>Start the server once so it writes ServerConfig.json. The settings can be changed here after that.</Alert>
+                <div className={'cks:flex cks:flex-col cks:gap-4'}>
+                    <Alert type={'info'}>Start the server once so it writes ServerConfig.json. The settings can be changed here after that.</Alert>
+                    <ServerModCard identifier={identifier} />
+                </div>
             ) : (
                 <div className={'cks:flex cks:flex-col cks:gap-4'}>
+                    <ServerModCard identifier={identifier} />
                     <SettingsBrowser
                         kind={query.data.kind}
                         files={query.data.files}

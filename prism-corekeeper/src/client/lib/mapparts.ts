@@ -1,6 +1,7 @@
 /**
- * Core Keeper's map files, `<n>.mapparts.gzip`: gzipped JSON in which every 256×256-tile part of
- * the explored map is a PNG, one pixel per tile, in the game's own map colors:
+ * Core Keeper's map files, `<n>.mapparts.gzip`, such as the shared map the server keeps for the
+ * Cartography Table in servermaps/: gzipped JSON in which every 256×256-tile part of the map is
+ * a PNG, one pixel per tile, in the game's own map colors:
  *
  *   {"mapParts":{"keys":[{"x":-1,"y":-1},…],"values":[{"png":[137,80,…],"timestampPng":[…]},…]}}
  *
@@ -25,19 +26,13 @@ export interface MapBounds {
     maxY: number;
 }
 
-/** Gunzips a map file, or passes plain JSON through as some tools save it. */
-export async function readMapFile(data: ArrayBuffer): Promise<Uint8Array> {
+/** Gunzips a map file. */
+export async function gunzip(data: ArrayBuffer): Promise<Uint8Array> {
     const head = new Uint8Array(data, 0, Math.min(2, data.byteLength));
-    if (head[0] === 0x1f && head[1] === 0x8b) {
-        const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('gzip'));
+    if (head[0] !== 0x1f || head[1] !== 0x8b) throw new Error('The shared map file is damaged.');
+    const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('gzip'));
 
-        return new Uint8Array(await new Response(stream).arrayBuffer());
-    }
-    if (head[0] === 0x7b || head[0] === 0x20 || head[0] === 0x0a || head[0] === 0x0d) {
-        return new Uint8Array(data);
-    }
-
-    throw new Error('This is not a Core Keeper map file. Map files end in .mapparts.gzip; world files (.world.gzip) hold no map.');
+    return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
 const QUOTE = 0x22;
@@ -163,7 +158,7 @@ export function parseMapParts(bytes: Uint8Array): MapPart[] {
     const keysAt = find(bytes, '"keys"');
     const valuesAt = find(bytes, '"values"');
     if (keysAt < 0 || valuesAt < 0) {
-        throw new Error('This file has no map parts. If it is a world file, the map is in the maps folder next to the worlds folder.');
+        throw new Error('The map file has no map parts.');
     }
 
     // The keys are small objects: read them as JSON.

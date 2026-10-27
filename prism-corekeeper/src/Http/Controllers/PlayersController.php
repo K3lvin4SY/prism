@@ -6,9 +6,10 @@ namespace PrismCoreKeeper\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use PrismCoreKeeper\Support\PlayerLog;
-use PrismCoreKeeper\Support\ServerConsole;
+use PrismCoreKeeper\Support\MapSyncs;
+use PrismCoreKeeper\Support\Players;
 use PrismCoreKeeper\Support\ServerFiles;
+use PrismCoreKeeper\Support\ServerMod;
 use PrismCoreKeeper\Support\Settings;
 use PrismCoreKeeper\Support\StartHook;
 use Pterodactyl\Facades\Activity;
@@ -18,9 +19,6 @@ class PlayersController extends Controller
 {
     public const string ADMINS = StartHook::DATA.'/Admins.json';
 
-    /** How many players the history keeps. */
-    private const int HISTORY = 100;
-
     /**
      * Who is online now (from this session's log), everyone seen before (kept by the Panel, as
      * the log starts empty each start), the admin list and how to join.
@@ -29,38 +27,9 @@ class PlayersController extends Controller
     {
         $this->authorizeFeature($request, $server, 'players', 'players-view');
         $files = ServerFiles::for($server);
-        $running = ServerConsole::for($server)->isRunning();
-
-        $log = $files->read('CoreKeeperServerLog.txt', 8_000_000) ?? '';
-        $session = PlayerLog::parse(preg_split('/\r?\n/', $log) ?: []);
-
-        // Seen players, by SteamID (the connection id changes each join), with when the Panel
-        // first and last saw them.
-        $store = Settings::server($server);
-        $history = is_array($store->get('players')) ? $store->get('players') : [];
-        // Entries from 0.1.0 were keyed by the connection id, which changes every join.
-        $history = array_filter($history, static fn ($entry, $key): bool => is_array($entry) && array_key_exists('steamId', $entry), ARRAY_FILTER_USE_BOTH);
-        $online = [];
-        $now = time();
-        $changed = false;
-        foreach ($session as $player) {
-            $key = $player['steamId'] ?? 'name:'.$player['name'];
-            $isOnline = $player['online'] && $running;
-            if ($isOnline) {
-                $online[$key] = ['id' => $key, 'name' => $player['name'], 'steamId' => $player['steamId']];
-            }
-            $known = $history[$key] ?? null;
-            $entry = ['id' => $key, 'name' => $player['name'], 'steamId' => $player['steamId'], 'firstSeen' => $known['firstSeen'] ?? $now, 'lastSeen' => $isOnline ? $now : ($known['lastSeen'] ?? $now)];
-            if ($known !== $entry) {
-                $history[$key] = $entry;
-                $changed = true;
-            }
-        }
-        if ($changed) {
-            uasort($history, static fn (array $a, array $b): int => $b['lastSeen'] <=> $a['lastSeen']);
-            $history = array_slice($history, 0, self::HISTORY, true);
-            $store->set('players', $history);
-        }
+        ['running' => $running, 'online' => $online, 'history' => $history] = Players::observe($server);
+        ServerMod::for($server)->collect();
+        MapSyncs::for($server)->observe($online, $history);
 
         $admins = $files->readJson(self::ADMINS);
 
@@ -71,6 +40,34 @@ class PlayersController extends Controller
             'admins' => array_values(array_map(self::presentAdmin(...), $admins['adminList'] ?? [])),
             'adminsFile' => $admins !== null,
             'join' => $this->join($files, $request, $server),
+        ]);
+    }
+
+    /**
+     * One player: what the Panel saw of them, their latest map sync and, when the Prism server
+     * mod is on, what the game knew about them on their last visit (kept until they come back).
+     */
+    public function show(Request $request, Server $server, string $player): JsonResponse
+    {
+        $this->authorizeFeature($request, $server, 'players', 'players-view');
+        ['online' => $online, 'history' => $history] = Players::observe($server);
+        $mod = ServerMod::for($server);
+        $mod->collect();
+        $syncs = MapSyncs::for($server);
+        $syncs->observe($online, $history);
+
+        $entry = $history[$player] ?? null;
+        abort_if($entry === null, 404, 'This player has not been seen on this server.');
+
+        $admins = ServerFiles::for($server)->readJson(self::ADMINS);
+        $isAdmin = $entry['steamId'] !== null && in_array((string) $entry['steamId'], array_map(static fn ($admin): string => self::presentAdmin($admin)['steamId'], $admins['adminList'] ?? []), true);
+
+        return new JsonResponse([
+            'player' => $entry + ['online' => isset($online[$player])],
+            'admin' => $isAdmin,
+            'latestSync' => $syncs->latest()[$player] ?? null,
+            'details' => $mod->details($player),
+            'serverMod' => $mod->enabled(),
         ]);
     }
 
