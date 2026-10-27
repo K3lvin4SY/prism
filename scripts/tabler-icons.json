@@ -59,6 +59,7 @@
     "contrast": "IconContrast",
     "cookie": "IconCookie",
     "copy": "IconCopy",
+    "core-orb": "IconInnerShadowTopLeftFilled",
     "cpu": "IconCpu",
     "database": "IconDatabase",
     "database-backup": "IconDatabaseExport",

@@ -75,7 +75,7 @@ export default function PlayersScreen() {
                                     <li key={player.id} className={'cks:flex cks:items-center cks:gap-3 cks:rounded-md cks:px-2 cks:py-1.5 cks:hover:bg-muted/40'}>
                                         <span className={'cks:size-2 cks:rounded-full cks:bg-success'} />
                                         <span className={'cks:flex-1 cks:font-medium'}>{player.name}</span>
-                                        <span className={'cks:text-xs cks:text-muted-foreground'}>player {player.id}</span>
+                                        {player.steamId && <SteamLink id={player.steamId} />}
                                     </li>
                                 ))}
                             </ul>
@@ -90,6 +90,7 @@ export default function PlayersScreen() {
                                 {data.history.map((player) => (
                                     <li key={player.id} className={'cks:flex cks:flex-wrap cks:items-center cks:gap-3 cks:py-2'}>
                                         <span className={'cks:flex-1 cks:font-medium'}>{player.name}</span>
+                                        {player.steamId && <SteamLink id={player.steamId} />}
                                         {player.online && (
                                             <Badge size={'sm'} tone={'success'}>
                                                 Online
@@ -112,6 +113,15 @@ export default function PlayersScreen() {
                 </div>
             </div>
         </ServerContentBlock>
+    );
+}
+
+/** A SteamID64, linking to the Steam profile. */
+function SteamLink({ id }: { id: string }) {
+    return (
+        <a href={`https://steamcommunity.com/profiles/${id}`} target={'_blank'} rel={'noreferrer'} className={'cks:font-mono cks:text-xs cks:text-muted-foreground cks:hover:text-foreground cks:hover:underline'}>
+            {id}
+        </a>
     );
 }
 
@@ -143,6 +153,11 @@ function AdminsCard({ identifier, data }: { identifier: string; data: PlayersOve
     const [adding, setAdding] = useState('');
     const [busy, setBusy] = useState(false);
 
+    const ids = data.admins.map((admin) => admin.steamId);
+    const known = (steamId: string) => data.history.find((player) => player.steamId === steamId)?.name;
+    // Players seen here who are not admins yet, to add with one click.
+    const candidates = data.history.filter((player) => player.steamId && !ids.includes(player.steamId));
+
     const save = async (admins: string[]) => {
         setBusy(true);
         try {
@@ -159,7 +174,7 @@ function AdminsCard({ identifier, data }: { identifier: string; data: PlayersOve
 
     return (
         <Card title={'Admins'} icon={'shield'}>
-            <p className={'cks:text-xs cks:text-muted-foreground'}>Admins can use the server's admin commands in the game chat. Add them by their player ID, such as a SteamID64.</p>
+            <p className={'cks:text-xs cks:text-muted-foreground'}>Admins can use the server's admin commands in the game. The first player to join becomes one. Add others by their SteamID64.</p>
             {!data.adminsFile ? (
                 <p className={'cks:text-sm cks:text-muted-foreground'}>Start the server once so it writes its admin list.</p>
             ) : (
@@ -167,10 +182,13 @@ function AdminsCard({ identifier, data }: { identifier: string; data: PlayersOve
                     {data.admins.length === 0 && <p className={'cks:text-sm cks:text-muted-foreground'}>No admins yet.</p>}
                     <ul className={'cks:flex cks:flex-col cks:gap-1'}>
                         {data.admins.map((admin) => (
-                            <li key={admin} className={'cks:flex cks:items-center cks:gap-2 cks:rounded-md cks:px-2 cks:py-1 cks:hover:bg-muted/40'}>
-                                <span className={'cks:flex-1 cks:font-mono cks:text-sm'}>{admin}</span>
+                            <li key={admin.steamId} className={'cks:flex cks:items-center cks:gap-2 cks:rounded-md cks:px-2 cks:py-1 cks:hover:bg-muted/40'}>
+                                <span className={'cks:flex cks:min-w-0 cks:flex-1 cks:flex-col'}>
+                                    <span className={'cks:truncate cks:text-sm cks:font-medium'}>{admin.name || known(admin.steamId) || 'Unknown player'}</span>
+                                    <SteamLink id={admin.steamId} />
+                                </span>
                                 {canManage && (
-                                    <Button.Text size={'small'} disabled={busy} onClick={() => void save(data.admins.filter((entry) => entry !== admin))} aria-label={`Remove ${admin}`}>
+                                    <Button.Text size={'small'} disabled={busy} onClick={() => void save(ids.filter((entry) => entry !== admin.steamId))} aria-label={`Remove ${admin.name || admin.steamId}`}>
                                         <NamedIcon name={'x'} size={14} />
                                     </Button.Text>
                                 )}
@@ -182,14 +200,29 @@ function AdminsCard({ identifier, data }: { identifier: string; data: PlayersOve
                             className={'cks:flex cks:gap-2'}
                             onSubmit={(event) => {
                                 event.preventDefault();
-                                if (adding.trim()) void save([...data.admins, adding.trim()]);
+                                if (adding.trim()) void save([...ids, adding.trim()]);
                             }}
                         >
                             <Input value={adding} onChange={(event) => setAdding(event.target.value)} placeholder={'76561198…'} className={'cks:flex-1 cks:font-mono'} />
-                            <Button type={'submit'} size={'small'} isLoading={busy} disabled={!/^[A-Za-z0-9:_.-]+$/.test(adding.trim())}>
+                            <Button type={'submit'} size={'small'} isLoading={busy} disabled={!/^\d{17}$/.test(adding.trim())}>
                                 Add
                             </Button>
                         </form>
+                    )}
+                    {canManage && candidates.length > 0 && (
+                        <div className={'cks:flex cks:flex-wrap cks:gap-1.5'}>
+                            {candidates.slice(0, 6).map((player) => (
+                                <button
+                                    key={player.id}
+                                    type={'button'}
+                                    disabled={busy}
+                                    onClick={() => void save([...ids, player.steamId!])}
+                                    className={'cks:inline-flex cks:items-center cks:gap-1 cks:rounded-full cks:border cks:border-border cks:px-2 cks:py-0.5 cks:text-xs cks:cursor-pointer cks:hover:bg-muted'}
+                                >
+                                    <NamedIcon name={'plus'} size={12} /> {player.name}
+                                </button>
+                            ))}
+                        </div>
                     )}
                 </>
             )}

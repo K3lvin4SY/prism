@@ -31,7 +31,7 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-schedules', name: 'Prism Schedules', icon: 'calendar-clock', description: 'Schedules with countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets and a calendar.' },
     { id: 'prism-mc', name: 'Prism MC', icon: 'blocks', description: 'Players, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.' },
     { id: 'prism-terraria', name: 'Prism Terraria', icon: 'tree-pine', description: 'Players, settings, versions, the world map, tModLoader mods and TShock plugins for Terraria servers.' },
-    { id: 'prism-corekeeper', name: 'Prism Core Keeper', icon: 'pickaxe', description: 'Players, the world map, mods from mod.io and the Steam Workshop, versions and properties for Core Keeper servers.' },
+    { id: 'prism-corekeeper', name: 'Prism Core Keeper', icon: 'core-orb', description: 'Players, the world map, mods from mod.io and the Steam Workshop, versions and properties for Core Keeper servers.' },
     { id: 'prism-auth', name: 'Prism Auth', icon: 'key-round', description: 'Sign in with Google, Discord, Steam, GitHub or any OpenID Connect provider, linked from the account page, and sign-up with a confirmed email.' },
 ];
 
