@@ -7,11 +7,14 @@ const ENDPOINT = process.env.PORTAINER_ENDPOINT ?? '2';
 const CONTAINER = process.env.PANEL_CONTAINER ?? 'e449f86e3c203212c0d52595e4161d967188eca114f5b5f6fb1bb09d951261e6';
 const USER = process.env.PORTAINER_USER ?? 'claude';
 const PASS = process.env.PORTAINER_PASS;
+// An access token (Portainer > My account > Access tokens) needs no login, so it is used when set.
+const TOKEN = process.env.PORTAINER_TOKEN;
 
 // One login per process: Portainer refuses logins that come too often.
 let session = null;
 
 function login() {
+    if (TOKEN) return Promise.resolve(null);
     session ??= authenticate().catch((error) => {
         session = null;
         throw error;
@@ -21,7 +24,7 @@ function login() {
 }
 
 async function authenticate() {
-    if (!PASS) throw new Error('Set PORTAINER_PASS.');
+    if (!PASS) throw new Error('Set PORTAINER_TOKEN, or PORTAINER_PASS.');
     const res = await fetch(`${BASE}/api/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -34,7 +37,7 @@ async function authenticate() {
 const docker = (jwt, path, init = {}) =>
     fetch(`${BASE}/api/endpoints/${ENDPOINT}/docker${path}`, {
         ...init,
-        headers: { Authorization: `Bearer ${jwt}`, ...(init.headers ?? {}) },
+        headers: { ...(TOKEN ? { 'X-API-Key': TOKEN } : { Authorization: `Bearer ${jwt}` }), ...(init.headers ?? {}) },
     });
 
 export async function exec(command, { user } = {}) {
