@@ -208,6 +208,18 @@ No settings of its own. Its admin screen is Prism Properties.
 | World | `max_world_mb` | Largest world for the map | `256` | number |
 | API keys | `steam_api_key` | Steam Web API key | `''` | password |
 
+### prism-corekeeper
+
+| Tab | Key | Label | Default | Field |
+| --- | --- | --- | --- | --- |
+| Server tabs | `tab_players`, `tab_world`, `tab_mods`, `tab_versions`, `tab_properties` | Show each server tab | `true` | toggle |
+| Detection | `egg_tags` | Egg tags to detect (eggs installing app 1963720 are found anyway) | `'core-keeper, corekeeper'` | text |
+| Mods | `confirm_installs` | Confirm before installing | `true` | toggle |
+| Mods | `modio_api_key` | mod.io API key | `''` | password |
+| Mods | `steam_api_key` | Steam Web API key | `''` | password |
+| Mods | `steam_username`, `steam_password` | Steam account for Workshop downloads (optional; anonymous works) | `''` | password |
+| World | `max_world_mb` | Largest world or map file | `256` | number |
+
 ### prism-auth
 
 | Tab | Key | Label | Default | Field |

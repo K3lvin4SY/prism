@@ -15,7 +15,7 @@ prism-core (ppx)  ── Prism Properties admin page (/panel/prism), Prism Expor
    ├── prism-layout (pla) the frame: navigation, server cards, branding, sign-in, announcements
    ├── prism-console (pcn), prism-files (pfl), prism-database (pdb),
    │   prism-backups (pbk), prism-schedules (psc)          better versions of Panel pages
-   ├── prism-mc (mcs), prism-terraria (trs)                game-specific server screens
+   ├── prism-mc (mcs), prism-terraria (trs), prism-corekeeper (cks)   game-specific server screens
    └── prism-auth (pau)  sign-in providers, account sign-in methods, sign-up
 ```
 
@@ -38,7 +38,7 @@ Each extension is self-contained: its own `extension.json`, PHP provider (`src/<
 Every extension reads its settings through `src/client/configStore.ts`, generated from `scripts/shared/configStore.ts` by `node scripts/shared.mjs`.
 
 - **`config.ts`** in each extension keeps a pure `read(raw)` that turns raw settings into a typed object, and exports `configStore = createConfigStore('<id>', read)`, `setConfig(raw)` (called in `setup`), `getConfig()` and, where the backend returns fresh settings, `applyConfig(raw)`. All of these go through the store.
-- **`index.tsx`** wraps every registered view, screen, slot or form field so it re-renders on a change: `load: () => import('./views/X').then(configStore.liveModule)`, `configStore.live(Component)`. In Prism MC and Prism Terraria the tab `visible` predicates call `configStore.use()` so tabs follow too.
+- **`index.tsx`** wraps every registered view, screen, slot or form field so it re-renders on a change: `load: () => import('./views/X').then(configStore.liveModule)`, `configStore.live(Component)`. In the game extensions the tab `visible` predicates call `configStore.use()` so tabs follow too.
 - **The preview window** is the real Panel in a popup named `prism-preview` (the Panel refuses frames). The protocol:
   1. Editor side, `prism-core/src/client/preview.tsx`: `usePreviewDraft(id, values)` posts `{ type: 'prism-preview', extension, settings }` to the window on every change and again when the window says `prism-preview:ready`; leaving an editor sends `{}` (back to saved). `PreviewControls` (one card, beside the settings on 2xl screens, under the navigation otherwise) opens the window on the extension's own page and follows where the window really is. `usePreviewNote(id, node)` lets an editor add a note to that card (Themes does).
   2. Hub, `prism-core/src/client/hub.ts`, runs in Core's `setup` on every page but acts only in the preview window: it checks origin and source, stores each draft in `sessionStorage['prism-preview:<id>']` and re-announces it as a `window` event `prism-preview:draft`.
@@ -67,7 +67,7 @@ Every extension draws Tabler icons through its generated `src/client/icons.tsx`:
 
 ## Background work: install plans and job progress
 
-Prism MC and Prism Terraria run long tasks (installing versions, mods, modpacks, crossplay, updates) as an **install plan**: `src/Support/InstallPlan.php` builds a list of steps (`power`, `wait-offline`, `rename`, `delete`, `pull(s)`, `verify`, `unzip`, `write`, `property`, `yaml-set`, `record`, `forget`, …) with rollback steps, and `src/Jobs/RunInstallPlan.php` runs it in short slices on the `standard` queue, reporting through the Panel's `ExtensionJobProgress` (the client shows it with `components/JobProgress.tsx`). One plan per server at a time (cache lock, 1 hour).
+Prism MC, Prism Terraria and Prism Core Keeper run long tasks (installing versions, mods, modpacks, crossplay, updates) as an **install plan**: `src/Support/InstallPlan.php` builds a list of steps (`power`, `wait-offline`, `rename`, `delete`, `pull(s)`, `verify`, `unzip`, `write`, `property`, `yaml-set`, `record`, `forget`, …) with rollback steps, and `src/Jobs/RunInstallPlan.php` runs it in short slices on the `standard` queue, reporting through the Panel's `ExtensionJobProgress` (the client shows it with `components/JobProgress.tsx`). One plan per server at a time (cache lock, 1 hour).
 
 Prism Schedules runs schedules as `ScheduleRun` records stepped by `src/Jobs/RunSchedule.php` on the same queue; `src/Console/TickCommand.php` (the Panel scheduler) starts due schedules and re-sends stuck runs.
 

@@ -1,0 +1,22 @@
+{
+    "categories": [
+        { "id": "world", "label": "World", "icon": "globe" },
+        { "id": "server", "label": "Server", "icon": "list" },
+        { "id": "network", "label": "Network", "icon": "network" }
+    ],
+    "managed": [],
+    "settings": [
+        { "key": "WORLD_NAME", "kinds": ["corekeeper"], "category": "world", "type": "string", "label": "World name", "description": "The name players see for this server in their network settings.", "default": "Core Keeper Server", "maxLength": 100 },
+        { "key": "WORLD_INDEX", "kinds": ["corekeeper"], "category": "world", "type": "int", "label": "World slot", "description": "Which saved world the server opens. Each slot from 0 to 29 is a world of its own; an empty slot makes a new world.", "default": 0, "min": 0, "max": 29 },
+        { "key": "WORLD_SEED", "kinds": ["corekeeper"], "category": "world", "type": "int", "label": "Seed", "description": "The seed a new world is generated from. 0 picks a random one. Only used when the world is first made.", "default": 0, "min": 0, "max": 4294967295 },
+        { "key": "WORLD_MODE", "kinds": ["corekeeper"], "category": "world", "type": "enum", "label": "World mode", "description": "How tough the monsters are in a new world. Changing it later does not change an existing world.", "default": "0", "options": ["0", "1"], "optionLabels": { "0": "Normal", "1": "Hard" } },
+        { "key": "seasonOverride", "kinds": ["corekeeper"], "category": "world", "type": "enum", "label": "Season", "description": "The seasonal event in the world. By date follows the calendar.", "default": "-1", "options": ["-1", "0", "1", "2", "3", "4", "5", "6", "7"], "optionLabels": { "-1": "By date", "0": "None", "1": "Easter", "2": "Halloween", "3": "Christmas", "4": "Valentine", "5": "Anniversary", "6": "Cherry Blossom", "7": "Lunar New Year" } },
+
+        { "key": "MAX_PLAYERS", "kinds": ["corekeeper"], "category": "server", "type": "int", "label": "Maximum players", "description": "How many players can be connected at once. More players need more memory.", "default": 100, "min": 1, "max": 100 },
+        { "key": "GAME_ID", "kinds": ["corekeeper"], "category": "server", "type": "string", "label": "Game ID", "description": "What Steam players type to join. Empty makes a new one each start. A fixed one is 28 letters and numbers, without Y, y, x, 0 or O.", "default": "", "maxLength": 28, "pattern": "^$|^[A-NP-XZa-wz1-9]{28}$" },
+        { "key": "password", "kinds": ["corekeeper"], "category": "server", "type": "string", "label": "Direct-connect password", "description": "The password for joining by IP and port. Empty makes a new one each start. Joining by Game ID needs no password.", "default": "", "maxLength": 28 },
+
+        { "key": "networkSendRate", "kinds": ["corekeeper"], "category": "network", "type": "int", "label": "Send rate", "description": "How many times a second the server sends updates to players.", "default": 20, "min": 1, "max": 60 },
+        { "key": "maxNumberPacketsSentPerFrame", "kinds": ["corekeeper"], "category": "network", "type": "int", "label": "Packets per frame", "description": "The most packets sent to a player in one frame.", "default": 1, "min": 1, "max": 10 }
+    ]
+}

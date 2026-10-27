@@ -1,0 +1,63 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-corekeeper",
+    "name": "Prism Core Keeper",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Players, the world map, mods from mod.io and the Steam Workshop, versions and properties for Core Keeper servers.",
+    "author": "Donkare",
+    "icon": "icon.png",
+    "provider": "PrismCoreKeeper\\PrismCoreKeeperProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "cks",
+        "screens": [
+            {
+                "id": "players",
+                "area": "server",
+                "path": "corekeeper-players",
+                "nav": { "label": "Players", "icon": "users", "order": 1 },
+                "permission": ["ext.prism-corekeeper.players-view"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "world",
+                "area": "server",
+                "path": "corekeeper-world",
+                "nav": { "label": "World", "icon": "map", "order": 2 },
+                "permission": ["ext.prism-corekeeper.world"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "mods",
+                "area": "server",
+                "path": "corekeeper-mods",
+                "nav": { "label": "Mods", "icon": "puzzle", "order": 3 },
+                "permission": ["ext.prism-corekeeper.mods"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "versions",
+                "area": "server",
+                "path": "corekeeper-versions",
+                "nav": { "label": "Versions", "icon": "git-branch", "order": 4 },
+                "permission": ["ext.prism-corekeeper.versions"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "properties",
+                "area": "server",
+                "path": "corekeeper-properties",
+                "nav": { "label": "Properties", "icon": "sliders-horizontal", "order": 5 },
+                "permission": ["ext.prism-corekeeper.properties"],
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}

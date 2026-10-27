@@ -1,9 +1,9 @@
 ---
 name: prism-games
-description: Prism MC (Minecraft Java/Bedrock) and Prism Terraria (vanilla, TShock, tModLoader) - how a server is detected, the server tabs and their code, install plans and job progress, players and NBT, world maps, versions, properties and the MOTD editor, content sources, crossplay, proxies and the test servers. Load before working on either game extension.
+description: Prism MC (Minecraft Java/Bedrock), Prism Terraria (vanilla, TShock, tModLoader) and Prism Core Keeper - how a server is detected, the server tabs and their code, install plans and job progress, players and NBT, world maps, versions, properties and the MOTD editor, content sources, crossplay, proxies and the test servers. Load before working on either game extension.
 ---
 
-# Prism MC and Prism Terraria
+# Prism MC, Prism Terraria and Prism Core Keeper
 
 Both add server screens (tabs) that only show on servers of their game. Client screens live in `src/client/screens`, components in `src/client/components`, pure logic with tests in `src/client/lib`. PHP: controllers in `src/Http/Controllers` (all extend the extension's `Controller`, which has `authorizeFeature($request, $server, $tab, $permission)`), helpers in `src/Support`, jobs in `src/Jobs`.
 
@@ -36,6 +36,17 @@ Other pieces:
 ## Prism Terraria tabs
 
 Players (`terraria-players`, `PlayersController`: online players and activity from the console and logs via `ServerConsole.php`, accounts and characters from the TShock database `TShockDatabase.php`, bans), Versions (`Releases.php`), Properties (`SettingsController`, `ServerConfigTxt.php`, `TerrariaSettings.php`, `SettingsSchema.php`), World (`WorldController`, `Worlds.php`, client `lib/wld.ts`, map colors from `scripts/gen-terraria-data.mjs`), Mods (tModLoader, Steam Workshop: `Workshop.php`, `WorkshopMods.php`, needs `steam_api_key`), Plugins (TShock, `PluginCatalog.php`). Console commands go through `ServerConsole.php`.
+
+## Prism Core Keeper
+
+Forked from Prism Terraria's skeleton (namespace `PrismCoreKeeper`, prefix `cks`). The Core Keeper egg (27, SteamCMD app 1963720) has no tag of its own, so `Support/Detector.php` also counts eggs whose `SRCDS_APPID` is 1963720 or whose startup runs `CoreKeeperServer` (the client checks `invocation` for the same). Data path on the server: `.config/unity3d/Pugstorm/Core Keeper/DedicatedServer` (`StartHook::DATA`): `ServerConfig.json`, `Admins.json` (`adminList`), `worlds/<slot>.world.gzip`, `modloader/config.json`.
+
+- **Start step** (`Support/StartHook.php`): the server's own startup (not the egg's) begins with `bash .cks/start.sh;`, added through `UpdatesServerStartup`. The script switches the Steam branch in `.cks/branch` with SteamCMD (`-beta <branch> validate`) and downloads Workshop items in `.cks/workshop.txt` with `steamcmd +workshop_download_item 1621690 <id>`, then copies the folder with `ModManifest.json` into `CoreKeeperServer_Data/StreamingAssets/Mods/<name>`. Anonymous Workshop downloads work for Core Keeper; an optional Steam login (Prism Properties) is written to `.cks/steam-login` by a plan just before a restart and deleted by the script. Its messages start with `[Prism Core Keeper]` in the console; logs in `.cks/branch.log`, `.cks/download.log`.
+- **Mods** (`ModsController`, `Support/Sources/{ModIo,Workshop,Mods}.php`, `ModLibrary.php`): one browser over mod.io (game 5289, `modio_api_key`) and the Workshop (app 1621690, `steam_api_key`), filtered by Provider, game version, Server/Client and type; a mod on both shows once (`alsoOn`). mod.io installs are a plan (`pull` with the CDN redirect resolved in `ServerFiles::resolveRedirect`, `verify` md5, `unzip`, `flatten`, `record mod.<source>.<id>`); Workshop installs record the mod and write `workshop.txt`. Off = folder moved to `.cks/disabled`.
+- **Versions** (`VersionsController`, `Support/Branches.php`): Steam branches from api.steamcmd.net (public + legacy 1.2.1.5, 1.2.0.7, 1.1.2.10, 1.1.2.0), installed build/branch from `steamapps/appmanifest_1963720.acf`. Legacy sets `AUTO_UPDATE=0`.
+- **Players**: from `CoreKeeperServerLog.txt` (`[userid:N] player <name> connected|disconnected`, kept as `players` history), Game ID from `GameID.txt`, direct-connect line from `GameInfo.txt` (needs `startup.read`), admins in `Admins.json`.
+- **World**: the explored map is `<n>.mapparts.gzip` (gzipped JSON of 256×256 PNG parts, see `src/client/lib/mapparts.ts`, format from CoreKeeperMapTool, MIT). The world file itself is binary and not drawn. The tab draws any server-side map files it finds, and "Open my map" reads a player's own file in the browser.
+- **Properties**: world name/slot/seed/mode, max players, Game ID are egg variables (the egg passes them as arguments); password, season, network values are in `ServerConfig.json`. Schema: `resources/settings.json`.
 
 ## Install plans
 

@@ -1,0 +1,11 @@
+{
+    "description": "Players, the world map, mods from mod.io and the Steam Workshop, versions and properties for Core Keeper servers.",
+    "autoload": {
+        "psr-4": {
+            "PrismCoreKeeper\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismCoreKeeperExtension"
+    }
+}

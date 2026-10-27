@@ -47,6 +47,7 @@ Install plans (MC, Terraria) and schedule runs need it. Symptoms of it being dow
 | mc-suite-test-tshock | `9fcfbc9b` | Terraria TShock |
 | mc-suite-test-terraria | `dba74775` | Terraria vanilla |
 | mc-suite-test-tmodloader | `9f732e51` | tModLoader |
+| mc-suite-test-corekeeper | `0ff17871` | Core Keeper (egg 27, port 25599). `scripts/php/corekeeper-state.php [dir \| cat <file>]`, `corekeeper-power.php`, `reinstall-corekeeper.php`; `run-corekeeper-plan.php <job>` runs one Prism Core Keeper plan when the queue worker is down. A world is only saved once a player has joined. |
 
 There are also forge, bedrock, velocity and pumpkin test servers (see the dashboard). Fabric's MOTD is "A Minecraft Server".
 

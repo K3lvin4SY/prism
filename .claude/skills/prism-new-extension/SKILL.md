@@ -24,7 +24,7 @@ prism-<name>/
   src/client/index.tsx, config.ts, styles.css, icons.tsx (generated), configStore.ts (generated)
 ```
 
-- The **prefix** is unique per extension (taken: `ppx pla pcn pfl pdb pbk psc mcs trs pau`). `styles.css` imports Tailwind with it:
+- The **prefix** is unique per extension (taken: `ppx pla pcn pfl pdb pbk psc mcs trs cks pau`). `styles.css` imports Tailwind with it:
   `@import 'tailwindcss/theme.css' layer(theme) prefix(xyz); @import 'tailwindcss/utilities.css' layer(utilities) prefix(xyz); @import '@pterodactyl/sdk/theme.css'; @source './**/*.{ts,tsx}';`
 - **Routes** are mounted by `registerApiRoutes()`: `admin.php` under `/api/admin/extensions/<id>`, `client.php` under `/api/client/extensions/<id>`, `server.php` under `/api/client/servers/{server}/extensions/<id>`. Check permissions in each controller (see how prism-mc's `authorizeFeature` and the Panel's server permissions are used); route model binding of Panel models needs care (take an int and `findOrFail`).
 - **Settings** are registered in `boot()` with `$this->registerSettings(new ExtensionSettingsDefinition($this->settings(), [Setting::make(...)…]))`. See the `prism-settings` skill.

@@ -19,7 +19,8 @@ const SIZES: Record<Device, [number, number]> = { desktop: [1366, 860], tablet: 
 export type Page = 'home' | 'dashboard' | 'server' | 'admin' | 'account';
 
 /** Where each server extension shows itself: a server page, on a server of its game if it has one. */
-const HOMES: Record<string, { label: string; path: string; tag?: string }> = {
+/** Each extension's page in the preview window; `tag` or `startup` picks a server it applies to. */
+const HOMES: Record<string, { label: string; path: string; tag?: string; startup?: string }> = {
     'prism-console': { label: 'Console', path: '' },
     'prism-files': { label: 'Files', path: '/files' },
     'prism-database': { label: 'Databases', path: '/databases' },
@@ -27,9 +28,11 @@ const HOMES: Record<string, { label: string; path: string; tag?: string }> = {
     'prism-schedules': { label: 'Schedules', path: '/schedules' },
     'prism-mc': { label: 'Minecraft', path: '/properties', tag: 'minecraft' },
     'prism-terraria': { label: 'Terraria', path: '/terraria-properties', tag: 'terraria' },
+    // The Core Keeper egg has no tag of its own; its startup names the server binary.
+    'prism-corekeeper': { label: 'Core Keeper', path: '/corekeeper-mods', tag: 'core-keeper', startup: 'CoreKeeperServer' },
 };
 
-type ServerItem = { attributes: { identifier: string; egg_tags?: string[] } };
+type ServerItem = { attributes: { identifier: string; egg_tags?: string[]; invocation?: string } };
 
 /*
  * The window and the controls' choices live here, outside React, so the controls can be drawn in
@@ -162,7 +165,11 @@ export function PreviewControls({ extension }: { extension?: string }) {
     const pages: Page[] = home ? ['home', 'dashboard', 'server', 'admin', 'account'] : ['dashboard', 'server', 'admin', 'account'];
     const chosen: Page = state.page && pages.includes(state.page) ? state.page : home ? 'home' : 'dashboard';
     const firstServer = servers.data?.[0]?.attributes.identifier ?? null;
-    const homeServer = (home?.tag ? servers.data?.find((server) => server.attributes.egg_tags?.includes(home.tag!)) : undefined)?.attributes.identifier ?? firstServer;
+    const homeServer =
+        (home?.tag || home?.startup
+            ? servers.data?.find((server) => (home.tag && server.attributes.egg_tags?.includes(home.tag)) || (home.startup && server.attributes.invocation?.includes(home.startup)))
+            : undefined
+        )?.attributes.identifier ?? firstServer;
 
     const urlOf = (where: Page) =>
         where === 'home' && home && homeServer

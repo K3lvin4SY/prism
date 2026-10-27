@@ -1,6 +1,6 @@
 # Prism: Pterodactyl Panel 2.0 extensions
 
-Ten extensions for Pterodactyl Panel 2.0 ("v2", SDK `>=2.0.0-beta.6`), each in its own `prism-*` folder, developed against the Panel source in `.panel/` (cloned separately, git-ignored, read only) and deployed to the live Panel at `panel.donkare.se`.
+Twelve extensions for Pterodactyl Panel 2.0 ("v2", SDK `>=2.0.0-beta.6`), each in its own `prism-*` folder, developed against the Panel source in `.panel/` (cloned separately, git-ignored, read only) and deployed to the live Panel at `panel.donkare.se`.
 
 Load the matching skill before working in an area:
 
@@ -11,7 +11,7 @@ Load the matching skill before working in an area:
 | `prism-settings` | Every extension's settings (Prism Properties) and Prism Themes' theme settings, and how to add one |
 | `prism-export-import` | Prism Export: the file format and what importing does |
 | `prism-new-extension` | Adding an extension, a screen, a view override or a setting the Prism way |
-| `prism-games` | Prism MC and Prism Terraria: detection, install plans, crossplay, players, maps, content |
+| `prism-games` | Prism MC, Prism Terraria and Prism Core Keeper: detection, install plans, crossplay, players, maps, content |
 
 ## The extensions
 
@@ -27,6 +27,7 @@ Load the matching skill before working in an area:
 | `prism-schedules` | prism-schedules | `psc` | Schedules engine with its own runs and history. |
 | `prism-mc` | prism-mc | `mcs` | Minecraft Java/Bedrock: players, world map, versions, properties, plugins, mods, modpacks, crossplay, proxy. |
 | `prism-terraria` | prism-terraria | `trs` | Terraria/TShock/tModLoader. |
+| `prism-corekeeper` | prism-corekeeper | `cks` | Core Keeper: players, map (mapparts.gzip), mods from mod.io + Steam Workshop, Steam branch versions, properties. A start step (`.cks/start.sh`) on the server's startup does Workshop downloads and branch switches. |
 | `prism-auth` | prism-auth | `pau` | Sign-in providers (OAuth/OIDC/Steam) on the login page, "Sign-in methods" account page, sign-up with email confirmation. Root routes under `/prism-auth`. |
 
 Every extension's `extension.json` has `requires.extensions: { "prism-core": ">=0.1.0" }`; the Panel enables Core first and refuses to disable it while others need it.

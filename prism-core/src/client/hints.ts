@@ -114,6 +114,14 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
     'prism-terraria': {
         max_world_mb: { slider: { min: 4, max: 512, step: 4, unit: ' MB' } },
     },
+    'prism-corekeeper': {
+        egg_tags: { section: 'Detection' },
+        modio_api_key: { section: 'Where mods come from' },
+        steam_api_key: { section: 'Where mods come from' },
+        steam_username: { section: 'Steam Workshop downloads' },
+        steam_password: { section: 'Steam Workshop downloads' },
+        max_world_mb: { slider: { min: 4, max: 512, step: 4, unit: ' MB' } },
+    },
     'prism-auth': {
         button_style: { segmented: true },
         link_by_email: { section: 'Existing accounts' },
