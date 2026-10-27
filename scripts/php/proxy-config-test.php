@@ -34,10 +34,10 @@ $velocity = new ProxyConfig('velocity', file_get_contents("$dir/velocity.toml"))
 $read = $velocity->read();
 $check('velocity reads examples', array_keys($read['servers']) === ['lobby', 'factions', 'minigames'] && $read['order'] === ['lobby'] && count($read['forcedHosts']) === 3, json_encode($read));
 $check('velocity examples detected', $velocity->hasOnlyExamples());
-$velocity->write(['servers' => ['survival' => ['address' => 'nas4sy.donkare.se:25590'], 'creative' => ['address' => '10.0.0.5:25566']], 'order' => ['survival'], 'forcedHosts' => ['play.example.com' => ['creative']]]);
+$velocity->write(['servers' => ['survival' => ['address' => 'mc.example.net:25590'], 'creative' => ['address' => '10.0.0.5:25566']], 'order' => ['survival'], 'forcedHosts' => ['play.example.com' => ['creative']]]);
 $velocity->setVelocityValue('player-info-forwarding-mode', '"modern"');
 $again = (new ProxyConfig('velocity', $velocity->text()))->read();
-$check('velocity round trip servers', $again['servers'] === ['survival' => ['address' => 'nas4sy.donkare.se:25590'], 'creative' => ['address' => '10.0.0.5:25566']], json_encode($again['servers']));
+$check('velocity round trip servers', $again['servers'] === ['survival' => ['address' => 'mc.example.net:25590'], 'creative' => ['address' => '10.0.0.5:25566']], json_encode($again['servers']));
 $check('velocity round trip order', $again['order'] === ['survival']);
 $check('velocity forced host', $again['forcedHosts'] === ['play.example.com' => ['creative']], json_encode($again['forcedHosts']));
 $check('velocity mode set', $velocity->velocityValue('player-info-forwarding-mode') === 'modern');

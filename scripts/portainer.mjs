@@ -2,14 +2,14 @@
 // Usage: node scripts/portainer.mjs exec "<sh command>"   |   node scripts/portainer.mjs put <local.tar> <container dir>
 import { readFileSync } from 'node:fs';
 
-const BASE = process.env.PORTAINER_URL ?? 'https://portainer.donkare.se';
+const BASE = process.env.PORTAINER_URL;
 const ENDPOINT = process.env.PORTAINER_ENDPOINT ?? '2';
 const CONTAINER = process.env.PANEL_CONTAINER ?? 'e449f86e3c203212c0d52595e4161d967188eca114f5b5f6fb1bb09d951261e6';
 // An access token (Portainer > My account > Access tokens) acts as the user who created it.
 const TOKEN = process.env.PORTAINER_API_TOKEN;
 
 function docker(path, init = {}) {
-    if (!TOKEN) throw new Error('Set PORTAINER_API_TOKEN.');
+    if (!BASE || !TOKEN) throw new Error('Set PORTAINER_URL and PORTAINER_API_TOKEN.');
     return fetch(`${BASE}/api/endpoints/${ENDPOINT}/docker${path}`, {
         ...init,
         headers: { 'X-API-Key': TOKEN, ...(init.headers ?? {}) },

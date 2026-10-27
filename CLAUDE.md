@@ -1,6 +1,6 @@
 # Prism: Pterodactyl Panel 2.0 extensions
 
-Twelve extensions for Pterodactyl Panel 2.0 ("v2", SDK `>=2.0.0-beta.6`), each in its own `prism-*` folder, developed against the Panel source in `.panel/` (cloned separately, git-ignored, read only) and deployed to the live Panel at `panel.donkare.se`.
+Twelve extensions for Pterodactyl Panel 2.0 ("v2", SDK `>=2.0.0-beta.6`), each in its own `prism-*` folder, developed against the Panel source in `.panel/` (cloned separately, git-ignored, read only) and deployed to a live Panel (`PANEL_URL`, reached through Portainer at `PORTAINER_URL`).
 
 Load the matching skill before working in an area:
 

@@ -1,6 +1,7 @@
 // Calls the Panel client API as the test user. Usage: MCS_KEY=ptlc_... node scripts/api.mjs GET <server>/extensions/prism-mc/info ['{"json":1}']
 const [method, path, body] = process.argv.slice(2);
-const base = process.env.PANEL_URL ?? 'https://panel.donkare.se';
+const base = process.env.PANEL_URL;
+if (!base) throw new Error('Set PANEL_URL.');
 const url = path.startsWith('api/') ? `${base}/${path}` : `${base}/api/client/servers/${path}`;
 const res = await fetch(url, {
     method,
