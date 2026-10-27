@@ -78,7 +78,7 @@ export default function ModDialog({ identifier, hit, running, busy, onInstall, o
 
                 {from.startsWith('steam:') && (
                     <Alert type={'info'}>
-                        Steam Workshop files are downloaded by the server when it starts, so this mod arrives after a restart. Steam may refuse without a Steam login in Prism Properties.
+                        Steam Workshop files are downloaded by the server when it starts, so this mod arrives after a restart.
                     </Alert>
                 )}
 

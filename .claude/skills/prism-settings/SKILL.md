@@ -217,7 +217,6 @@ No settings of its own. Its admin screen is Prism Properties.
 | Mods | `confirm_installs` | Confirm before installing | `true` | toggle |
 | Mods | `modio_api_key` | mod.io API key | `''` | password |
 | Mods | `steam_api_key` | Steam Web API key | `''` | password |
-| Mods | `steam_username`, `steam_password` | Steam account for Workshop downloads (optional; anonymous works) | `''` | password |
 
 `tab_world` is the Map tab. The Prism server mod is switched per server in the server's own Properties tab (stored as `servermod.enabled` in the server's metadata), not in Prism Properties.
 

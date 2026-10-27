@@ -80,7 +80,6 @@ export interface InstalledMod {
 export interface ModsState {
     mods: InstalledMod[];
     sources: Record<SourceName, boolean>;
-    steamLogin: boolean;
     hookMissing: boolean;
     running: boolean;
     job: string | null;
@@ -146,6 +145,7 @@ export async function repair(server: string): Promise<string> {
     return (await http.post<{ job: string }>(`${base(server)}/mods/repair`)).data.job;
 }
 
-export async function restart(server: string): Promise<string> {
-    return (await http.post<{ job: string }>(`${base(server)}/mods/restart`)).data.job;
+/** Restarts the server, or starts it when it is off, so it downloads its Workshop mods. */
+export async function restart(server: string): Promise<'restart' | 'start'> {
+    return (await http.post<{ action: 'restart' | 'start' }>(`${base(server)}/mods/restart`)).data.action;
 }

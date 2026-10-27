@@ -464,7 +464,7 @@ class RunInstallPlan implements ShouldQueue
             'verify' => 'Checking '.basename((string) ($step['path'] ?? 'the download')).'.',
             'wait-file' => 'Waiting for the server.',
             'reinstall', 'wait-installed' => 'The egg is reinstalling the server.',
-            'write' => ($step['secret'] ?? false) ? 'Getting the Steam login ready.' : 'Writing '.($step['path'] ?? 'files').'.',
+            'write' => 'Writing '.($step['path'] ?? 'files').'.',
             'delete', 'rename' => 'Moving old files aside.',
             default => 'Working.',
         };

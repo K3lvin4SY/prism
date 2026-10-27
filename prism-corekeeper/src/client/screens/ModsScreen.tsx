@@ -152,7 +152,14 @@ export default function ModsScreen() {
                             busy={installing.length > 0 || job !== null}
                             onChanged={refresh}
                             onUpdate={(ids) => void installMods(ids, running, ids.length === 1 ? undefined : `${ids.length} mods`)}
-                            onRestart={() => void restart(identifier).then(setJob).catch((error) => toast.error(httpErrorToHuman(error)))}
+                            onRestart={() =>
+                                void restart(identifier)
+                                    .then((action) => {
+                                        toast.success(`${action === 'start' ? 'Starting' : 'Restarting'} the server. It downloads the Workshop mods as it starts; the console shows how it goes.`);
+                                        refresh();
+                                    })
+                                    .catch((error) => toast.error(httpErrorToHuman(error)))
+                            }
                         />
                     )
                 ) : (

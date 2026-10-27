@@ -50,7 +50,6 @@ export default function InstalledMods({ identifier, state, onChanged, onUpdate, 
                     <div className={'cks:flex cks:flex-wrap cks:items-center cks:gap-3'}>
                         <span className={'cks:flex-1'}>
                             {pending.length === 1 ? `${pending[0].title} is` : `${pending.length} Workshop mods are`} downloaded when the server next starts.
-                            {!state.steamLogin && ' If Steam refuses, an admin can add a Steam login in Prism Properties.'}
                         </span>
                         <Button size={'small'} isLoading={busy} onClick={onRestart}>
                             {state.running ? 'Restart now' : 'Start now'}

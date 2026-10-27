@@ -16,6 +16,7 @@ use PrismCoreKeeper\Support\Sources\ModIo;
 use PrismCoreKeeper\Support\Sources\Mods;
 use PrismCoreKeeper\Support\StartHook;
 use Pterodactyl\Facades\Activity;
+use Pterodactyl\Facades\Daemon;
 use Pterodactyl\Models\Server;
 use RuntimeException;
 
@@ -69,7 +70,6 @@ class ModsController extends Controller
         return new JsonResponse([
             'mods' => $list,
             'sources' => ['modio' => Mods::source('modio')->configured(), 'steam' => Mods::source('steam')->configured()],
-            'steamLogin' => Settings::string('steam_username') !== '' && Settings::string('steam_password') !== '',
             // Workshop mods and version changes need the start step; someone may have reset the startup.
             'hookMissing' => array_filter($records, static fn (array $record): bool => $record['source'] === 'steam') !== [] && ! StartHook::installed($server->fresh()),
             'running' => ServerConsole::for($server)->isRunning(),
@@ -213,9 +213,6 @@ class ModsController extends Controller
 
         $restart = ($data['restart'] ?? false) && ServerConsole::for($server)->isRunning();
         if ($restart) {
-            if ($hasWorkshop) {
-                StartHook::loginSteps($plan);
-            }
             $plan->add('power', ['action' => 'restart']);
         }
 
@@ -318,15 +315,15 @@ class ModsController extends Controller
         return new JsonResponse(['job' => $plan->dispatch($request->user(), 'mods')], 202);
     }
 
-    /** Restarts through a plan, so the Steam login is in place for Workshop downloads. */
+    /** Restarts (or starts) the server so its start step downloads the Workshop mods. */
     public function restart(Request $request, Server $server): JsonResponse
     {
         $this->authorizeFeature($request, $server, 'mods', 'mods');
         abort_unless($request->user()->can('control.restart', $server), 403, 'You do not have permission to restart this server.');
-        $plan = StartHook::loginSteps(InstallPlan::for($server, 'Restarting to download Workshop mods'));
-        $plan->add('power', ['action' => ServerConsole::for($server)->isRunning() ? 'restart' : 'start']);
+        $action = ServerConsole::for($server)->isRunning() ? 'restart' : 'start';
+        Daemon::server($server)->power($action);
 
-        return new JsonResponse(['job' => $plan->dispatch($request->user(), 'mods')], 202);
+        return new JsonResponse(['action' => $action]);
     }
 
     /**

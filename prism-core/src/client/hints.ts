@@ -118,8 +118,6 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         egg_tags: { section: 'Detection' },
         modio_api_key: { section: 'Where mods come from' },
         steam_api_key: { section: 'Where mods come from' },
-        steam_username: { section: 'Steam Workshop downloads' },
-        steam_password: { section: 'Steam Workshop downloads' },
     },
     'prism-auth': {
         button_style: { segmented: true },

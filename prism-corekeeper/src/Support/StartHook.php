@@ -20,7 +20,8 @@ use Pterodactyl\Models\User;
  *  .cks/branch          the Steam branch the Versions tab chose
  *  .cks/workshop.txt    "<id> <time updated> <title>" per wanted Workshop mod, written by the Panel
  *  .cks/installed.txt   "<id> <time updated> <folder>" per downloaded mod, written by the script
- *  .cks/steam-login     user and password on two lines, written just before a start, deleted by the script
+ *
+ * Steam gives Core Keeper's Workshop files to anonymous SteamCMD, so no Steam account is needed.
  */
 final class StartHook
 {
@@ -56,21 +57,6 @@ final class StartHook
             ->add('start-hook');
     }
 
-    /**
-     * The Steam login for Workshop downloads, written right before a start when Prism
-     * Properties has one, so it is on the server's disk only while the server starts.
-     */
-    public static function loginSteps(InstallPlan $plan): InstallPlan
-    {
-        $user = Settings::string('steam_username');
-        $password = Settings::string('steam_password');
-        if ($user === '' || $password === '') {
-            return $plan;
-        }
-
-        return $plan->add('write', ['path' => '.cks/steam-login', 'content' => base64_encode($user."\n".$password."\n"), 'secret' => true]);
-    }
-
     /** @param array<string, array<string, mixed>> $wanted keyed by Workshop id */
     public static function workshopList(array $wanted): string
     {
@@ -96,12 +82,8 @@ final class StartHook
             MODS="@MODS@"
             mkdir -p .cks "$MODS"
 
-            LOGIN=(anonymous)
-            if [ -f .cks/steam-login ]; then
-                { read -r user; read -r pass; } < .cks/steam-login
-                rm -f .cks/steam-login
-                [ -n "$user" ] && LOGIN=("$user" "$pass")
-            fi
+            # Left by older versions, which could sign in to Steam; downloads are anonymous now.
+            rm -f .cks/steam-login
 
             if [ ! -x "$STEAMCMD" ] && [ -f "$STEAMCMD" ]; then chmod +x "$STEAMCMD" ./steamcmd/linux32/steamcmd 2>/dev/null; fi
 
@@ -129,12 +111,12 @@ final class StartHook
                     [[ $id =~ ^[0-9]+$ ]] || continue
                     grep -q "^$id $updated " "$DONE" && continue
                     say "Downloading $title from the Steam Workshop..."
-                    "$STEAMCMD" +force_install_dir /home/container/.cks/steam +login "${LOGIN[@]}" +workshop_download_item @GAME@ "$id" validate +quit < /dev/null > .cks/download.log 2>&1
+                    "$STEAMCMD" +force_install_dir /home/container/.cks/steam +login anonymous +workshop_download_item @GAME@ "$id" validate +quit < /dev/null > .cks/download.log 2>&1
                     dir=.cks/steam/steamapps/workshop/content/@GAME@/$id
                     manifest=$(find "$dir" -maxdepth 3 -name ModManifest.json 2>/dev/null | head -n 1)
                     if [ -z "$manifest" ]; then
-                        if grep -qiE "access denied|no subscription|login failure|invalid password|not logged on" .cks/download.log; then
-                            say "Steam refused the download of $title. Add a Steam login in Prism Properties, or install it from mod.io."
+                        if grep -qiE "access denied|no subscription|login failure|not logged on" .cks/download.log; then
+                            say "Steam refused the download of $title. Install it from mod.io instead, if it is there."
                         else
                             say "Could not download $title:"
                         fi

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, ProgressBar, useCurrentServerRequired, useExtensionJobProgress } from '@pterodactyl/sdk';
 
 interface Props {
@@ -12,6 +12,15 @@ export default function JobProgress({ job, onFinished }: Props) {
     const progress = useExtensionJobProgress(job, { serverUuid: server.attributes.uuid });
     const reported = useRef(false);
     const status = progress.data?.status;
+    // A job still at 0% after half a minute has not been picked up: the Panel's queue worker is likely stopped.
+    const [waitedLong, setWaitedLong] = useState(false);
+    const started = (progress.data?.percent ?? 0) > 0;
+    useEffect(() => {
+        if (started) return;
+        const timer = window.setTimeout(() => setWaitedLong(true), 30_000);
+
+        return () => window.clearTimeout(timer);
+    }, [started]);
 
     useEffect(() => {
         if (!reported.current && (status === 'completed' || status === 'failed')) {
@@ -43,6 +52,11 @@ export default function JobProgress({ job, onFinished }: Props) {
                 <span className={'cks:text-muted-foreground'}>{data?.percent ?? 0}%</span>
             </div>
             <ProgressBar value={data?.percent ?? 0} label={data?.message ?? 'Install progress'} />
+            {waitedLong && !started && !reinstalling && (
+                <p className={'cks:text-xs cks:text-muted-foreground'}>
+                    Still waiting for the Panel to pick this up. Installs run on the Panel's background queue; if this stays at 0%, an admin should check that its queue worker is running.
+                </p>
+            )}
         </div>
     );
 }
