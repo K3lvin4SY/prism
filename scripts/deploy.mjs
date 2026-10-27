@@ -45,8 +45,10 @@ try {
         await step('doctor', `cd /app && php artisan p:extension:doctor ${remote}/${id}`);
     }
     await step('install', `cd /app && php artisan p:extension:install ${remote}/${id} --enable --replace --no-interaction`);
-    await step('permissions', `chown -R nginx:nginx /app/extensions/${id} && { [ ! -d /app/public/assets/extensions/${id} ] || chown -R nginx:nginx /app/public/assets/extensions/${id}; } && rm -rf ${remote}`);
     await step('state', `cd /app && php artisan p:extension:list | grep -E "ID|${id}"`);
+    // The artisan steps run as root: a Laravel log they start would be root's, and the queue
+    // worker (nginx) crashes when it cannot write to the day's log. Hand them all back to nginx.
+    await step('permissions', `chown -R nginx:nginx /app/extensions/${id} && { [ ! -d /app/public/assets/extensions/${id} ] || chown -R nginx:nginx /app/public/assets/extensions/${id}; } && chown nginx:nginx /app/storage/logs/*.log && rm -rf ${remote}`);
 } finally {
     rmSync(work, { recursive: true, force: true });
 }
