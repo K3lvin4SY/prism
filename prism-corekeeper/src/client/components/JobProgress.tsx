@@ -1,26 +1,69 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, ProgressBar, useCurrentServerRequired, useExtensionJobProgress } from '@pterodactyl/sdk';
+import { advancePlan } from '../api/client';
 
 interface Props {
     job: string;
     onFinished?: (status: 'completed' | 'failed') => void;
 }
 
-/** Live progress of an install running on the queue. */
+/** How long a plan may wait for the Panel's queue worker before this page runs it itself. */
+const TAKE_OVER_AFTER_MS = 12_000;
+
+/**
+ * Runs the plan from this page when the Panel's queue worker does not: after a short wait it
+ * asks the server to run a slice at a time, and the server only does so while no worker has
+ * touched the plan lately. Returns whether this page has been running it.
+ */
+function usePageRunner(identifier: string, job: string, finished: boolean, onDone: () => void): boolean {
+    const [running, setRunning] = useState(false);
+
+    useEffect(() => {
+        if (finished) return;
+        let stopped = false;
+        let timer = 0;
+        const next = (ms: number) => {
+            if (!stopped) timer = window.setTimeout(step, ms);
+        };
+        const step = async () => {
+            try {
+                const result = await advancePlan(identifier, job);
+                if (stopped) return;
+                if (result === 'done') {
+                    onDone();
+                    return;
+                }
+                if (result === 'busy') {
+                    next(10_000);
+                    return;
+                }
+                setRunning(true);
+                onDone();
+                next(result === 'more' ? 500 : 3_000);
+            } catch {
+                next(10_000);
+            }
+        };
+        next(TAKE_OVER_AFTER_MS);
+
+        return () => {
+            stopped = true;
+            window.clearTimeout(timer);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [identifier, job, finished]);
+
+    return running;
+}
+
+/** Live progress of an install, run by the Panel's queue or, failing that, by this page. */
 export default function JobProgress({ job, onFinished }: Props) {
     const server = useCurrentServerRequired();
     const progress = useExtensionJobProgress(job, { serverUuid: server.attributes.uuid });
     const reported = useRef(false);
     const status = progress.data?.status;
-    // A job still at 0% after half a minute has not been picked up: the Panel's queue worker is likely stopped.
-    const [waitedLong, setWaitedLong] = useState(false);
-    const started = (progress.data?.percent ?? 0) > 0;
-    useEffect(() => {
-        if (started) return;
-        const timer = window.setTimeout(() => setWaitedLong(true), 30_000);
-
-        return () => window.clearTimeout(timer);
-    }, [started]);
+    const finished = status === 'completed' || status === 'failed';
+    const pageRunning = usePageRunner(server.attributes.identifier, job, finished, () => void progress.refetch());
 
     useEffect(() => {
         if (!reported.current && (status === 'completed' || status === 'failed')) {
@@ -52,9 +95,9 @@ export default function JobProgress({ job, onFinished }: Props) {
                 <span className={'cks:text-muted-foreground'}>{data?.percent ?? 0}%</span>
             </div>
             <ProgressBar value={data?.percent ?? 0} label={data?.message ?? 'Install progress'} />
-            {waitedLong && !started && !reinstalling && (
+            {pageRunning && !reinstalling && (
                 <p className={'cks:text-xs cks:text-muted-foreground'}>
-                    Still waiting for the Panel to pick this up. Installs run on the Panel's background queue; if this stays at 0%, an admin should check that its queue worker is running.
+                    The Panel's background queue is not picking this up, so this page is running it. Keep the page open until it finishes; an admin may want to check the Panel's queue worker.
                 </p>
             )}
         </div>

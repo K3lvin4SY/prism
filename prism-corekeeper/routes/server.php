@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use PrismCoreKeeper\Http\Controllers\InfoController;
 use PrismCoreKeeper\Http\Controllers\MapController;
 use PrismCoreKeeper\Http\Controllers\ModsController;
+use PrismCoreKeeper\Http\Controllers\PlansController;
 use PrismCoreKeeper\Http\Controllers\PlayersController;
 use PrismCoreKeeper\Http\Controllers\PropertiesController;
 use PrismCoreKeeper\Http\Controllers\ServerModController;
@@ -24,6 +25,8 @@ Route::put('/servermod', [ServerModController::class, 'update'])->name('servermo
 
 Route::get('/versions', [VersionsController::class, 'index'])->name('versions');
 Route::post('/versions/install', [VersionsController::class, 'install'])->name('versions.install');
+
+Route::post('/plans/{job}/advance', [PlansController::class, 'advance'])->where('job', '[0-9a-f-]{36}')->name('plans.advance');
 
 Route::get('/map', [MapController::class, 'show'])->name('map');
 Route::get('/map/file', [MapController::class, 'file'])->name('map.file');

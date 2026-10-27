@@ -31,6 +31,11 @@ export async function getInfo(server: string, refresh = false): Promise<CoreKeep
     return data;
 }
 
+/** Runs a slice of an install plan from the page, for when the Panel's queue worker does not. */
+export async function advancePlan(server: string, job: string): Promise<'busy' | 'wait' | 'more' | 'done'> {
+    return (await http.post<{ result: 'busy' | 'wait' | 'more' | 'done' }>(`${base(server)}/plans/${job}/advance`)).data.result;
+}
+
 /** "1.4 MB" */
 export function bytes(size: number): string {
     if (size < 1024) return `${size} B`;

@@ -26,6 +26,7 @@ use Throwable;
 /**
  * Runs an InstallPlan for about forty seconds, then queues itself to carry on. Waiting
  * steps (downloads, shutdown) re-queue with a short delay instead of blocking a worker.
+ * When no worker picks a plan up, the page that started it runs it in slices (advance()).
  */
 class RunInstallPlan implements ShouldQueue
 {
@@ -52,19 +53,77 @@ class RunInstallPlan implements ShouldQueue
 
     public function handle(ExtensionJobProgress $progress): void
     {
+        $lock = Cache::lock(self::runLock($this->jobId), self::SLICE_SECONDS + 30);
+        if (! $lock->get()) {
+            // The browser is running this slice (advance()); look again shortly.
+            self::dispatch($this->jobId)->delay(now()->addSeconds(5));
+
+            return;
+        }
+
+        try {
+            $result = $this->slice($progress, self::SLICE_SECONDS, 'worker');
+        } finally {
+            $lock->release();
+        }
+
+        if ($result === 'wait') {
+            self::dispatch($this->jobId)->delay(now()->addSeconds(3));
+        } elseif ($result === 'more') {
+            self::dispatch($this->jobId);
+        }
+    }
+
+    /**
+     * Runs a slice of the plan from a web request, for when the queue worker does not pick the
+     * plan up: the open Mods or Versions page calls this until the plan is done. Nothing is
+     * queued from here, and the run lock keeps it from overlapping with a worker.
+     *
+     * @return string 'busy' (a worker has it), 'wait' or 'more' (call again), or 'done'
+     */
+    public static function advance(string $jobId, int $seconds = 20): string
+    {
+        $lock = Cache::lock(self::runLock($jobId), $seconds + 30);
+        if (! $lock->get()) {
+            return 'busy';
+        }
+
+        try {
+            return (new self($jobId))->slice(app(ExtensionJobProgress::class), $seconds, 'page') ?? 'done';
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private static function runLock(string $jobId): string
+    {
+        return InstallPlan::stateKey($jobId).':running';
+    }
+
+    /**
+     * Runs steps for up to $seconds, as the worker or the page ($runner).
+     *
+     * @return string|null 'wait' when a step must be checked again shortly, 'more' when time ran
+     *                     out, or null when the plan finished (or is gone)
+     */
+    private function slice(ExtensionJobProgress $progress, int $seconds, string $runner): ?string
+    {
         $state = Cache::get(InstallPlan::stateKey($this->jobId));
         if (! is_array($state)) {
-            return;
+            return null;
         }
 
         $server = Server::query()->find($state['server']);
         if (! $server instanceof Server) {
             Cache::forget(InstallPlan::stateKey($this->jobId));
 
-            return;
+            return null;
         }
 
-        $sliceEnds = time() + self::SLICE_SECONDS;
+        $sliceEnds = time() + $seconds;
+        // Who ran it last and when, so a page only takes over a plan no worker is running.
+        $state['touched'] = time();
+        $state['runner'] = $runner;
 
         try {
             while ($state['cursor'] < count($state['steps'])) {
@@ -74,9 +133,8 @@ class RunInstallPlan implements ShouldQueue
                 if (! $done) {
                     $this->save($state);
                     $this->report($progress, $state);
-                    self::dispatch($this->jobId)->delay(now()->addSeconds(3));
 
-                    return;
+                    return 'wait';
                 }
 
                 $state['cursor']++;
@@ -85,9 +143,8 @@ class RunInstallPlan implements ShouldQueue
 
                 if (time() >= $sliceEnds) {
                     $this->save($state);
-                    self::dispatch($this->jobId);
 
-                    return;
+                    return 'more';
                 }
             }
         } catch (Throwable $exception) {
@@ -95,10 +152,12 @@ class RunInstallPlan implements ShouldQueue
             $this->rollback($server, $state);
             $this->finish($server, $progress, 'failed', $state['label'].' failed: '.self::describe($exception));
 
-            return;
+            return null;
         }
 
         $this->finish($server, $progress, 'completed', $state['label'].': done.');
+
+        return null;
     }
 
     /**
