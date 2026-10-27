@@ -1,5 +1,5 @@
 // Builds the extension, uploads it to the Panel container, lints the PHP, then installs and enables it.
-// Usage: PORTAINER_API_TOKEN=... node scripts/deploy.mjs [--ext <folder>] [--skip-build] [--doctor]
+// Usage: node --env-file=.env scripts/deploy.mjs [--ext <folder>] [--skip-build] [--doctor]
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';

@@ -79,10 +79,10 @@ Each extension supports the same scripts:
 | `npm run typecheck` | Check types             |
 | `npm test`          | Run the tests           |
 
-The [`scripts/`](scripts) folder holds helpers for deploying to a Panel running under Portainer, calling the Panel API and generating game data. For example:
+The [`scripts/`](scripts) folder holds helpers for deploying to a Panel running under Portainer, calling the Panel API and generating game data. Copy [`.env.example`](.env.example) to `.env` and fill it in, then for example:
 
 ```bash
-PORTAINER_API_TOKEN=... node scripts/deploy.mjs --ext prism-files
+node --env-file=.env scripts/deploy.mjs --ext prism-files
 ```
 
 ## Project structure
