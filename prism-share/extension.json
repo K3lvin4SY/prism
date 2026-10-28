@@ -24,7 +24,8 @@
                 "area": "server",
                 "path": "share",
                 "nav": { "label": "Share links", "icon": "share-2" },
-                "permission": ["ext.prism-share.manage"]
+                "permission": ["ext.prism-share.manage"],
+                "when": { "runtime": true }
             }
         ]
     }
