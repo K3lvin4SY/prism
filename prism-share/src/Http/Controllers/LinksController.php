@@ -36,7 +36,7 @@ final class LinksController
             ->orderByDesc('id')->get();
 
         return response()->json(['data' => [
-            'links' => $links->map($this->present(...))->values(),
+            'links' => $links->map(fn (Link $link): array => $this->present($link, $user, $server))->values(),
             'grantable' => $grantable = Capabilities::grantable($user, $server),
             'max_hours' => $this->maxHours(),
             // The backups that can be picked, only for someone who may share backups.
@@ -57,7 +57,7 @@ final class LinksController
         $this->log('create', $server, $link);
 
         // The only time the token is shown: only its hash is kept.
-        return response()->json(['data' => [...$this->present($link->load(['user', 'server'])), 'token' => $token]], 201);
+        return response()->json(['data' => [...$this->present($link->load(['user', 'server']), $user, $server), 'token' => $token]], 201);
     }
 
     public function update(Request $request, Server $server, int $link): JsonResponse
@@ -70,7 +70,7 @@ final class LinksController
         Links::disconnect($model);
         $this->log('update', $server, $model);
 
-        return response()->json(['data' => $this->present($model->load(['user', 'server']))]);
+        return response()->json(['data' => $this->present($model->load(['user', 'server']), $user, $server)]);
     }
 
     public function destroy(Request $request, Server $server, int $link): Response
@@ -161,16 +161,21 @@ final class LinksController
         return $fields;
     }
 
-    /** @return array<string, mixed> */
-    private function present(Link $link): array
+    /**
+     * A link as the viewer may see it: its shared paths only for someone who may list the
+     * server's files, and its backups only for someone who may see its backups.
+     *
+     * @return array<string, mixed>
+     */
+    private function present(Link $link, User $viewer, Server $server): array
     {
         return [
             'id' => $link->id,
             'label' => $link->label,
             'permissions' => $link->permissions,
             'effective' => $link->active() ? Capabilities::effective($link) : [],
-            'paths' => $link->paths,
-            'backups' => $link->backups,
+            'paths' => $viewer->can('file.read', $server) ? $link->paths : [],
+            'backups' => $viewer->can('backup.read', $server) ? $link->backups : [],
             'expires_at' => $link->expires_at->toIso8601String(),
             'revoked_at' => $link->revoked_at?->toIso8601String(),
             'last_used_at' => $link->last_used_at?->toIso8601String(),

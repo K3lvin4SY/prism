@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { IconPlayerPlay, IconPlayerStop, IconRotateClockwise } from '@tabler/icons-react';
 import { parseAnsi } from '../../../prism-console/src/client/lib/ansi';
-import { ended, formatBytes, type Client, type ShareOption } from './api';
+import { ended, formatBytes, refused, type Client, type ShareOption } from './api';
 
 const MAX_LINES = 1000;
 
@@ -35,11 +35,19 @@ export default function Console({ api, options, onEnded }: { api: Client; option
 
         const push = (line: string) => setLines((current) => [...current, line].slice(-MAX_LINES));
         const send = (event: string, args: unknown[] = [null]) => socket?.readyState === WebSocket.OPEN && socket.send(JSON.stringify({ event, args }));
+        // The console was taken from the link: it closes, and files and backups stay.
+        const lose = (error: unknown) => {
+            stopped = true;
+            socket?.close();
+            setState('offline');
+            setNotice(`${(error as Error).message} The console is closed.`);
+        };
         const reauthenticate = async () => {
             try {
                 send('auth', [(await api.websocket()).token]);
             } catch (error) {
                 if (ended(error)) onEnded((error as Error).message);
+                else if (refused(error)) lose(error);
             }
         };
 
@@ -50,6 +58,7 @@ export default function Console({ api, options, onEnded }: { api: Client; option
                 credentials = await api.websocket();
             } catch (error) {
                 if (ended(error)) return onEnded((error as Error).message);
+                if (refused(error)) return lose(error);
                 setState('offline');
                 timer = window.setTimeout(connect, Math.min(30_000, 2_000 * 2 ** retry++));
 
@@ -126,7 +135,7 @@ export default function Console({ api, options, onEnded }: { api: Client; option
             await action();
             setNotice(done);
         } catch (error) {
-            if (ended(error) && (error as { status?: number }).status !== 403) onEnded((error as Error).message);
+            if (ended(error)) onEnded((error as Error).message);
             else setNotice((error as Error).message);
         } finally {
             setBusy(false);

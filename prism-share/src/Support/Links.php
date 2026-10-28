@@ -33,15 +33,16 @@ final class Links
      */
     public static function fromRequest(Request $request): array
     {
-        $key = 'prism-share:miss:'.$request->ip();
-        abort_if(RateLimiter::tooManyAttempts($key, self::MISSES), 429, 'Too many tries. Please wait a few minutes.');
-
         $token = $request->header('X-Prism-Share');
         $link = is_string($token) && preg_match('/^[A-Za-z0-9]{48}$/', $token)
             ? Link::query()->with(['server.node', 'user'])->where('token_hash', hash('sha256', $token))->first()
             : null;
 
         if ($link === null || ! $link->active() || ! Settings::bool('enabled')) {
+            // Only wrong tokens are counted and refused, so someone guessing from a shared
+            // address cannot lock out the guests whose links work.
+            $key = 'prism-share:miss:'.$request->ip();
+            abort_if(RateLimiter::tooManyAttempts($key, self::MISSES), 429, 'Too many tries. Please wait a few minutes.');
             RateLimiter::hit($key, 600);
             abort(404, 'This link does not work any more. Ask for a new one.');
         }
@@ -53,7 +54,8 @@ final class Links
         }
 
         $options = Capabilities::effective($link);
-        abort_if($options === [], 403, 'This link does not allow anything any more. Ask for a new one.');
+        // Gone rather than refused: the page tells it apart from one thing it may not do.
+        abort_if($options === [], 410, 'This link does not allow anything any more. Ask for a new one.');
 
         return [$link, $options];
     }

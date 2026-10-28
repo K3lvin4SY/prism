@@ -85,8 +85,14 @@ export function client(token: string) {
 
 export type Client = ReturnType<typeof client>;
 
-/** A link has ended for good when the panel no longer knows it or it allows nothing. */
-export const ended = (error: unknown) => error instanceof ShareError && (error.status === 404 || error.status === 403 || error.status === 429);
+/**
+ * A link has ended for good when the panel no longer knows it (404) or it allows nothing (410).
+ * 403 is one thing it may not do, and 429 is slowing down: the rest of the page keeps working.
+ */
+export const ended = (error: unknown) => error instanceof ShareError && (error.status === 404 || error.status === 410);
+
+/** The link may no longer do this one thing. */
+export const refused = (error: unknown) => error instanceof ShareError && error.status === 403;
 
 export function formatBytes(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { formatBytes, takeToken } from './api';
+import { ShareError, ended, formatBytes, refused, takeToken } from './api';
 
 const TOKEN = 'a'.repeat(24) + 'B'.repeat(24);
 
@@ -25,5 +25,20 @@ describe('formatBytes', () => {
         expect(formatBytes(512)).toBe('512 B');
         expect(formatBytes(1536)).toBe('1.5 KiB');
         expect(formatBytes(5 * 1024 ** 3)).toBe('5.0 GiB');
+    });
+});
+
+describe('ended and refused', () => {
+    it('ends the page only when the link is gone or allows nothing', () => {
+        expect(ended(new ShareError(404, 'gone'))).toBe(true);
+        expect(ended(new ShareError(410, 'nothing'))).toBe(true);
+        expect(ended(new ShareError(403, 'not that'))).toBe(false);
+        expect(ended(new ShareError(429, 'slow down'))).toBe(false);
+        expect(ended(new Error('network'))).toBe(false);
+    });
+
+    it('refuses one thing on 403', () => {
+        expect(refused(new ShareError(403, 'not that'))).toBe(true);
+        expect(refused(new ShareError(404, 'gone'))).toBe(false);
     });
 });

@@ -34,14 +34,17 @@ Prism Share adds a **Share links** page to each server. A link opens a page at `
 - **The administrator decides what may be shared at all**, and for how long, in Prism Properties.
 - **The token never reaches a server log.** Links look like `/share#<token>`; the token stays in the fragment, the page sends it in a header, and only its SHA-256 is stored. It is shown once, when the link is made.
 - **The console is watch-only at the node.** The guest's Wings token only has `websocket.connect` and lasts five minutes. Commands and power go through the panel, which checks and records them. Revoking or changing a link calls the node's deauthorize, so open consoles drop at once.
-- **Files stay inside what is shared.** Paths are normalized and must be inside a shared folder or file. Symlinks are hidden and refused, because Wings would follow them anywhere in the server.
-- **Everything is recorded** in the server's activity log as `server:prism-share.*`: making, changing and revoking links, and each open, command, power action and download, with the link's name.
-- Wrong tokens are rate limited per network address, and the page is sent with a strict Content Security Policy, `no-referrer`, `noindex` and `no-store`.
+- **Files stay inside what is shared.** Paths are normalized and must be inside a shared folder or file. Every folder on the way, from the server's root down, is checked not to be a symlink (by Wings's `symlink` flag and by its mode), because Wings would follow one anywhere in the server. Symlinks are hidden from the guest.
+- **Download links are short.** A file or node backup download link lasts one minute (never past the link's expiry) and belongs to the link. A backup stored in S3 gets the panel's presigned address, which lasts five minutes. A download link already handed out keeps working that long after a revoke.
+- **Everything is recorded** in the server's activity log as `server:prism-share.*`: making, changing and revoking links, and each open, command, power action and download, with the link's name. Guest actions are logged without a user, even when someone signed in to the panel opens the link.
+- Wrong tokens are rate limited per network address (working links are never held up by someone else's guesses), each guest action has its own rate limit, and the page is sent with a strict Content Security Policy, `no-referrer`, `noindex` and `no-store`.
+- Managers see a link's shared paths only with `file.read`, and its backups only with `backup.read`.
 
 Known limits:
 
 - Lowering the longest lifetime applies to new and changed links, not to links already made.
-- A file is checked for symlinks just before its download link is made; a process on the server could swap it for a symlink in the moment between. Do not share folders the game server itself rewrites with links in them.
+- A file is checked for symlinks just before its download link is made; a process on the server could swap it for a symlink in the minute between. Do not share folders the game server itself rewrites with links in them.
+- The guest page runs outside the panel's app, so it uses `@tabler/icons-react` directly instead of the generated `NamedIcon` (the same Tabler icons).
 
 ## Settings
 
