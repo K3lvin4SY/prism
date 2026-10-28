@@ -57,7 +57,7 @@ final class Capabilities
 
         return array_values(array_filter(
             self::clean($link->permissions),
-            static fn (string $option): bool => ($grantable[$option] ?? 'unknown') === null,
+            static fn (string $option): bool => array_key_exists($option, $grantable) && $grantable[$option] === null,
         ));
     }
 
