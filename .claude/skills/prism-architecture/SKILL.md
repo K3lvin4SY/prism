@@ -15,7 +15,7 @@ prism-core (ppx)  ── Prism Properties admin page (/panel/prism), Prism Expor
    ├── prism-layout (pla) the frame: navigation, server cards, branding, sign-in, announcements
    ├── prism-console (pcn), prism-files (pfl), prism-database (pdb),
    │   prism-backups (pbk), prism-schedules (psc)          better versions of Panel pages
-   ├── prism-mc (mcs), prism-terraria (trs), prism-corekeeper (cks)   game-specific server screens
+   ├── prism-mc (mcs), prism-terraria (trs), prism-corekeeper (cks), prism-factorio (fct)   game-specific server screens
    └── prism-auth (pau)  sign-in providers, account sign-in methods, sign-up
 ```
 

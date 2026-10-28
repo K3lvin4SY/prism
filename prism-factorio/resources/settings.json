@@ -1,0 +1,43 @@
+{
+    "categories": [
+        { "id": "listing", "label": "Listing", "icon": "globe" },
+        { "id": "account", "label": "factorio.com account", "icon": "user" },
+        { "id": "play", "label": "Play", "icon": "users" },
+        { "id": "saving", "label": "Saving", "icon": "save" },
+        { "id": "network", "label": "Network", "icon": "network" }
+    ],
+    "managed": [],
+    "settings": [
+        { "key": "name", "kinds": ["factorio"], "category": "listing", "type": "string", "label": "Server name", "description": "The name in the game's server browser.", "default": "", "maxLength": 100 },
+        { "key": "description", "kinds": ["factorio"], "category": "listing", "type": "string", "label": "Description", "description": "Shown under the name in the server browser.", "default": "", "maxLength": 500 },
+        { "key": "tags", "kinds": ["factorio"], "category": "listing", "type": "string", "label": "Tags", "description": "Words players can search the server browser for, separated by commas.", "default": "", "maxLength": 300 },
+        { "key": "visibility.public", "kinds": ["factorio"], "category": "listing", "type": "bool", "label": "Public", "description": "List the server on Factorio's public server browser. Needs a factorio.com username and token.", "default": true },
+        { "key": "visibility.lan", "kinds": ["factorio"], "category": "listing", "type": "bool", "label": "LAN", "description": "Announce the server to players on the same network.", "default": true },
+        { "key": "game_password", "kinds": ["factorio"], "category": "listing", "type": "string", "label": "Game password", "description": "Players need it to join. Empty means no password.", "default": "", "maxLength": 100 },
+        { "key": "require_user_verification", "kinds": ["factorio"], "category": "listing", "type": "bool", "label": "Require a factorio.com account", "description": "Only let in players whose factorio.com account checks out. Turning it off lets anyone in under any name.", "default": true },
+        { "key": "max_players", "kinds": ["factorio"], "category": "listing", "type": "int", "label": "Max players", "description": "How many players can be on at once. 0 is no limit. Admins can always join.", "default": 0, "min": 0, "max": 65535 },
+        { "key": "ignore_player_limit_for_returning_players", "kinds": ["factorio"], "category": "listing", "type": "bool", "label": "Let returning players past the limit", "description": "Players who have played this map before can join even when it is full.", "default": false },
+
+        { "key": "username", "kinds": ["factorio"], "category": "account", "type": "string", "label": "Username", "description": "The factorio.com account the server lists itself with. Prism Factorio also uses it to download mods.", "default": "", "maxLength": 100, "pattern": "^[A-Za-z0-9_.@+-]*$" },
+        { "key": "token", "kinds": ["factorio"], "category": "account", "type": "secret", "label": "Token", "description": "The token from factorio.com/profile (not the password). It is never shown again once saved.", "default": "", "maxLength": 64, "pattern": "^[A-Za-z0-9]*$" },
+
+        { "key": "allow_commands", "kinds": ["factorio"], "category": "play", "type": "enum", "label": "Console commands", "description": "Who may use console commands and Lua in the game. Using them turns achievements off for the map.", "default": "admins-only", "options": ["admins-only", "true", "false"], "optionLabels": { "admins-only": "Admins only", "true": "Everyone", "false": "Nobody" } },
+        { "key": "only_admins_can_pause_the_game", "kinds": ["factorio"], "category": "play", "type": "bool", "label": "Only admins can pause", "description": "Whether only admins may pause the game.", "default": true },
+        { "key": "auto_pause", "kinds": ["factorio"], "category": "play", "type": "bool", "label": "Pause when empty", "description": "Pause the game while nobody is on.", "default": true },
+        { "key": "auto_pause_when_players_connect", "kinds": ["factorio"], "category": "play", "type": "bool", "label": "Pause while someone joins", "description": "Pause while a player is downloading the map to join.", "default": false },
+        { "key": "afk_autokick_interval", "kinds": ["factorio"], "category": "play", "type": "int", "label": "Kick idle players after (minutes)", "description": "Kick players who do nothing for this long. 0 never kicks.", "default": 0, "min": 0, "max": 10000 },
+
+        { "key": "SAVE_NAME", "kinds": ["factorio"], "category": "saving", "type": "string", "label": "Save", "description": "The save in the saves folder the server opens, without .zip. A name with no save makes a new map on the next start, with the map settings in data/map-gen-settings.json.", "default": "gamesave", "maxLength": 100, "pattern": "^[A-Za-z0-9 _.-]+$" },
+        { "key": "autosave_interval", "kinds": ["factorio"], "category": "saving", "type": "int", "label": "Autosave every (minutes)", "description": "How often the server saves the map.", "default": 10, "min": 1, "max": 1440 },
+        { "key": "autosave_slots", "kinds": ["factorio"], "category": "saving", "type": "int", "label": "Autosave slots", "description": "How many autosaves are kept before the oldest is overwritten.", "default": 5, "min": 1, "max": 1000 },
+        { "key": "autosave_only_on_server", "kinds": ["factorio"], "category": "saving", "type": "bool", "label": "Autosave only on the server", "description": "Players' games do not save a copy too.", "default": true },
+        { "key": "non_blocking_saving", "kinds": ["factorio"], "category": "saving", "type": "bool", "label": "Save without pausing", "description": "Experimental: saves in the background so play does not stop. Factorio warns saves may be lost.", "default": false },
+
+        { "key": "max_upload_in_kilobytes_per_second", "kinds": ["factorio"], "category": "network", "type": "int", "label": "Max upload (KB/s)", "description": "Limits how fast the map is sent to joining players. 0 is no limit.", "default": 0, "min": 0, "max": 10000000 },
+        { "key": "max_upload_slots", "kinds": ["factorio"], "category": "network", "type": "int", "label": "Map downloads at once", "description": "How many players can download the map at the same time. 0 is no limit.", "default": 5, "min": 0, "max": 1000 },
+        { "key": "minimum_latency_in_ticks", "kinds": ["factorio"], "category": "network", "type": "int", "label": "Minimum latency (ticks)", "description": "A tick is about 16 ms. 0 means no minimum.", "default": 0, "min": 0, "max": 1000 },
+        { "key": "max_heartbeats_per_second", "kinds": ["factorio"], "category": "network", "type": "int", "label": "Network tick rate", "description": "How many updates a second the server sends before bundling them. From 6 to 240.", "default": 60, "min": 6, "max": 240 },
+        { "key": "minimum_segment_size", "kinds": ["factorio"], "category": "network", "type": "int", "label": "Minimum segment size", "description": "Smallest piece long messages are split into. Changing it can hurt connection stability.", "default": 25, "min": 1, "max": 10000 },
+        { "key": "maximum_segment_size", "kinds": ["factorio"], "category": "network", "type": "int", "label": "Maximum segment size", "description": "Largest piece long messages are split into. Changing it can hurt connection stability.", "default": 100, "min": 1, "max": 10000 }
+    ]
+}

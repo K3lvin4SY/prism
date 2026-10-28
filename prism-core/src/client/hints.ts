@@ -119,6 +119,11 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         modio_api_key: { section: 'Where mods come from' },
         steam_api_key: { section: 'Where mods come from' },
     },
+    'prism-factorio': {
+        egg_tags: { section: 'Detection' },
+        factorio_username: { section: 'Mod portal account' },
+        factorio_token: { section: 'Mod portal account' },
+    },
     'prism-auth': {
         button_style: { segmented: true },
         link_by_email: { section: 'Existing accounts' },

@@ -1,0 +1,62 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-factorio",
+    "name": "Prism Factorio",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Players with admins, bans and the whitelist, mods from the Factorio mod portal, versions and server settings for Factorio servers.",
+    "author": "Donkare",
+    "icon": "icon.png",
+    "provider": "PrismFactorio\\PrismFactorioProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "fct",
+        "screens": [
+            {
+                "id": "players",
+                "area": "server",
+                "path": "factorio-players",
+                "nav": { "label": "Players", "icon": "users", "order": 1 },
+                "permission": ["ext.prism-factorio.players-view"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "player",
+                "area": "server",
+                "path": "factorio-players/$player",
+                "permission": ["ext.prism-factorio.players-view"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "mods",
+                "area": "server",
+                "path": "factorio-mods",
+                "nav": { "label": "Mods", "icon": "puzzle", "order": 2 },
+                "permission": ["ext.prism-factorio.mods"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "versions",
+                "area": "server",
+                "path": "factorio-versions",
+                "nav": { "label": "Versions", "icon": "git-branch", "order": 3 },
+                "permission": ["ext.prism-factorio.versions"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "properties",
+                "area": "server",
+                "path": "factorio-properties",
+                "nav": { "label": "Properties", "icon": "sliders-horizontal", "order": 4 },
+                "permission": ["ext.prism-factorio.properties"],
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}

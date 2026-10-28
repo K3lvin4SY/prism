@@ -1,0 +1,11 @@
+{
+    "description": "Players with admins, bans and the whitelist, mods from the Factorio mod portal, versions and server settings for Factorio servers.",
+    "autoload": {
+        "psr-4": {
+            "PrismFactorio\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismFactorioExtension"
+    }
+}

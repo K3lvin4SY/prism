@@ -220,6 +220,18 @@ No settings of its own. Its admin screen is Prism Properties.
 
 `tab_world` is the Map tab. The Prism server mod is switched per server in the server's own Properties tab (stored as `servermod.enabled` in the server's metadata), not in Prism Properties.
 
+### prism-factorio
+
+| Tab | Key | Label | Default | Field |
+| --- | --- | --- | --- | --- |
+| Server tabs | `tab_players`, `tab_mods`, `tab_versions`, `tab_properties` | Show each server tab | `true` | toggle |
+| Detection | `egg_tags` | Egg tags to detect (eggs that start bin/x64/factorio are found anyway) | `'factorio'` | text |
+| Mods | `confirm_installs` | Confirm before installing | `true` | toggle |
+| Mods | `factorio_username` | factorio.com username | `''` | text |
+| Mods | `factorio_token` | factorio.com token | `''` | password |
+
+The username and token are only used for servers whose own settings (Properties, factorio.com account) have none.
+
 ### prism-auth
 
 | Tab | Key | Label | Default | Field |

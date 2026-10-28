@@ -30,6 +30,7 @@ const HOMES: Record<string, { label: string; path: string; tag?: string; startup
     'prism-terraria': { label: 'Terraria', path: '/terraria-properties', tag: 'terraria' },
     // The Core Keeper egg has no tag of its own; its startup names the server binary.
     'prism-corekeeper': { label: 'Core Keeper', path: '/corekeeper-mods', tag: 'core-keeper', startup: 'CoreKeeperServer' },
+    'prism-factorio': { label: 'Factorio', path: '/factorio-mods', tag: 'factorio', startup: 'bin/x64/factorio' },
 };
 
 type ServerItem = { attributes: { identifier: string; egg_tags?: string[]; invocation?: string } };
