@@ -1,0 +1,191 @@
+/*
+ * The guest page is outside the panel's app, so it has its own small stylesheet. Only psh-
+ * classes: nothing here can reach the panel's own pages.
+ */
+.psh-body {
+    margin: 0;
+    background: #0b0f17;
+    color: #e5e7eb;
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --terminal-ansi-black: #1f2937;
+    --terminal-ansi-red: #f87171;
+    --terminal-ansi-green: #4ade80;
+    --terminal-ansi-yellow: #facc15;
+    --terminal-ansi-blue: #60a5fa;
+    --terminal-ansi-magenta: #e879f9;
+    --terminal-ansi-cyan: #22d3ee;
+    --terminal-ansi-white: #e5e7eb;
+    --terminal-ansi-bright-black: #6b7280;
+    --terminal-ansi-bright-red: #fca5a5;
+    --terminal-ansi-bright-green: #86efac;
+    --terminal-ansi-bright-yellow: #fde047;
+    --terminal-ansi-bright-blue: #93c5fd;
+    --terminal-ansi-bright-magenta: #f0abfc;
+    --terminal-ansi-bright-cyan: #67e8f9;
+    --terminal-ansi-bright-white: #ffffff;
+}
+
+.psh-page {
+    box-sizing: border-box;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.psh-page *,
+.psh-page *::before,
+.psh-page *::after {
+    box-sizing: border-box;
+}
+
+.psh-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.psh-grow {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.psh-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.psh-heading {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.psh-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.psh-muted {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.psh-error {
+    margin: 0;
+    color: #fca5a5;
+}
+
+.psh-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid #1f2937;
+    border-radius: 10px;
+    background: #111827;
+}
+
+.psh-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    background: #1f2937;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.psh-button:hover:not(:disabled) {
+    background: #374151;
+}
+
+.psh-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.psh-ghost {
+    border-color: transparent;
+    background: transparent;
+}
+
+.psh-input {
+    padding: 6px 10px;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    background: #0b0f17;
+    color: inherit;
+    font: 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.psh-state {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #374151;
+    font-size: 12px;
+    text-transform: capitalize;
+}
+
+.psh-state-running {
+    background: #14532d;
+    color: #bbf7d0;
+}
+
+.psh-state-offline {
+    background: #7f1d1d;
+    color: #fecaca;
+}
+
+.psh-terminal {
+    height: 60vh;
+    min-height: 240px;
+    overflow: auto;
+    padding: 12px;
+    border-radius: 8px;
+    background: #000;
+    color: #e5e7eb;
+    font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.psh-line {
+    min-height: 1em;
+}
+
+.psh-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.psh-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.psh-entry:hover {
+    background: #1f2937;
+}
