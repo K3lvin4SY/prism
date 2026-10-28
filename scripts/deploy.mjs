@@ -26,7 +26,19 @@ try {
     execFileSync(
         // Git Bash's GNU tar reads "C:" as a remote host, so use the bsdtar Windows ships.
         process.platform === 'win32' ? join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar',
-        ['-cf', tar, '--exclude=node_modules', '--exclude=.github', '--exclude=*.pteroext', '--exclude=src/client', '-C', root, id],
+        [
+            '-cf',
+            tar,
+            // macOS's tar adds extended attributes (com.apple.provenance) the container refuses.
+            ...(process.platform === 'darwin' ? ['--no-xattrs', '--no-mac-metadata'] : []),
+            '--exclude=node_modules',
+            '--exclude=.github',
+            '--exclude=*.pteroext',
+            '--exclude=src/client',
+            '-C',
+            root,
+            id,
+        ],
         { stdio: 'inherit' }
     );
 
