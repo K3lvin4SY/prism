@@ -9,8 +9,8 @@ use Pterodactyl\Models\Server;
 use Throwable;
 
 /**
- * The running server's state and console: Core Keeper has no query protocol, so what it
- * says in the console output Wings keeps is what there is to read.
+ * The running server's state and console. Wings keeps only the last 100 lines of output, so
+ * the joins and chat are written to a file of their own (see ConsoleLog).
  */
 final class ServerConsole
 {
@@ -28,6 +28,21 @@ final class ServerConsole
         } catch (Throwable) {
             return false;
         }
+    }
+
+    /** Seconds since the server started, or null when it is not running. */
+    public function uptime(): ?int
+    {
+        try {
+            $details = Daemon::server($this->server)->details();
+        } catch (Throwable) {
+            return null;
+        }
+        if (! in_array($details['state'] ?? 'offline', ['running', 'starting'], true)) {
+            return null;
+        }
+
+        return isset($details['utilization']['uptime']) ? intdiv((int) $details['utilization']['uptime'], 1000) : null;
     }
 
     /** @param list<string>|string $commands */

@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Alert, Badge, Button, Input, PanelLink, ServerContentBlock, Spinner, fromNow, httpErrorToHuman, useServerPermission } from '@pterodactyl/sdk';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Alert, Badge, Button, Input, PanelLink, ServerContentBlock, Spinner, fromNow, httpErrorToHuman, toast, useServerPermission } from '@pterodactyl/sdk';
 import { keys } from '../api/client';
-import { getPlayers, validName } from '../api/players';
+import { enableConsoleLog, getPlayers, validName } from '../api/players';
 import { usePlayerAction } from '../hooks/usePlayerAction';
 import { useFactorioInfo } from '../hooks/useFactorioInfo';
 import { NamedIcon } from '../icons';
@@ -46,6 +46,7 @@ export default function PlayersScreen() {
 
     return (
         <ServerContentBlock title={'Players'}>
+            {!data.consoleLog && <ConsoleLogNotice identifier={identifier} canManage={canManage} />}
             <div className={'fct:grid fct:gap-4 fct:lg:grid-cols-[1fr_22rem]'}>
                 <div className={'fct:flex fct:min-w-0 fct:flex-col fct:gap-4'}>
                     <Card title={data.running ? `Online now (${data.online.length})` : 'Online now'} icon={'users'}>
@@ -102,7 +103,7 @@ export default function PlayersScreen() {
                                 ))}
                             </ul>
                         )}
-                        <p className={'fct:text-xs fct:text-muted-foreground'}>Joins and leaves are read from the server's console while it runs. Open a player to see what they said and to manage them.</p>
+                        <p className={'fct:text-xs fct:text-muted-foreground'}>Joins, leaves and chat come from the game's console log. Open a player to see what they said and to manage them.</p>
                     </Card>
                 </div>
 
@@ -150,6 +151,43 @@ export default function PlayersScreen() {
                 </div>
             </div>
         </ServerContentBlock>
+    );
+}
+
+/** Asks to turn on the console log, without which joins on a busy server are soon out of reach. */
+function ConsoleLogNotice({ identifier, canManage }: { identifier: string; canManage: boolean }) {
+    const queryClient = useQueryClient();
+    const [busy, setBusy] = useState(false);
+
+    const enable = async () => {
+        setBusy(true);
+        try {
+            const { running } = await enableConsoleLog(identifier);
+            toast.success(running ? 'Done. It starts at the next restart.' : 'Done. It starts when the server starts.');
+            await queryClient.invalidateQueries({ queryKey: ['prism-factorio', identifier, 'players'] });
+        } catch (error) {
+            toast.error(httpErrorToHuman(error));
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <div className={'fct:mb-4'}>
+            <Alert type={'info'}>
+                <div className={'fct:flex fct:flex-wrap fct:items-center fct:gap-3'}>
+                    <span className={'fct:flex-1'}>
+                        For a full player history, Factorio needs to write joins, leaves and chat to factorio-console.log. That adds <span className={'fct:font-mono'}>--console-log factorio-console.log</span> to this server's startup command.
+                        {!canManage && ' Someone who can manage players can turn it on.'}
+                    </span>
+                    {canManage && (
+                        <Button size={'small'} isLoading={busy} onClick={() => void enable()}>
+                            Turn on
+                        </Button>
+                    )}
+                </div>
+            </Alert>
+        </div>
     );
 }
 

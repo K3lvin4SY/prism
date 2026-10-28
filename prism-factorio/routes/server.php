@@ -14,6 +14,7 @@ Route::get('/info', [InfoController::class, 'show'])->name('info');
 
 Route::get('/players', [PlayersController::class, 'index'])->name('players');
 Route::post('/players/action', [PlayersController::class, 'action'])->name('players.action');
+Route::post('/players/console-log', [PlayersController::class, 'consoleLog'])->name('players.console-log');
 Route::get('/players/{player}', [PlayersController::class, 'show'])->where('player', '[A-Za-z0-9_.-]{1,60}')->name('players.show');
 
 Route::get('/properties', [PropertiesController::class, 'show'])->name('properties');

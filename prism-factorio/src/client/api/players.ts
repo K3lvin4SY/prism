@@ -23,6 +23,8 @@ export interface PlayersOverview {
     whitelist: string[];
     /** Whether each list file exists yet; the game writes them as they are first used. */
     files: Record<'admins' | 'bans' | 'whitelist', boolean>;
+    /** Whether the startup writes factorio-console.log, which holds every join, leave and chat line. */
+    consoleLog: boolean;
 }
 
 export interface ChatLine {
@@ -53,6 +55,11 @@ export async function getPlayer(server: string, player: string): Promise<PlayerP
 /** Applies at once on a running server; on a stopped one the list file changes for the next start. */
 export async function playerAction(server: string, action: PlayerAction, name: string, text?: string): Promise<'command' | 'file'> {
     return (await http.post<{ applied: 'command' | 'file' }>(`${base(server)}/players/action`, { action, name, text: text || undefined })).data.applied;
+}
+
+/** Adds --console-log to the server's startup; it applies from the next start. */
+export async function enableConsoleLog(server: string): Promise<{ running: boolean }> {
+    return (await http.post<{ installed: boolean; running: boolean }>(`${base(server)}/players/console-log`)).data;
 }
 
 /** Factorio usernames: letters, digits, dashes, underscores and dots. */

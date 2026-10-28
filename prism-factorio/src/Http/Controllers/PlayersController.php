@@ -7,6 +7,7 @@ namespace PrismFactorio\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use PrismFactorio\Support\ConsoleLog;
 use PrismFactorio\Support\PlayerLog;
 use PrismFactorio\Support\Players;
 use PrismFactorio\Support\ServerConsole;
@@ -42,7 +43,21 @@ class PlayersController extends Controller
             'online' => array_values($online),
             'history' => array_values(array_map(static fn (array $player): array => $player + ['online' => isset($online[$player['name']])], $history)),
             ...Players::lists($server, $running),
+            'consoleLog' => ConsoleLog::installed($server),
         ]);
+    }
+
+    /**
+     * Makes the game write joins, leaves and chat to a file of its own, from its next start, by
+     * adding --console-log to the server's startup command.
+     */
+    public function consoleLog(Request $request, Server $server): JsonResponse
+    {
+        $this->authorizeFeature($request, $server, 'players', 'players-manage');
+        ConsoleLog::install($server);
+        Activity::event('server:prism-factorio.players.console-log')->log();
+
+        return new JsonResponse(['installed' => true, 'running' => ServerConsole::for($server)->isRunning()]);
     }
 
     /** One player: what the Panel saw of them, their place on the lists and what they said. */

@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Cache;
 use Pterodactyl\Models\Server;
 
 /**
- * Who is on the server now and everyone seen before. The console starts empty each start, so
- * the Panel keeps the history itself, by name, with when it first and last saw each player,
- * and the latest chat.
+ * Who is on the server now and everyone seen before, from the console log (or, until the server
+ * writes one, the last lines Wings keeps). The Panel keeps the history itself, by name, with
+ * when it first and last saw each player, and the latest chat.
  */
 final class Players
 {
@@ -29,8 +29,17 @@ final class Players
     public static function observe(Server $server): array
     {
         $console = ServerConsole::for($server);
-        $running = $console->isRunning();
-        $session = PlayerLog::parse($running ? $console->lines(3000) : []);
+        $uptime = $console->uptime();
+        $running = $uptime !== null || $console->isRunning();
+        // The console log covers earlier runs too; only this run's joins can still be online.
+        $lines = ConsoleLog::lines($server, $running);
+        $session = PlayerLog::parse($lines ?? ($running ? $console->lines(100) : []), $uptime !== null ? time() - $uptime - 5 : null);
+        if (! $running) {
+            foreach ($session['players'] as &$player) {
+                $player['online'] = false;
+            }
+            unset($player);
+        }
 
         $store = Settings::server($server);
         $history = is_array($store->get('players')) ? $store->get('players') : [];
@@ -45,7 +54,7 @@ final class Players
             $entry = [
                 'name' => $name,
                 'firstSeen' => $known['firstSeen'] ?? ($player['joined'] ?? $now),
-                'lastSeen' => $player['online'] ? $now : ($player['left'] ?? $known['lastSeen'] ?? $now),
+                'lastSeen' => $player['online'] ? $now : ($player['left'] ?? $known['lastSeen'] ?? $player['joined'] ?? $now),
             ];
             if ($known !== $entry) {
                 $history[$name] = $entry;

@@ -23,9 +23,10 @@ final class PlayerLog
      * chat. Times are unix seconds, or null when a line has none.
      *
      * @param  list<string>  $lines
+     * @param  int|null  $since  when this run started: earlier joins are history, not online
      * @return array{players: array<string, array{name: string, online: bool, joins: int, joined: int|null, left: int|null}>, chat: list<array{name: string, text: string, at: int|null}>}
      */
-    public static function parse(array $lines): array
+    public static function parse(array $lines, ?int $since = null): array
     {
         $players = [];
         $chat = [];
@@ -40,7 +41,7 @@ final class PlayerLog
                 case 'JOIN':
                     if (preg_match('/^(\S+) joined the game$/', $rest, $name)) {
                         $players[$name[1]] ??= ['name' => $name[1], 'online' => false, 'joins' => 0, 'joined' => null, 'left' => null];
-                        $players[$name[1]]['online'] = true;
+                        $players[$name[1]]['online'] = $since === null || $at === null || $at >= $since;
                         $players[$name[1]]['joins']++;
                         $players[$name[1]]['joined'] = $at;
                     }
