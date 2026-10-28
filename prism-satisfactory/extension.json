@@ -1,0 +1,62 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-satisfactory",
+    "name": "Prism Satisfactory",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Players, mods from ficsit.app, Steam builds (public or experimental), server settings and new games for Satisfactory servers.",
+    "author": "Donkare",
+    "icon": "icon.png",
+    "provider": "PrismSatisfactory\\PrismSatisfactoryProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "sfy",
+        "screens": [
+            {
+                "id": "players",
+                "area": "server",
+                "path": "satisfactory-players",
+                "nav": { "label": "Players", "icon": "users", "order": 1 },
+                "permission": ["ext.prism-satisfactory.players-view"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "player",
+                "area": "server",
+                "path": "satisfactory-players/$player",
+                "permission": ["ext.prism-satisfactory.players-view"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "mods",
+                "area": "server",
+                "path": "satisfactory-mods",
+                "nav": { "label": "Mods", "icon": "puzzle", "order": 2 },
+                "permission": ["ext.prism-satisfactory.mods"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "versions",
+                "area": "server",
+                "path": "satisfactory-versions",
+                "nav": { "label": "Versions", "icon": "git-branch", "order": 3 },
+                "permission": ["ext.prism-satisfactory.versions"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "properties",
+                "area": "server",
+                "path": "satisfactory-properties",
+                "nav": { "label": "Properties", "icon": "sliders-horizontal", "order": 4 },
+                "permission": ["ext.prism-satisfactory.properties"],
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}

@@ -57,6 +57,7 @@
     "command": "IconCommand",
     "compass": "IconCompass",
     "contrast": "IconContrast",
+    "conveyor-belt": "IconBuildingFactory",
     "cookie": "IconCookie",
     "copy": "IconCopy",
     "core-orb": "IconInnerShadowTopLeftFilled",

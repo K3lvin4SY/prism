@@ -1,0 +1,28 @@
+{
+    "categories": [
+        { "id": "server", "label": "Server", "icon": "server" },
+        { "id": "play", "label": "Play", "icon": "users" },
+        { "id": "saving", "label": "Saving", "icon": "save" },
+        { "id": "network", "label": "Network", "icon": "network" }
+    ],
+    "managed": [],
+    "settings": [
+        { "key": "ServerName", "kinds": ["satisfactory"], "category": "server", "type": "string", "label": "Server name", "description": "The name players see in their server manager.", "default": "", "maxLength": 100 },
+        { "key": "ClientPassword", "kinds": ["satisfactory"], "category": "server", "type": "secret", "label": "Join password", "description": "Players need it to join. Type a new one to change it; it is never shown.", "default": "", "maxLength": 100 },
+        { "key": "AdminPassword", "kinds": ["satisfactory"], "category": "server", "type": "secret", "label": "Admin password", "description": "Gives full control in the game's server manager. Prism Satisfactory signs in with it too, so it keeps the new one.", "default": "", "maxLength": 100 },
+        { "key": "MAX_PLAYERS", "kinds": ["satisfactory", "satisfactory-offline"], "category": "server", "type": "int", "label": "Max players", "description": "How many players can be on at once. Satisfactory is made for up to 4; more works but may lag.", "default": 4, "min": 1, "max": 127 },
+
+        { "key": "FG.DSAutoPause", "kinds": ["satisfactory"], "category": "play", "type": "bool", "label": "Pause when empty", "description": "Pause the game while nobody is on.", "default": true },
+        { "key": "FG.EnableSeasonalEvents", "kinds": ["satisfactory"], "category": "play", "type": "bool", "label": "Seasonal events", "description": "Seasonal events such as FICSMAS.", "default": true },
+        { "key": "FG.SendGameplayData", "kinds": ["satisfactory"], "category": "play", "type": "bool", "label": "Send gameplay data", "description": "Send anonymous gameplay data to Coffee Stain.", "default": true },
+
+        { "key": "FG.AutosaveInterval", "kinds": ["satisfactory"], "category": "saving", "type": "int", "label": "Autosave every (seconds)", "description": "How often the game saves. 300 is every five minutes; 0 turns autosaves off.", "default": 300, "min": 0, "max": 86400 },
+        { "key": "NUM_AUTOSAVES", "kinds": ["satisfactory", "satisfactory-offline"], "category": "saving", "type": "int", "label": "Autosaves kept", "description": "How many autosaves are kept before the oldest is overwritten.", "default": 3, "min": 1, "max": 100 },
+        { "key": "FG.DSAutoSaveOnDisconnect", "kinds": ["satisfactory"], "category": "saving", "type": "bool", "label": "Save when a player leaves", "description": "Save the game whenever someone disconnects.", "default": true },
+        { "key": "FG.ServerRestartTimeSlot", "kinds": ["satisfactory"], "category": "saving", "type": "int", "label": "Daily restart (minutes after midnight)", "description": "The server restarts itself once a day at this time, in minutes after midnight. 1440 means never.", "default": 1440, "min": 0, "max": 1440 },
+
+        { "key": "FG.NetworkQuality", "kinds": ["satisfactory"], "category": "network", "type": "enum", "label": "Network quality", "description": "How much the server sends to each player. Higher is smoother but needs more upload.", "default": "1", "options": ["0", "1", "2", "3"], "optionLabels": { "0": "Low", "1": "Medium", "2": "High", "3": "Ultra" } },
+        { "key": "INIT_CONNECT_TIMEOUT", "kinds": ["satisfactory", "satisfactory-offline"], "category": "network", "type": "int", "label": "Join timeout (seconds)", "description": "How long a joining player may take to connect.", "default": 30, "min": 5, "max": 600 },
+        { "key": "CONNECT_TIMEOUT", "kinds": ["satisfactory", "satisfactory-offline"], "category": "network", "type": "int", "label": "Connection timeout (seconds)", "description": "How long a player may go without answering before they are dropped.", "default": 20, "min": 5, "max": 600 }
+    ]
+}

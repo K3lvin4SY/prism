@@ -12,7 +12,7 @@ export interface SettingField {
     value: unknown;
 }
 
-export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-auth' | 'prism-share';
+export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-satisfactory' | 'prism-auth' | 'prism-share';
 
 export interface PrismExtension {
     id: PrismId;
@@ -33,6 +33,7 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-terraria', name: 'Prism Terraria', icon: 'tree-pine', description: 'Players, settings, versions, the world map, tModLoader mods and TShock plugins for Terraria servers.' },
     { id: 'prism-corekeeper', name: 'Prism Core Keeper', icon: 'core-orb', description: 'Players, the world map, mods from mod.io and the Steam Workshop, versions and properties for Core Keeper servers.' },
     { id: 'prism-factorio', name: 'Prism Factorio', icon: 'factory', description: 'Players with admins, bans and the whitelist, mods from the Factorio mod portal, versions and server settings for Factorio servers.' },
+    { id: 'prism-satisfactory', name: 'Prism Satisfactory', icon: 'conveyor-belt', description: 'Players, mods from ficsit.app, public or experimental builds, server settings and new games for Satisfactory servers.' },
     { id: 'prism-auth', name: 'Prism Auth', icon: 'key-round', description: 'Sign in with Google, Discord, Steam, GitHub or any OpenID Connect provider, linked from the account page, and sign-up with a confirmed email.' },
     { id: 'prism-share', name: 'Prism Share', icon: 'share-2', description: 'Guest links for a server: watch the console, chosen power buttons, files and backups, without an account, for as long as the owner chooses.' },
 ];

@@ -232,6 +232,16 @@ No settings of its own. Its admin screen is Prism Properties.
 
 The username and token are only used for servers whose own settings (Properties, factorio.com account) have none.
 
+### prism-satisfactory
+
+| Tab | Key | Label | Default | Field |
+| --- | --- | --- | --- | --- |
+| Server tabs | `tab_players`, `tab_mods`, `tab_versions`, `tab_properties` | Show each server tab | `true` | toggle |
+| Detection | `egg_tags` | Egg tags to detect (eggs installing app 1690800 are found anyway) | `'satisfactory'` | text |
+| Mods | `confirm_installs` | Confirm before installing | `true` | toggle |
+
+Each server's admin password for its API is kept encrypted in that server's metadata (`api.password`), set from its Properties tab, not in Prism Properties.
+
 ### prism-auth
 
 | Tab | Key | Label | Default | Field |

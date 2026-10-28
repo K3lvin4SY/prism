@@ -49,6 +49,7 @@ Install plans (MC, Terraria) and schedule runs need it. Symptoms of it being dow
 | mc-suite-test-tmodloader | `9f732e51` | tModLoader |
 | mc-suite-test-corekeeper | `0ff17871` | Core Keeper (egg 27, port 25599). `scripts/php/corekeeper-state.php [dir \| cat <file>]`, `corekeeper-power.php`, `reinstall-corekeeper.php`; `run-corekeeper-plan.php <job>` runs one Prism Core Keeper plan when the queue worker is down. A world is only saved once a player has joined. |
 | mc-suite-test-factorio | `dd52f696` | Factorio headless (egg 18, port 25600), made by `scripts/php/create-test-factorio.php`. It has no factorio.com account, so mod downloads cannot be tested on it without one. Commands such as `/players online`, `/banlist get` and `/whitelist get` answer in the console. |
+| mc-suite-test-satisfactory | `f21be964` | Satisfactory (egg 19, game port 25601, reliable port 25602, 8 GB), made by `scripts/php/create-test-satisfactory.php`. Claimed as "Prism Test Satisfactory"; the Panel holds its admin password (only the Panel and the session that set it know it, so connect again by setting a new one from Properties if it is lost). Has a game, `PrismTest`, loaded on start. The API answers on `https://nas4sy.donkare.se:25601/api/v1` once it runs. |
 
 There are also forge, bedrock, velocity and pumpkin test servers (see the dashboard). Fabric's MOTD is "A Minecraft Server".
 

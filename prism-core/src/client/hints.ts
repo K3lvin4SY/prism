@@ -124,6 +124,9 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         factorio_username: { section: 'Mod portal account' },
         factorio_token: { section: 'Mod portal account' },
     },
+    'prism-satisfactory': {
+        egg_tags: { section: 'Detection' },
+    },
     'prism-auth': {
         button_style: { segmented: true },
         link_by_email: { section: 'Existing accounts' },

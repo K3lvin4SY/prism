@@ -1,0 +1,11 @@
+{
+    "description": "Players, mods from ficsit.app, Steam builds (public or experimental), server settings and new games for Satisfactory servers.",
+    "autoload": {
+        "psr-4": {
+            "PrismSatisfactory\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismSatisfactoryExtension"
+    }
+}

@@ -1,6 +1,6 @@
 # Prism: Pterodactyl Panel 2.0 extensions
 
-Fourteen extensions for Pterodactyl Panel 2.0 ("v2", SDK `>=2.0.0-beta.6`), each in its own `prism-*` folder, developed against the Panel source in `.panel/` (cloned separately, git-ignored, read only) and deployed to a live Panel (`PANEL_URL`, reached through Portainer at `PORTAINER_URL`).
+Fifteen extensions for Pterodactyl Panel 2.0 ("v2", SDK `>=2.0.0-beta.6`), each in its own `prism-*` folder, developed against the Panel source in `.panel/` (cloned separately, git-ignored, read only) and deployed to a live Panel (`PANEL_URL`, reached through Portainer at `PORTAINER_URL`).
 
 Load the matching skill before working in an area:
 
@@ -29,6 +29,7 @@ Load the matching skill before working in an area:
 | `prism-terraria` | prism-terraria | `trs` | Terraria/TShock/tModLoader. |
 | `prism-corekeeper` | prism-corekeeper | `cks` | Core Keeper: players and player pages, the Cartography Table map (servermaps/*.mapparts.gzip), an optional server-side mod for player details and syncs, mods from mod.io + Steam Workshop, Steam branch versions, properties. A start step (`.cks/start.sh`) on the server's startup does Workshop downloads and branch switches. |
 | `prism-factorio` | prism-factorio | `fct` | Factorio: players from the console with admin/ban/whitelist actions (game commands when running, the list files when stopped), mods from the mod portal (whole list cached per game version and searched on the Panel; downloads need a factorio.com username + token), versions by setting `FACTORIO_VERSION` and reinstalling, server-settings.json with egg-bound keys saved to their startup variables. |
+| `prism-satisfactory` | prism-satisfactory | `sfy` | Satisfactory: everything the game keeps itself goes through its HTTPS API on the game port (the Panel claims the server or connects with its admin password, kept encrypted); players from the log's joins plus the API's count, mods from ficsit.app (LinuxServer builds picked by the game's changelist), public/experimental branches via `SRCDS_BETAID` and the image's update on boot, new game/save/auto-load. |
 | `prism-auth` | prism-auth | `pau` | Sign-in providers (OAuth/OIDC/Steam) on the login page, "Sign-in methods" account page, sign-up with email confirmation. Root routes under `/prism-auth`. |
 | `prism-share` | prism-share | `psh` | Guest share links per server: watch-only console, commands and power through the Panel, chosen files and backups. Guest page at `/share#<token>` (own bundle in `dist/share`). |
 
