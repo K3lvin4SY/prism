@@ -1,0 +1,11 @@
+{
+    "description": "Guest links for a server with the permissions you choose.",
+    "autoload": {
+        "psr-4": {
+            "PrismShare\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismShareExtension"
+    }
+}

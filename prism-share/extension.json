@@ -1,0 +1,31 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-share",
+    "name": "Prism Share",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Guest links for a server: let someone watch the console, use chosen power buttons or download chosen files and backups, without an account, for as long as you choose.",
+    "author": "Donkare",
+    "icon": "icon.png",
+    "provider": "PrismShare\\PrismShareProvider",
+    "routes": { "root": ["share"] },
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "psh",
+        "screens": [
+            {
+                "id": "links",
+                "area": "server",
+                "path": "share",
+                "nav": { "label": "Share links", "icon": "share-2" },
+                "permission": ["ext.prism-share.manage"]
+            }
+        ]
+    }
+}
