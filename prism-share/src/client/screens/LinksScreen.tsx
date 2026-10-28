@@ -56,7 +56,7 @@ export default function LinksScreen() {
                                 ) : !link.active ? (
                                     <Badge variant={'soft'} tone={'neutral'}>Expired</Badge>
                                 ) : (
-                                    <Badge variant={'soft'} tone={'success'}>Until {formatDate(link.expires_at, 'MMM d, HH:mm')}</Badge>
+                                    <Badge variant={'soft'} tone={'success'}>Until {formatDate(link.expires_at, 'MMM D, HH:mm')}</Badge>
                                 )}
                                 {link.active && (
                                     <>

@@ -98,7 +98,7 @@ export default function LinkDialog({ server, data, link, onClose, onSaved }: { s
                                                 <span className={'psh:min-w-0 psh:flex-1 psh:truncate'}>{backup.name}</span>
                                                 <span className={'psh:text-xs psh:text-muted-foreground'}>
                                                     {bytesToString(backup.size)}
-                                                    {backup.completed_at && ` · ${formatDate(backup.completed_at, 'MMM d, yyyy')}`}
+                                                    {backup.completed_at && ` · ${formatDate(backup.completed_at, 'MMM D, YYYY')}`}
                                                 </span>
                                             </label>
                                         ))}
@@ -113,7 +113,7 @@ export default function LinkDialog({ server, data, link, onClose, onSaved }: { s
                     <span className={'psh:font-medium'}>{link ? 'Works until' : 'Works for'}</span>
                     <Select
                         value={hours}
-                        placeholder={link ? `Keep: ${formatDate(link.expires_at, 'MMM d, yyyy HH:mm')}` : undefined}
+                        placeholder={link ? `Keep: ${formatDate(link.expires_at, 'MMM D, YYYY HH:mm')}` : undefined}
                         options={choices.map((choice) => ({ value: choice.hours, label: link ? `${choice.label} from now` : choice.label }))}
                         onChange={(value) => setHours(Number(value))}
                     />
