@@ -2,3 +2,4 @@
 node_modules/
 *.pteroext
 .env
+.DS_Store
