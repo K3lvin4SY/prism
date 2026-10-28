@@ -140,6 +140,9 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         verify_hours: { section: 'Bots and limits', slider: { min: 1, max: 168, unit: ' h' } },
         providers: { editor: 'authProviders' },
     },
+    'prism-share': {
+        max_hours: { slider: { min: 1, max: 720, unit: ' h' } },
+    },
 };
 
 /** Prism Console's built-in highlight rules, in the order they are listed. */
