@@ -13,7 +13,8 @@ use Illuminate\Notifications\Notification;
  */
 class VerifyEmail extends Notification
 {
-    public function __construct(public string $username, public string $url, public int $hours) {}
+    /** @param  string|null  $provider  the provider whose account the new one will sign in with */
+    public function __construct(public string $username, public string $url, public int $hours, public ?string $provider = null) {}
 
     /** @return list<string> */
     public function via(): array
@@ -28,7 +29,7 @@ class VerifyEmail extends Notification
         return (new MailMessage)
             ->subject('Confirm your email for '.$app)
             ->greeting('Hello '.$this->username.'!')
-            ->line('Someone, hopefully you, asked to create an account on '.$app.' with this email address.')
+            ->line('Someone, hopefully you, asked to create an account on '.$app.' with this email address'.($this->provider !== null ? ', signing in with a '.$this->provider.' account.' : '.'))
             ->action('Confirm my email', $this->url)
             ->line('The link works for '.$this->hours.' '.($this->hours === 1 ? 'hour' : 'hours').' and only once.')
             ->line('If this was not you, ignore this email and no account is made.');

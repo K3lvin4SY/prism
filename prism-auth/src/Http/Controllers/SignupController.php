@@ -88,7 +88,7 @@ final class SignupController
             'expires_at' => now()->addHours($this->hours()),
         ]);
         Flow::forgetPending();
-        $this->send($data['email'], $username, $token);
+        $this->send($data['email'], $username, $token, $provider?->name);
 
         return $this->sent($data['email']);
     }
@@ -102,25 +102,56 @@ final class SignupController
         if ($verification !== null) {
             $token = Str::random(40);
             $verification->forceFill(['token' => hash('sha256', $token), 'expires_at' => now()->addHours($this->hours())])->save();
-            $this->send($email, $verification->username, $token);
+            $this->send($email, $verification->username, $token, $verification->provider_id !== null ? AuthProvider::query()->find($verification->provider_id)?->name : null);
         }
 
         return $this->sent($email);
     }
 
-    public function verify(string $token): RedirectResponse
+    /**
+     * The emailed link. Mail scanners open every link, so opening it only leads to the sign-in
+     * page, which asks the person to confirm; the token goes in the fragment, which is never sent.
+     */
+    public function open(string $token): RedirectResponse
     {
-        $verification = Verification::query()->where('token', hash('sha256', $token))->first();
-        if ($verification === null || $verification->expires_at->isPast()) {
-            $verification?->delete();
-
+        if ($this->verification($token) === null) {
             return redirect('/auth/login?prism-auth=expired');
+        }
+
+        // The sign-in page is for guests.
+        if (Auth::check()) {
+            Auth::logout();
+        }
+
+        return redirect('/auth/login?prism-auth=confirm#'.$token);
+    }
+
+    /** What the confirmation is for, so the person sees what they agree to. */
+    public function preview(Request $request): JsonResponse
+    {
+        $verification = $this->verification($request->input('token'));
+        $provider = $verification?->provider_id !== null ? AuthProvider::query()->find($verification->provider_id) : null;
+
+        return response()->json(['data' => $verification === null ? null : [
+            'email' => $verification->email,
+            'username' => $verification->username,
+            'provider' => $provider?->toPublic(),
+            'provider_account' => $provider !== null ? ($verification->profile['name'] ?? $verification->profile['email'] ?? null) : null,
+        ]]);
+    }
+
+    /** Confirmed by the person: makes the account and signs it in. */
+    public function verify(Request $request): JsonResponse
+    {
+        $verification = $this->verification($request->input('token'));
+        if ($verification === null) {
+            return $this->outcome('expired');
         }
 
         if (User::query()->where('email', $verification->email)->orWhere('username', $verification->username)->exists()) {
             $verification->delete();
 
-            return redirect('/auth/login?prism-auth=error&reason=taken-account');
+            return $this->outcome('taken-account');
         }
 
         try {
@@ -143,7 +174,7 @@ final class SignupController
         } catch (Throwable $exception) {
             report($exception);
 
-            return redirect('/auth/login?prism-auth=error&reason=create');
+            return $this->outcome('create');
         }
 
         Activity::event('user:prism-auth.signup')->withRequestMetadata()->actor($user)->subject($user)->property(['email' => $user->email])->log();
@@ -151,9 +182,30 @@ final class SignupController
         if (Auth::check()) {
             Auth::logout();
         }
-        app(CompletesLogins::class)->complete($user);
+        $result = app(CompletesLogins::class)->complete($user);
 
-        return redirect('/?prism-auth=welcome');
+        return response()->json(['data' => ['status' => 'signed-in', 'result' => $result->toResponseData()]]);
+    }
+
+    /** The unexpired verification for a token from a link; an expired one is removed. */
+    private function verification(mixed $token): ?Verification
+    {
+        if (! is_string($token) || ! preg_match('/^[A-Za-z0-9]{40}$/', $token)) {
+            return null;
+        }
+        $verification = Verification::query()->where('token', hash('sha256', $token))->first();
+        if ($verification !== null && $verification->expires_at->isPast()) {
+            $verification->delete();
+
+            return null;
+        }
+
+        return $verification;
+    }
+
+    private function outcome(string $status): JsonResponse
+    {
+        return response()->json(['data' => ['status' => $status]]);
     }
 
     /** @param  array{subject: string, profile: array<string, mixed>}  $pending */
@@ -174,9 +226,9 @@ final class SignupController
         ));
     }
 
-    private function send(string $email, string $username, string $token): void
+    private function send(string $email, string $username, string $token, ?string $provider = null): void
     {
-        Notification::route('mail', $email)->notifyNow(new VerifyEmail($username, url('/prism-auth/verify/'.$token), $this->hours()));
+        Notification::route('mail', $email)->notifyNow(new VerifyEmail($username, url('/prism-auth/verify/'.$token), $this->hours(), $provider));
     }
 
     private function hours(): int

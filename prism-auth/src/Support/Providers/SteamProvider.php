@@ -55,8 +55,16 @@ final class SteamProvider implements Provider
         if (($params['openid.return_to'] ?? '') !== $this->returnTo($state['state']) || ($params['openid.op_endpoint'] ?? '') !== self::ENDPOINT) {
             throw new SignInFailed('state', 'The Steam answer was not for this sign-in.');
         }
-        if (! preg_match('#^https://steamcommunity\.com/openid/id/(\d{17})$#', $params['openid.claimed_id'] ?? '', $match)) {
+        if (($params['openid.ns'] ?? '') !== 'http://specs.openid.net/auth/2.0' || ($params['openid.mode'] ?? '') !== 'id_res') {
+            throw new SignInFailed('provider', 'Steam sent an answer that is not a sign-in.');
+        }
+        if (! preg_match('#^https://steamcommunity\.com/openid/id/(\d{17})$#', $params['openid.claimed_id'] ?? '', $match) || ($params['openid.identity'] ?? '') !== $params['openid.claimed_id']) {
             throw new SignInFailed('provider', 'Steam gave no Steam ID.');
+        }
+        // Steam's check only covers the signed fields, so the ones read here must be among them.
+        $signed = explode(',', $params['openid.signed'] ?? '');
+        if (array_diff(['op_endpoint', 'return_to', 'response_nonce', 'assoc_handle', 'claimed_id', 'identity'], $signed) !== []) {
+            throw new SignInFailed('provider', 'Steam did not sign the Steam ID.');
         }
 
         try {

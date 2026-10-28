@@ -42,6 +42,9 @@ class OidcProvider extends OAuth2Provider
             if (! $response->successful() || ! is_array($document) || ! is_string($document['authorization_endpoint'] ?? null) || ! is_string($document['token_endpoint'] ?? null)) {
                 throw new SignInFailed('setup', 'No OpenID Connect discovery document at '.$issuer.'/.well-known/openid-configuration.');
             }
+            if (! self::sameIssuer($issuer, (string) ($document['issuer'] ?? ''))) {
+                throw new SignInFailed('setup', 'The discovery document at '.$issuer.' is for another issuer.');
+            }
 
             return $document;
         });
@@ -70,12 +73,21 @@ class OidcProvider extends OAuth2Provider
     protected function profile(array $token, array $state): ExternalUser
     {
         $claims = self::claims($token['id_token'] ?? null);
-        if ($claims !== null && isset($claims['nonce']) && ! hash_equals($state['nonce'], (string) $claims['nonce'])) {
-            throw new SignInFailed('state', 'The ID token was not made for this sign-in.');
+        if ($claims !== null) {
+            $audience = (array) ($claims['aud'] ?? []);
+            if (! is_string($claims['nonce'] ?? null) || ! hash_equals($state['nonce'], $claims['nonce'])) {
+                throw new SignInFailed('state', 'The ID token was not made for this sign-in.');
+            }
+            if (! in_array((string) $this->provider->client_id, $audience, true) || ! self::sameIssuer((string) ($claims['iss'] ?? ''), (string) $this->discovery()['issuer'])) {
+                throw new SignInFailed('provider', 'The ID token was not made for this panel.');
+            }
         }
 
         $endpoint = $this->discovery()['userinfo_endpoint'] ?? null;
-        $info = is_string($endpoint) ? $this->getJson($endpoint, (string) $token['access_token']) : ($claims ?? []);
+        if (! is_string($endpoint) && $claims === null) {
+            throw new SignInFailed('provider', 'The provider has no userinfo endpoint and sent no ID token.');
+        }
+        $info = is_string($endpoint) ? $this->getJson($endpoint, (string) $token['access_token']) : $claims;
         $subject = self::string($info['sub'] ?? null);
         if ($subject === null || ($claims !== null && isset($claims['sub']) && (string) $claims['sub'] !== $subject)) {
             throw new SignInFailed('provider', 'The provider gave no consistent subject.');
@@ -94,8 +106,28 @@ class OidcProvider extends OAuth2Provider
     }
 
     /**
-     * The ID token's claims, read without checking its signature: they are only compared with
-     * the nonce and the subject from userinfo, never trusted on their own.
+     * Whether an issuer is the expected one. Google's ID tokens may leave out the scheme, and
+     * Entra ID's multi-tenant documents have a {tenantid} placeholder.
+     */
+    private static function sameIssuer(string $given, string $expected): bool
+    {
+        $given = rtrim($given, '/');
+        $expected = rtrim($expected, '/');
+        if ($expected === '') {
+            return false;
+        }
+        if (! str_contains($given, '://')) {
+            $given = 'https://'.$given;
+        }
+        $pattern = '#^'.str_replace(preg_quote('{tenantid}', '#'), '[^/]+', preg_quote($expected, '#')).'$#';
+
+        return preg_match($pattern, $given) === 1;
+    }
+
+    /**
+     * The ID token's claims, read without checking its signature: the token comes straight from
+     * the token endpoint over TLS (OpenID Connect Core 3.1.3.7), and its nonce, audience and
+     * issuer are checked.
      *
      * @return array<string, mixed>|null
      */

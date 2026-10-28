@@ -37,6 +37,16 @@ export interface SignupInput {
 
 export type SignupResult = { status: 'sent'; email: string } | { status: 'signed-in'; result: LoginData };
 
+/** What an emailed confirmation link is for. */
+export interface Confirmation {
+    email: string;
+    username: string;
+    provider: PublicProvider | null;
+    provider_account: string | null;
+}
+
+export type ConfirmResult = { status: 'signed-in'; result: LoginData } | { status: 'expired' | 'taken-account' | 'create' };
+
 export interface MethodIdentity {
     id: number;
     name: string | null;
@@ -68,6 +78,10 @@ export const forgetPending = () => http.delete(`${ROOT}/pending`);
 export const signup = async (input: SignupInput) => (await http.post<{ data: SignupResult }>(`${ROOT}/signup`, input)).data.data;
 
 export const resend = (email: string) => http.post(`${ROOT}/resend`, { email });
+
+export const confirmation = async (token: string) => (await http.post<{ data: Confirmation | null }>(`${ROOT}/verify/preview`, { token })).data.data;
+
+export const confirm = async (token: string) => (await http.post<{ data: ConfirmResult }>(`${ROOT}/verify`, { token })).data.data;
 
 export const methodsQuery = { queryKey: ['prism-auth', 'methods'], queryFn: async () => (await http.get<{ data: Methods }>(`${CLIENT}/identities`)).data.data };
 

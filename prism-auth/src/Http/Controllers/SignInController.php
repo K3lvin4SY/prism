@@ -111,7 +111,9 @@ final class SignInController
         // A confirmed address that matches an account links to it, admins only when allowed.
         if ($external->email !== null && $external->emailVerified && Settings::bool('link_by_email', true)) {
             $user = User::query()->where('email', $external->email)->first();
-            if ($user !== null && (! $user->root_admin || Settings::bool('link_admins'))) {
+            // An account already linked to another account at this provider keeps that link.
+            $linkedElsewhere = $user !== null && Identity::query()->where('user_id', $user->id)->where('provider_id', $provider->id)->exists();
+            if ($user !== null && ! $linkedElsewhere && (! $user->root_admin || Settings::bool('link_admins'))) {
                 return $this->finish(Accounts::signIn(Accounts::link($user, $provider, $external)->load(['user', 'provider']), $external));
             }
             if ($user !== null) {
