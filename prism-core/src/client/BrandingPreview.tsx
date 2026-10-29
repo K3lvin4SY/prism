@@ -1,5 +1,6 @@
 import { cn, useSiteSettings } from '@pterodactyl/sdk';
 import { NamedIcon } from './icons';
+import Mascot from './Mascot';
 import type { SettingField } from './api';
 
 /** How Prism Layout's branding and sign-in settings look, with the unsaved changes. */
@@ -31,7 +32,7 @@ export default function BrandingPreview({ schema, draft, tab }: { schema: Settin
                 ) : mark === 'logo' && logo ? (
                     <img src={logo} alt={''} style={{ width: size / 2.4, height: size / 2.4 }} className={'ppx:shrink-0 ppx:object-contain'} />
                 ) : mark !== 'none' ? (
-                    <NamedIcon name={'bird'} size={48} className={'ppx:shrink-0 ppx:text-primary'} />
+                    <Mascot style={{ width: size / 2.4 }} className={'ppx:h-auto ppx:shrink-0'} />
                 ) : null}
                 <div className={'ppx:flex ppx:flex-1 ppx:flex-col ppx:gap-2'}>
                     <div className={'ppx:h-6 ppx:rounded ppx:bg-muted'} />

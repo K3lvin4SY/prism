@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { onDraft, readDraft } from './configStore';
+import { inPreview, onDraft, readDraft } from './configStore';
 import { http, notifyThemeChange, type ExtensionConfig } from '@pterodactyl/sdk';
 import { gameTag } from './dashboard';
 
@@ -182,6 +182,9 @@ export function useSettings(): LayoutSettings {
 /** Whether nobody is signed in: the sign-in pages. */
 const guest = () => !(window as unknown as { PterodactylUser?: unknown }).PterodactylUser;
 
+/** Whether this is Prism Core's preview window asked to show the sign-in page (`?prism-signin`). */
+export const signInDemo = () => inPreview() && new URLSearchParams(window.location.search).has('prism-signin');
+
 /**
  * Writes the settings to `<html>` for the stylesheet: the logo tokens themes read, sizes, and
  * attributes for the page width, spacing, dock and sign-in page.
@@ -206,7 +209,7 @@ export function apply(settings: LayoutSettings): void {
     root.dataset.plaMagnify = String(settings.dock_magnify);
     // Without an uploaded logo the mascot stays unless the admin chose nothing at all.
     root.dataset.plaMark = settings.login_mark === 'logo' && !settings.logo ? 'mascot' : settings.login_mark;
-    if (guest()) root.dataset.plaSignin = settings.login_style;
+    if (guest() || signInDemo()) root.dataset.plaSignin = settings.login_style;
     else delete root.dataset.plaSignin;
 
     listeners.forEach((listener) => listener());

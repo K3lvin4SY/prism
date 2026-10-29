@@ -255,6 +255,19 @@ html[data-pla-mark='logo'] div:has(> svg[aria-label='Pterodactyl']) {
     background: var(--brand-logo) center / contain no-repeat;
 }
 
+/* The mascot follows the logo size too. */
+html[data-pla-mark='mascot'] svg[aria-label='Pterodactyl'] {
+    width: var(--pla-login-size, 10rem);
+    max-width: 100%;
+    padding-inline: 0;
+}
+
+/* On the card and backdrop styles the headline above stands for the sign-in page's own title. */
+html[data-pla-signin='card'] main:has(.pla-signin-login) h2,
+html[data-pla-signin='backdrop'] main:has(.pla-signin-login) h2 {
+    display: none;
+}
+
 @media (min-width: 768px) {
     html[data-pla-mark='logo'] div:has(> svg[aria-label='Pterodactyl']) {
         margin-inline: 3rem;

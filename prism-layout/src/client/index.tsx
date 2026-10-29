@@ -5,14 +5,17 @@ import { followPreview, setConfig } from './settings';
 import { AccountLayout, AdminLayout, ServerLayout } from './views/AreaLayout';
 import SignIn from './views/SignIn';
 
+const SignInPage = () => <SignIn page='login' />;
+
 export default definePterodactylExtension({
     setup({ config, views, slots }) {
         // Runs for guests too: the logo, sizes and sign-in style are written to <html> here.
         setConfig(config);
         followPreview();
 
-        for (const slot of ['auth.login.before', 'auth.password.before', 'auth.passwordReset.before', 'auth.checkpoint.before'] as const) {
-            slots.register(slot, SignIn);
+        slots.register('auth.login.before', SignInPage);
+        for (const slot of ['auth.password.before', 'auth.passwordReset.before', 'auth.checkpoint.before'] as const) {
+            slots.register(slot, () => <SignIn />);
         }
 
         slots.register('server.settings.after', lazy(() => import('./views/ServerPicture')));

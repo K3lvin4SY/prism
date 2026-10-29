@@ -16,7 +16,7 @@ import ThemeEditor, { sectionOf as themeSectionOf, themeSections } from './theme
 import { isLook } from './themes/presets';
 import { ProvidersEditor } from './AuthProviders';
 import { HighlightsEditor, KeybindsEditor, LinesEditor, QuickCommandsEditor, ShortcutEditor, ToggleRow } from './editors';
-import NavigationPicker from './NavigationPicker';
+import NavigationBoard from './NavigationPicker';
 import { HINTS, type Hint } from './hints';
 
 const EXPORT_ID = 'prism-export';
@@ -404,7 +404,22 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
                 <section key={section.title} className={'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
                     <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>{section.title}</h3>
                     <div className={'ppx:flex ppx:flex-col ppx:divide-y ppx:divide-border'}>
-                        {section.fields.map((field) => (
+                        {section.fields.map((field) => {
+                            // Prism Layout's navigation for each device is one board, drawn in place of the first.
+                            const board = section.fields.filter((item) => hints[item.input]?.editor === 'navigation');
+                            if (board.includes(field) && board[0] !== field) return null;
+
+                            return board[0] === field ? (
+                                <div key={field.input} id={`ppx-setting-${extension.id}-${field.input}`} className={'ppx:scroll-mt-24 ppx:px-4 ppx:py-3'}>
+                                    <NavigationBoard
+                                        devices={board.map((item) => ({ key: item.input, label: item.label, help: item.help, value: value(item) }))}
+                                        onChange={(key, next) => {
+                                            const item = board.find((entry) => entry.input === key);
+                                            if (item) change(item, next);
+                                        }}
+                                    />
+                                </div>
+                            ) : (
                             <div key={field.input} id={`ppx-setting-${extension.id}-${field.input}`} className={cn('ppx:scroll-mt-24 ppx:px-4 ppx:py-3 ppx:transition-shadow', focus === field.input && 'ppx:rounded-md ppx:ring-2 ppx:ring-primary ppx:ring-inset')}>
                                 {field.field === 'file' ? (
                                     <FileField extension={extension} field={field} onSchema={(fresh) => queryClient.setQueryData(settingsKey(extension.id), fresh)} />
@@ -412,7 +427,8 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
                                     <Field field={field} hint={hints[field.input] ?? {}} value={value(field)} onChange={(next) => change(field, next)} />
                                 )}
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </section>
             ))}
@@ -528,15 +544,6 @@ function Field({ field, hint, value, onChange }: { field: SettingField; hint: Hi
             <>
                 <Label field={field} />
                 <NumberInput value={Number(value ?? 0)} onValueChange={(next) => onChange(next ?? 0)} className={'ppx:w-40'} />
-            </>
-        );
-    }
-
-    if (hint.editor === 'navigation') {
-        return (
-            <>
-                <Label field={field} />
-                <NavigationPicker value={value} onChange={onChange} label={field.label} />
             </>
         );
     }

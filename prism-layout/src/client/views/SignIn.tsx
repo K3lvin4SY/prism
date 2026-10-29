@@ -4,10 +4,11 @@ const siteName = () => (window as unknown as { SiteConfiguration?: { name?: stri
 
 /**
  * Above the sign-in form, through the panel's auth slots, which are the one place an extension can
- * add to the sign-in pages: the picture beside or behind the form, the logo on a split page, and the headline and tagline. The stylesheet
+ * add to the sign-in pages: the picture beside or behind the form, the logo on a split page, and the
+ * headline and tagline. The stylesheet
  * moves the panel's own card to make room (see styles.css, "Sign-in pages").
  */
-export default function SignIn() {
+export default function SignIn({ page }: { page?: 'login' }) {
     const settings = useSettings();
     const title = settings.login_title.trim();
     const subtitle = settings.login_subtitle.trim();
@@ -33,6 +34,8 @@ export default function SignIn() {
 
     return (
         <>
+            {/* The sign-in page's own title gives way to the headline on the card and backdrop styles. */}
+            {page === 'login' && <span className='pla-signin-login' hidden />}
             {settings.login_style === 'backdrop' && <div className='pla-signin-backdrop' aria-hidden />}
             {(title || subtitle) && (
                 <div className='pla-signin-tagline pla:mx-auto pla:mb-2 pla:flex pla:max-w-xl pla:flex-col pla:gap-1.5 pla:px-4 pla:text-center'>
