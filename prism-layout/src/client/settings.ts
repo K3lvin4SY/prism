@@ -9,7 +9,7 @@ export type Bars = 'sidebar' | 'top' | 'dock' | 'dock_expand' | 'sidebar_top' | 
 const BARS = ['sidebar', 'top', 'dock', 'dock_expand', 'sidebar_top', 'rail', 'rail_top', 'top_dock'] as const;
 export type GameMark = 'none' | 'color' | 'logo';
 
-export type CardStyle = 'banner' | 'tile' | 'neon' | 'minimal' | 'compact' | 'outline' | 'rows';
+export type CardStyle = 'rows' | 'tile';
 export type LogoMode = 'beside' | 'instead' | 'name';
 export type LoginStyle = 'card' | 'split' | 'backdrop';
 export type LoginMark = 'logo' | 'mascot' | 'none';
@@ -33,9 +33,11 @@ export interface LayoutSettings {
     width: 'normal' | 'wide' | 'full';
     density: 'compact' | 'cozy' | 'comfortable';
     cards: CardStyle;
+    /** Tiles get a picture across their top. */
+    card_banner: boolean;
     status_style: 'badge' | 'dot' | 'bar';
     usage_style: 'bars' | 'numbers' | 'hidden';
-    /** How cards show their game: not at all, by a color, or by a logo on Rows cards. */
+    /** How cards show their game: not at all, by a color, or by its egg's logo. */
     egg_colors: GameMark;
     power_buttons: boolean;
     card_image: string | null;
@@ -47,9 +49,12 @@ export interface LayoutSettings {
     login_style: LoginStyle;
     login_mark: LoginMark;
     login_logo_size: number;
-    login_tagline: string;
+    /** The bold headline and the quieter line under it, beside or above the form. */
+    login_title: string;
+    login_subtitle: string;
     login_image: string | null;
     announce_text: string;
+    announce_badge: string;
     announce_level: 'info' | 'success' | 'warning' | 'danger';
     announce_style: 'bar' | 'card';
     announce_audience: 'everyone' | 'admins' | 'users';
@@ -77,6 +82,8 @@ const clamp = (value: unknown, min: number, max: number, fallback: number) => {
     return Number.isFinite(number) && value !== null && value !== '' ? Math.min(max, Math.max(min, Math.round(number))) : fallback;
 };
 
+const OLD_TILES: readonly string[] = ['tile', 'banner', 'neon', 'minimal', 'compact', 'outline'];
+
 export function read(raw: Record<string, unknown>): LayoutSettings {
     return {
         enabled: bool(raw.enabled, true),
@@ -94,7 +101,9 @@ export function read(raw: Record<string, unknown>): LayoutSettings {
         brand_place: oneOf(raw.brand_place, ['top', 'sidebar'] as const, 'sidebar'),
         width: oneOf(raw.width, ['normal', 'wide', 'full'] as const, 'normal'),
         density: oneOf(raw.density, ['compact', 'cozy', 'comfortable'] as const, 'cozy'),
-        cards: oneOf(raw.cards, ['banner', 'tile', 'neon', 'minimal', 'compact', 'outline', 'rows'] as const, 'rows'),
+        // Saved before cards were rows or tiles, the other styles were all tiles; Banner had the picture.
+        cards: raw.cards === undefined || raw.cards === 'rows' ? 'rows' : typeof raw.cards === 'string' && OLD_TILES.includes(raw.cards) ? 'tile' : 'rows',
+        card_banner: bool(raw.card_banner, raw.cards === 'banner'),
         status_style: oneOf(raw.status_style, ['badge', 'dot', 'bar'] as const, 'badge'),
         usage_style: oneOf(raw.usage_style, ['bars', 'numbers', 'hidden'] as const, 'bars'),
         // Saved before it had three choices, it was on or off.
@@ -109,14 +118,16 @@ export function read(raw: Record<string, unknown>): LayoutSettings {
         login_style: oneOf(raw.login_style, ['card', 'split', 'backdrop'] as const, 'backdrop'),
         login_mark: oneOf(raw.login_mark, ['logo', 'mascot', 'none'] as const, 'logo'),
         login_logo_size: clamp(raw.login_logo_size, 48, 320, 160),
-        login_tagline: text(raw.login_tagline),
+        login_title: text(raw.login_title, text(raw.login_tagline)),
+        login_subtitle: text(raw.login_subtitle),
         login_image: url(raw.login_image),
         announce_text: text(raw.announce_text),
+        announce_badge: text(raw.announce_badge),
         announce_level: oneOf(raw.announce_level, ['info', 'success', 'warning', 'danger'] as const, 'info'),
         announce_style: oneOf(raw.announce_style, ['bar', 'card'] as const, 'bar'),
         announce_audience: oneOf(raw.announce_audience, ['everyone', 'admins', 'users'] as const, 'everyone'),
         announce_link: text(raw.announce_link),
-        announce_link_label: text(raw.announce_link_label, 'Read more'),
+        announce_link_label: text(raw.announce_link_label, 'Details'),
         announce_from: text(raw.announce_from),
         announce_until: text(raw.announce_until),
         announce_dismiss: bool(raw.announce_dismiss, true),

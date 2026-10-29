@@ -15,11 +15,11 @@ export default function ServerPicture() {
     const server = useCurrentServerRequired().attributes;
     const identifier = server.identifier;
     const queryClient = useQueryClient();
-    const picture = useQuery({ queryKey: pictureKeys.server(identifier), queryFn: () => pictureApi.get(identifier), enabled: settings.enabled && settings.cards === 'banner' });
+    const picture = useQuery({ queryKey: pictureKeys.server(identifier), queryFn: () => pictureApi.get(identifier), enabled: settings.enabled && settings.cards === 'tile' && settings.card_banner });
     const input = useRef<HTMLInputElement>(null);
     const [busy, setBusy] = useState(false);
 
-    if (!settings.enabled || settings.cards !== 'banner' || !picture.data?.canChange) return null;
+    if (!settings.enabled || settings.cards !== 'tile' || !settings.card_banner || !picture.data?.canChange) return null;
 
     const data = picture.data;
     const color = eggColor((server as { egg_tags?: string[] }).egg_tags) ?? 'var(--primary)';

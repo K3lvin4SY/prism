@@ -19,7 +19,7 @@ const KEY = ['prism-core', 'egg-pictures'] as const;
 const ACCEPT = 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml';
 
 /**
- * Prism Layout's picture for each egg's Banner cards and its logo for Rows cards. A server can
+ * Prism Layout's picture for each egg's tiles and its logo for the cards and the Ctrl+K search. A server can
  * still pick its own picture on its Settings page; without either, the card picture above is
  * used. An egg without a logo shows the default for its tag, or a server icon.
  */
@@ -31,7 +31,7 @@ export default function EggPictures() {
         <section className={'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
             <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>Pictures and logos by game</h3>
             <p className={'ppx:px-4 ppx:pt-3 ppx:text-xs ppx:text-muted-foreground'}>
-                Each egg&apos;s picture on Banner cards, and its logo on Rows cards when cards show the game by logo. Without a logo, Minecraft, Terraria, Rust, Garry&apos;s Mod, Source and voice eggs use a built-in one by their tag, and other eggs a server icon. People who can rename a server can give it its own picture on the server&apos;s Settings page. Saved straight away.
+                Each egg&apos;s picture on tiles with a picture, and its logo in the Ctrl+K search and on the cards when they show the game by logo. Without a logo, Minecraft, Terraria, Rust, Garry&apos;s Mod, Source and voice eggs use a built-in one by their tag, and other eggs a server icon. People who can rename a server can give it its own picture on the server&apos;s Settings page. Saved straight away.
             </p>
             {eggs.isLoading ? (
                 <Spinner centered />
@@ -96,7 +96,7 @@ function Upload({ egg, kind, onList }: { egg: EggPicture; kind: Kind; onList: (l
     return (
         <div className={'ppx:flex ppx:items-center ppx:gap-2'}>
             <div
-                title={kind === 'picture' ? 'Banner picture' : url ? 'Logo' : 'No logo: the default for its tag shows'}
+                title={kind === 'picture' ? 'Tile picture' : url ? 'Logo' : 'No logo: the default for its tag shows'}
                 className={cn(
                     'ppx:flex ppx:h-12 ppx:shrink-0 ppx:items-center ppx:justify-center ppx:overflow-hidden ppx:rounded-md ppx:border ppx:border-dashed ppx:border-border ppx:bg-muted/40',
                     kind === 'picture' ? 'ppx:w-24' : 'ppx:w-12'

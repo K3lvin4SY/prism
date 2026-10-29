@@ -4,20 +4,29 @@ const siteName = () => (window as unknown as { SiteConfiguration?: { name?: stri
 
 /**
  * Above the sign-in form, through the panel's auth slots, which are the one place an extension can
- * add to the sign-in pages: the picture beside or behind the form, and the tagline. The stylesheet
+ * add to the sign-in pages: the picture beside or behind the form, the logo on a split page, and the headline and tagline. The stylesheet
  * moves the panel's own card to make room (see styles.css, "Sign-in pages").
  */
 export default function SignIn() {
     const settings = useSettings();
-    const tagline = settings.login_tagline.trim();
+    const title = settings.login_title.trim();
+    const subtitle = settings.login_subtitle.trim();
 
     if (settings.login_style === 'split') {
+        // The logo, then the headline and the tagline, each only when set, centered on the picture side.
         return (
-            <div className='pla-signin-art' aria-hidden={!tagline}>
-                <div className='pla:flex pla:items-center pla:gap-3'>
-                    {settings.logo ? <img src={settings.logo} alt={siteName()} className='pla:h-10 pla:w-auto' /> : <span className='pla:font-header pla:text-2xl pla:font-semibold'>{siteName()}</span>}
-                </div>
-                {tagline && <p className='pla:max-w-md pla:font-header pla:text-4xl pla:leading-tight pla:font-semibold pla:text-balance'>{tagline}</p>}
+            <div className='pla-signin-art' data-image={settings.login_image ? 'true' : 'false'} aria-hidden={!title && !subtitle}>
+                {settings.logo ? (
+                    <img src={settings.logo} alt={siteName()} className='pla-signin-logo pla:object-contain' />
+                ) : (
+                    <span className='pla:font-header pla:text-3xl pla:font-bold'>{siteName()}</span>
+                )}
+                {(title || subtitle) && (
+                    <div className='pla:flex pla:max-w-lg pla:flex-col pla:gap-4'>
+                        {title && <p className='pla:font-header pla:text-5xl pla:leading-[1.05] pla:font-extrabold pla:tracking-tight pla:text-balance'>{title}</p>}
+                        {subtitle && <p className='pla-signin-subtitle pla:text-lg pla:text-pretty'>{subtitle}</p>}
+                    </div>
+                )}
             </div>
         );
     }
@@ -25,7 +34,12 @@ export default function SignIn() {
     return (
         <>
             {settings.login_style === 'backdrop' && <div className='pla-signin-backdrop' aria-hidden />}
-            {tagline && <p className='pla-signin-tagline pla:mx-auto pla:mb-2 pla:max-w-xl pla:px-4 pla:text-center pla:font-header pla:text-xl pla:font-medium'>{tagline}</p>}
+            {(title || subtitle) && (
+                <div className='pla-signin-tagline pla:mx-auto pla:mb-2 pla:flex pla:max-w-xl pla:flex-col pla:gap-1.5 pla:px-4 pla:text-center'>
+                    {title && <p className='pla:font-header pla:text-3xl pla:leading-tight pla:font-extrabold pla:tracking-tight pla:text-balance'>{title}</p>}
+                    {subtitle && <p className='pla-signin-subtitle pla:text-base pla:text-pretty'>{subtitle}</p>}
+                </div>
+            )}
         </>
     );
 }

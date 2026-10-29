@@ -3,85 +3,86 @@ import { Button, PageHeading, PanelLink, Spinner, Switch, cn } from '@pterodacty
 import { NamedIcon } from '../icons';
 import { Slot, View, type ServerListItem, type ServerListModel, type ViewProps } from '@pterodactyl/sdk/theme';
 import { NO_FILTERS, matches, publishServers, setFilters, useDashboard, type DashboardServer } from '../dashboard';
-import { GameLogo, useLogos } from '../logos';
+import { useGames, type Game } from '../logos';
+import { CardGameContext, type CardGame } from './cardContext';
 import { usePictures } from '../pictures';
 import { cssUrlToken, useEggColor, useSettings } from '../settings';
 
-/** Power buttons outside the card's link, so they work without opening the server. */
-function Power({ item }: { item: ServerListItem }) {
+const POWER_BUTTON = 'pla:inline-flex pla:items-center pla:justify-center pla:rounded-md pla:transition-colors pla:disabled:opacity-40';
+const POWER_TONE = {
+    start: 'pla:bg-success/15 pla:text-success pla:hover:bg-success/25',
+    restart: 'pla:bg-muted pla:text-foreground pla:hover:bg-secondary',
+    stop: 'pla:bg-destructive/15 pla:text-destructive pla:hover:bg-destructive/25',
+} as const;
+
+/**
+ * Power buttons outside the card's link, so they work without opening the server, tinted by what
+ * they do: square on rows, sharing the tile's width on tiles.
+ */
+function Power({ item, wide }: { item: ServerListItem; wide: boolean }) {
     const { state, permissions, actions, sending } = item;
     if (state.kind !== 'ready') return null;
-    const button = 'pla:flex pla:size-8 pla:items-center pla:justify-center pla:rounded-md pla:border pla:border-border pla:text-muted-foreground pla:hover:text-foreground pla:disabled:opacity-40';
+    const buttons = (
+        state.power === 'offline'
+            ? [permissions.start && (['start', 'Start', 'play', actions.start] as const)]
+            : [permissions.restart && (['restart', 'Restart', 'rotate-ccw', actions.restart] as const), permissions.stop && (['stop', 'Stop', 'square', actions.stop] as const)]
+    ).filter((button) => !!button);
 
     return (
-        <div className='pla:flex pla:gap-1'>
-            {state.power === 'offline'
-                ? permissions.start && (
-                      <button type='button' className={button} disabled={sending} onClick={actions.start} title='Start' aria-label='Start'>
-                          <NamedIcon name='play' size={14} />
-                      </button>
-                  )
-                : [
-                      permissions.restart && (
-                          <button key='restart' type='button' className={button} disabled={sending} onClick={actions.restart} title='Restart' aria-label='Restart'>
-                              <NamedIcon name='rotate-ccw' size={14} />
-                          </button>
-                      ),
-                      permissions.stop && (
-                          <button key='stop' type='button' className={button} disabled={sending} onClick={actions.stop} title='Stop' aria-label='Stop'>
-                              <NamedIcon name='square' size={14} />
-                          </button>
-                      ),
-                  ]}
+        <div className={cn('pla:flex pla:gap-2', wide ? 'pla:w-full' : 'pla:justify-end')}>
+            {buttons.map(([kind, label, icon, action]) => (
+                <button key={kind} type='button' className={cn(POWER_BUTTON, POWER_TONE[kind], wide ? 'pla:h-10 pla:flex-1' : 'pla:size-9')} disabled={sending} onClick={action} title={label} aria-label={label}>
+                    <NamedIcon name={icon} size={wide ? 16 : 14} className={kind === 'stop' ? 'pla:fill-current' : undefined} />
+                </button>
+            ))}
         </div>
     );
 }
 
 const tagsOf = (item: ServerListItem) => (item.server.attributes as { egg_tags?: string[] }).egg_tags;
 
-function Card({ item, picture, logo }: { item: ServerListItem; picture: string | null; logo: string | null }) {
+function Card({ item, picture, game }: { item: ServerListItem; picture: string | null; game: Game | undefined }) {
     const settings = useSettings();
     const eggColor = useEggColor();
-    const style = settings.cards;
-    // Logos are for Rows cards; the other styles show the game by its color instead.
-    const showLogo = settings.egg_colors === 'logo' && style === 'rows';
-    const color = settings.egg_colors === 'color' || (settings.egg_colors === 'logo' && !showLogo) ? eggColor(tagsOf(item)) : null;
+    const rows = settings.cards === 'rows';
+    const color = settings.egg_colors === 'color' ? eggColor(tagsOf(item)) : null;
     const running = item.state.kind === 'ready' && item.state.power === 'running';
+    const card: CardGame = { game: game?.game ?? null, logo: game?.logo ?? null, tags: tagsOf(item), color };
+    const slots = (
+        <>
+            <Slot name='dashboard.serverRow.before' data={item.server} />
+            <Slot name='dashboard.serverRow.metrics.after' data={item.server} />
+            <Slot name='dashboard.serverRow.after' data={item.server} />
+        </>
+    );
 
     return (
         <li
-            className={cn(
-                'pt-surface pla:relative pla:flex pla:overflow-hidden pla:rounded-lg pla:border pla:border-border pla:bg-card',
-                style === 'rows' ? 'pla:items-center pla:gap-4 pla:px-4 pla:py-3' : 'pla:flex-col',
-                style === 'outline' && 'pla:bg-transparent pla:shadow-none',
-                style === 'neon' && 'pla-card-neon',
-                style === 'tile' && 'pla-card-tile',
-                style === 'minimal' && 'pla:border-transparent pla:bg-card/60 pla:shadow-none',
-                color && 'pla-card-egg'
-            )}
-            data-style={style}
+            className={cn('pla:relative', rows ? 'pla-row pla:px-5 pla:py-3 pla:transition-colors pla:hover:bg-muted/40' : 'pt-surface pla:flex pla:flex-col pla:overflow-hidden pla:rounded-xl pla:border pla:border-border pla:bg-card')}
             style={{ ...(color ? { '--pla-egg': color } : {}), ...(picture ? { '--pla-card-image': cssUrlToken(picture) } : {}) } as React.CSSProperties}
         >
             {settings.status_style === 'bar' && <span className={cn('pla:absolute pla:inset-y-0 pla:left-0 pla:w-1', running ? 'pla:bg-success' : item.state.kind === 'ready' ? 'pla:bg-destructive' : 'pla:bg-muted')} />}
-            {color && style === 'compact' && <span className='pla:absolute pla:inset-x-0 pla:top-0 pla:h-1 pla:bg-(--pla-egg)' aria-hidden />}
-            {showLogo && <GameLogo logo={logo} tags={tagsOf(item)} />}
-            {color && style === 'rows' && (
-                <span className='pla:flex pla:size-8 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-md pla:bg-[color-mix(in_oklab,var(--pla-egg)_22%,transparent)] pla:text-(--pla-egg)' aria-hidden>
-                    <NamedIcon name='gamepad-2' size={16} />
-                </span>
-            )}
-            {style === 'banner' && <div className='pla-card-banner pla:h-20' />}
-            <Slot name='dashboard.serverRow.before' data={item.server} />
-            <PanelLink destination={{ to: '/server/$id', params: { id: item.identifier } }} aria-label={item.name} className={cn('pla:min-w-0 pla:flex-1 pla:text-foreground pla:no-underline', style === 'compact' ? 'pla:p-3' : style === 'rows' ? '' : 'pla:p-4')}>
-                <View name='dashboard.serverCard' server={item.server} />
+            {!rows && settings.card_banner && <div className='pla-card-banner pla:h-24' />}
+            <PanelLink destination={{ to: '/server/$id', params: { id: item.identifier } }} aria-label={item.name} className={cn('pla:min-w-0 pla:text-foreground pla:no-underline', rows ? 'pla-row-link' : 'pla:flex-1 pla:p-5')}>
+                <CardGameContext.Provider value={card}>
+                    <View name='dashboard.serverCard' server={item.server} />
+                </CardGameContext.Provider>
             </PanelLink>
-            <Slot name='dashboard.serverRow.metrics.after' data={item.server} />
-            {settings.power_buttons && (
-                <div className={cn(style === 'rows' ? '' : 'pla:flex pla:justify-end pla:px-4 pla:pb-3', style === 'compact' && 'pla:px-3 pla:pb-2')}>
-                    <Power item={item} />
+            {rows ? (
+                <div className='pla-row-power pla:flex pla:items-center pla:justify-end pla:gap-2'>
+                    {slots}
+                    {settings.power_buttons && <Power item={item} wide={false} />}
                 </div>
+            ) : (
+                <>
+                    {slots}
+                    {settings.power_buttons && item.state.kind === 'ready' && (
+                        <div className='pla:px-5 pla:pb-5'>
+                            <Power item={item} wide />
+                        </div>
+                    )}
+                </>
             )}
-            <Slot name='dashboard.serverRow.after' data={item.server} />
         </li>
     );
 }
@@ -113,8 +114,8 @@ function Servers({ model }: { model: ServerListModel }) {
     const style = settings.cards;
     const others = model.scope === 'others';
     const uuids = model.servers.map((item) => item.uuid);
-    const pictures = usePictures(uuids, style === 'banner');
-    const logos = useLogos(uuids, style === 'rows' && settings.egg_colors === 'logo');
+    const pictures = usePictures(uuids, style === 'tile' && settings.card_banner);
+    const games = useGames(uuids);
 
     // The sidebar's overview and filters read the servers on this page.
     useEffect(() => {
@@ -148,11 +149,18 @@ function Servers({ model }: { model: ServerListModel }) {
                     </Button>
                 </div>
             )}
-            <ul className={cn('pla:grid pla:gap-4', style === 'rows' ? 'pla:grid-cols-1 pla:gap-2' : style === 'compact' ? 'pla:grid-cols-1 pla:gap-3 pla:sm:grid-cols-2 pla:lg:grid-cols-3 pla:2xl:grid-cols-4' : 'pla:grid-cols-1 pla:sm:grid-cols-2 pla:xl:grid-cols-3')}>
-                {shown.map((item) => (
-                    <Card key={item.uuid} item={item} picture={pictures.data?.[item.uuid] ?? null} logo={logos.data?.[item.uuid] ?? null} />
-                ))}
-            </ul>
+            {shown.length > 0 && (
+                <ul
+                    className={cn(
+                        style === 'rows' ? 'pla-rows pt-surface pla:divide-y pla:divide-border pla:overflow-hidden pla:rounded-xl pla:border pla:border-border pla:bg-card' : 'pla:grid pla:grid-cols-1 pla:gap-4 pla:md:grid-cols-2 pla:2xl:grid-cols-3'
+                    )}
+                    data-usage={settings.usage_style}
+                >
+                    {shown.map((item) => (
+                        <Card key={item.uuid} item={item} picture={pictures.data?.[item.uuid] ?? null} game={games.data?.[item.uuid]} />
+                    ))}
+                </ul>
+            )}
             {model.pagination && model.pagination.totalPages > 1 && (
                 <nav aria-label='Pages' className='pla:mt-6 pla:flex pla:items-center pla:justify-center pla:gap-3 pla:text-sm'>
                     <Button size='xsmall' color='grey' disabled={model.pagination.currentPage === 1} onClick={() => model.actions.setPage(model.pagination!.currentPage - 1)}>

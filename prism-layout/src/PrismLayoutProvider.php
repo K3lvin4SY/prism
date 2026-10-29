@@ -61,12 +61,13 @@ class PrismLayoutProvider extends ExtensionProvider
             Setting::make('density', 'density', 'cozy', ['required', 'string', 'in:compact,cozy,comfortable'])->label('Spacing')->tab('Page')->field('select', $options(['compact' => 'Compact', 'cozy' => 'Cozy', 'comfortable' => 'Comfortable']))->frontend(),
 
             // Server cards
-            Setting::make('cards', 'cards', 'rows', ['required', 'string', 'in:banner,tile,neon,minimal,compact,outline,rows'])->label('Server cards')->tab('Server cards')->field('select', $options(['banner' => 'Banner', 'tile' => 'Tile', 'neon' => 'Neon', 'minimal' => 'Minimal', 'compact' => 'Compact', 'outline' => 'Outline', 'rows' => 'Rows']))->frontend(),
+            Setting::make('cards', 'cards', 'rows', ['required', 'string', 'in:rows,tile'])->label('Server cards')->help('Rows line every server up in one list; tiles put each in a card of its own.')->tab('Server cards')->field('select', $options(['rows' => 'Rows', 'tile' => 'Tiles']))->frontend(),
+            $toggle('card_banner', false, 'Picture on tiles', 'Server cards', "A picture across the top of each tile: the server's own, its egg's, or the card picture below."),
             Setting::make('status_style', 'status_style', 'badge', ['required', 'string', 'in:badge,dot,bar'])->label('Status')->tab('Server cards')->field('select', $options(['badge' => 'Badge', 'dot' => 'Dot', 'bar' => 'Colored edge']))->frontend(),
-            Setting::make('usage_style', 'usage_style', 'bars', ['required', 'string', 'in:bars,numbers,hidden'])->label('Usage')->tab('Server cards')->field('select', $options(['bars' => 'Bars', 'numbers' => 'Numbers', 'hidden' => 'Hidden']))->frontend(),
-            Setting::make('egg_colors', 'egg_colors', 'logo', ['required', 'string', 'in:none,color,logo'])->label('Show the game on cards')->help("Color gives each egg tag its own color. Logo puts the egg's logo on Rows cards, set for each egg below; other card styles use the color.")->tab('Server cards')->field('select', $options(['none' => 'None', 'color' => 'Color', 'logo' => 'Logo']))->frontend(),
+            Setting::make('usage_style', 'usage_style', 'bars', ['required', 'string', 'in:bars,numbers,hidden'])->label('Usage')->help('Bars or numbers; on rows, numbers keep the list narrow.')->tab('Server cards')->field('select', $options(['bars' => 'Bars', 'numbers' => 'Numbers', 'hidden' => 'Hidden']))->frontend(),
+            Setting::make('egg_colors', 'egg_colors', 'logo', ['required', 'string', 'in:none,color,logo'])->label('Show the game on cards')->help("Color gives each egg tag its own color. Logo puts the egg's logo on the cards, set for each egg below.")->tab('Server cards')->field('select', $options(['none' => 'None', 'color' => 'Color', 'logo' => 'Logo']))->frontend(),
             $toggle('power_buttons', true, 'Power buttons on cards', 'Server cards'),
-            Setting::make('card_image', 'card_image', null)->label('Card picture')->help("Shown on Banner cards. Without one, a pattern in the game's color.")->tab('Server cards')->file(self::IMAGES, 2048)->frontend(),
+            Setting::make('card_image', 'card_image', null)->label('Card picture')->help("Shown on tiles with a picture when the server and its egg have none. Without one, a pattern in the game's color.")->tab('Server cards')->file(self::IMAGES, 2048)->frontend(),
 
             // Branding: everything here also reaches the sign-in pages.
             Setting::make('logo', 'logo', null)->label('Logo')->help('PNG, JPG, WebP or SVG, up to 1 MB. A wide logo works best in a top bar.')->tab('Branding')->file(self::IMAGES, 1024)->frontend()->public(),
@@ -78,18 +79,20 @@ class PrismLayoutProvider extends ExtensionProvider
 
             // Sign-in page
             Setting::make('login_style', 'login_style', 'backdrop', ['required', 'string', 'in:card,split,backdrop'])->label('Sign-in page')->help("Card is the panel's own; split puts a picture beside the form; backdrop puts it behind.")->tab('Sign-in page')->field('select', $options(['card' => 'Card', 'split' => 'Split with a picture', 'backdrop' => 'Picture behind']))->frontend()->public(),
-            Setting::make('login_mark', 'login_mark', 'logo', ['required', 'string', 'in:logo,mascot,none'])->label('Beside the form')->help('Your logo, the Pterodactyl mascot, or nothing. Without a logo the mascot stays.')->tab('Sign-in page')->field('select', $options(['logo' => 'Your logo', 'mascot' => 'The mascot', 'none' => 'Nothing']))->frontend()->public(),
+            Setting::make('login_mark', 'login_mark', 'logo', ['required', 'string', 'in:logo,mascot,none'])->label('Beside the form')->help('Your logo, the Pterodactyl mascot, or nothing. Without a logo the mascot stays. A split page shows the logo on its picture side instead.')->tab('Sign-in page')->field('select', $options(['logo' => 'Your logo', 'mascot' => 'The mascot', 'none' => 'Nothing']))->frontend()->public(),
             Setting::make('login_logo_size', 'login_logo_size', 160, ['required', 'integer', 'min:48', 'max:320'])->label('Logo size on the sign-in pages')->tab('Sign-in page')->field('number')->frontend()->public(),
-            Setting::make('login_tagline', 'login_tagline', '', ['nullable', 'string', 'max:120'])->label('Tagline')->help('A line above the form, or on the picture when it is split.')->tab('Sign-in page')->field('text')->frontend()->public(),
-            Setting::make('login_image', 'login_image', null)->label('Sign-in picture')->help('For the split and backdrop styles. Without one, a gradient in the theme color.')->tab('Sign-in page')->file(self::IMAGES, 4096)->frontend()->public(),
+            Setting::make('login_title', 'login_title', '', ['nullable', 'string', 'max:80'])->label('Headline')->help('Bold, beside the form when the page is split, else above it.')->tab('Sign-in page')->field('text')->frontend()->public(),
+            Setting::make('login_subtitle', 'login_subtitle', '', ['nullable', 'string', 'max:160'])->label('Tagline')->help('A quieter line under the headline.')->tab('Sign-in page')->field('text')->frontend()->public(),
+            Setting::make('login_image', 'login_image', null)->label('Sign-in picture')->help('For the split and backdrop styles. Without one, split uses a calm panel in the theme colors and backdrop a gradient.')->tab('Sign-in page')->file(self::IMAGES, 4096)->frontend()->public(),
 
             // Announcement
             $text('announce_text', '', 300, 'Message', 'Announcement', 'Empty shows no banner.'),
+            $text('announce_badge', '', 24, 'Badge', 'Announcement', 'A short word before the message, such as Maintenance. Empty shows none.'),
             Setting::make('announce_level', 'announce_level', 'info', ['required', 'string', 'in:info,success,warning,danger'])->label('Kind')->tab('Announcement')->field('select', $options(['info' => 'Information', 'success' => 'Good news', 'warning' => 'Warning', 'danger' => 'Problem']))->frontend(),
             Setting::make('announce_style', 'announce_style', 'bar', ['required', 'string', 'in:bar,card'])->label('Style')->tab('Announcement')->field('select', $options(['bar' => 'Bar across the top', 'card' => 'Card above the page']))->frontend(),
             Setting::make('announce_audience', 'announce_audience', 'everyone', ['required', 'string', 'in:everyone,admins,users'])->label('Shown to')->tab('Announcement')->field('select', $options(['everyone' => 'Everyone', 'admins' => 'Administrators', 'users' => 'Everyone but administrators']))->frontend(),
-            $text('announce_link', '', 300, 'Button link', 'Announcement'),
-            $text('announce_link_label', 'Read more', 40, 'Button text', 'Announcement'),
+            $text('announce_link', '', 300, 'Link', 'Announcement'),
+            $text('announce_link_label', 'Details', 40, 'Link text', 'Announcement'),
             $text('announce_from', '', 40, 'Show from', 'Announcement', 'Empty shows it straight away.'),
             $text('announce_until', '', 40, 'Show until', 'Announcement', 'Empty shows it until you clear the message.'),
             $toggle('announce_dismiss', true, 'People can close it', 'Announcement', 'Closed stays closed in that browser until the message changes.'),

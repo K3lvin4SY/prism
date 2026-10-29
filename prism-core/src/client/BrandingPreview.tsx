@@ -1,4 +1,4 @@
-import { useSiteSettings } from '@pterodactyl/sdk';
+import { cn, useSiteSettings } from '@pterodactyl/sdk';
 import { NamedIcon } from './icons';
 import type { SettingField } from './api';
 
@@ -17,12 +17,18 @@ export default function BrandingPreview({ schema, draft, tab }: { schema: Settin
         const style = String(value('login_style') ?? 'backdrop');
         const mark = String(value('login_mark') ?? 'logo');
         const size = Number(value('login_logo_size') ?? 160);
-        const tagline = String(value('login_tagline') ?? '').trim();
+        const title = String(value('login_title') ?? '').trim();
+        const subtitle = String(value('login_subtitle') ?? '').trim();
         const image = url('login_image');
-        const picture = { background: `${image ? `url("${image.replace(/["\\]/g, '')}") center / cover, ` : ''}linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 45%, black))` };
+        const cssImage = image ? `url("${image.replace(/["\\]/g, '')}") center / cover` : null;
+        const picture = { background: `${cssImage ? `${cssImage}, ` : ''}linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 45%, black))` };
+        const split = style === 'split';
+        // A split page shows the logo on its left half, so the form stands alone on the right.
         const card = (
-            <div className={'ppx:flex ppx:w-full ppx:max-w-md ppx:items-center ppx:gap-5 ppx:rounded-lg ppx:bg-card ppx:p-5 ppx:shadow-lg'}>
-                {mark === 'logo' && logo ? (
+            <div className={cn('ppx:flex ppx:w-full ppx:max-w-md ppx:items-center ppx:gap-5', split ? 'ppx:flex-col ppx:items-stretch ppx:gap-3' : 'ppx:rounded-lg ppx:bg-card ppx:p-5 ppx:shadow-lg')}>
+                {split ? (
+                    <p className={'ppx:text-base ppx:font-extrabold'}>Login to Continue</p>
+                ) : mark === 'logo' && logo ? (
                     <img src={logo} alt={''} style={{ width: size / 2.4, height: size / 2.4 }} className={'ppx:shrink-0 ppx:object-contain'} />
                 ) : mark !== 'none' ? (
                     <NamedIcon name={'bird'} size={48} className={'ppx:shrink-0 ppx:text-primary'} />
@@ -40,9 +46,13 @@ export default function BrandingPreview({ schema, draft, tab }: { schema: Settin
                 <div className={'ppx:relative ppx:flex ppx:min-h-56 ppx:overflow-hidden ppx:rounded-md ppx:bg-background ppx:shadow-md'}>
                     {style === 'split' ? (
                         <>
-                            <div className={'ppx:flex ppx:w-1/2 ppx:flex-col ppx:justify-between ppx:p-4 ppx:text-white'} style={picture}>
-                                {logo ? <img src={logo} alt={''} className={'ppx:h-6 ppx:w-auto ppx:self-start'} /> : <span className={'ppx:font-semibold'}>{name}</span>}
-                                {tagline && <p className={'ppx:text-lg ppx:leading-tight ppx:font-semibold'}>{tagline}</p>}
+                            <div
+                                className={cn('ppx:flex ppx:w-1/2 ppx:flex-col ppx:justify-center ppx:gap-3 ppx:border-r ppx:border-border ppx:p-5', cssImage && 'ppx:text-white')}
+                                style={{ background: cssImage ? `linear-gradient(to top, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.15)), ${cssImage}` : 'color-mix(in oklab, var(--primary) 7%, var(--background))' }}
+                            >
+                                {logo ? <img src={logo} alt={''} style={{ width: size / 3.2, height: size / 3.2 }} className={'ppx:object-contain'} /> : <span className={'ppx:text-lg ppx:font-bold'}>{name}</span>}
+                                {title && <p className={'ppx:text-xl ppx:leading-tight ppx:font-extrabold ppx:tracking-tight'}>{title}</p>}
+                                {subtitle && <p className={cn('ppx:text-xs', cssImage ? 'ppx:text-white/80' : 'ppx:text-muted-foreground')}>{subtitle}</p>}
                             </div>
                             <div className={'ppx:flex ppx:w-1/2 ppx:items-center ppx:justify-center ppx:p-4'}>{card}</div>
                         </>
@@ -53,12 +63,17 @@ export default function BrandingPreview({ schema, draft, tab }: { schema: Settin
                                     <div className={'ppx:absolute ppx:inset-0 ppx:bg-black/45'} />
                                 </div>
                             )}
-                            {tagline && <p className={'ppx:relative ppx:text-center ppx:font-medium'} style={style === 'backdrop' ? { color: '#fff' } : undefined}>{tagline}</p>}
+                            {(title || subtitle) && (
+                                <div className={'ppx:relative ppx:flex ppx:flex-col ppx:items-center ppx:gap-0.5 ppx:text-center'} style={style === 'backdrop' ? { color: '#fff' } : undefined}>
+                                    {title && <p className={'ppx:text-lg ppx:font-extrabold ppx:tracking-tight'}>{title}</p>}
+                                    {subtitle && <p className={cn('ppx:text-xs', style !== 'backdrop' && 'ppx:text-muted-foreground')}>{subtitle}</p>}
+                                </div>
+                            )}
                             <div className={'ppx:relative ppx:flex ppx:w-full ppx:justify-center'}>{card}</div>
                         </div>
                     )}
                 </div>
-                {style === 'split' && <p className={'ppx:mt-2 ppx:text-xs ppx:text-muted-foreground'}>On narrow screens the picture is left out and the card shows alone.</p>}
+                {style === 'split' && <p className={'ppx:mt-2 ppx:text-xs ppx:text-muted-foreground'}>On narrow screens the left half is left out and the card shows alone, with the logo beside the form as set below.</p>}
             </Frame>
         );
     }

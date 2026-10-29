@@ -17,3 +17,24 @@
 .pau-provider[style*='border-color'] {
     border-width: 1px;
 }
+
+/*
+ * The panel's button skin is inline-block and uppercase, which put the mark on a line of its own
+ * above the label. A provider button is one line instead: the mark, then the label as written.
+ */
+.pau-provider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    min-height: 2.75rem;
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 500;
+    line-height: 1.25;
+}
+
+.pau-provider > svg,
+.pau-provider > img {
+    flex-shrink: 0;
+}

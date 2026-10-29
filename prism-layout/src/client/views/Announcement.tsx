@@ -4,11 +4,32 @@ import { NamedIcon } from '../icons';
 import type { AppLayoutModel } from '@pterodactyl/sdk/theme';
 import { useSettings } from '../settings';
 
+/** Each kind's icon, its tint on the surface, and the badge in its color. */
 const TONES = {
-    info: { icon: 'info', className: 'pla:bg-primary/15 pla:text-foreground pla:border-primary/30' },
-    success: { icon: 'circle-check', className: 'pla:bg-success/15 pla:text-foreground pla:border-success/30' },
-    warning: { icon: 'triangle-alert', className: 'pla:bg-warning/15 pla:text-foreground pla:border-warning/30' },
-    danger: { icon: 'octagon-alert', className: 'pla:bg-destructive/15 pla:text-foreground pla:border-destructive/30' },
+    info: {
+        icon: 'info',
+        className: 'pla:bg-[color-mix(in_oklab,var(--primary)_9%,var(--popover))] pla:text-foreground pla:border-primary/25',
+        badge: 'pla:bg-primary pla:text-primary-foreground',
+        mark: 'pla:text-primary',
+    },
+    success: {
+        icon: 'circle-check',
+        className: 'pla:bg-[color-mix(in_oklab,var(--success)_9%,var(--popover))] pla:text-foreground pla:border-success/25',
+        badge: 'pla:bg-success pla:text-success-foreground',
+        mark: 'pla:text-success',
+    },
+    warning: {
+        icon: 'triangle-alert',
+        className: 'pla:bg-[color-mix(in_oklab,var(--warning)_9%,var(--popover))] pla:text-foreground pla:border-warning/25',
+        badge: 'pla:bg-warning pla:text-warning-foreground',
+        mark: 'pla:text-warning',
+    },
+    danger: {
+        icon: 'octagon-alert',
+        className: 'pla:bg-[color-mix(in_oklab,var(--destructive)_9%,var(--popover))] pla:text-foreground pla:border-destructive/25',
+        badge: 'pla:bg-destructive pla:text-destructive-foreground',
+        mark: 'pla:text-destructive',
+    },
 } as const;
 
 /**
@@ -67,6 +88,7 @@ export default function Announcement({ model }: { model: AppLayoutModel }) {
     if (settings.announce_audience === 'users' && model.user.rootAdmin) return null;
 
     const tone = TONES[settings.announce_level] ?? TONES.info;
+    const badge = settings.announce_badge.trim();
     const link = /^https?:\/\//.test(settings.announce_link ?? '') ? settings.announce_link : null;
     const close = () => {
         try {
@@ -79,15 +101,19 @@ export default function Announcement({ model }: { model: AppLayoutModel }) {
 
     const body = (
         <>
-            <NamedIcon name={tone.icon} size={16} className='pla:shrink-0' />
+            {badge ? (
+                <span className={cn('pla-label pla:shrink-0 pla:rounded-md pla:px-2.5 pla:py-1 pla:text-[11px] pla:leading-none pla:font-bold pla:tracking-wider pla:uppercase', tone.badge)}>{badge}</span>
+            ) : (
+                <NamedIcon name={tone.icon} size={16} className={cn('pla:shrink-0', tone.mark)} />
+            )}
             <p className='pla:min-w-0 pla:flex-1 pla:text-sm'>{text}</p>
             {link && (
-                <a href={link} target='_blank' rel='noopener noreferrer' className='pla:shrink-0 pla:rounded-md pla:bg-primary pla:px-3 pla:py-1 pla:text-xs pla:font-medium pla:text-primary-foreground pla:no-underline pla:hover:bg-primary/85'>
-                    {settings.announce_link_label || 'Read more'}
+                <a href={link} target='_blank' rel='noopener noreferrer' className='pla:shrink-0 pla:text-sm pla:font-semibold pla:text-primary pla:no-underline pla:hover:underline'>
+                    {settings.announce_link_label || 'Details'}
                 </a>
             )}
             {settings.announce_dismiss && (
-                <button type='button' onClick={close} aria-label='Close' className='pla:shrink-0 pla:rounded pla:p-1 pla:text-muted-foreground pla:hover:text-foreground'>
+                <button type='button' onClick={close} aria-label='Close' className='pla:flex pla:size-7 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-md pla:bg-foreground/8 pla:text-muted-foreground pla:hover:bg-foreground/15 pla:hover:text-foreground'>
                     <NamedIcon name='x' size={14} />
                 </button>
             )}
@@ -97,7 +123,7 @@ export default function Announcement({ model }: { model: AppLayoutModel }) {
     if (settings.announce_style === 'card') {
         return (
             <div className='pla:mx-auto pla:w-full pla:max-w-panel pla:px-4 pla:pt-4'>
-                <div role='status' className={cn('pt-surface pla:flex pla:items-center pla:gap-3 pla:rounded-lg pla:border pla:px-4 pla:py-3', tone.className)}>
+                <div role='status' className={cn('pla:flex pla:items-center pla:gap-3 pla:rounded-xl pla:border pla:py-2.5 pla:pr-2.5 pla:pl-3 pla:shadow-lg', tone.className)}>
                     {body}
                 </div>
             </div>
@@ -105,7 +131,7 @@ export default function Announcement({ model }: { model: AppLayoutModel }) {
     }
 
     return (
-        <div role='status' className={cn('pla:flex pla:items-center pla:gap-3 pla:border-b pla:px-4 pla:py-2', tone.className)}>
+        <div role='status' className={cn('pla:flex pla:items-center pla:gap-3 pla:border-b pla:py-2 pla:pr-2.5 pla:pl-4', tone.className)}>
             {body}
         </div>
     );

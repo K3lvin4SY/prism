@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { http } from '@pterodactyl/sdk';
+import { cn, http } from '@pterodactyl/sdk';
 import { IconServer, IconVoice, type TablerIcon } from '@tabler/icons-react';
 import garrysmod from './logos/garrysmod.png?inline';
 import minecraft from './logos/minecraft.png?inline';
@@ -20,30 +20,37 @@ const TAG_LOGOS: [string, string | TablerIcon][] = [
     ['voice', IconVoice],
 ];
 
-export const logoKeys = {
-    servers: (uuids: readonly string[]) => ['prism-layout', 'logos', uuids.join(',')] as const,
+export const gameKeys = {
+    servers: (uuids: readonly string[]) => ['prism-layout', 'games', uuids.join(',')] as const,
 };
 
-/** Each listed server's egg logo, by uuid; servers whose egg has none are left out. */
-export function useLogos(uuids: readonly string[], enabled: boolean) {
+/** A server's game: its egg's name, and the egg's own logo when it has one. */
+export interface Game {
+    game: string | null;
+    logo: string | null;
+}
+
+/** Each listed server's game, by uuid. */
+export function useGames(uuids: readonly string[], enabled = true) {
     return useQuery({
-        queryKey: logoKeys.servers(uuids),
-        queryFn: async () => (await http.get<{ data: Record<string, string> }>('/api/client/extensions/prism-layout/logos', { params: { servers: uuids.join(',') } })).data.data,
+        queryKey: gameKeys.servers(uuids),
+        queryFn: async () => (await http.get<{ data: Record<string, Game> }>('/api/client/extensions/prism-layout/games', { params: { servers: uuids.join(',') } })).data.data,
         enabled: enabled && uuids.length > 0,
         staleTime: 60_000,
     });
 }
 
-/** The egg's own logo, else its tag's, else a server. */
-export function GameLogo({ logo, tags }: { logo: string | null; tags: readonly string[] | undefined }) {
+/** The egg's own logo, else its tag's, else a server; `size` in pixels. */
+export function GameLogo({ logo, tags, size = 32, className }: { logo: string | null; tags: readonly string[] | undefined; size?: number; className?: string }) {
     const Source = logo ?? TAG_LOGOS.find(([tag]) => tags?.includes(tag))?.[1] ?? IconServer;
+    const box = { width: size, height: size };
 
     // An image stands on its own; an icon sits on a tile like the color mark.
     return typeof Source === 'string' ? (
-        <img src={Source} alt='' loading='lazy' aria-hidden className='pla:size-8 pla:shrink-0 pla:rounded-md pla:object-contain' />
+        <img src={Source} alt='' loading='lazy' aria-hidden style={box} className={cn('pla:shrink-0 pla:rounded-md pla:object-contain', className)} />
     ) : (
-        <span className='pla:flex pla:size-8 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-md pla:bg-muted pla:text-muted-foreground' aria-hidden>
-            <Source size={18} stroke={2} />
+        <span style={box} className={cn('pla:flex pla:shrink-0 pla:items-center pla:justify-center pla:rounded-md pla:bg-muted pla:text-muted-foreground', className)} aria-hidden>
+            <Source size={Math.round(size * 0.56)} stroke={2} />
         </span>
     );
 }

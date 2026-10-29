@@ -52,17 +52,21 @@ class PicturesController extends Controller
         return $user->root_admin ? Server::query()->whereIn('uuid', $uuids)->get() : $user->accessibleServers()->whereIn('servers.uuid', $uuids)->get();
     }
 
-    /** Each listed server's egg logo by uuid, for Rows cards; servers whose egg has none are left out. */
-    public function logos(Request $request): JsonResponse
+    /**
+     * Each listed server's game by uuid: its egg's name and the egg's logo (null without one), for the
+     * cards and the command palette.
+     */
+    public function games(Request $request): JsonResponse
     {
-        $servers = $this->servers($request);
+        $servers = $this->servers($request)->load('egg:id,name');
         $rows = DB::table(Pictures::TABLE)->where('kind', 'egg-logo')->whereIn('target_id', $servers->pluck('egg_id')->unique())->get()->keyBy('target_id');
 
         $map = [];
         foreach ($servers as $server) {
-            if (isset($rows[$server->egg_id])) {
-                $map[$server->uuid] = Pictures::url($rows[$server->egg_id]);
-            }
+            $map[$server->uuid] = [
+                'game' => $server->egg?->name,
+                'logo' => isset($rows[$server->egg_id]) ? Pictures::url($rows[$server->egg_id]) : null,
+            ];
         }
 
         return new JsonResponse(['data' => (object) $map]);

@@ -33,6 +33,10 @@ html[data-pla-nav='on'][data-pla-density='compact'] {
 html[data-pla-nav='on'][data-pla-density='comfortable'] {
     --spacing: 0.27rem;
 }
+/* Small uppercase labels (group headings, badges) in the theme's label font when it sets one. */
+.pla-label {
+    font-family: var(--pt-font-label, inherit);
+}
 /* #endregion page */
 
 /* #region logo, in the panel's own layout */
@@ -136,6 +140,93 @@ html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:has(+ .pla-dock-ite
 /* #endregion the folding sidebar */
 
 /* #region server cards; --pla-egg is the card's game color */
+
+/*
+ * Rows: the list is one grid and every row a subgrid of it, so the game, status, usage and power
+ * columns line up from row to row whatever each row holds. The link spans every column but power.
+ */
+.pla-rows {
+    display: grid;
+    grid-template-columns: [mark] auto [name] minmax(0, 3fr) [game] minmax(0, 2fr) [status] auto [usage] minmax(0, 3fr) [power] auto [end];
+    column-gap: 1.25rem;
+}
+
+.pla-rows[data-usage='hidden'] {
+    grid-template-columns: [mark] auto [name] minmax(0, 3fr) [game] minmax(0, 2fr) [status] auto [usage] 0 [power] auto [end];
+}
+
+.pla-rows > .pla-row {
+    grid-column: mark / end;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: center;
+}
+
+.pla-row-link {
+    grid-column: mark / power;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: center;
+}
+
+.pla-row-cells {
+    display: contents;
+}
+
+.pla-row-mark {
+    grid-column: mark;
+    display: flex;
+}
+
+.pla-row-name {
+    grid-column: name;
+}
+
+.pla-row-game {
+    grid-column: game;
+}
+
+.pla-row-status {
+    grid-column: status;
+}
+
+.pla-row-usage {
+    grid-column: usage;
+}
+
+.pla-row-power {
+    grid-column: power;
+}
+
+/* On a phone a row is the logo, the name, the status and the buttons. */
+@media (max-width: 767px) {
+    .pla-rows,
+    .pla-rows > .pla-row,
+    .pla-row-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .pla-rows {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+
+    .pla-row-link,
+    .pla-row-name {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .pla-row-game,
+    .pla-row-usage {
+        display: none;
+    }
+}
+
+/* A tile's picture: the server's or its egg's, else the card picture, over a pattern in the game's color. */
 .pla-card-banner {
     background:
         linear-gradient(to bottom, transparent, var(--card)),
@@ -145,26 +236,6 @@ html[data-pla-magnify='true'] .pla-dock:hover .pla-dock-item:has(+ .pla-dock-ite
             color-mix(in oklab, var(--pla-egg, var(--primary)) 30%, transparent) 0 12px,
             color-mix(in oklab, var(--pla-egg, var(--primary)) 18%, transparent) 12px 24px
         );
-}
-
-.pla-card-neon {
-    border-color: color-mix(in oklab, var(--pla-egg, var(--primary)) 55%, transparent);
-    box-shadow:
-        0 0 22px color-mix(in oklab, var(--pla-egg, var(--primary)) 22%, transparent),
-        inset 0 0 18px color-mix(in oklab, var(--pla-egg, var(--primary)) 8%, transparent);
-}
-
-/* The game's color on the styles without a picture or tint of their own. */
-.pla-card-egg[data-style='outline'] {
-    border-color: color-mix(in oklab, var(--pla-egg) 55%, transparent);
-}
-
-.pla-card-egg[data-style='minimal'] {
-    background-color: color-mix(in oklab, var(--pla-egg) 8%, var(--card));
-}
-
-.pla-card-tile {
-    background: linear-gradient(160deg, color-mix(in oklab, var(--pla-egg, var(--primary)) 16%, var(--card)), var(--card) 60%);
 }
 /* #endregion server cards */
 
@@ -195,7 +266,10 @@ html[data-pla-mark='logo'] div:has(> svg[aria-label='Pterodactyl']) {
     }
 }
 
-/* Split: a picture with the logo and tagline on the left half, the form on the right. */
+/*
+ * Split: the logo, headline and tagline on the left half, on the picture or a calm panel in the
+ * theme's colors; the form on the right, flat on the page, with no second logo beside it.
+ */
 .pla-signin-art {
     display: none;
 }
@@ -207,18 +281,64 @@ html[data-pla-mark='logo'] div:has(> svg[aria-label='Pterodactyl']) {
         z-index: 0;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        padding: 3rem;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 2.5rem;
+        padding: clamp(2.5rem, 7vw, 7rem);
+        color: var(--foreground);
+        background: color-mix(in oklab, var(--primary) 7%, var(--background));
+        border-right: 1px solid var(--border);
+    }
+
+    html[data-pla-signin='split'] .pla-signin-art[data-image='true'] {
         color: #fff;
         background:
-            linear-gradient(to top, rgb(0 0 0 / 0.55), transparent 60%),
-            var(--pla-login-image, none) center / cover,
-            linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 45%, black));
+            linear-gradient(to top, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.15)),
+            var(--pla-login-image) center / cover;
+    }
+
+    html[data-pla-signin='split'] .pla-signin-art .pla-signin-subtitle {
+        color: var(--muted-foreground);
+    }
+
+    html[data-pla-signin='split'] .pla-signin-art[data-image='true'] .pla-signin-subtitle {
+        color: rgb(255 255 255 / 0.8);
+    }
+
+    html[data-pla-signin='split'] .pla-signin-logo {
+        width: var(--pla-login-size, 10rem);
+        height: var(--pla-login-size, 10rem);
+        max-width: 100%;
     }
 
     html[data-pla-signin='split'] main:has(.pla-signin-art) {
         padding-left: 50vw;
     }
+
+    /* The logo is on the left now; the form stands on the page without the card around it. */
+    html[data-pla-signin='split'] main:has(.pla-signin-art) div:has(> svg[aria-label='Pterodactyl']) {
+        display: none;
+    }
+
+    html[data-pla-signin='split'] main:has(.pla-signin-art) form > div:has(> div > svg[aria-label='Pterodactyl']) {
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+        border: 0;
+    }
+
+    html[data-pla-signin='split'] main:has(.pla-signin-art) h2 {
+        text-align: left;
+        font-family: var(--font-header);
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        padding-inline: 0.25rem;
+    }
+}
+
+.pla-signin-tagline .pla-signin-subtitle {
+    color: var(--muted-foreground);
 }
 
 /* Backdrop: the picture fills the page behind the card, darkened. */
@@ -232,7 +352,8 @@ html[data-pla-signin='backdrop'] .pla-signin-backdrop {
         linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 40%, black));
 }
 
-html[data-pla-signin='backdrop'] .pla-signin-tagline {
+html[data-pla-signin='backdrop'] .pla-signin-tagline,
+html[data-pla-signin='backdrop'] .pla-signin-tagline .pla-signin-subtitle {
     color: #fff;
     text-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
 }

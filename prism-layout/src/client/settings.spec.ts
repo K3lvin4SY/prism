@@ -12,6 +12,25 @@ describe('read', () => {
         const settings = read({ logo: '/extension-files/prism-layout/a.png', logo_mode: 'sideways', logo_height: 400, login_logo_size: '12', login_mark: 'none', bars: 'floating', sidebar_width: 30 });
         expect(settings).toMatchObject({ logo: '/extension-files/prism-layout/a.png', logo_mode: 'name', logo_height: 64, login_logo_size: 48, login_mark: 'none', bars: 'sidebar_top', sidebar_width: 22 });
     });
+
+    it('reads the card styles from before rows and tiles', () => {
+        expect(read({})).toMatchObject({ cards: 'rows', card_banner: false });
+        expect(read({ cards: 'tile' })).toMatchObject({ cards: 'tile', card_banner: false });
+        expect(read({ cards: 'banner' })).toMatchObject({ cards: 'tile', card_banner: true });
+        expect(read({ cards: 'banner', card_banner: false })).toMatchObject({ cards: 'tile', card_banner: false });
+        for (const old of ['neon', 'minimal', 'compact', 'outline']) expect(read({ cards: old })).toMatchObject({ cards: 'tile', card_banner: false });
+        expect(read({ cards: 'carousel' }).cards).toBe('rows');
+    });
+
+    it('takes the old sign-in tagline as the headline', () => {
+        expect(read({ login_tagline: 'Play together' })).toMatchObject({ login_title: 'Play together', login_subtitle: '' });
+        expect(read({ login_tagline: 'Old', login_title: 'New', login_subtitle: 'More' })).toMatchObject({ login_title: 'New', login_subtitle: 'More' });
+    });
+
+    it('reads the announcement badge and link text', () => {
+        expect(read({})).toMatchObject({ announce_badge: '', announce_link_label: 'Details' });
+        expect(read({ announce_badge: 'Maintenance' }).announce_badge).toBe('Maintenance');
+    });
 });
 
 describe('css values', () => {

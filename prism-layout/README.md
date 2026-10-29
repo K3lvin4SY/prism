@@ -23,11 +23,11 @@ Prism Layout changes how the Panel is laid out: the navigation, the dashboard an
 ## Features
 
 - **Navigation layouts**: sidebar, top bar, dock, expandable dock, sidebar with top bar, rail, rail with top bar, or top bar with dock. Choose a separate layout for computers, tablets and phones.
-- **Server cards**: rows or cards, status as a badge or dot, usage as bars or numbers, the game's logo or color, and power buttons on each card.
+- **Server cards**: rows that line up in columns or tiles (optionally with a picture), status as a badge or dot, usage as bars or numbers, the game's logo or color, and colored power buttons on each card.
 - **Dashboard**: an overview with filters above the server list.
 - **Branding**: your own logo and favicon, the logo's size and where it sits.
-- **Sign-in page**: several styles, your logo or a tagline beside the form.
-- **Announcements**: a bar or card with a kind, audience, link, start and end time, and an optional close button.
+- **Sign-in page**: card, split or backdrop; on a split page your logo with a bold headline and a tagline beside the form.
+- **Announcements**: a bar or card with a badge, a kind, audience, link, start and end time, and an optional close button.
 - **Ctrl+K command palette**: jump to any server or page from the keyboard.
 - **Extras**: page width and spacing, a light and dark switch, grouped server pages, a collapsible sidebar, footer links, and the admin area laid out to match.
 
@@ -37,9 +37,9 @@ Prism Layout changes how the Panel is laid out: the navigation, the dashboard an
 | --- | --- |
 | Navigation | Layout per device, sidebar width, dock magnify, grouping, server card in the sidebar, light and dark switch |
 | Page | Page width and spacing |
-| Server cards | Card style, status, usage, game logo or color, power buttons |
+| Server cards | Rows or tiles, picture on tiles, status, usage, game logo or color, power buttons |
 | Branding | Logo mode, placement and height |
-| Sign-in page | Style, mark beside the form, logo size, tagline |
+| Sign-in page | Style, mark beside the form, logo size, headline and tagline |
 | Announcement | Message, kind, style, audience, link, schedule, dismissible |
 | Links | Up to three footer links |
 | Advanced | Ctrl+K command palette |

@@ -88,12 +88,29 @@ def colors(dark, light):
     return {**{f'd_{role}': value for role, value in dark.items()}, **{f'l_{role}': value for role, value in light.items()}}
 
 
-BASE = {'radius': 10, 'font': 'plex', 'font_size': 16, 'switches': 'rounded', 'surface_style': 'raised', 'blur': 14, 'opacity': 70, 'background': 'gradient', 'background_dim': 55, 'motion': 'full'}
+BASE = {'radius': 10, 'font': 'plex', 'labels': 'sans', 'font_size': 16, 'switches': 'rounded', 'surface_style': 'raised', 'blur': 14, 'opacity': 70, 'background': 'gradient', 'background_dim': 55, 'motion': 'full'}
+
+# Prism Slate: the look of Prism's own pictures. Deep navy behind near-black cards, periwinkle for
+# the brand, Inter for text and JetBrains Mono for the small labels.
+SLATE_DARK = {
+    'background': '#1a2340', 'surface': '#0d111f', 'sidebar': '#121830', 'raised': '#222b4d', 'deep': '#0a0d18',
+    'border': '#2c355a', 'text': '#f5f7ff', 'muted_text': '#aeb7d9', 'primary': '#98adfe', 'on_primary': '#0d111f',
+    'success': '#4ade80', 'warning': '#fcc864', 'danger': '#ff6b81',
+    'red': '#ff6b81', 'green': '#4ade80', 'yellow': '#fcc864', 'blue': '#98adfe', 'magenta': '#d6a4ff', 'cyan': '#67e8f9',
+}
+SLATE_LIGHT = {
+    'background': '#eef1fb', 'surface': '#ffffff', 'sidebar': '#e5e9f8', 'raised': '#e3e8f8', 'deep': '#dfe4f5',
+    'border': '#cfd6ef', 'text': '#141a33', 'muted_text': '#5b6488', 'primary': '#4f63d8', 'on_primary': '#ffffff',
+    'success': '#15934a', 'warning': '#b7791f', 'danger': '#d23a55',
+    'red': '#d23a55', 'green': '#15934a', 'yellow': '#a16207', 'blue': '#4f63d8', 'magenta': '#9b4fd8', 'cyan': '#0e7490',
+}
 
 PRESETS = [
     {'id': 'studio', 'name': 'Studio', 'description': 'Blue, with soft shadows and a gradient behind.', 'values': {**colors(*generated(255, .17)), **BASE}},
     {'id': 'studio-classic', 'name': 'Studio classic', 'description': 'Indigo and flat, close to the panel you know.', 'values': {**colors(*generated(270, .17)), **BASE, 'radius': 6, 'surface_style': 'flat', 'background': 'plain'}},
     {'id': 'terminal', 'name': 'Terminal', 'description': 'Green on black, monospace and square.', 'values': {**colors(*generated(145, .17, 'strong')), **BASE, 'radius': 2, 'font': 'mono', 'surface_style': 'outlined', 'background': 'grid', 'switches': 'square'}},
+    {'id': 'prism-slate', 'name': 'Prism Slate', 'description': "Prism's own look: navy and periwinkle, Inter, monospace labels.",
+     'values': {**colors(SLATE_DARK, SLATE_LIGHT), **BASE, 'radius': 14, 'font': 'inter', 'labels': 'mono', 'surface_style': 'raised', 'background': 'plain'}},
     *[
         {'id': f'catppuccin-{flavour}', 'name': f'Catppuccin {label}', 'description': 'The light flavour in light and dark mode.' if flavour == 'latte' else f'Catppuccin {label} in dark mode, Latte in light mode.',
          'values': {**colors(catppuccin(flavour), catppuccin('latte')), **BASE, 'radius': 12, 'surface_style': 'flat', 'background': 'plain'}}
@@ -118,7 +135,8 @@ for mode, mode_label in MODES.items():
         add(f'{mode}_{role}', type='color', label=f'{label} ({mode_label.lower()})', help=help_text, tab=f'{mode_label} colors', default=STUDIO[f'{mode}_{role}'], token=f"--pt-{mode}-{role.replace('_', '-')}")
 
 add('radius', type='number', label='Corner rounding', tab='Type and shape', default=STUDIO['radius'], min=0, max=24, step=1, unit='px', token='--pt-radius')
-add('font', type='select', label='Font', tab='Type and shape', options={'plex': 'IBM Plex Sans', 'system': 'System', 'rounded': 'Rounded', 'serif': 'Serif', 'mono': 'Monospace'}, default=STUDIO['font'], attribute='data-pt-font')
+add('font', type='select', label='Font', tab='Type and shape', options={'plex': 'IBM Plex Sans', 'inter': 'Inter', 'system': 'System', 'rounded': 'Rounded', 'serif': 'Serif', 'mono': 'Monospace'}, default=STUDIO['font'], attribute='data-pt-font')
+add('labels', type='select', label='Small labels', help='Headings in capitals, such as the groups of the Ctrl+K search and the badges: in the text font or in monospace.', tab='Type and shape', options={'sans': 'Like the text', 'mono': 'Monospace'}, default=STUDIO['labels'], attribute='data-pt-labels')
 add('font_size', type='number', label='Text size', tab='Type and shape', default=STUDIO['font_size'], min=13, max=18, step=1, unit='px', token='--pt-font-size')
 add('switches', type='select', label='Switches', help='The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding.', tab='Type and shape', options={'rounded': 'Rounded', 'square': 'Square'}, default='square', attribute='data-pt-switches')
 
@@ -140,7 +158,7 @@ manifest = {
     '$schema': './node_modules/@pterodactyl/sdk/manifest.schema.json',
     'id': 'prism-themes', 'type': 'theme', 'name': 'Prism Themes', 'version': '0.2.0',
     'description': 'One theme tool: colors for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.',
-    'author': 'Donkare', 'icon': 'palette',
+    'author': 'Donkare', 'icon': 'icon.png',
     'requires': {'panel': '^2.0.0-dev', 'sdk': '>=2.0.0-beta.6 <3.0', 'extensions': {'prism-core': '>=0.1.0'}},
     'ui': {'entry': 'dist/client.js'},
     'theme': {'extends': 'classic', 'stylesheet': 'dist/theme.css', 'schemes': ['dark', 'light'], 'settings': S},

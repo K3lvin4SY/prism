@@ -8,15 +8,15 @@ interface Preset {
 }
 
 /** Every setting a preset decides, so picking one gives the same layout whatever was set before. */
-const base = { enabled: true, bars: 'sidebar', cards: 'banner', width: 'normal', density: 'cozy', group_nav: true, server_card: true, status_style: 'badge', usage_style: 'bars' };
+const base = { enabled: true, bars: 'sidebar', cards: 'tile', card_banner: false, width: 'normal', density: 'cozy', group_nav: true, server_card: true, status_style: 'badge', usage_style: 'bars' };
 
 /** Prism Layout's finished arrangements; picking one sets its settings, which can be changed after. */
 export const PRESETS: Preset[] = [
-    { id: 'studio', name: 'Studio', description: 'A sidebar with the server card, and banner cards.', settings: base },
+    { id: 'studio', name: 'Studio', description: 'A sidebar with the server card, and tiles with a picture.', settings: { ...base, card_banner: true } },
     { id: 'top', name: 'Top bar', description: 'One bar across the top and tiles, the classic arrangement.', settings: { ...base, bars: 'top', cards: 'tile' } },
-    { id: 'rail', name: 'Icon rail', description: 'A slim rail of icons and compact cards.', settings: { ...base, bars: 'rail', cards: 'compact' } },
+    { id: 'rail', name: 'Icon rail', description: 'A slim rail of icons and tiles with numbers.', settings: { ...base, bars: 'rail', usage_style: 'numbers' } },
     { id: 'wide', name: 'Wide and grouped', description: 'A grouped sidebar, a top bar and the whole width.', settings: { ...base, bars: 'sidebar_top', width: 'wide', cards: 'rows' } },
-    { id: 'command', name: 'Command center', description: 'Dense: rail, top bar, small cards, full width.', settings: { ...base, bars: 'rail_top', density: 'compact', cards: 'compact', width: 'full', usage_style: 'numbers', status_style: 'dot' } },
+    { id: 'command', name: 'Command center', description: 'Dense: rail, top bar, rows, full width.', settings: { ...base, bars: 'rail_top', density: 'compact', cards: 'rows', width: 'full', usage_style: 'numbers', status_style: 'dot' } },
     { id: 'dock', name: 'Dock', description: 'Pages in a dock along the bottom, and tiles.', settings: { ...base, bars: 'dock', cards: 'tile', density: 'comfortable' } },
     { id: 'minimal', name: 'Minimal', description: 'A top bar and plain rows, nothing extra.', settings: { ...base, bars: 'top', cards: 'rows', group_nav: false, status_style: 'dot', usage_style: 'hidden' } },
     { id: 'classic', name: 'Classic', description: "The panel's own layout. Your logo, favicon and sign-in page stay.", settings: { enabled: false } },
@@ -60,9 +60,8 @@ function Wireframe({ settings }: { settings: Record<string, unknown> }) {
     const left = side + inset;
     const span = 100 - left - inset;
     const y = (top ? 10 : 0) + (classic ? 6 : 4);
-    const cards = String(settings.cards ?? 'tile');
-    const rows = cards === 'rows';
-    const small = cards === 'compact';
+    const rows = settings.cards === 'rows';
+    const banner = settings.card_banner === true;
     const count = settings.density === 'compact' ? 4 : 3;
     const gap = 3;
     const width = (span - gap * (count - 1)) / count;
@@ -78,11 +77,11 @@ function Wireframe({ settings }: { settings: Record<string, unknown> }) {
                 ? [0, 1, 2, 3].map((index) => <rect key={index} x={left} y={y + index * 9} width={span} height={7} rx={1.5} className={'ppx:fill-current'} opacity={0.14} />)
                 : Array.from({ length: count }, (_, index) => (
                       <g key={index}>
-                          <rect x={left + index * (width + gap)} y={y} width={width} height={small ? 12 : 22} rx={2} className={'ppx:fill-current'} opacity={0.14} />
-                          {cards === 'banner' && <rect x={left + index * (width + gap)} y={y} width={width} height={7} rx={2} fill={'var(--primary)'} opacity={0.4} />}
+                          <rect x={left + index * (width + gap)} y={y} width={width} height={22} rx={2} className={'ppx:fill-current'} opacity={0.14} />
+                          {banner && <rect x={left + index * (width + gap)} y={y} width={width} height={7} rx={2} fill={'var(--primary)'} opacity={0.4} />}
                       </g>
                   ))}
-            {!rows && !small && <rect x={left} y={y + 26} width={width} height={12} rx={2} className={'ppx:fill-current'} opacity={0.1} />}
+            {!rows && <rect x={left} y={y + 26} width={width} height={12} rx={2} className={'ppx:fill-current'} opacity={0.1} />}
             {dock && <rect x={28} y={49} width={44} height={6} rx={3} className={'ppx:fill-current'} opacity={0.22} />}
         </svg>
     );

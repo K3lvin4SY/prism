@@ -599,7 +599,7 @@ function Field({ setting, value, onChange, onSchema }: { setting: ThemeSetting; 
                 );
             }
             if (setting.key === 'font') {
-                const families: Record<string, string> = { plex: "'IBM Plex Sans', sans-serif", system: 'system-ui, sans-serif', rounded: "ui-rounded, 'Nunito', sans-serif", serif: 'ui-serif, Georgia, serif', mono: "'JetBrains Mono', ui-monospace, monospace" };
+                const families: Record<string, string> = { plex: "'IBM Plex Sans', sans-serif", inter: "'Inter Variable', 'Inter', sans-serif", system: 'system-ui, sans-serif', rounded: "ui-rounded, 'Nunito', sans-serif", serif: 'ui-serif, Georgia, serif', mono: "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace" };
 
                 return (
                     <>

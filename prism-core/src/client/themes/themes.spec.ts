@@ -10,8 +10,8 @@ const settings = manifest.theme.settings;
 const lookKeys = Object.keys(settings).filter((key) => !['preset', 'presets', 'background_image'].includes(key));
 
 describe('built-in presets', () => {
-    it('are the seven asked for', () => {
-        expect(BUILT_IN.map((preset) => preset.name)).toEqual(['Studio', 'Studio classic', 'Terminal', 'Catppuccin Mocha', 'Catppuccin Macchiato', 'Catppuccin Frappé', 'Catppuccin Latte']);
+    it('are the eight asked for', () => {
+        expect(BUILT_IN.map((preset) => preset.name)).toEqual(['Studio', 'Studio classic', 'Terminal', 'Prism Slate', 'Catppuccin Mocha', 'Catppuccin Macchiato', 'Catppuccin Frappé', 'Catppuccin Latte']);
     });
 
     it('set every look setting, with colors the panel accepts', () => {

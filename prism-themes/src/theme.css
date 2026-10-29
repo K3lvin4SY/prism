@@ -218,6 +218,36 @@
 /* #endregion surfaces */
 
 /* #region shape */
+
+/* Inter and JetBrains Mono come with the theme (SIL Open Font License, see fonts/), loaded only when used. */
+@font-face {
+    font-family: 'Inter Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url('./fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+}
+
+@font-face {
+    font-family: 'JetBrains Mono Variable';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 800;
+    src: url('./fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2-variations');
+}
+
+[data-pt-font='inter'] {
+    --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-header: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01';
+}
+
+/* Prism extensions mark their small capitals labels with --pt-font-label. */
+[data-pt-labels='mono'] {
+    --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+    --pt-font-label: var(--font-mono);
+}
+
 [data-pt-font='system'] {
     --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     --font-header: var(--font-sans);
@@ -234,7 +264,7 @@
 }
 
 [data-pt-font='mono'] {
-    --font-sans: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    --font-sans: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
     --font-header: var(--font-sans);
 }
 

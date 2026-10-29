@@ -69,7 +69,7 @@ function ProviderButton({ provider, compact }: { provider: PublicProvider; compa
             title={compact ? provider.label : undefined}
             aria-label={provider.label}
             style={provider.color ? { borderColor: provider.color } : undefined}
-            className={cn('pau-provider pau:no-underline', compact ? 'pau:size-11 pau:justify-center pau:p-0' : 'pau:w-full pau:justify-center pau:gap-2')}
+            className={cn('pau-provider pau:no-underline', compact ? 'pau:size-11 pau:p-0' : 'pau:w-full')}
         >
             <ProviderMark provider={provider} />
             {!compact && <span>{provider.label}</span>}

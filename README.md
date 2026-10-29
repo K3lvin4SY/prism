@@ -32,7 +32,7 @@ Prism is a set of extensions for Pterodactyl Panel 2.0. Install only the ones yo
 
 | Extension | Description |
 | --- | --- |
-| <img src="assets/theme.png" width="20" height="20" align="center"> **[Prism Themes](prism-themes)**             | Colors for dark and light mode, type, shape, surfaces, backgrounds and motion. Includes presets such as Catppuccin, and you can add your own.    |
+| <img src="assets/theme.png" width="20" height="20" align="center"> **[Prism Themes](prism-themes)**             | Colors for dark and light mode, type, shape, surfaces, backgrounds and motion. Includes presets such as Prism Slate and Catppuccin, and you can add your own.    |
 | <img src="assets/layout.png" width="20" height="20" align="center"> **[Prism Layout](prism-layout)**             | Seven navigation layouts, server card styles, announcements, a Ctrl+K command palette, custom logo and favicon, and a custom sign-in page.       |
 
 ### Server tools

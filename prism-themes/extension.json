@@ -338,6 +338,7 @@
                 "tab": "Type and shape",
                 "options": {
                     "plex": "IBM Plex Sans",
+                    "inter": "Inter",
                     "system": "System",
                     "rounded": "Rounded",
                     "serif": "Serif",
@@ -345,6 +346,18 @@
                 },
                 "default": "plex",
                 "attribute": "data-pt-font"
+            },
+            "labels": {
+                "type": "select",
+                "label": "Small labels",
+                "help": "Headings in capitals, such as the groups of the Ctrl+K search and the badges: in the text font or in monospace.",
+                "tab": "Type and shape",
+                "options": {
+                    "sans": "Like the text",
+                    "mono": "Monospace"
+                },
+                "default": "sans",
+                "attribute": "data-pt-labels"
             },
             "font_size": {
                 "type": "number",
