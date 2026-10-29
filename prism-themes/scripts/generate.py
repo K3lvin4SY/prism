@@ -118,7 +118,9 @@ PRESETS = [
     ],
 ]
 
-STUDIO = PRESETS[0]['values']
+# A new panel starts with Prism Slate: every setting's default is its value.
+DEFAULT = next(preset for preset in PRESETS if preset['id'] == 'prism-slate')
+DEFAULTS = DEFAULT['values']
 # The presets a new panel starts with in Your presets.
 OWN_PRESETS = [{'id': 'own-mvmql8vx-p3cv', 'name': 'Catppuccin Mocha Blue', 'values': {'d_background': '#1e1e2e', 'd_surface': '#181825', 'd_sidebar': '#11111b', 'd_raised': '#313244', 'd_deep': '#11111b', 'd_border': '#313244', 'd_text': '#cdd6f4', 'd_muted_text': '#a6adc8', 'd_primary': '#cba6f7', 'd_on_primary': '#11111b', 'd_success': '#a6e3a1', 'd_warning': '#f9e2af', 'd_danger': '#f38ba8', 'd_red': '#f38ba8', 'd_green': '#a6e3a1', 'd_yellow': '#f9e2af', 'd_blue': '#89b4fa', 'd_magenta': '#f5c2e7', 'd_cyan': '#94e2d5', 'l_background': '#eff1f5', 'l_surface': '#e6e9ef', 'l_sidebar': '#dce0e8', 'l_raised': '#ccd0da', 'l_deep': '#dce0e8', 'l_border': '#ccd0da', 'l_text': '#4c4f69', 'l_muted_text': '#6c6f85', 'l_primary': '#8839ef', 'l_on_primary': '#dce0e8', 'l_success': '#40a02b', 'l_warning': '#df8e1d', 'l_danger': '#d20f39', 'l_red': '#d20f39', 'l_green': '#40a02b', 'l_yellow': '#df8e1d', 'l_blue': '#1e66f5', 'l_magenta': '#ea76cb', 'l_cyan': '#179299', 'radius': 12, 'font': 'plex', 'font_size': 16, 'switches': 'rounded', 'surface_style': 'flat', 'blur': 14, 'opacity': 70, 'background': 'plain', 'background_dim': 55, 'motion': 'full'}}]
 S = {}
@@ -132,26 +134,26 @@ def add(key, **kw):
 
 for mode, mode_label in MODES.items():
     for role, (label, help_text, group) in ROLES.items():
-        add(f'{mode}_{role}', type='color', label=f'{label} ({mode_label.lower()})', help=help_text, tab=f'{mode_label} colors', default=STUDIO[f'{mode}_{role}'], token=f"--pt-{mode}-{role.replace('_', '-')}")
+        add(f'{mode}_{role}', type='color', label=f'{label} ({mode_label.lower()})', help=help_text, tab=f'{mode_label} colors', default=DEFAULTS[f'{mode}_{role}'], token=f"--pt-{mode}-{role.replace('_', '-')}")
 
-add('radius', type='number', label='Corner rounding', tab='Type and shape', default=STUDIO['radius'], min=0, max=24, step=1, unit='px', token='--pt-radius')
-add('font', type='select', label='Font', tab='Type and shape', options={'plex': 'IBM Plex Sans', 'inter': 'Inter', 'system': 'System', 'rounded': 'Rounded', 'serif': 'Serif', 'mono': 'Monospace'}, default=STUDIO['font'], attribute='data-pt-font')
-add('labels', type='select', label='Small labels', help='Headings in capitals, such as the groups of the Ctrl+K search and the badges: in the text font or in monospace.', tab='Type and shape', options={'sans': 'Like the text', 'mono': 'Monospace'}, default=STUDIO['labels'], attribute='data-pt-labels')
-add('font_size', type='number', label='Text size', tab='Type and shape', default=STUDIO['font_size'], min=13, max=18, step=1, unit='px', token='--pt-font-size')
-add('switches', type='select', label='Switches', help='The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding.', tab='Type and shape', options={'rounded': 'Rounded', 'square': 'Square'}, default='square', attribute='data-pt-switches')
+add('radius', type='number', label='Corner rounding', tab='Type and shape', default=DEFAULTS['radius'], min=0, max=24, step=1, unit='px', token='--pt-radius')
+add('font', type='select', label='Font', tab='Type and shape', options={'plex': 'IBM Plex Sans', 'inter': 'Inter', 'system': 'System', 'rounded': 'Rounded', 'serif': 'Serif', 'mono': 'Monospace'}, default=DEFAULTS['font'], attribute='data-pt-font')
+add('labels', type='select', label='Small labels', help='Headings in capitals, such as the groups of the Ctrl+K search and the badges: in the text font or in monospace.', tab='Type and shape', options={'sans': 'Like the text', 'mono': 'Monospace'}, default=DEFAULTS['labels'], attribute='data-pt-labels')
+add('font_size', type='number', label='Text size', tab='Type and shape', default=DEFAULTS['font_size'], min=13, max=18, step=1, unit='px', token='--pt-font-size')
+add('switches', type='select', label='Switches', help='The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding.', tab='Type and shape', options={'rounded': 'Rounded', 'square': 'Square'}, default=DEFAULTS['switches'], attribute='data-pt-switches')
 
-add('surface_style', type='select', label='Cards and bars', help='How cards, menus and bars stand out from the background.', tab='Surfaces', options={'flat': 'Flat', 'raised': 'Soft shadow', 'outlined': 'Outlined', 'glow': 'Glow', 'glass': 'Glass'}, default='glass', attribute='data-pt-surface')
-add('blur', type='number', label='Glass blur', help='For Glass.', tab='Surfaces', default=STUDIO['blur'], min=0, max=40, step=2, unit='px', token='--pt-blur')
-add('opacity', type='number', label='Glass solidity', help='For Glass: how much of the card color covers what is behind.', tab='Surfaces', default=STUDIO['opacity'], min=30, max=100, step=5, unit='%', token='--pt-opacity')
+add('surface_style', type='select', label='Cards and bars', help='How cards, menus and bars stand out from the background.', tab='Surfaces', options={'flat': 'Flat', 'raised': 'Soft shadow', 'outlined': 'Outlined', 'glow': 'Glow', 'glass': 'Glass'}, default=DEFAULTS['surface_style'], attribute='data-pt-surface')
+add('blur', type='number', label='Glass blur', help='For Glass.', tab='Surfaces', default=DEFAULTS['blur'], min=0, max=40, step=2, unit='px', token='--pt-blur')
+add('opacity', type='number', label='Glass solidity', help='For Glass: how much of the card color covers what is behind.', tab='Surfaces', default=DEFAULTS['opacity'], min=30, max=100, step=5, unit='%', token='--pt-opacity')
 
-add('background', type='select', label='Background', tab='Background', options={'plain': 'Plain', 'gradient': 'Gradient', 'aurora': 'Aurora (moving)', 'waves': 'Waves (moving)', 'stars': 'Stars (moving)', 'mesh': 'Color mesh (moving)', 'grid': 'Grid', 'image': 'Picture'}, default=STUDIO['background'], attribute='data-pt-bg')
+add('background', type='select', label='Background', tab='Background', options={'plain': 'Plain', 'gradient': 'Gradient', 'aurora': 'Aurora (moving)', 'waves': 'Waves (moving)', 'stars': 'Stars (moving)', 'mesh': 'Color mesh (moving)', 'grid': 'Grid', 'image': 'Picture'}, default=DEFAULTS['background'], attribute='data-pt-bg')
 add('background_image', type='image', label='Background picture', help='Used when the background is Picture.', tab='Background', token='--pt-bg-image')
-add('background_dim', type='number', label='Darken the picture', tab='Background', default=STUDIO['background_dim'], min=0, max=95, step=5, unit='%', token='--pt-bg-dim')
+add('background_dim', type='number', label='Darken the picture', tab='Background', default=DEFAULTS['background_dim'], min=0, max=95, step=5, unit='%', token='--pt-bg-dim')
 
-add('motion', type='select', label='Motion', help='People who ask their system for less motion always get it.', tab='Motion', options={'full': 'Full', 'reduced': 'Reduced', 'none': 'None'}, default=STUDIO['motion'], attribute='data-pt-motion')
+add('motion', type='select', label='Motion', help='People who ask their system for less motion always get it.', tab='Motion', options={'full': 'Full', 'reduced': 'Reduced', 'none': 'None'}, default=DEFAULTS['motion'], attribute='data-pt-motion')
 
 # Bookkeeping for Prism Properties: written to nothing on the page.
-add('preset', type='text', label='Preset', help='The preset these values came from.', tab='Presets', default='Studio', maxLength=80)
+add('preset', type='text', label='Preset', help='The preset these values came from.', tab='Presets', default=DEFAULT['name'], maxLength=80)
 add('presets', type='text', label='Your presets', help='Presets made in Prism Properties.', tab='Presets', default=json.dumps(OWN_PRESETS, separators=(',', ':')), maxLength=200000)
 
 manifest = {

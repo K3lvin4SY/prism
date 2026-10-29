@@ -30,7 +30,7 @@
                 "label": "Background (dark)",
                 "help": "Behind everything.",
                 "tab": "Dark colors",
-                "default": "oklch(0.165 0.0204 255)",
+                "default": "#1a2340",
                 "token": "--pt-d-background"
             },
             "d_surface": {
@@ -38,7 +38,7 @@
                 "label": "Cards (dark)",
                 "help": "Cards, panels and dialogs.",
                 "tab": "Dark colors",
-                "default": "oklch(0.205 0.0204 255)",
+                "default": "#0d111f",
                 "token": "--pt-d-surface"
             },
             "d_sidebar": {
@@ -46,7 +46,7 @@
                 "label": "Sidebar and bars (dark)",
                 "help": "The navigation and top bars.",
                 "tab": "Dark colors",
-                "default": "oklch(0.185 0.0204 255)",
+                "default": "#121830",
                 "token": "--pt-d-sidebar"
             },
             "d_raised": {
@@ -54,7 +54,7 @@
                 "label": "Raised (dark)",
                 "help": "Menus, hovered rows and quiet fills.",
                 "tab": "Dark colors",
-                "default": "oklch(0.25 0.0204 255)",
+                "default": "#222b4d",
                 "token": "--pt-d-raised"
             },
             "d_deep": {
@@ -62,7 +62,7 @@
                 "label": "Deep (dark)",
                 "help": "Wells: the console, code and sunken areas.",
                 "tab": "Dark colors",
-                "default": "oklch(0.145 0.0204 255)",
+                "default": "#0a0d18",
                 "token": "--pt-d-deep"
             },
             "d_border": {
@@ -70,14 +70,14 @@
                 "label": "Borders (dark)",
                 "help": "Lines between things.",
                 "tab": "Dark colors",
-                "default": "oklch(0.3 0.0204 255)",
+                "default": "#2c355a",
                 "token": "--pt-d-border"
             },
             "d_text": {
                 "type": "color",
                 "label": "Text (dark)",
                 "tab": "Dark colors",
-                "default": "oklch(0.95 0.0061 255)",
+                "default": "#f5f7ff",
                 "token": "--pt-d-text"
             },
             "d_muted_text": {
@@ -85,7 +85,7 @@
                 "label": "Quiet text (dark)",
                 "help": "Descriptions and hints.",
                 "tab": "Dark colors",
-                "default": "oklch(0.72 0.0245 255)",
+                "default": "#aeb7d9",
                 "token": "--pt-d-muted-text"
             },
             "d_primary": {
@@ -93,7 +93,7 @@
                 "label": "Primary (dark)",
                 "help": "Buttons, links, the active page.",
                 "tab": "Dark colors",
-                "default": "oklch(0.64 0.17 255)",
+                "default": "#98adfe",
                 "token": "--pt-d-primary"
             },
             "d_on_primary": {
@@ -101,28 +101,28 @@
                 "label": "Text on color (dark)",
                 "help": "Text on primary and the status colors.",
                 "tab": "Dark colors",
-                "default": "oklch(0.99 0 0)",
+                "default": "#0d111f",
                 "token": "--pt-d-on-primary"
             },
             "d_success": {
                 "type": "color",
                 "label": "Success (dark)",
                 "tab": "Dark colors",
-                "default": "oklch(0.72 0.17 150)",
+                "default": "#4ade80",
                 "token": "--pt-d-success"
             },
             "d_warning": {
                 "type": "color",
                 "label": "Warning (dark)",
                 "tab": "Dark colors",
-                "default": "oklch(0.8 0.15 80)",
+                "default": "#fcc864",
                 "token": "--pt-d-warning"
             },
             "d_danger": {
                 "type": "color",
                 "label": "Danger (dark)",
                 "tab": "Dark colors",
-                "default": "oklch(0.65 0.2 25)",
+                "default": "#ff6b81",
                 "token": "--pt-d-danger"
             },
             "d_red": {
@@ -130,7 +130,7 @@
                 "label": "Red (dark)",
                 "help": "Errors in the console.",
                 "tab": "Dark colors",
-                "default": "oklch(0.7 0.17 25)",
+                "default": "#ff6b81",
                 "token": "--pt-d-red"
             },
             "d_green": {
@@ -138,7 +138,7 @@
                 "label": "Green (dark)",
                 "help": "Strings and good news.",
                 "tab": "Dark colors",
-                "default": "oklch(0.76 0.15 145)",
+                "default": "#4ade80",
                 "token": "--pt-d-green"
             },
             "d_yellow": {
@@ -146,7 +146,7 @@
                 "label": "Yellow (dark)",
                 "help": "Types and warnings.",
                 "tab": "Dark colors",
-                "default": "oklch(0.86 0.13 95)",
+                "default": "#fcc864",
                 "token": "--pt-d-yellow"
             },
             "d_blue": {
@@ -154,7 +154,7 @@
                 "label": "Blue (dark)",
                 "help": "Functions.",
                 "tab": "Dark colors",
-                "default": "oklch(0.72 0.13 250)",
+                "default": "#98adfe",
                 "token": "--pt-d-blue"
             },
             "d_magenta": {
@@ -162,7 +162,7 @@
                 "label": "Magenta (dark)",
                 "help": "Keywords.",
                 "tab": "Dark colors",
-                "default": "oklch(0.72 0.17 330)",
+                "default": "#d6a4ff",
                 "token": "--pt-d-magenta"
             },
             "d_cyan": {
@@ -170,7 +170,7 @@
                 "label": "Cyan (dark)",
                 "help": "Operators and info.",
                 "tab": "Dark colors",
-                "default": "oklch(0.78 0.11 200)",
+                "default": "#67e8f9",
                 "token": "--pt-d-cyan"
             },
             "l_background": {
@@ -178,7 +178,7 @@
                 "label": "Background (light)",
                 "help": "Behind everything.",
                 "tab": "Light colors",
-                "default": "oklch(0.975 0.0204 255)",
+                "default": "#eef1fb",
                 "token": "--pt-l-background"
             },
             "l_surface": {
@@ -186,7 +186,7 @@
                 "label": "Cards (light)",
                 "help": "Cards, panels and dialogs.",
                 "tab": "Light colors",
-                "default": "oklch(1 0 0)",
+                "default": "#ffffff",
                 "token": "--pt-l-surface"
             },
             "l_sidebar": {
@@ -194,7 +194,7 @@
                 "label": "Sidebar and bars (light)",
                 "help": "The navigation and top bars.",
                 "tab": "Light colors",
-                "default": "oklch(0.96 0.0204 255)",
+                "default": "#e5e9f8",
                 "token": "--pt-l-sidebar"
             },
             "l_raised": {
@@ -202,7 +202,7 @@
                 "label": "Raised (light)",
                 "help": "Menus, hovered rows and quiet fills.",
                 "tab": "Light colors",
-                "default": "oklch(0.95 0.0204 255)",
+                "default": "#e3e8f8",
                 "token": "--pt-l-raised"
             },
             "l_deep": {
@@ -210,7 +210,7 @@
                 "label": "Deep (light)",
                 "help": "Wells: the console, code and sunken areas.",
                 "tab": "Light colors",
-                "default": "oklch(0.955 0.0204 255)",
+                "default": "#dfe4f5",
                 "token": "--pt-l-deep"
             },
             "l_border": {
@@ -218,14 +218,14 @@
                 "label": "Borders (light)",
                 "help": "Lines between things.",
                 "tab": "Light colors",
-                "default": "oklch(0.9 0.0204 255)",
+                "default": "#cfd6ef",
                 "token": "--pt-l-border"
             },
             "l_text": {
                 "type": "color",
                 "label": "Text (light)",
                 "tab": "Light colors",
-                "default": "oklch(0.21 0.0122 255)",
+                "default": "#141a33",
                 "token": "--pt-l-text"
             },
             "l_muted_text": {
@@ -233,7 +233,7 @@
                 "label": "Quiet text (light)",
                 "help": "Descriptions and hints.",
                 "tab": "Light colors",
-                "default": "oklch(0.5 0.0245 255)",
+                "default": "#5b6488",
                 "token": "--pt-l-muted-text"
             },
             "l_primary": {
@@ -241,7 +241,7 @@
                 "label": "Primary (light)",
                 "help": "Buttons, links, the active page.",
                 "tab": "Light colors",
-                "default": "oklch(0.56 0.17 255)",
+                "default": "#4f63d8",
                 "token": "--pt-l-primary"
             },
             "l_on_primary": {
@@ -249,28 +249,28 @@
                 "label": "Text on color (light)",
                 "help": "Text on primary and the status colors.",
                 "tab": "Light colors",
-                "default": "oklch(0.99 0 0)",
+                "default": "#ffffff",
                 "token": "--pt-l-on-primary"
             },
             "l_success": {
                 "type": "color",
                 "label": "Success (light)",
                 "tab": "Light colors",
-                "default": "oklch(0.55 0.15 150)",
+                "default": "#15934a",
                 "token": "--pt-l-success"
             },
             "l_warning": {
                 "type": "color",
                 "label": "Warning (light)",
                 "tab": "Light colors",
-                "default": "oklch(0.68 0.15 70)",
+                "default": "#b7791f",
                 "token": "--pt-l-warning"
             },
             "l_danger": {
                 "type": "color",
                 "label": "Danger (light)",
                 "tab": "Light colors",
-                "default": "oklch(0.55 0.21 25)",
+                "default": "#d23a55",
                 "token": "--pt-l-danger"
             },
             "l_red": {
@@ -278,7 +278,7 @@
                 "label": "Red (light)",
                 "help": "Errors in the console.",
                 "tab": "Light colors",
-                "default": "oklch(0.55 0.2 25)",
+                "default": "#d23a55",
                 "token": "--pt-l-red"
             },
             "l_green": {
@@ -286,7 +286,7 @@
                 "label": "Green (light)",
                 "help": "Strings and good news.",
                 "tab": "Light colors",
-                "default": "oklch(0.55 0.15 145)",
+                "default": "#15934a",
                 "token": "--pt-l-green"
             },
             "l_yellow": {
@@ -294,7 +294,7 @@
                 "label": "Yellow (light)",
                 "help": "Types and warnings.",
                 "tab": "Light colors",
-                "default": "oklch(0.62 0.13 85)",
+                "default": "#a16207",
                 "token": "--pt-l-yellow"
             },
             "l_blue": {
@@ -302,7 +302,7 @@
                 "label": "Blue (light)",
                 "help": "Functions.",
                 "tab": "Light colors",
-                "default": "oklch(0.52 0.15 255)",
+                "default": "#4f63d8",
                 "token": "--pt-l-blue"
             },
             "l_magenta": {
@@ -310,7 +310,7 @@
                 "label": "Magenta (light)",
                 "help": "Keywords.",
                 "tab": "Light colors",
-                "default": "oklch(0.55 0.2 330)",
+                "default": "#9b4fd8",
                 "token": "--pt-l-magenta"
             },
             "l_cyan": {
@@ -318,14 +318,14 @@
                 "label": "Cyan (light)",
                 "help": "Operators and info.",
                 "tab": "Light colors",
-                "default": "oklch(0.58 0.1 200)",
+                "default": "#0e7490",
                 "token": "--pt-l-cyan"
             },
             "radius": {
                 "type": "number",
                 "label": "Corner rounding",
                 "tab": "Type and shape",
-                "default": 10,
+                "default": 14,
                 "min": 0,
                 "max": 24,
                 "step": 1,
@@ -344,7 +344,7 @@
                     "serif": "Serif",
                     "mono": "Monospace"
                 },
-                "default": "plex",
+                "default": "inter",
                 "attribute": "data-pt-font"
             },
             "labels": {
@@ -356,7 +356,7 @@
                     "sans": "Like the text",
                     "mono": "Monospace"
                 },
-                "default": "sans",
+                "default": "mono",
                 "attribute": "data-pt-labels"
             },
             "font_size": {
@@ -379,7 +379,7 @@
                     "rounded": "Rounded",
                     "square": "Square"
                 },
-                "default": "square",
+                "default": "rounded",
                 "attribute": "data-pt-switches"
             },
             "surface_style": {
@@ -394,7 +394,7 @@
                     "glow": "Glow",
                     "glass": "Glass"
                 },
-                "default": "glass",
+                "default": "raised",
                 "attribute": "data-pt-surface"
             },
             "blur": {
@@ -435,7 +435,7 @@
                     "grid": "Grid",
                     "image": "Picture"
                 },
-                "default": "gradient",
+                "default": "plain",
                 "attribute": "data-pt-bg"
             },
             "background_image": {
@@ -474,7 +474,7 @@
                 "label": "Preset",
                 "help": "The preset these values came from.",
                 "tab": "Presets",
-                "default": "Studio",
+                "default": "Prism Slate",
                 "maxLength": 80
             },
             "presets": {

@@ -23,9 +23,10 @@ describe('built-in presets', () => {
         }
     });
 
-    it('make Studio the defaults, with square switches and glass', () => {
+    it('make Prism Slate the defaults', () => {
         const defaults = Object.fromEntries(lookKeys.map((key) => [key, settings[key].default]));
-        expect(matches({ ...BUILT_IN[0], values: { ...BUILT_IN[0].values, switches: 'square', surface_style: 'glass' } }, defaults)).toBe(true);
+        expect(matches(BUILT_IN.find((preset) => preset.id === 'prism-slate')!, defaults)).toBe(true);
+        expect(settings.preset.default).toBe('Prism Slate');
     });
 
     it('carry Catppuccin only as colors', () => {

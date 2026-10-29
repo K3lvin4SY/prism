@@ -2,7 +2,7 @@ import builtins from './builtins.json';
 
 /**
  * Presets: named sets of Prism Themes values. The built-in ones are written by
- * prism-themes/scripts/generate.py, which also makes Studio the theme's defaults; people's own
+ * prism-themes/scripts/generate.py, which also makes Prism Slate the theme's defaults; people's own
  * are kept in the theme's `presets` setting.
  */
 export type Values = Record<string, unknown>;
