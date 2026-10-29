@@ -2,3 +2,17 @@
 @import 'tailwindcss/utilities.css' layer(utilities) prefix(ppx);
 @import '@pterodactyl/sdk/theme.css';
 @source './**/*.{ts,tsx}';
+
+/* Prism Layout's navigation drawings: a quiet screen with lighter pages, in the theme's colors. */
+.ppx-nav-screen {
+    fill: color-mix(in oklab, var(--muted) 75%, var(--card));
+}
+
+.ppx-nav-cell {
+    fill: color-mix(in oklab, var(--secondary) 92%, var(--primary));
+}
+
+/* Small capitals labels in the theme's label font when it sets one. */
+.ppx-label {
+    font-family: var(--pt-font-label, inherit);
+}

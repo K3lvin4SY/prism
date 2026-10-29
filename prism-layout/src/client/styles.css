@@ -311,8 +311,28 @@ html[data-pla-mark='logo'] div:has(> svg[aria-label='Pterodactyl']) {
         max-width: 100%;
     }
 
+    /* The right half holds the form, centered both ways, whatever width the page's main area has. */
     html[data-pla-signin='split'] main:has(.pla-signin-art) {
-        padding-left: 50vw;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: none;
+        min-height: 100dvh;
+        margin: 0;
+        padding: 2rem 2rem 2rem calc(50vw + 2rem);
+    }
+
+    html[data-pla-signin='split'] div:has(> main .pla-signin-art) {
+        padding-top: 0;
+    }
+
+    html[data-pla-signin='split'] main:has(.pla-signin-art) > div:has(form) {
+        width: 100%;
+        max-width: 28rem;
+        margin: 0;
+        padding: 0;
     }
 
     /* The logo is on the left now; the form stands on the page without the card around it. */

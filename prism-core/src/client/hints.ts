@@ -8,7 +8,7 @@ export interface Hint {
     /** A heading the field is grouped under inside its tab. */
     section?: string;
     slider?: { min: number; max: number; step?: number; unit?: string };
-    editor?: 'highlights' | 'quickCommands' | 'lines' | 'keybinds' | 'datetime' | 'authProviders';
+    editor?: 'highlights' | 'quickCommands' | 'lines' | 'keybinds' | 'datetime' | 'authProviders' | 'navigation' | 'shortcut';
     /** Draw a select as buttons side by side. */
     segmented?: boolean;
 }
@@ -16,9 +16,9 @@ export interface Hint {
 export const HINTS: Record<PrismId, Record<string, Hint>> = {
     'prism-layout': {
         enabled: { section: 'Prism Layout' },
-        bars: { section: 'Bars' },
-        bars_tablet: { section: 'Bars' },
-        bars_mobile: { section: 'Bars' },
+        bars: { section: 'Bars', editor: 'navigation' },
+        bars_tablet: { section: 'Bars', editor: 'navigation' },
+        bars_mobile: { section: 'Bars', editor: 'navigation' },
         sidebar_width: { section: 'Bars', slider: { min: 12, max: 22, unit: ' rem' } },
         dock_magnify: { section: 'Bars' },
         group_nav: { section: 'In the navigation' },
@@ -50,6 +50,7 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         announce_from: { section: 'When', editor: 'datetime' },
         announce_until: { section: 'When', editor: 'datetime' },
         announce_dismiss: { section: 'When' },
+        palette_shortcut: { editor: 'shortcut' },
     },
     'prism-console': {
         enabled: { section: 'The console' },

@@ -171,3 +171,45 @@ export function KeybindsEditor({ value, onChange }: { value: unknown; onChange: 
 export function ToggleRow({ label, help, checked, onChange }: { label: string; help: string | null; checked: boolean; onChange: (checked: boolean) => void }) {
     return <Switch checked={checked} onChange={onChange} label={label} description={help ?? undefined} controlPosition={'end'} className={'ppx:w-full'} />;
 }
+
+const apple = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+
+/** A shortcut as Prism Layout keeps it (`mod+k`, `/`, `f2`), shown as this device names it. */
+const shortcutLabel = (keys: string) => {
+    const key = keys.replace(/^mod\+/, '').toUpperCase();
+
+    return keys.startsWith('mod+') ? (apple ? `⌘${key}` : `Ctrl+${key}`) : key;
+};
+
+/**
+ * Records a shortcut by pressing it: Ctrl (⌘ on a Mac) with one key, or a key alone. Shift and Alt
+ * cannot be part of it, as the panel's shortcuts do not use them.
+ */
+export function ShortcutEditor({ value, onChange, fallback = 'mod+k' }: { value: unknown; onChange: (value: string) => void; fallback?: string }) {
+    const keys = typeof value === 'string' && value !== '' ? value : fallback;
+
+    return (
+        <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2'}>
+            <Input
+                value={shortcutLabel(keys)}
+                onKeyDown={(event) => {
+                    if (event.key === 'Tab' || event.key === 'Escape') return;
+                    event.preventDefault();
+                    if (['Control', 'Shift', 'Alt', 'Meta'].includes(event.key) || event.altKey || event.shiftKey) return;
+                    const key = event.key.toLowerCase();
+                    if (!/^([a-z0-9/.,;\-=]|f[1-9]|f1[0-2])$/.test(key)) return;
+                    onChange(`${(apple ? event.metaKey : event.ctrlKey) ? 'mod+' : ''}${key}`);
+                }}
+                onChange={() => undefined}
+                aria-label={'Press the new shortcut'}
+                className={'ppx:w-36 ppx:text-center ppx:font-mono'}
+            />
+            {keys !== fallback && (
+                <Button.Text size={'small'} onClick={() => onChange(fallback)}>
+                    Reset to {shortcutLabel(fallback)}
+                </Button.Text>
+            )}
+            <span className={'ppx:text-xs ppx:text-muted-foreground'}>Click the box and press the keys.</span>
+        </div>
+    );
+}

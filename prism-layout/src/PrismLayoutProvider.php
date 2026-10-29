@@ -45,8 +45,8 @@ class PrismLayoutProvider extends ExtensionProvider
             // Navigation
             $toggle('enabled', true, 'Use Prism Layout', 'Navigation', 'Off gives the panel its own layout back, keeping the logo, favicon and sign-in page.'),
             Setting::make('bars', 'bars', 'sidebar_top', ['required', 'string', 'in:'.implode(',', array_keys(self::BARS))])->label('Navigation on computers')->help('Screens 1024 pixels wide and more.')->tab('Navigation')->field('select', $options(self::BARS))->frontend(),
-            Setting::make('bars_tablet', 'bars_tablet', 'top_dock', ['required', 'string', 'in:same,'.implode(',', array_keys(self::BARS))])->label('Navigation on tablets')->help('Screens 768 to 1023 pixels wide.')->tab('Navigation')->field('select', $options(['same' => 'Same as on computers'] + self::BARS))->frontend(),
-            Setting::make('bars_mobile', 'bars_mobile', 'dock_expand', ['required', 'string', 'in:same,'.implode(',', array_keys(self::BARS))])->label('Navigation on phones')->help('Screens narrower than 768 pixels. A sidebar or icon rail opens from a menu button there.')->tab('Navigation')->field('select', $options(['same' => 'Same as on tablets'] + self::BARS))->frontend(),
+            Setting::make('bars_tablet', 'bars_tablet', 'top_dock', ['required', 'string', 'in:'.implode(',', array_keys(self::BARS))])->label('Navigation on tablets')->help('Screens 768 to 1023 pixels wide.')->tab('Navigation')->field('select', $options(self::BARS))->frontend(),
+            Setting::make('bars_mobile', 'bars_mobile', 'dock_expand', ['required', 'string', 'in:'.implode(',', array_keys(self::BARS))])->label('Navigation on phones')->help('Screens narrower than 768 pixels. A sidebar or icon rail opens from a menu button there.')->tab('Navigation')->field('select', $options(self::BARS))->frontend(),
             Setting::make('sidebar_width', 'sidebar_width', 14, ['required', 'integer', 'min:12', 'max:22'])->label('Sidebar width')->help('In rem; 16 is about 256 pixels.')->tab('Navigation')->field('number')->frontend(),
             $toggle('dock_magnify', true, 'Dock icons grow under the pointer', 'Navigation'),
             $toggle('group_nav', true, 'Group the server pages', 'Navigation', 'Manage, Files and data, and Configuration.'),
@@ -105,7 +105,8 @@ class PrismLayoutProvider extends ExtensionProvider
         }
 
         // Advanced
-        $settings[] = $toggle('command_palette', true, 'Ctrl+K command palette', 'Advanced', 'Jump to any server, page or setting from the keyboard, or with the ⌘ button.');
+        $settings[] = $toggle('command_palette', true, 'Command palette', 'Advanced', 'Jump to any server, page or setting from the keyboard, or with the ⌘ button.');
+        $settings[] = Setting::make('palette_shortcut', 'palette_shortcut', 'mod+k', ['required', 'string', 'max:16', 'regex:/^(mod\+)?([a-z0-9\/.,;\-=]|f[1-9]|f1[0-2])$/'])->label('Command palette shortcut')->help('Ctrl (⌘ on a Mac) and one key, or a key alone. Keys typed in a text field never open it.')->tab('Advanced')->field('text')->frontend();
 
         $this->registerSettings(new ExtensionSettingsDefinition($this->settings(), $settings));
 

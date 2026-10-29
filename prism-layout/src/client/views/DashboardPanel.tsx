@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { PanelLink, bytesToString, cn } from '@pterodactyl/sdk';
+import { PanelLink, cn } from '@pterodactyl/sdk';
+import { shortBytes } from '../bytes';
 import { NamedIcon } from '../icons';
 import { NO_FILTERS, filtering, gameTag, matches, readRecent, setFilters, useDashboard, type DashboardServer } from '../dashboard';
 import { useEggColor } from '../settings';
@@ -37,13 +38,13 @@ function Overview() {
                 </p>
                 <div className='pla:flex pla:flex-col pla:gap-1'>
                     <p className='pla:flex pla:justify-between'>
-                        Memory <span className='pla:text-foreground pla:tabular-nums'>{bytesToString(sum('memory'))}</span>
+                        Memory <span className='pla:text-foreground pla:tabular-nums'>{shortBytes(sum('memory'))}</span>
                     </p>
                     <Bar value={sum('memory')} limit={sum('memoryLimit')} />
                 </div>
                 <div className='pla:flex pla:flex-col pla:gap-1'>
                     <p className='pla:flex pla:justify-between'>
-                        Disk <span className='pla:text-foreground pla:tabular-nums'>{bytesToString(sum('disk'))}</span>
+                        Disk <span className='pla:text-foreground pla:tabular-nums'>{shortBytes(sum('disk'))}</span>
                     </p>
                     <Bar value={sum('disk')} limit={sum('diskLimit')} />
                 </div>

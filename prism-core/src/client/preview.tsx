@@ -20,7 +20,16 @@ export type Page = 'home' | 'dashboard' | 'server' | 'admin' | 'account';
 
 /** Where each server extension shows itself: a server page, on a server of its game if it has one. */
 /** Each extension's page in the preview window; `tag` or `startup` picks a server it applies to. */
-const HOMES: Record<string, { label: string; path: string; tag?: string; startup?: string }> = {
+interface Home {
+    label: string;
+    path: string;
+    tag?: string;
+    startup?: string;
+    /** The path is the page itself, not one of a server's. */
+    own?: boolean;
+}
+
+const HOMES: Record<string, Home> = {
     'prism-console': { label: 'Console', path: '' },
     'prism-files': { label: 'Files', path: '/files' },
     'prism-database': { label: 'Databases', path: '/databases' },
@@ -32,6 +41,14 @@ const HOMES: Record<string, { label: string; path: string; tag?: string; startup
     'prism-corekeeper': { label: 'Core Keeper', path: '/corekeeper-mods', tag: 'core-keeper', startup: 'CoreKeeperServer' },
     'prism-factorio': { label: 'Factorio', path: '/factorio-mods', tag: 'factorio', startup: 'bin/x64/factorio' },
     'prism-satisfactory': { label: 'Satisfactory', path: '/satisfactory-mods', tag: 'satisfactory', startup: 'FactoryGame' },
+};
+
+/**
+ * Pages some sections show on instead of their extension's: Prism Layout's sign-in page, which the
+ * preview window shows while signed in.
+ */
+const SECTION_HOMES: Record<string, Record<string, Home>> = {
+    'prism-layout': { 'Sign-in page': { label: 'Sign-in', path: '/?prism-signin=1', own: true } },
 };
 
 type ServerItem = { attributes: { identifier: string; egg_tags?: string[]; invocation?: string } };
@@ -65,7 +82,7 @@ const useUi = () => {
 /** Where the window is now: it is the real panel, so people move around in it. */
 function readLocation(): string | null {
     try {
-        return isOpen() && target ? target.location.pathname : null;
+        return isOpen() && target ? target.location.pathname + target.location.search : null;
     } catch {
         return null;
     }
@@ -159,11 +176,11 @@ const pill = (active: boolean) =>
  * opens on its own page; the others on the dashboard. The page buttons follow the window: when
  * someone has moved elsewhere in it, none is lit and the card says where it is.
  */
-export function PreviewControls({ extension }: { extension?: string }) {
+export function PreviewControls({ extension, section }: { extension?: string; section?: string }) {
     const servers = useQuery({ queryKey: ['prism-core', 'preview-servers'], queryFn: async () => (await http.get<{ data: ServerItem[] }>('/api/client', { params: { per_page: 50 } })).data.data });
     const state = useUi();
     const open = usePreviewOpen();
-    const home = extension ? HOMES[extension] : undefined;
+    const home = (extension && section ? SECTION_HOMES[extension]?.[section] : undefined) ?? (extension ? HOMES[extension] : undefined);
     const pages: Page[] = home ? ['home', 'dashboard', 'server', 'admin', 'account'] : ['dashboard', 'server', 'admin', 'account'];
     const chosen: Page = state.page && pages.includes(state.page) ? state.page : home ? 'home' : 'dashboard';
     const firstServer = servers.data?.[0]?.attributes.identifier ?? null;
@@ -174,15 +191,17 @@ export function PreviewControls({ extension }: { extension?: string }) {
         )?.attributes.identifier ?? firstServer;
 
     const urlOf = (where: Page) =>
-        where === 'home' && home && homeServer
-            ? `/server/${homeServer}${home.path}`
-            : where === 'admin'
-              ? '/panel'
-              : where === 'account'
-                ? '/account'
-                : where === 'server' && firstServer
-                  ? `/server/${firstServer}`
-                  : '/';
+        where === 'home' && home?.own
+            ? home.path
+            : where === 'home' && home && homeServer
+              ? `/server/${homeServer}${home.path}`
+              : where === 'admin'
+                ? '/panel'
+                : where === 'account'
+                  ? '/account'
+                  : where === 'server' && firstServer
+                    ? `/server/${firstServer}`
+                    : '/';
 
     // Open, the lit page is the one the window is really on; the chosen one first when two share an address.
     const location = open ? state.location : null;

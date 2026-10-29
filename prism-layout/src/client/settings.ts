@@ -17,10 +17,10 @@ export type LoginMark = 'logo' | 'mascot' | 'none';
 /** The admin's Prism Layout settings, from Prism Properties; see PrismLayoutProvider for each. */
 export interface LayoutSettings {
     enabled: boolean;
-    /** On computers; tablets and phones have their own, or follow the next size up when set to same. */
+    /** Each kind of device has its own navigation. */
     bars: Bars;
-    bars_tablet: Bars | 'same';
-    bars_mobile: Bars | 'same';
+    bars_tablet: Bars;
+    bars_mobile: Bars;
     sidebar_width: number;
     dock_magnify: boolean;
     group_nav: boolean;
@@ -70,6 +70,8 @@ export interface LayoutSettings {
     link3_label: string;
     link3_url: string;
     command_palette: boolean;
+    /** The palette's shortcut as useShortcut names it: `mod+k`, or a key alone. */
+    palette_shortcut: string;
 }
 
 const oneOf = <T extends string>(value: unknown, options: readonly T[], fallback: T): T => (options.includes(value as T) ? (value as T) : fallback);
@@ -84,12 +86,18 @@ const clamp = (value: unknown, min: number, max: number, fallback: number) => {
 
 const OLD_TILES: readonly string[] = ['tile', 'banner', 'neon', 'minimal', 'compact', 'outline'];
 
+const SHORTCUT = /^(mod\+)?([a-z0-9/.,;\-=]|f[1-9]|f1[0-2])$/;
+
 export function read(raw: Record<string, unknown>): LayoutSettings {
+    // Saved before each device chose its own, tablets and phones could follow the next size up.
+    const bars = oneOf(raw.bars, BARS, 'sidebar_top');
+    const tablet = raw.bars_tablet === 'same' ? bars : oneOf(raw.bars_tablet, BARS, 'top_dock');
+
     return {
         enabled: bool(raw.enabled, true),
-        bars: oneOf(raw.bars, BARS, 'sidebar_top'),
-        bars_tablet: oneOf(raw.bars_tablet, ['same', ...BARS] as const, 'top_dock'),
-        bars_mobile: oneOf(raw.bars_mobile, ['same', ...BARS] as const, 'dock_expand'),
+        bars,
+        bars_tablet: tablet,
+        bars_mobile: raw.bars_mobile === 'same' ? tablet : oneOf(raw.bars_mobile, BARS, 'dock_expand'),
         sidebar_width: clamp(raw.sidebar_width, 12, 22, 14),
         dock_magnify: bool(raw.dock_magnify, true),
         group_nav: bool(raw.group_nav, true),
@@ -138,6 +146,7 @@ export function read(raw: Record<string, unknown>): LayoutSettings {
         link3_label: text(raw.link3_label),
         link3_url: text(raw.link3_url),
         command_palette: bool(raw.command_palette, true),
+        palette_shortcut: typeof raw.palette_shortcut === 'string' && SHORTCUT.test(raw.palette_shortcut) ? raw.palette_shortcut : 'mod+k',
     };
 }
 
@@ -262,11 +271,7 @@ export function useDevice(): Device {
     return device;
 }
 
-/** The navigation for a device: phones follow tablets and tablets follow computers unless set. */
+/** The navigation for a device. */
 export function barsFor(settings: LayoutSettings, device: Device): Bars {
-    const tablet = settings.bars_tablet === 'same' ? settings.bars : settings.bars_tablet;
-    if (device === 'desktop') return settings.bars;
-    if (device === 'tablet') return tablet;
-
-    return settings.bars_mobile === 'same' ? tablet : settings.bars_mobile;
+    return device === 'desktop' ? settings.bars : device === 'tablet' ? settings.bars_tablet : settings.bars_mobile;
 }

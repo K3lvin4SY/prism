@@ -131,9 +131,9 @@ No settings of its own. Its admin screen is Prism Properties.
 | Tab | Key | Label | Default | Field |
 | --- | --- | --- | --- | --- |
 | Navigation | `enabled` | Use Prism Layout | `true` | toggle |
-| Navigation | `bars` | Navigation on computers (≥1024px) | `'sidebar_top'` | select |
-| Navigation | `bars_tablet` | Navigation on tablets (768–1023px) | `'top_dock'` | select |
-| Navigation | `bars_mobile` | Navigation on phones (<768px) | `'dock_expand'` | select |
+| Navigation | `bars` | Navigation on computers (≥1024px) | `'sidebar_top'` | select, drawn as layout cards (`NavigationPicker`) |
+| Navigation | `bars_tablet` | Navigation on tablets (768–1023px) | `'top_dock'` | select, layout cards |
+| Navigation | `bars_mobile` | Navigation on phones (<768px) | `'dock_expand'` | select, layout cards |
 | Navigation | `sidebar_width` | Sidebar width | `14` | number |
 | Navigation | `dock_magnify` | Dock icons grow under the pointer | `true` | toggle |
 | Navigation | `group_nav` | Group the server pages | `true` | toggle |
@@ -169,7 +169,8 @@ No settings of its own. Its admin screen is Prism Properties.
 | Announcement | `announce_until` | Show until | `''` | text |
 | Announcement | `announce_dismiss` | People can close it | `true` | toggle |
 | Links | `link1_label`…`link3_label`, `link1_url`…`link3_url` | Footer links of the navigation | `''` | text |
-| Advanced | `command_palette` | Ctrl+K command palette | `true` | toggle |
+| Advanced | `command_palette` | Command palette | `true` | toggle |
+| Advanced | `palette_shortcut` | Command palette shortcut (`mod+k`, or one key; recorded by `ShortcutEditor`) | `'mod+k'` | text |
 
 ### prism-mc
 
@@ -271,7 +272,7 @@ Each server's admin password for its API is kept encrypted in that server's meta
 
 ## Notes on particular settings
 
-- **Prism Layout navigation**: `bars`, `bars_tablet`, `bars_mobile` take `sidebar`, `top`, `dock`, `dock_expand` (expandable dock: main pages plus a button that opens the area's pages upwards), `sidebar_top`, `rail`, `rail_top`, `top_dock`; tablets and phones also `same` (follow the next size up). `barsFor(settings, useDevice())` in `prism-layout/src/client/settings.ts` picks the one for the device; on phones a sidebar or rail opens from a menu button, on tablets and computers it sits beside the page.
+- **Prism Layout navigation**: `bars`, `bars_tablet`, `bars_mobile` take `sidebar`, `top`, `dock`, `dock_expand` (expandable dock: main pages plus a button that opens the area's pages upwards), `sidebar_top`, `rail`, `rail_top`, `top_dock`; each device names its own (an old saved `same` is read, and migrated, as the layout it followed). `barsFor(settings, useDevice())` in `prism-layout/src/client/settings.ts` picks the one for the device; on phones a sidebar or rail opens from a menu button, on tablets and computers it sits beside the page.
 - **Prism Layout `egg_colors`** is `none`, `color` or `logo`; older saved booleans read as `color` (true) or `none` (false). Logos show on Rows cards only; egg logos are uploaded per egg in Prism Properties (stored in `prism_layout_pictures`, kind `egg-logo`), with built-in tag defaults in `prism-layout/src/client/logos/`. Card colors come from the Panel's tag colors (`/api/client/extensions/prism-layout/tags`).
 - **Prism Console** settings are defaults; people's own choices (`allow_*`) are stored as preferences and win.
 - **Prism File Browser** editor settings and `keybinds` are defaults; people override them in the editor's settings tab when `allow_editor_settings` is on. `hidden_paths`/`protected_paths` are newline lists of glob patterns, enforced by its PHP.

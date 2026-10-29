@@ -4,6 +4,8 @@ import { cn, http, usePanelNavigate, useShortcut } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import type { AppLayoutModel } from '@pterodactyl/sdk/theme';
 import { GameLogo, useGames } from '../logos';
+import { useEggColor, useSettings } from '../settings';
+import { shortcutKeys } from '../shortcut';
 
 interface Command {
     id: string;
@@ -36,7 +38,6 @@ const STATES: Record<string, { label: string; text: string; dot: string }> = {
     offline: { label: 'Offline', text: 'pla:text-muted-foreground', dot: 'pla:bg-muted-foreground' },
 };
 
-const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
 const ADMIN: [string, string, string][] = [
     ['Overview', '/panel', 'layout-dashboard'],
@@ -59,13 +60,15 @@ const SERVER_PAGES: [string, string, string][] = [
     ['Settings', '/settings', 'settings'],
 ];
 
-/** Ctrl+K: jump to any server, a server's page, an admin page or the account by typing. */
+/** Ctrl+K, or the shortcut set: jump to any server, a server's page, an admin page or the account by typing. */
 export default function CommandPalette({ model, open, onOpen, onClose }: { model: AppLayoutModel; open: boolean; onOpen: () => void; onClose: () => void }) {
     const navigate = usePanelNavigate();
     const [query, setQuery] = useState('');
     const [index, setIndex] = useState(0);
     const input = useRef<HTMLInputElement>(null);
-    useShortcut('mod+k', (event) => {
+    const settings = useSettings();
+    const eggColor = useEggColor();
+    useShortcut(settings.palette_shortcut, (event) => {
         event.preventDefault();
         onOpen();
     });
@@ -78,6 +81,7 @@ export default function CommandPalette({ model, open, onOpen, onClose }: { model
         staleTime: 60_000,
     });
 
+    // The game's name, and its logo when cards show the game by logo.
     const games = useGames(
         (servers.data ?? []).map((server) => server.uuid),
         open
@@ -163,7 +167,7 @@ export default function CommandPalette({ model, open, onOpen, onClose }: { model
                         aria-label='Search'
                     />
                     <span className='pla:flex pla:gap-1' aria-hidden>
-                        {[mac ? '⌘' : 'Ctrl', 'K'].map((key) => (
+                        {shortcutKeys(settings.palette_shortcut).map((key) => (
                             <kbd key={key} className='pla:rounded-md pla:border pla:border-input-border pla:bg-muted/60 pla:px-1.5 pla:py-0.5 pla:font-mono pla:text-[11px] pla:text-muted-foreground'>
                                 {key}
                             </kbd>
@@ -188,8 +192,15 @@ export default function CommandPalette({ model, open, onOpen, onClose }: { model
                                     onClick={() => go(command)}
                                     className={cn('pla:flex pla:w-full pla:items-center pla:gap-3 pla:rounded-xl pla:px-3 pla:py-2 pla:text-left pla:text-sm', active ? 'pla:bg-muted pla:text-foreground' : 'pla:text-foreground/90')}
                                 >
-                                    {command.server ? (
+                                    {command.server && settings.egg_colors === 'logo' ? (
                                         <GameLogo logo={game?.logo ?? null} tags={command.server.egg_tags} size={28} className='pla:rounded-lg' />
+                                    ) : command.server && settings.egg_colors === 'color' && eggColor(command.server.egg_tags) ? (
+                                        <span
+                                            className='pla:flex pla:size-7 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-lg pla:bg-[color-mix(in_oklab,var(--pla-egg)_22%,transparent)] pla:text-(--pla-egg)'
+                                            style={{ '--pla-egg': eggColor(command.server.egg_tags) } as React.CSSProperties}
+                                        >
+                                            <NamedIcon name='gamepad-2' size={15} />
+                                        </span>
                                     ) : (
                                         <span className='pla:flex pla:size-7 pla:shrink-0 pla:items-center pla:justify-center pla:rounded-lg pla:border pla:border-border pla:text-muted-foreground'>
                                             <NamedIcon name={command.icon} size={15} />

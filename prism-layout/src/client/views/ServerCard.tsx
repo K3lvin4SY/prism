@@ -1,6 +1,7 @@
 import { Spinner, cn } from '@pterodactyl/sdk';
 import { Slot, type ServerCardState, type ServerStatMetric, type ViewProps } from '@pterodactyl/sdk/theme';
 import { NamedIcon } from '../icons';
+import { shortBytes } from '../bytes';
 import { GameLogo } from '../logos';
 import { useSettings, type LayoutSettings } from '../settings';
 import { useCardGame, type CardGame } from './cardContext';
@@ -15,20 +16,6 @@ const POWER: Record<string, { label: string; text: string; soft: string; dot: st
 };
 
 type Ready = Extract<ServerCardState, { kind: 'ready' }>;
-
-const UNITS = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
-
-/** Bytes short enough for a card: one decimal under 100, none above, as 566 MiB or 1.5 GiB. */
-export function shortBytes(bytes: number): string {
-    let value = Math.max(0, bytes);
-    let unit = 0;
-    while (value >= 1024 && unit < UNITS.length - 1) {
-        value /= 1024;
-        unit++;
-    }
-
-    return `${unit === 0 || value >= 100 ? Math.round(value) : value.toFixed(1).replace(/\.0$/, '')} ${UNITS[unit]}`;
-}
 
 /** CPU, memory and disk, with the words each layout uses. */
 const metrics = (state: Ready) =>

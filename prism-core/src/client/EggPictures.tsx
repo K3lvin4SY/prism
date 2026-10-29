@@ -31,7 +31,7 @@ export default function EggPictures() {
         <section className={'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
             <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>Pictures and logos by game</h3>
             <p className={'ppx:px-4 ppx:pt-3 ppx:text-xs ppx:text-muted-foreground'}>
-                Each egg&apos;s picture on tiles with a picture, and its logo in the Ctrl+K search and on the cards when they show the game by logo. Without a logo, Minecraft, Terraria, Rust, Garry&apos;s Mod, Source and voice eggs use a built-in one by their tag, and other eggs a server icon. People who can rename a server can give it its own picture on the server&apos;s Settings page. Saved straight away.
+                Each egg&apos;s picture on tiles with a picture, and its logo on the cards and in the Ctrl+K search when cards show the game by logo. Without a logo, Minecraft, Terraria, Rust, Garry&apos;s Mod, Source and voice eggs use a built-in one by their tag, and other eggs a server icon. People who can rename a server can give it its own picture on the server&apos;s Settings page. Saved straight away.
             </p>
             {eggs.isLoading ? (
                 <Spinner centered />

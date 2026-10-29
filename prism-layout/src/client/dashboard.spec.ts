@@ -51,11 +51,11 @@ describe('recent servers', () => {
 
 describe('shortBytes', () => {
     it('keeps card values short', async () => {
-        const { shortBytes } = await import('./views/ServerCard');
+        const { shortBytes } = await import('./bytes');
         expect(shortBytes(0)).toBe('0 B');
-        expect(shortBytes(1024 * 1024 * 565.52)).toBe('566 MiB');
-        expect(shortBytes(1024 ** 3 * 1.45)).toBe('1.4 GiB');
-        expect(shortBytes(1024 ** 3 * 2)).toBe('2 GiB');
-        expect(shortBytes(1024 * 1024 * 40.57)).toBe('40.6 MiB');
+        expect(shortBytes(1024 * 1024 * 565.52)).toBe('566 MB');
+        expect(shortBytes(1024 ** 3 * 1.45)).toBe('1.4 GB');
+        expect(shortBytes(1024 ** 3 * 2)).toBe('2 GB');
+        expect(shortBytes(1024 * 1024 * 40.57)).toBe('40.6 MB');
     });
 });

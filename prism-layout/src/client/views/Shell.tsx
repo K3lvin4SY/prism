@@ -6,6 +6,8 @@ import { remember } from '../dashboard';
 import { barsFor, cssString, useDevice, useSettings, type Bars } from '../settings';
 import Announcement from './Announcement';
 import CommandPalette from './CommandPalette';
+import SignInDemo, { signInDemo } from './SignInDemo';
+import { shortcutLabel } from '../shortcut';
 import DashboardPanel from './DashboardPanel';
 import { AreaNav, FooterLinks, MainLinks, ServerCard, itemClass } from './nav';
 
@@ -54,7 +56,7 @@ function User({ model, compact, onPalette }: { model: AppLayoutModel; compact?: 
     return (
         <div className={cn('pla:flex pla:items-center pla:gap-1', compact && 'pla:flex-col')}>
             {onPalette && (
-                <button type='button' onClick={onPalette} className={button} title='Search and jump (Ctrl+K)' aria-label='Search and jump'>
+                <button type='button' onClick={onPalette} className={button} title={`Search and jump (${shortcutLabel(settings.palette_shortcut)})`} aria-label='Search and jump'>
                     <NamedIcon name='command' size={16} />
                 </button>
             )}
@@ -77,7 +79,12 @@ function User({ model, compact, onPalette }: { model: AppLayoutModel; compact?: 
  * The whole frame: one of seven navigation layouts around the page, the background, the
  * announcement and the Ctrl+K palette.
  */
-export default function Shell({ model: panelModel, children, Default }: ViewProps<'layout.app'>) {
+/** The app's frame; in Prism Core's preview window it can show the sign-in page instead. */
+export default function Shell(props: ViewProps<'layout.app'>) {
+    return signInDemo() ? <SignInDemo /> : <AppShell {...props} />;
+}
+
+function AppShell({ model: panelModel, children, Default }: ViewProps<'layout.app'>) {
     // The dashboard is drawn as a dashboard everywhere its link shows, not as the panel's layers.
     const model = useMemo(() => ({ ...panelModel, links: panelModel.links.map((link) => (link.id === 'dashboard' ? { ...link, icon: 'layout-dashboard' } : link)) }), [panelModel]);
     const settings = useSettings();

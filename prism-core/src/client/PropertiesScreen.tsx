@@ -15,7 +15,8 @@ import { THEME_ID, themeApi, themeKeys } from './themes/api';
 import ThemeEditor, { sectionOf as themeSectionOf, themeSections } from './themes/ThemeEditor';
 import { isLook } from './themes/presets';
 import { ProvidersEditor } from './AuthProviders';
-import { HighlightsEditor, KeybindsEditor, LinesEditor, QuickCommandsEditor, ToggleRow } from './editors';
+import { HighlightsEditor, KeybindsEditor, LinesEditor, QuickCommandsEditor, ShortcutEditor, ToggleRow } from './editors';
+import NavigationPicker from './NavigationPicker';
 import { HINTS, type Hint } from './hints';
 
 const EXPORT_ID = 'prism-export';
@@ -104,7 +105,7 @@ export default function PropertiesScreen() {
     const onDirty = useCallback((id: Target, value: boolean) => setDirty((map) => (map[id] === value ? map : { ...map, [id]: value })), []);
     const topOffset = useStickyTop();
     // One set of preview controls for whichever extension is open; export and import has nothing to preview.
-    const preview = current && current.id !== EXPORT_ID ? <PreviewControls extension={current.id} /> : null;
+    const preview = current && current.id !== EXPORT_ID ? <PreviewControls extension={current.id} section={sectionFor(current)} /> : null;
 
     return (
         <PageContentBlock title={'Prism Properties'}>
@@ -527,6 +528,24 @@ function Field({ field, hint, value, onChange }: { field: SettingField; hint: Hi
             <>
                 <Label field={field} />
                 <NumberInput value={Number(value ?? 0)} onValueChange={(next) => onChange(next ?? 0)} className={'ppx:w-40'} />
+            </>
+        );
+    }
+
+    if (hint.editor === 'navigation') {
+        return (
+            <>
+                <Label field={field} />
+                <NavigationPicker value={value} onChange={onChange} label={field.label} />
+            </>
+        );
+    }
+
+    if (hint.editor === 'shortcut') {
+        return (
+            <>
+                <Label field={field} />
+                <ShortcutEditor value={value} onChange={onChange} />
             </>
         );
     }
