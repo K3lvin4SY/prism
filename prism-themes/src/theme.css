@@ -273,9 +273,17 @@ html {
 }
 
 /* Every Prism extension marks its single-choice switches; their shape is chosen here. */
-[data-pt-switches='rounded'] .prism-switch,
+/*
+ * Rounded: the pills are fully round; the switch around them keeps a fixed radius, half a pill's
+ * height plus its padding, so one row still reads as a pill and a wrapped switch stays a rounded box
+ * instead of an oval.
+ */
 [data-pt-switches='rounded'] .prism-switch-item {
     border-radius: 9999px;
+}
+
+[data-pt-switches='rounded'] .prism-switch {
+    border-radius: 1.125rem;
 }
 
 [data-pt-switches='square'] .prism-switch {
