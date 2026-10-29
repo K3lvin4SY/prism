@@ -14,28 +14,33 @@ export interface SettingField {
 
 export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-satisfactory' | 'prism-auth' | 'prism-share';
 
+/** The groups of the Prism Properties sidebar, in order. Hosting has no extension yet. */
+export const CATEGORIES = ['Appearance', 'Server tools', 'Games', 'Collaboration', 'Hosting'] as const;
+export type Category = (typeof CATEGORIES)[number];
+
 export interface PrismExtension {
     id: PrismId;
     name: string;
     icon: string;
+    category: Category;
     description: string;
 }
 
 /** The Prism extensions this page knows; only the installed and enabled ones are shown. */
 export const PRISM: PrismExtension[] = [
-    { id: 'prism-layout', name: 'Prism Layout', icon: 'layout-dashboard', description: 'Navigation layouts, page width, server cards, your logo and favicon, the sign-in page, announcements and the Ctrl+K palette. Works with any theme.' },
-    { id: 'prism-console', name: 'Prism Console', icon: 'terminal', description: 'A better console for every server: layouts, history, search, highlights, exports and image pull progress.' },
-    { id: 'prism-files', name: 'Prism File Browser', icon: 'folder-open', description: 'A better file manager for every server: an editor workbench with tabs, a trash bin, bulk actions and previews.' },
-    { id: 'prism-database', name: 'Prism Database Manager', icon: 'database', description: 'Browse and edit tables, run SQL, import and export, back up on a schedule and share databases between servers.' },
-    { id: 'prism-backups', name: 'Prism Backups', icon: 'archive', description: 'Backup profiles, browsing inside backups, restoring single files and a .pteroignore editor.' },
-    { id: 'prism-schedules', name: 'Prism Schedules', icon: 'calendar-clock', description: 'Schedules with countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets and a calendar.' },
-    { id: 'prism-mc', name: 'Prism MC', icon: 'blocks', description: 'Players, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.' },
-    { id: 'prism-terraria', name: 'Prism Terraria', icon: 'tree-pine', description: 'Players, settings, versions, the world map, tModLoader mods and TShock plugins for Terraria servers.' },
-    { id: 'prism-corekeeper', name: 'Prism Core Keeper', icon: 'core-orb', description: 'Players, the world map, mods from mod.io and the Steam Workshop, versions and properties for Core Keeper servers.' },
-    { id: 'prism-factorio', name: 'Prism Factorio', icon: 'factory', description: 'Players with admins, bans and the whitelist, mods from the Factorio mod portal, versions and server settings for Factorio servers.' },
-    { id: 'prism-satisfactory', name: 'Prism Satisfactory', icon: 'conveyor-belt', description: 'Players, mods from ficsit.app, public or experimental builds, server settings and new games for Satisfactory servers.' },
-    { id: 'prism-auth', name: 'Prism Auth', icon: 'key-round', description: 'Sign in with Google, Discord, Steam, GitHub or any OpenID Connect provider, linked from the account page, and sign-up with a confirmed email.' },
-    { id: 'prism-share', name: 'Prism Share', icon: 'share-2', description: 'Guest links for a server: watch the console, chosen power buttons, files and backups, without an account, for as long as the owner chooses.' },
+    { id: 'prism-layout', name: 'Prism Layout', icon: 'layout-dashboard', category: 'Appearance', description: 'Navigation layouts, page width, server cards, your logo and favicon, the sign-in page, announcements and the Ctrl+K palette. Works with any theme.' },
+    { id: 'prism-console', name: 'Prism Console', icon: 'terminal', category: 'Server tools', description: 'A better console for every server: layouts, history, search, highlights, exports and image pull progress.' },
+    { id: 'prism-files', name: 'Prism File Browser', icon: 'folder-open', category: 'Server tools', description: 'A better file manager for every server: an editor workbench with tabs, a trash bin, bulk actions and previews.' },
+    { id: 'prism-database', name: 'Prism Database Manager', icon: 'database', category: 'Server tools', description: 'Browse and edit tables, run SQL, import and export, back up on a schedule and share databases between servers.' },
+    { id: 'prism-backups', name: 'Prism Backups', icon: 'archive', category: 'Server tools', description: 'Backup profiles, browsing inside backups, restoring single files and a .pteroignore editor.' },
+    { id: 'prism-schedules', name: 'Prism Schedules', icon: 'calendar-clock', category: 'Server tools', description: 'Schedules with countdowns, waits, Discord messages, If/Else, crash and start triggers, conditions, presets and a calendar.' },
+    { id: 'prism-auth', name: 'Prism Auth', icon: 'key-round', category: 'Server tools', description: 'Sign in with Google, Discord, Steam, GitHub or any OpenID Connect provider, linked from the account page, and sign-up with a confirmed email.' },
+    { id: 'prism-mc', name: 'Prism MC', icon: 'cube-outline', category: 'Games', description: 'Players, versions, properties, plugins, mods and modpacks for Minecraft Java and Bedrock servers.' },
+    { id: 'prism-terraria', name: 'Prism Terraria', icon: 'tree-pine', category: 'Games', description: 'Players, settings, versions, the world map, tModLoader mods and TShock plugins for Terraria servers.' },
+    { id: 'prism-corekeeper', name: 'Prism Core Keeper', icon: 'core-orb', category: 'Games', description: 'Players, the world map, mods from mod.io and the Steam Workshop, versions and properties for Core Keeper servers.' },
+    { id: 'prism-factorio', name: 'Prism Factorio', icon: 'assembly', category: 'Games', description: 'Players with admins, bans and the whitelist, mods from the Factorio mod portal, versions and server settings for Factorio servers.' },
+    { id: 'prism-satisfactory', name: 'Prism Satisfactory', icon: 'barrier-block', category: 'Games', description: 'Players, mods from ficsit.app, public or experimental builds, server settings and new games for Satisfactory servers.' },
+    { id: 'prism-share', name: 'Prism Share', icon: 'send-back', category: 'Collaboration', description: 'Guest links for a server: watch the console, chosen power buttons, files and backups, without an account, for as long as the owner chooses.' },
 ];
 
 export const settingsKey = (id: PrismId) => ['prism-core', 'settings', id] as const;

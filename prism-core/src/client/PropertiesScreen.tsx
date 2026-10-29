@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Input, NumberInput, PageContentBlock, Select, Spinner, TextArea, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { NamedIcon } from './icons';
-import { PRISM, getSettings, refresh, saveSettings, setSettingFile, settingsKey, type PrismExtension, type PrismId, type SettingField } from './api';
+import { CATEGORIES, PRISM, getSettings, refresh, saveSettings, setSettingFile, settingsKey, type Category, type PrismExtension, type PrismId, type SettingField } from './api';
 import BrandingPreview from './BrandingPreview';
 import SaveBar, { describeValue } from './SaveBar';
 import DateTimeField from './DateTimeField';
@@ -26,6 +26,8 @@ interface Entry {
     id: Target;
     name: string;
     icon: string;
+    /** The sidebar group; export and import has none and sits apart at the end. */
+    category?: Category;
     sections: string[];
     settings: { key: string; label: string; help: string | null; section: string }[];
 }
@@ -47,16 +49,18 @@ export default function PropertiesScreen() {
             id: extension.id,
             name: extension.name,
             icon: extension.icon,
+            category: extension.category,
             sections: [...(extension.id === 'prism-layout' ? ['Presets'] : []), ...new Set(schema.map(tabOf))],
             settings: schema.map((field) => ({ key: field.input, label: field.label, help: field.help, section: tabOf(field) })),
         }));
         if (hasTheme) {
             const settings = themeSettings.data ?? [];
-            const theme: Entry = { id: THEME_ID, name: 'Prism Themes', icon: 'palette', sections: themeSections(settings), settings: settings.filter((setting) => isLook(setting.key)).map((setting) => ({ key: setting.key, label: setting.label, help: setting.help, section: themeSectionOf(setting) })) };
+            const theme: Entry = { id: THEME_ID, name: 'Prism Themes', icon: 'palette', category: 'Appearance', sections: themeSections(settings), settings: settings.filter((setting) => isLook(setting.key)).map((setting) => ({ key: setting.key, label: setting.label, help: setting.help, section: themeSectionOf(setting) })) };
             // The look sits beside the layout.
             const layout = list.findIndex((entry) => entry.id === 'prism-layout');
             list.splice(layout + 1, 0, theme);
         }
+        list.sort((a, b) => CATEGORIES.indexOf(a.category!) - CATEGORIES.indexOf(b.category!));
         // Prism Export closes the list.
         if (list.length > 0) list.push({ id: EXPORT_ID, name: 'Export and import', icon: 'package', sections: ['Export', 'Import'], settings: [] });
 
@@ -270,11 +274,19 @@ function Sidebar({
                     </select>
 
                     <nav className={'pt-surface ppx:hidden ppx:flex-col ppx:gap-0.5 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-1.5 ppx:lg:flex'} aria-label={'Prism extensions'}>
-                        {entries.map((entry) => {
+                        {entries.map((entry, index) => {
                             const open = entry.id === current.id;
+                            // A heading where a group starts; export and import is set apart by a line instead.
+                            const starts = index === 0 || entry.category !== entries[index - 1].category;
 
                             return (
                                 <div key={entry.id}>
+                                    {starts &&
+                                        (entry.category ? (
+                                            <p className={cn('ppx:px-2 ppx:pb-1 ppx:text-xs ppx:font-medium ppx:tracking-wide ppx:text-muted-foreground ppx:uppercase', index > 0 ? 'ppx:pt-3' : 'ppx:pt-1')}>{entry.category}</p>
+                                        ) : (
+                                            index > 0 && <hr className={'ppx:mx-2 ppx:my-1.5 ppx:border-border'} />
+                                        ))}
                                     <button
                                         type={'button'}
                                         onClick={() => onGo(entry.id)}

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="../assets/placeholder.svg" alt="Prism Factorio" width="128" height="128">
+<img src="../assets/cog.png" alt="Prism Factorio" width="128" height="128">
 
 # Prism Factorio
 

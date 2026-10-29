@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="../assets/placeholder.svg" alt="Prism Share" width="128" height="128">
+<img src="../assets/share.png" alt="Prism Share" width="128" height="128">
 
 # Prism Share
 

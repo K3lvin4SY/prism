@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="../assets/placeholder.svg" alt="Prism Satisfactory" width="128" height="128">
+<img src="../assets/satis.png" alt="Prism Satisfactory" width="128" height="128">
 
 # Prism Satisfactory
 
