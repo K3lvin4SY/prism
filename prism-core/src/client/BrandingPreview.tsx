@@ -51,7 +51,11 @@ export default function BrandingPreview({ schema, draft, tab }: { schema: Settin
                                 className={cn('ppx:flex ppx:w-1/2 ppx:flex-col ppx:justify-center ppx:gap-3 ppx:border-r ppx:border-border ppx:p-5', cssImage && 'ppx:text-white')}
                                 style={{ background: cssImage ? `linear-gradient(to top, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.15)), ${cssImage}` : 'color-mix(in oklab, var(--primary) 7%, var(--background))' }}
                             >
-                                {logo ? <img src={logo} alt={''} style={{ width: size / 3.2, height: size / 3.2 }} className={'ppx:object-contain'} /> : <span className={'ppx:text-lg ppx:font-bold'}>{name}</span>}
+                                {mark === 'logo' && logo ? (
+                                    <img src={logo} alt={''} style={{ width: size / 3.2, height: size / 3.2 }} className={'ppx:object-contain'} />
+                                ) : mark !== 'none' ? (
+                                    <Mascot style={{ width: size / 3.2 }} className={'ppx:h-auto'} />
+                                ) : null}
                                 {title && <p className={'ppx:text-xl ppx:leading-tight ppx:font-extrabold ppx:tracking-tight'}>{title}</p>}
                                 {subtitle && <p className={cn('ppx:text-xs', cssImage ? 'ppx:text-white/80' : 'ppx:text-muted-foreground')}>{subtitle}</p>}
                             </div>

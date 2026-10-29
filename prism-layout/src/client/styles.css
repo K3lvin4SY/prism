@@ -262,6 +262,21 @@ html[data-pla-mark='mascot'] svg[aria-label='Pterodactyl'] {
     padding-inline: 0;
 }
 
+/* Card and backdrop: the headline and form in the middle of the page, instead of near its top. */
+html[data-pla-signin='card'] div:has(> main),
+html[data-pla-signin='backdrop'] div:has(> main) {
+    padding-top: 0;
+}
+
+html[data-pla-signin='card'] main,
+html[data-pla-signin='backdrop'] main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100dvh;
+    padding-block: 2rem;
+}
+
 /* On the card and backdrop styles the headline above stands for the sign-in page's own title. */
 html[data-pla-signin='card'] main:has(.pla-signin-login) h2,
 html[data-pla-signin='backdrop'] main:has(.pla-signin-login) h2 {

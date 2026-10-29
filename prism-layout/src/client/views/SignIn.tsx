@@ -1,12 +1,13 @@
+import Mascot from '../mascot';
 import { useSettings } from '../settings';
 
 const siteName = () => (window as unknown as { SiteConfiguration?: { name?: string } }).SiteConfiguration?.name ?? '';
 
 /**
  * Above the sign-in form, through the panel's auth slots, which are the one place an extension can
- * add to the sign-in pages: the picture beside or behind the form, the logo on a split page, and the
- * headline and tagline. The stylesheet
- * moves the panel's own card to make room (see styles.css, "Sign-in pages").
+ * add to the sign-in pages: the picture beside or behind the form, the logo or mascot on a split page,
+ * and the headline and tagline. The stylesheet moves the panel's own card to make room (see
+ * styles.css, "Sign-in pages").
  */
 export default function SignIn({ page }: { page?: 'login' }) {
     const settings = useSettings();
@@ -14,14 +15,14 @@ export default function SignIn({ page }: { page?: 'login' }) {
     const subtitle = settings.login_subtitle.trim();
 
     if (settings.login_style === 'split') {
-        // The logo, then the headline and the tagline, each only when set, centered on the picture side.
+        // What "Beside the form" picks (the mascot when there is no logo), then the headline and the
+        // tagline, each only when set, centered on the picture side.
+        const mark = settings.login_mark === 'logo' && !settings.logo ? 'mascot' : settings.login_mark;
+
         return (
             <div className='pla-signin-art' data-image={settings.login_image ? 'true' : 'false'} aria-hidden={!title && !subtitle}>
-                {settings.logo ? (
-                    <img src={settings.logo} alt={siteName()} className='pla-signin-logo pla:object-contain' />
-                ) : (
-                    <span className='pla:font-header pla:text-3xl pla:font-bold'>{siteName()}</span>
-                )}
+                {mark === 'logo' && settings.logo && <img src={settings.logo} alt={siteName()} className='pla-signin-logo pla:object-contain' />}
+                {mark === 'mascot' && <Mascot label='Pterodactyl mascot' className='pla-signin-logo' />}
                 {(title || subtitle) && (
                     <div className='pla:flex pla:max-w-lg pla:flex-col pla:gap-4'>
                         {title && <p className='pla:font-header pla:text-5xl pla:leading-[1.05] pla:font-extrabold pla:tracking-tight pla:text-balance'>{title}</p>}
