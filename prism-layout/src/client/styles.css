@@ -269,7 +269,9 @@ html[data-pla-signin='backdrop'] main:has(.pla-signin-login) h2 {
 }
 
 @media (min-width: 768px) {
-    html[data-pla-mark='logo'] div:has(> svg[aria-label='Pterodactyl']) {
+    /* The card leaves no left padding of its own, so the logo or mascot keeps some room on both sides. */
+    html[data-pla-mark='logo'] div:has(> svg[aria-label='Pterodactyl']),
+    html[data-pla-mark='mascot'] div:has(> svg[aria-label='Pterodactyl']) {
         margin-inline: 3rem;
     }
 
