@@ -10,10 +10,6 @@
  */
 
 /* #region palette */
-:where(:root) {
-    --radius: var(--pt-radius, 10px);
-}
-
 .dark {
     --pt-background: var(--pt-d-background);
     --pt-surface: var(--pt-d-surface);
@@ -65,6 +61,8 @@
 /* :root wins over the classic theme's own values for the same tokens. */
 :root.dark,
 :root.light {
+    /* The panel's own :root sets --radius too, so this needs the class beside :root to win. */
+    --radius: var(--pt-radius, 10px);
     --background: var(--pt-background);
     --foreground: var(--pt-text);
     --card: var(--pt-surface);
