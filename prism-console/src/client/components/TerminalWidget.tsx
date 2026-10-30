@@ -203,7 +203,9 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
         setStick(true);
     };
 
+    /** Sends the command line; with the history open, it only closes it, keeping the chosen command for the next. */
     const submit = () => {
+        if (historyOpen) return closeHistory();
         const text = command.trim();
         if (text === '' || !canSend) return;
         sendCommand(text);

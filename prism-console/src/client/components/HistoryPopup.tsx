@@ -12,7 +12,7 @@ interface Props {
     onClear: () => void;
 }
 
-/** Earlier commands in a box above the command line: the newest first, the chosen one filled. */
+/** Earlier commands in a box above the command line: the newest nearest it, the chosen one filled. */
 export default function HistoryPopup({ server, items, selected, synced, filtered, onPick, onClear }: Props) {
     const list = useRef<HTMLDivElement>(null);
 
@@ -38,7 +38,8 @@ export default function HistoryPopup({ server, items, selected, synced, filtered
                     </button>
                 )}
             </div>
-            <div ref={list} className={'pcn:flex pcn:max-h-60 pcn:flex-col pcn:overflow-y-auto pcn:p-1.5'}>
+            {/* The newest at the bottom, next to the command line, so ↑ moves up to older ones. */}
+            <div ref={list} className={'pcn:flex pcn:max-h-60 pcn:flex-col-reverse pcn:overflow-y-auto pcn:p-1.5'}>
                 {items.length === 0 && <p className={'pcn:px-2 pcn:py-4 pcn:text-center pcn:text-sm pcn:text-muted-foreground'}>{filtered ? 'No earlier command matches.' : 'Commands you send show up here.'}</p>}
                 {items.map((command, index) => (
                     <button
