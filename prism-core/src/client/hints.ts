@@ -8,7 +8,7 @@ export interface Hint {
     /** A heading the field is grouped under inside its tab. */
     section?: string;
     slider?: { min: number; max: number; step?: number; unit?: string };
-    editor?: 'highlights' | 'quickCommands' | 'lines' | 'keybinds' | 'datetime' | 'authProviders' | 'navigation' | 'shortcut';
+    editor?: 'highlights' | 'consoleLayout' | 'lines' | 'keybinds' | 'datetime' | 'authProviders' | 'navigation' | 'shortcut';
     /** Draw a select as buttons side by side. */
     segmented?: boolean;
 }
@@ -62,12 +62,11 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         allow_terminal_settings: { section: 'What people may change' },
         allow_layouts: { section: 'What people may change' },
         allow_highlights: { section: 'What people may change' },
-        allow_quick_commands: { section: 'What people may change' },
-        default_layout: { segmented: true },
+        default_layout: { editor: 'consoleLayout' },
+        filter_style: { segmented: true },
         default_font_size: { slider: { min: 9, max: 24, unit: 'px' } },
         default_line_height: { segmented: true },
         highlights: { editor: 'highlights' },
-        quick_commands: { editor: 'quickCommands' },
     },
     'prism-files': {
         enabled: { section: 'Features' },

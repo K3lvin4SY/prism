@@ -15,7 +15,8 @@ import { THEME_ID, themeApi, themeKeys } from './themes/api';
 import ThemeEditor, { sectionOf as themeSectionOf, themeSections } from './themes/ThemeEditor';
 import { isLook } from './themes/presets';
 import { ProvidersEditor } from './AuthProviders';
-import { HighlightsEditor, KeybindsEditor, LinesEditor, QuickCommandsEditor, ShortcutEditor, ToggleRow } from './editors';
+import ConsoleLayoutPicker from './ConsoleLayoutPicker';
+import { HighlightsEditor, KeybindsEditor, LinesEditor, ShortcutEditor, ToggleRow } from './editors';
 import NavigationBoard from './NavigationPicker';
 import { HINTS, type Hint } from './hints';
 
@@ -557,6 +558,15 @@ function Field({ field, hint, value, onChange }: { field: SettingField; hint: Hi
         );
     }
 
+    if (hint.editor === 'consoleLayout') {
+        return (
+            <>
+                <Label field={field} />
+                <ConsoleLayoutPicker value={value} options={field.options} onChange={onChange} />
+            </>
+        );
+    }
+
     if (field.field === 'select' && (hint.segmented || field.options.length <= 3)) {
         return (
             <>
@@ -595,8 +605,6 @@ function Field({ field, hint, value, onChange }: { field: SettingField; hint: Hi
         const editor =
             hint.editor === 'highlights' ? (
                 <HighlightsEditor value={value} onChange={onChange} />
-            ) : hint.editor === 'quickCommands' ? (
-                <QuickCommandsEditor value={value} onChange={onChange} />
             ) : hint.editor === 'keybinds' ? (
                 <KeybindsEditor value={value} onChange={onChange} />
             ) : hint.editor === 'lines' ? (

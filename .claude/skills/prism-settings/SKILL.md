@@ -12,7 +12,7 @@ description: Reference of every Prism extension's settings as Prism Properties s
    - `->frontend()` sends it to the browser (and `->frontendType('boolean')` keeps booleans typed); without it only PHP sees it. `->public()` also sends it to signed-out pages (Prism Layout's branding). `->file($types, $kb)` makes an uploaded file setting.
    - Rules are enforced when saving. Colors must be hex or `oklch()`.
 2. **Stored** by the Panel in `extension_settings` (`extension`, `key`, `value` as JSON, `scope` global). A setting never saved has no row and uses its default.
-3. **Edited** in Prism Properties (`/panel/prism`, Prism Core). Sections, units, ranges and placeholders come from `prism-core/src/client/hints.ts`; complex values (JSON settings such as highlight rules, quick commands, keybinds) have editors in `prism-core/src/client/editors.tsx`.
+3. **Edited** in Prism Properties (`/panel/prism`, Prism Core). Sections, units, ranges and placeholders come from `prism-core/src/client/hints.ts`; complex values (JSON settings such as highlight rules, keybinds) and pickers (the console layout drawings, `ConsoleLayoutPicker.tsx`) have editors in `prism-core/src/client/editors.tsx`.
 4. **Read** in the browser through the extension's `config.ts` `read(raw)` into a typed object, via the shared store, so the live preview can lay drafts over it (see `prism-architecture`). PHP reads with `$this->settings()->get('key')` or the extension's `Support/Settings.php`.
 5. **Exported** with Prism Export (all but file settings; see `prism-export-import`).
 
@@ -62,13 +62,13 @@ No settings of its own. Its admin screen is Prism Properties.
 | General | `allow_terminal_settings` | Personal terminal settings | `true` | toggle |
 | General | `allow_layouts` | Personal layouts | `true` | toggle |
 | General | `allow_highlights` | Personal highlight rules | `true` | toggle |
-| General | `allow_quick_commands` | Personal quick commands | `true` | toggle |
 | Layout | `default_layout` | Default layout | `'classic'` | select |
 | Features | `feature_search` | Search | `true` | toggle |
 | Features | `feature_filters` | Log level filters | `true` | toggle |
+| Features | `filter_style` | Log level filter style (`switch`: All/Info/Warn/Error, `pills`: per level with counts) | `'switch'` | select |
 | Features | `feature_export` | Export and copy | `true` | toggle |
 | Features | `feature_charts` | Live charts | `true` | toggle |
-| Features | `feature_quick_commands` | Quick commands | `true` | toggle |
+| Features | `feature_quick_commands` | Quick commands (per server, in the `prism_console_quick_commands` table, not a setting) | `true` | toggle |
 | Features | `feature_history_sync` | Command history follows people | `true` | toggle |
 | Features | `feature_pull_progress` | Image pull progress | `true` | toggle |
 | Terminal | `default_font` | Font | `'JetBrains Mono'` | select |
@@ -77,7 +77,6 @@ No settings of its own. Its admin screen is Prism Properties.
 | Terminal | `default_wrap` | Wrap long lines | `false` | toggle |
 | Terminal | `default_timestamps` | Show timestamps | `false` | toggle |
 | Highlights | `highlights` | Highlight rules | `self::DEFAULT_HIGHLIGHTS` |  |
-| Quick commands | `quick_commands` | Quick commands | `'[]'` |  |
 
 ### prism-database
 

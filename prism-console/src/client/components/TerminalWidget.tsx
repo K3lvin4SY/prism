@@ -4,10 +4,11 @@ import { NamedIcon } from '../icons';
 import { useHistory } from '../api';
 import { getConfig, loadFont, type TerminalSettings } from '../config';
 import { download, exportLines, type ExportFormat } from '../lib/export';
-import { LEVELS, compileRules, highlightRanges, paint, searchRanges, searchRegex, type ConsoleLine, type HighlightSettings, type Level, type Piece } from '../lib/lines';
+import { LEVELS, LEVEL_SWITCH, compileRules, highlightRanges, paint, searchRanges, searchRegex, showsLevel, type ConsoleLine, type HighlightSettings, type Level, type LevelChoice, type Piece } from '../lib/lines';
 import { useStore, type ServerConsoleStore } from '../store';
-import HistoryDialog from './HistoryDialog';
-import { IconButton, MenuItem, Popover } from './Popover';
+import HistoryPopup from './HistoryPopup';
+import { IconButton, MenuItem, Popover, useDismiss } from './Popover';
+import QuickBar from './QuickBar';
 
 interface Props {
     server: SdkServer;
@@ -15,10 +16,13 @@ interface Props {
     settings: TerminalSettings;
     onSettings: (patch: Partial<TerminalSettings>) => void;
     highlights: HighlightSettings[];
+    /** The level the switch shows. */
+    level: LevelChoice;
+    onLevel: (level: LevelChoice) => void;
+    /** The levels the pills turn off. */
     hiddenLevels: Level[];
     onHiddenLevels: (levels: Level[]) => void;
     onOpenSettings: () => void;
-    tall?: boolean;
     compact?: boolean;
 }
 
@@ -61,30 +65,36 @@ const Line = memo(function Line({ line, pieces, timestamps, current }: { line: C
     );
 });
 
-export default function TerminalWidget({ server, store, settings, onSettings, highlights, hiddenLevels, onHiddenLevels, onOpenSettings, tall, compact }: Props) {
+export default function TerminalWidget({ server, store, settings, onSettings, highlights, level, onLevel, hiddenLevels, onHiddenLevels, onOpenSettings, compact }: Props) {
     useStore(store);
     const config = getConfig();
     const uuid = server.attributes.uuid;
     const canSend = useServerPermission('control.console');
     const send = useSendServerCommand(uuid);
-    const { history, record, pin, clear } = useHistory(server.attributes.identifier, config.features.historySync);
+    const { history, record, clear } = useHistory(server.attributes.identifier, config.features.historySync);
 
     const widget = useRef<HTMLDivElement>(null);
     const scroller = useRef<HTMLDivElement>(null);
     const input = useRef<HTMLInputElement>(null);
+    const commandLine = useRef<HTMLDivElement>(null);
     const [stick, setStick] = useState(true);
     const [searching, setSearching] = useState(false);
     const [search, setSearch] = useState({ query: '', regex: false, caseSensitive: false, wholeWord: false });
     const [current, setCurrent] = useState(0);
     const [command, setCommand] = useState('');
+    // The history row the arrow keys have reached (-1: the typed text), and the typed text the rows are filtered by.
     const [cursor, setCursor] = useState(-1);
+    const [typed, setTyped] = useState('');
     const [historyOpen, setHistoryOpen] = useState(false);
     const [exportFiltered, setExportFiltered] = useState(true);
     const [exportStamps, setExportStamps] = useState(true);
 
     const rules = useMemo(() => compileRules(highlights), [highlights]);
     const regex = useMemo(() => (searching ? searchRegex(search) : null), [searching, search]);
-    const visible = useMemo(() => store.lines.filter((line) => !hiddenLevels.includes(line.level)), [store.lines, store.version, hiddenLevels]);
+    const filterStyle = config.features.filterStyle;
+    const choice = config.features.filters ? level : 'all';
+    const hidden = config.features.filters ? hiddenLevels : [];
+    const visible = useMemo(() => store.lines.filter((line) => showsLevel(line.level, { style: filterStyle, choice, hidden })), [store.lines, store.version, filterStyle, choice, hidden]);
 
     const matches = useMemo(() => {
         if (!regex) return [] as { line: number; index: number }[];
@@ -150,7 +160,7 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
             }
             if (event.ctrlKey && event.key.toLowerCase() === 'r' && canSend) {
                 event.preventDefault();
-                setHistoryOpen(true);
+                toggleHistory.current();
             }
         };
         window.addEventListener('keydown', keys);
@@ -159,16 +169,61 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
     }, [uuid, canSend, config.features.search]);
 
     const family = loadFont(settings.font);
-    const suggestion = command !== '' ? (history.commands.find((item) => item.startsWith(command) && item !== command) ?? '') : '';
+    const suggestion = command !== '' && cursor === -1 ? (history.commands.find((item) => item.startsWith(command) && item !== command) ?? '') : '';
 
-    const submit = (value = command) => {
-        const text = value.trim();
-        if (text === '' || !canSend) return;
+    /** Earlier commands containing the typed text, the newest first. */
+    const earlierFor = (text: string) => {
+        const term = text.trim().toLowerCase();
+
+        return term === '' ? history.commands : history.commands.filter((item) => item.toLowerCase().includes(term));
+    };
+    const earlier = earlierFor(typed);
+
+    const closeHistory = () => {
+        setHistoryOpen(false);
+        setCursor(-1);
+    };
+    useDismiss(commandLine, historyOpen, closeHistory);
+
+    const openHistory = () => {
+        setTyped(command);
+        setCursor(-1);
+        setHistoryOpen(true);
+    };
+
+    // Kept in a ref so the window's Ctrl+R listener always sees the current state.
+    const toggleHistory = useRef(() => {});
+    toggleHistory.current = () => {
+        historyOpen ? closeHistory() : openHistory();
+        input.current?.focus();
+    };
+
+    const sendCommand = (text: string) => {
         send.mutateAsync({ command: text }).catch(() => toast.error('The command could not be sent. Is the server running?'));
+        setStick(true);
+    };
+
+    const submit = () => {
+        const text = command.trim();
+        if (text === '' || !canSend) return;
+        sendCommand(text);
         record(text);
         setCommand('');
-        setCursor(-1);
-        setStick(true);
+        setTyped('');
+        closeHistory();
+    };
+
+    /** Moves through the history rows; down past the newest, the typed text comes back. */
+    const step = (offset: number) => {
+        const base = historyOpen ? typed : command;
+        const list = earlierFor(base);
+        if (!historyOpen) {
+            setTyped(command);
+            setHistoryOpen(true);
+        }
+        const next = Math.max(-1, Math.min((historyOpen ? cursor : -1) + offset, list.length - 1));
+        setCursor(next);
+        setCommand(next >= 0 ? list[next] : base);
     };
 
     const onKey = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -177,19 +232,18 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
             submit();
         } else if (event.key === 'ArrowUp') {
             event.preventDefault();
-            const next = Math.min(cursor + 1, history.commands.length - 1);
-            if (next >= 0) {
-                setCursor(next);
-                setCommand(history.commands[next]);
-            }
-        } else if (event.key === 'ArrowDown') {
+            step(1);
+        } else if (event.key === 'ArrowDown' && historyOpen) {
             event.preventDefault();
-            const next = cursor - 1;
-            setCursor(Math.max(-1, next));
-            setCommand(next >= 0 ? history.commands[next] : '');
+            step(-1);
+        } else if (event.key === 'Escape' && historyOpen) {
+            event.preventDefault();
+            setCommand(typed);
+            closeHistory();
         } else if (event.key === 'Tab' && suggestion) {
             event.preventDefault();
             setCommand(suggestion);
+            setTyped(suggestion);
         }
     };
 
@@ -220,7 +274,25 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
     return (
         <div ref={widget} className={'pt-surface pt-solid pcn-terminal pcn:flex pcn:min-w-0 pcn:flex-1 pcn:flex-col pcn:overflow-hidden pcn:rounded-lg pcn:border pcn:border-border'}>
             <div className={'pcn:flex pcn:flex-wrap pcn:items-center pcn:gap-1 pcn:border-b pcn:border-white/10 pcn:px-2 pcn:py-1.5'}>
-                {config.features.filters && (
+                {config.features.filters && filterStyle === 'switch' && (
+                    <div role={'group'} aria-label={'Show lines'} className={'prism-switch pcn:flex pcn:gap-0.5 pcn:rounded-lg pcn:border pcn:border-white/10 pcn:bg-black/20 pcn:p-0.5'}>
+                        {LEVEL_SWITCH.map((option) => (
+                            <button
+                                key={option.value}
+                                type={'button'}
+                                onClick={() => onLevel(option.value)}
+                                aria-pressed={choice === option.value}
+                                className={cn(
+                                    'prism-switch-item pcn:rounded-md pcn:px-3 pcn:py-0.5 pcn:text-sm pcn:cursor-pointer pcn:transition-colors',
+                                    choice === option.value ? 'pcn:bg-primary pcn:font-medium pcn:text-primary-foreground' : 'pcn:text-muted-foreground pcn:hover:text-foreground'
+                                )}
+                            >
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
+                {config.features.filters && filterStyle === 'pills' && (
                     <div className={'pcn:flex pcn:flex-wrap pcn:gap-1'}>
                         {LEVELS.map(({ level, label }) => {
                             const hidden = hiddenLevels.includes(level);
@@ -323,8 +395,8 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                 </div>
             )}
 
-            {/* At least the layout's height; taller when the column beside it is, so neither leaves a gap. */}
-            <div className={cn('pcn:relative pcn:flex-1', tall ? 'pcn:min-h-[calc(100vh-15rem)]' : compact ? 'pcn:min-h-[22rem]' : 'pcn:min-h-[min(62vh,40rem)]')}>
+            {/* On large screens the page fits the console to the window and the terminal takes what is left; a floor keeps it usable. */}
+            <div className={cn('pcn:relative pcn:flex-1 pcn:lg:min-h-64', compact ? 'pcn:min-h-[22rem]' : 'pcn:min-h-[min(62vh,40rem)]')}>
                 <div
                     ref={scroller}
                     onScroll={(event) => {
@@ -352,56 +424,66 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                 )}
             </div>
 
-            {canSend && (
-                <div className={'pcn:flex pcn:items-center pcn:gap-2 pcn:border-t pcn:border-white/10 pcn:px-3 pcn:py-2'}>
-                    <NamedIcon name={'chevron-right'} size={16} className={'pcn:shrink-0 pcn:opacity-60'} />
-                    <div className={'pcn:relative pcn:min-w-0 pcn:flex-1'} style={{ fontFamily: family, fontSize: `${settings.fontSize}px` }}>
-                        {suggestion && (
-                            <div aria-hidden className={'pcn:pointer-events-none pcn:absolute pcn:inset-0 pcn:flex pcn:items-center pcn:whitespace-pre pcn:opacity-35'}>
-                                <span className={'pcn:invisible'}>{command}</span>
-                                {suggestion.slice(command.length)}
-                            </div>
-                        )}
-                        <input
-                            ref={input}
-                            value={command}
-                            onChange={(event) => {
-                                setCommand(event.target.value);
-                                setCursor(-1);
-                            }}
-                            onKeyDown={onKey}
-                            placeholder={'Type a command…  ↑ history · Tab accepts · Ctrl+R search'}
-                            aria-label={'Command'}
-                            className={'pcn:w-full pcn:bg-transparent pcn:outline-none pcn:placeholder:opacity-50'}
-                            autoComplete={'off'}
-                            spellCheck={false}
-                        />
-                    </div>
-                    <IconButton icon={'history'} label={'Command history (Ctrl+R)'} onClick={() => setHistoryOpen(true)} />
-                    <button
-                        type={'button'}
-                        onClick={() => submit()}
-                        aria-label={'Send'}
-                        className={'pcn:flex pcn:size-7 pcn:items-center pcn:justify-center pcn:rounded-md pcn:bg-primary pcn:text-primary-foreground pcn:cursor-pointer pcn:disabled:opacity-40'}
-                        disabled={command.trim() === ''}
-                    >
-                        <NamedIcon name={'arrow-right'} size={15} />
-                    </button>
-                </div>
-            )}
+            {canSend && config.features.quickCommands && <QuickBar server={server.attributes.identifier} onRun={sendCommand} />}
 
-            {historyOpen && (
-                <HistoryDialog
-                    history={history}
-                    onClose={() => {
-                        setHistoryOpen(false);
-                        setTimeout(() => input.current?.focus(), 0);
-                    }}
-                    onPick={(value) => setCommand(value)}
-                    onRun={(value) => submit(value)}
-                    onPin={(value, pinned) => pin({ command: value, pinned })}
-                    onClear={() => clear()}
-                />
+            {canSend && (
+                <div ref={commandLine} className={cn('pcn:relative pcn:px-3 pcn:py-2', !config.features.quickCommands && 'pcn:border-t pcn:border-white/10')}>
+                    {historyOpen && (
+                        <HistoryPopup
+                            server={server.attributes.name}
+                            items={earlier}
+                            selected={cursor}
+                            synced={config.features.historySync}
+                            filtered={typed.trim() !== ''}
+                            onPick={(value) => {
+                                setCommand(value);
+                                setTyped(value);
+                                closeHistory();
+                                input.current?.focus();
+                            }}
+                            onClear={() => clear()}
+                        />
+                    )}
+                    <div className={'pcn:flex pcn:items-center pcn:gap-2 pcn:rounded-lg pcn:border pcn:border-white/15 pcn:bg-black/20 pcn:px-3 pcn:py-1.5 pcn:transition-colors pcn:focus-within:border-primary'}>
+                        <span aria-hidden className={'pcn:shrink-0 pcn:font-mono pcn:text-primary'}>
+                            &gt;
+                        </span>
+                        <div className={'pcn:relative pcn:min-w-0 pcn:flex-1'} style={{ fontFamily: family, fontSize: `${settings.fontSize}px` }}>
+                            {suggestion && (
+                                <div aria-hidden className={'pcn:pointer-events-none pcn:absolute pcn:inset-0 pcn:flex pcn:items-center pcn:whitespace-pre pcn:opacity-35'}>
+                                    <span className={'pcn:invisible'}>{command}</span>
+                                    {suggestion.slice(command.length)}
+                                </div>
+                            )}
+                            <input
+                                ref={input}
+                                value={command}
+                                onChange={(event) => {
+                                    setCommand(event.target.value);
+                                    setTyped(event.target.value);
+                                    setCursor(-1);
+                                }}
+                                onKeyDown={onKey}
+                                placeholder={'Type a command…'}
+                                aria-label={'Command'}
+                                aria-expanded={historyOpen}
+                                className={'pcn:w-full pcn:bg-transparent pcn:outline-none pcn:placeholder:opacity-50'}
+                                autoComplete={'off'}
+                                spellCheck={false}
+                            />
+                        </div>
+                        <button
+                            type={'button'}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => toggleHistory.current()}
+                            title={'Command history (↑ or Ctrl+R)'}
+                            aria-pressed={historyOpen}
+                            className={cn('pcn:flex pcn:shrink-0 pcn:items-center pcn:gap-1.5 pcn:rounded pcn:px-1 pcn:font-mono pcn:text-xs pcn:cursor-pointer pcn:transition-colors', historyOpen ? 'pcn:text-foreground' : 'pcn:text-muted-foreground pcn:hover:text-foreground')}
+                        >
+                            <span className={'pcn:tracking-tighter'}>↑↓</span> history
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

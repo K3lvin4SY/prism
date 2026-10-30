@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Button, Checkbox, Dialog, Input, Select, Switch, cn } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import type { Area, CustomLayout, Preferences, WidgetId } from '../api';
-import { FONTS, getConfig, type LayoutId, type QuickCommand, type TerminalSettings } from '../config';
+import { FONTS, getConfig, type LayoutId, type TerminalSettings } from '../config';
 import { AREAS, LAYOUTS, WIDGETS, normaliseCustom } from '../layouts';
 import type { CustomRule, HighlightSettings } from '../lib/lines';
+import { LayoutCard } from './LayoutPreview';
 
 const BUILTIN: { key: string; label: string; color: string }[] = [
     { key: 'errors', label: 'Errors', color: '#f87171' },
@@ -17,7 +18,7 @@ const BUILTIN: { key: string; label: string; color: string }[] = [
     { key: 'ips', label: 'IP addresses', color: '#c084fc' },
 ];
 
-type Tab = 'terminal' | 'layout' | 'highlights' | 'quick';
+type Tab = 'terminal' | 'layout' | 'highlights';
 
 interface Props {
     preferences: Preferences;
@@ -37,14 +38,12 @@ export default function SettingsDialog({ preferences, terminal, layout, onChange
             config.allow.terminal && ['terminal', 'Terminal'],
             config.allow.layouts && ['layout', 'Layout'],
             config.allow.highlights && ['highlights', 'Highlights'],
-            config.allow.quickCommands && config.features.quickCommands && ['quick', 'Quick commands'],
         ] as const
     ).filter(Boolean) as [Tab, string][];
     const [tab, setTab] = useState<Tab | undefined>(tabs[0]?.[0]);
 
     const setTerminal = (patch: Partial<TerminalSettings>) => onChange({ terminal: { ...preferences.terminal, ...patch } });
     const highlights: HighlightSettings = preferences.highlights ?? { builtin: {}, custom: [] };
-    const quick: QuickCommand[] = preferences.quickCommands ?? [];
     const custom = normaliseCustom(preferences.custom, LAYOUTS[layout === 'custom' ? config.defaultLayout : layout].widgets);
 
     const move = (list: CustomLayout, index: number, offset: number) => {
@@ -69,6 +68,7 @@ export default function SettingsDialog({ preferences, terminal, layout, onChange
                         ))}
                     </div>
 
+                    <div className={'pcn:-mr-2 pcn:h-[26rem] pcn:max-h-[60vh] pcn:overflow-y-auto pcn:pr-2'}>
                     {tab === 'terminal' && (
                         <div className={'pcn:flex pcn:flex-col pcn:gap-4'}>
                             <label className={'pcn:flex pcn:flex-col pcn:gap-1 pcn:text-sm'}>
@@ -103,30 +103,21 @@ export default function SettingsDialog({ preferences, terminal, layout, onChange
 
                     {tab === 'layout' && (
                         <div className={'pcn:flex pcn:flex-col pcn:gap-3'}>
-                            <div className={'pcn:grid pcn:gap-2 pcn:sm:grid-cols-2'}>
+                            <div className={'pcn:grid pcn:grid-cols-2 pcn:gap-2 pcn:sm:grid-cols-3'}>
                                 {(Object.keys(LAYOUTS) as LayoutId[]).map((id) => (
-                                    <button
+                                    <LayoutCard
                                         key={id}
-                                        type={'button'}
+                                        widgets={LAYOUTS[id].widgets}
+                                        compact={LAYOUTS[id].compact}
+                                        label={LAYOUTS[id].label}
+                                        note={id === config.defaultLayout ? 'default' : undefined}
+                                        selected={layout === id}
                                         onClick={() => onChange({ layout: id })}
-                                        className={cn('pcn:rounded-lg pcn:border pcn:p-3 pcn:text-left pcn:cursor-pointer', layout === id ? 'pcn:border-primary pcn:bg-primary/10' : 'pcn:border-border pcn:hover:border-primary/60')}
-                                    >
-                                        <span className={'pcn:block pcn:font-semibold'}>
-                                            {LAYOUTS[id].label}
-                                            {id === config.defaultLayout && <span className={'pcn:ml-2 pcn:text-xs pcn:font-normal pcn:text-muted-foreground'}>default</span>}
-                                        </span>
-                                        <span className={'pcn:text-xs pcn:text-muted-foreground'}>{LAYOUTS[id].description}</span>
-                                    </button>
+                                    />
                                 ))}
-                                <button
-                                    type={'button'}
-                                    onClick={() => onChange({ layout: 'custom', custom })}
-                                    className={cn('pcn:rounded-lg pcn:border pcn:p-3 pcn:text-left pcn:cursor-pointer', layout === 'custom' ? 'pcn:border-primary pcn:bg-primary/10' : 'pcn:border-border pcn:hover:border-primary/60')}
-                                >
-                                    <span className={'pcn:block pcn:font-semibold'}>Your own</span>
-                                    <span className={'pcn:text-xs pcn:text-muted-foreground'}>arrange the widgets yourself</span>
-                                </button>
+                                <LayoutCard widgets={custom} label={'Your own'} selected={layout === 'custom'} onClick={() => onChange({ layout: 'custom', custom })} />
                             </div>
+                            <p className={'pcn:text-xs pcn:text-muted-foreground'}>{layout === 'custom' ? 'Arrange the widgets yourself below.' : `${LAYOUTS[layout].label}: ${LAYOUTS[layout].description}.`}</p>
                             {layout === 'custom' && (
                                 <div className={'pcn:flex pcn:flex-col pcn:gap-1 pcn:rounded-lg pcn:border pcn:border-border pcn:p-2'}>
                                     {custom.map((entry, index) => (
@@ -188,28 +179,7 @@ export default function SettingsDialog({ preferences, terminal, layout, onChange
                         </div>
                     )}
 
-                    {tab === 'quick' && (
-                        <div className={'pcn:flex pcn:flex-col pcn:gap-2'}>
-                            <p className={'pcn:text-xs pcn:text-muted-foreground'}>Your buttons show next to the ones the administrator added, on every server.</p>
-                            {quick.map((command, index) => (
-                                <div key={index} className={'pcn:flex pcn:flex-wrap pcn:items-center pcn:gap-2'}>
-                                    <Input value={command.label} onChange={(event) => onChange({ quickCommands: quick.map((item, i) => (i === index ? { ...item, label: event.target.value } : item)) })} placeholder={'Label'} className={'pcn:w-32'} />
-                                    <Input value={command.command} onChange={(event) => onChange({ quickCommands: quick.map((item, i) => (i === index ? { ...item, command: event.target.value } : item)) })} placeholder={'Command'} className={'pcn:min-w-40 pcn:flex-1 pcn:font-mono'} />
-                                    <label className={'pcn:flex pcn:items-center pcn:gap-1 pcn:text-xs'}>
-                                        <Checkbox checked={command.confirm} onChange={(confirm) => onChange({ quickCommands: quick.map((item, i) => (i === index ? { ...item, confirm } : item)) })} /> Ask first
-                                    </label>
-                                    <Button.Text size={'xsmall'} onClick={() => onChange({ quickCommands: quick.filter((_, i) => i !== index) })} aria-label={'Remove'}>
-                                        <NamedIcon name={'x'} size={14} />
-                                    </Button.Text>
-                                </div>
-                            ))}
-                            <div>
-                                <Button size={'small'} isSecondary onClick={() => onChange({ quickCommands: [...quick, { label: '', command: '', confirm: false, tags: [] }] })}>
-                                    <NamedIcon name={'plus'} size={14} /> Add a button
-                                </Button>
-                            </div>
-                        </div>
-                    )}
+                    </div>
                 </div>
             )}
             <Dialog.Footer>

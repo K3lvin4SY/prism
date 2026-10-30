@@ -11,6 +11,21 @@ export const LEVELS: { level: Level; label: string }[] = [
     { level: 'system', label: 'System' },
 ];
 
+/** The level switch: everything, or one level on its own. */
+export type LevelChoice = 'all' | 'info' | 'warning' | 'error';
+
+export const LEVEL_SWITCH: { value: LevelChoice; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'info', label: 'Info' },
+    { value: 'warning', label: 'Warn' },
+    { value: 'error', label: 'Error' },
+];
+
+/** Whether a line shows: with the switch, one level or all; with the pills, every level not turned off. */
+export function showsLevel(level: Level, filter: { style: 'switch' | 'pills'; choice: LevelChoice; hidden: Level[] }): boolean {
+    return filter.style === 'switch' ? filter.choice === 'all' || filter.choice === level : !filter.hidden.includes(level);
+}
+
 export interface ConsoleLine {
     id: number;
     /** When the panel received it, in milliseconds. */

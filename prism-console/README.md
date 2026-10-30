@@ -23,10 +23,10 @@ Prism Console replaces the console page of every server. It keeps everything the
 ## Features
 
 - **Layouts**: several console layouts, full width or not, with or without the Panel's header.
-- **Command history**: remembered per server and following people between devices.
-- **Search and filters**: find text in the output and filter by log level.
+- **Command history**: remembered per server and following people between devices; ↑ or Ctrl+R opens it in a box above the command line.
+- **Search and filters**: find text in the output and filter by log level, with an All / Info / Warn / Error switch or pills with counts.
 - **Highlight rules**: color lines or words that match a pattern.
-- **Quick commands**: buttons for commands you send often.
+- **Quick commands**: buttons above the command line for commands you send often, kept for each server and shared by everyone on it.
 - **Export and copy**: save or copy the console output.
 - **Live charts**: CPU, memory, disk and network next to the console.
 - **Image pull progress**: a floating card showing progress while the server's image downloads.
@@ -38,10 +38,9 @@ Prism Console replaces the console page of every server. It keeps everything the
 | --- | --- |
 | General | Width, header, progress card, lines kept, history size, which personal settings people may change |
 | Layout | Default layout |
-| Features | Search, filters, export, charts, quick commands, history sync, image pull progress |
+| Features | Search, filters and their style, export, charts, quick commands, history sync, image pull progress |
 | Terminal | Font, text size, line height, wrap, timestamps |
 | Highlights | Default highlight rules |
-| Quick commands | Default quick commands |
 
 ## Requirements
 

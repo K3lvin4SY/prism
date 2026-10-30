@@ -29,7 +29,7 @@ Each extension is self-contained: its own `extension.json`, PHP provider (`src/<
 
 - **The list of extensions** is `PRISM` in `prism-core/src/client/api.ts` (id, name, icon, description). An extension only shows when it is installed, enabled and registered its settings.
 - **Settings come from the Panel**: `GET /api/admin/extensions/<id>/settings` returns the schema (fields with `input`, `label`, `help`, `tab`, `field`, `options`, `value`), `PATCH` saves, and `/settings/<input>/file` uploads or clears a file setting. The schema is what each PHP provider declares with `Setting::make(...)`.
-- **Presentation** that the schema lacks lives in Core: `hints.ts` (sections, units, ranges, placeholders per setting), `editors.tsx` (custom editors such as highlight rules, quick commands, keybinds), `DateTimeField.tsx`, `SaveBar.tsx` (unsaved changes, undo, save).
+- **Presentation** that the schema lacks lives in Core: `hints.ts` (sections, units, ranges, placeholders per setting), `editors.tsx` (custom editors such as highlight rules, keybinds), `DateTimeField.tsx`, `SaveBar.tsx` (unsaved changes, undo, save).
 - **Extras per extension**: Layout's `LayoutPresets.tsx`, `BrandingPreview.tsx`, `EggPictures.tsx`; Themes' editor in `themes/` (`ThemeEditor.tsx`, `presets.ts`, `generate.ts`, `color.ts`, `builtins.json`); `ExportImport.tsx` (see the `prism-export-import` skill).
 - After saving Prism Layout, Core calls `POST /api/admin/extensions/prism-layout/refresh` (`REFRESHES` in `api.ts`) so cached head tags update.
 
@@ -50,7 +50,7 @@ Every extension reads its settings through `src/client/configStore.ts`, generate
 
 Some settings are defaults that each person can override for themselves:
 
-- Prism Console: `PUT /api/client/servers/<id>/extensions/prism-console/preferences` (`terminal`, `layout`, `custom`, `highlights`, `quickCommands`, `hiddenLevels`), allowed per area by the `allow_*` settings.
+- Prism Console: `PUT /api/client/servers/<id>/extensions/prism-console/preferences` (`terminal`, `layout`, `custom`, `highlights`, `hiddenLevels`, `level`), allowed per area by the `allow_*` settings. Quick commands belong to the server, not the person: `POST/PATCH/DELETE …/prism-console/quick-commands` (needs `control.console`), rows in `prism_console_quick_commands`, deleted with the server.
 - Prism File Browser: `.../extensions/prism-files/preferences` (`view`, `showHidden`, `editor`, `keybinds`, `explorer`), edited in the editor's settings tab (`workbench/SettingsTab.tsx`); only values that differ from the admin defaults are stored. Allowed by `allow_editor_settings`.
 - Prism Layout's collapsed sidebar is per browser in `localStorage['prism-layout:collapsed']`.
 

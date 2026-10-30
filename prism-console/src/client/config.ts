@@ -4,12 +4,14 @@ import type { HighlightSettings } from './lib/lines';
 
 export type LayoutId = 'classic' | 'dashboard' | 'side' | 'monitor' | 'focus' | 'compact';
 
+export type FilterStyle = 'switch' | 'pills';
+
+/** A button above the command line, kept for one server and shared by everyone on it. */
 export interface QuickCommand {
-    label: string;
+    id: number;
+    label: string | null;
     command: string;
     confirm: boolean;
-    /** Egg tags the button shows for; empty shows it everywhere. */
-    tags: string[];
 }
 
 export interface TerminalSettings {
@@ -28,12 +30,11 @@ export interface ConsoleConfig {
     floatingProgress: boolean;
     maxLines: number;
     historyLimit: number;
-    allow: { terminal: boolean; layouts: boolean; highlights: boolean; quickCommands: boolean };
+    allow: { terminal: boolean; layouts: boolean; highlights: boolean };
     defaultLayout: LayoutId;
-    features: { search: boolean; filters: boolean; export: boolean; charts: boolean; quickCommands: boolean; historySync: boolean; pullProgress: boolean };
+    features: { search: boolean; filters: boolean; filterStyle: FilterStyle; export: boolean; charts: boolean; quickCommands: boolean; historySync: boolean; pullProgress: boolean };
     terminal: TerminalSettings;
     highlights: HighlightSettings;
-    quickCommands: QuickCommand[];
 }
 
 function json<T>(value: unknown, fallback: T): T {
@@ -66,12 +67,12 @@ export function read(raw: ExtensionConfig): ConsoleConfig {
             terminal: bool(get('allow_terminal_settings'), true),
             layouts: bool(get('allow_layouts'), true),
             highlights: bool(get('allow_highlights'), true),
-            quickCommands: bool(get('allow_quick_commands'), true),
         },
         defaultLayout: (['classic', 'dashboard', 'side', 'monitor', 'focus', 'compact'].includes(layout) ? layout : 'classic') as LayoutId,
         features: {
             search: bool(get('feature_search'), true),
             filters: bool(get('feature_filters'), true),
+            filterStyle: get('filter_style') === 'pills' ? 'pills' : 'switch',
             export: bool(get('feature_export'), true),
             charts: bool(get('feature_charts'), true),
             quickCommands: bool(get('feature_quick_commands'), true),
@@ -86,7 +87,6 @@ export function read(raw: ExtensionConfig): ConsoleConfig {
             timestamps: bool(get('default_timestamps'), false),
         },
         highlights: json<HighlightSettings>(get('highlights'), { builtin: {}, custom: [] }),
-        quickCommands: json<QuickCommand[]>(get('quick_commands'), []),
     };
 }
 

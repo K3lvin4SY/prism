@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseAnsi, plainText } from './ansi';
 import { exportLines } from './export';
-import { classify, compileRules, highlightRanges, makeLine, paint, searchRanges, searchRegex } from './lines';
+import { classify, compileRules, highlightRanges, makeLine, paint, searchRanges, searchRegex, showsLevel } from './lines';
 import { PullTracker } from './pull';
 
 describe('parseAnsi', () => {
@@ -22,6 +22,21 @@ describe('parseAnsi', () => {
     it('drops window titles, cursor moves and overwritten text', () => {
         expect(plainText(parseAnsi('\x1b]0;Terraria Server: world\x07Server started\x1b[K'))).toBe('Server started');
         expect(plainText(parseAnsi('loading 10%\rloading 100%'))).toBe('loading 100%');
+    });
+});
+
+describe('showsLevel', () => {
+    it('shows one level or all with the switch', () => {
+        const filter = { style: 'switch' as const, choice: 'warning' as const, hidden: ['warning' as const] };
+        expect(showsLevel('warning', filter)).toBe(true);
+        expect(showsLevel('info', filter)).toBe(false);
+        expect(showsLevel('player', { ...filter, choice: 'all' })).toBe(true);
+    });
+
+    it('hides the levels turned off with the pills', () => {
+        const filter = { style: 'pills' as const, choice: 'error' as const, hidden: ['debug' as const] };
+        expect(showsLevel('debug', filter)).toBe(false);
+        expect(showsLevel('info', filter)).toBe(true);
     });
 });
 

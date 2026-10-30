@@ -2,17 +2,16 @@ import type { Area, CustomLayout, WidgetId } from './api';
 import type { LayoutId } from './config';
 
 export const WIDGETS: Record<WidgetId, string> = {
-    terminal: 'Terminal and command line',
+    terminal: 'Terminal, quick commands and command line',
     power: 'Power buttons',
     info: 'Server info',
     tiles: 'Usage tiles',
     charts: 'Live charts',
-    quick: 'Quick commands',
 };
 
 export const AREAS: Record<Area, string> = { top: 'Top', main: 'Main', side: 'Side column', bottom: 'Bottom', hidden: 'Hidden' };
 
-export const LAYOUTS: Record<LayoutId, { label: string; description: string; widgets: CustomLayout; compact?: boolean; tall?: boolean }> = {
+export const LAYOUTS: Record<LayoutId, { label: string; description: string; widgets: CustomLayout; compact?: boolean }> = {
     classic: {
         label: 'Classic',
         description: 'terminal with a stats column',
@@ -21,7 +20,6 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'power', area: 'side' },
             { widget: 'tiles', area: 'side' },
             { widget: 'info', area: 'side' },
-            { widget: 'quick', area: 'side' },
             { widget: 'charts', area: 'bottom' },
         ],
     },
@@ -33,7 +31,6 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'terminal', area: 'main' },
             { widget: 'power', area: 'side' },
             { widget: 'info', area: 'side' },
-            { widget: 'quick', area: 'side' },
             { widget: 'charts', area: 'bottom' },
         ],
     },
@@ -45,7 +42,6 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'power', area: 'side' },
             { widget: 'info', area: 'side' },
             { widget: 'tiles', area: 'side' },
-            { widget: 'quick', area: 'side' },
             { widget: 'charts', area: 'side' },
         ],
     },
@@ -58,13 +54,11 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'terminal', area: 'main' },
             { widget: 'power', area: 'side' },
             { widget: 'info', area: 'side' },
-            { widget: 'quick', area: 'side' },
         ],
     },
     focus: {
         label: 'Focus',
         description: 'a large terminal with the live charts below',
-        tall: true,
         widgets: [
             { widget: 'terminal', area: 'main' },
             { widget: 'charts', area: 'bottom' },
@@ -78,7 +72,6 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
             { widget: 'terminal', area: 'main' },
             { widget: 'power', area: 'bottom' },
             { widget: 'tiles', area: 'bottom' },
-            { widget: 'quick', area: 'bottom' },
             { widget: 'charts', area: 'bottom' },
         ],
     },

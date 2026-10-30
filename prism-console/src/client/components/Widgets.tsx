@@ -1,7 +1,6 @@
-import { useState, type ReactNode } from 'react';
-import { Badge, Button, Dialog, bytesToString, cn, toast, useSendServerCommand, useServerPermission, useServerResources, type SdkServer } from '@pterodactyl/sdk';
+import type { ReactNode } from 'react';
+import { Badge, bytesToString, cn, useServerResources, type SdkServer } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
-import type { QuickCommand } from '../config';
 import { useStore, type ServerConsoleStore, type StatsSample } from '../store';
 
 const box = 'pt-surface pcn:rounded-lg pcn:border pcn:border-border pcn:bg-card';
@@ -202,48 +201,6 @@ export function Info({ server, store }: { server: SdkServer; store: ServerConsol
                     {server.attributes.docker_image.split('/').pop()}
                 </dd>
             </dl>
-        </div>
-    );
-}
-
-/** Buttons that send a command, asking first when the button says so. */
-export function QuickCommands({ server, commands, compact }: { server: SdkServer; commands: QuickCommand[]; compact?: boolean }) {
-    const canSend = useServerPermission('control.console');
-    const send = useSendServerCommand(server.attributes.uuid);
-    const [confirming, setConfirming] = useState<QuickCommand | null>(null);
-    const tags = server.attributes.egg_tags.map((tag) => tag.toLowerCase());
-    const shown = commands.filter((command) => command.command && (command.tags.filter(Boolean).length === 0 || command.tags.some((tag) => tags.includes(tag.toLowerCase()))));
-
-    if (!canSend || shown.length === 0) return null;
-
-    const run = (command: QuickCommand) =>
-        send
-            .mutateAsync({ command: command.command })
-            .then(() => toast.success(`Sent ${command.command}`))
-            .catch(() => toast.error('The command could not be sent. Is the server running?'));
-
-    return (
-        <div className={cn(box, 'pcn:flex-1', compact ? 'pcn:p-2' : 'pcn:p-3')}>
-            {!compact && <p className={'pcn:mb-2 pcn:text-xs pcn:uppercase pcn:tracking-wide pcn:text-muted-foreground'}>Quick commands</p>}
-            <div className={'pcn:flex pcn:flex-wrap pcn:gap-1.5'}>
-                {shown.map((command, index) => (
-                    <Button key={index} size={'small'} isSecondary onClick={() => (command.confirm ? setConfirming(command) : run(command))} title={command.command}>
-                        {command.label || command.command}
-                    </Button>
-                ))}
-            </div>
-            <Dialog.Confirm
-                open={confirming !== null}
-                onClose={() => setConfirming(null)}
-                title={`Run ${confirming?.label || confirming?.command}?`}
-                confirm={'Run'}
-                onConfirmed={() => {
-                    if (confirming) run(confirming);
-                    setConfirming(null);
-                }}
-            >
-                This sends <code className={'pcn:font-mono'}>{confirming?.command}</code> to the server.
-            </Dialog.Confirm>
         </div>
     );
 }
