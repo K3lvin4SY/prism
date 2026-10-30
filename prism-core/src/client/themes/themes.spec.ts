@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { contrast, normaliseColor, toHex, toOklch } from './color';
+import { contrast, mixColors, normaliseColor, splitAlpha, toHex, toOklch, withAlpha } from './color';
 import { asSettings, generatePalette } from './generate';
 import { BUILT_IN, ROLES, matches, readCustom, writeCustom } from './presets';
 
@@ -10,8 +10,8 @@ const settings = manifest.theme.settings;
 const lookKeys = Object.keys(settings).filter((key) => !['preset', 'presets', 'background_image'].includes(key));
 
 describe('built-in presets', () => {
-    it('are the eight asked for', () => {
-        expect(BUILT_IN.map((preset) => preset.name)).toEqual(['Studio', 'Studio classic', 'Terminal', 'Prism Slate', 'Catppuccin Mocha', 'Catppuccin Macchiato', 'Catppuccin Frappé', 'Catppuccin Latte']);
+    it('are the eight asked for, the default first', () => {
+        expect(BUILT_IN.map((preset) => preset.name)).toEqual(['Prism Slate', 'Studio', 'Studio classic', 'Terminal', 'Catppuccin Mocha', 'Catppuccin Macchiato', 'Catppuccin Frappé', 'Catppuccin Latte']);
     });
 
     it('set every look setting, with colors the panel accepts', () => {
@@ -45,7 +45,7 @@ describe('built-in presets', () => {
 
 describe('the palette generator', () => {
     it('gives Studio from blue, as generate.py does', () => {
-        const studio = BUILT_IN[0].values;
+        const studio = BUILT_IN.find((preset) => preset.id === 'studio')!.values;
         expect({ ...asSettings('d', generatePalette('d', 255, 0.17, 'subtle')), ...asSettings('l', generatePalette('l', 255, 0.17, 'subtle')) }).toEqual(Object.fromEntries(Object.entries(studio).filter(([key]) => /^[dl]_/.test(key))));
     });
 
@@ -71,6 +71,19 @@ describe('colors', () => {
         const blue = toOklch('#89b4fa');
         expect(toHex(`oklch(${blue.l.toFixed(4)} ${blue.c.toFixed(4)} ${blue.h.toFixed(2)})`)).toBe('#89b4fa');
         expect(toHex('oklch(1 0 0)')).toBe('#ffffff');
+    });
+
+    it('splits and joins a color and its opacity', () => {
+        expect(splitAlpha('#98adfe38')).toEqual({ hex: '#98adfe', alpha: 56 / 255 });
+        expect(splitAlpha('oklch(1 0 0 / 0.5)')).toEqual({ hex: '#ffffff', alpha: 0.5 });
+        expect(withAlpha('#98ADFE', 1)).toBe('#98adfe');
+        expect(withAlpha('#98adfe', 0.5)).toBe('#98adfe80');
+        expect(normaliseColor(withAlpha('#98adfe', 0))).toBe('#98adfe00');
+    });
+
+    it('mixes two stops for one between them', () => {
+        expect(mixColors('#000000', '#ffffff', 0.5)).toBe('#808080');
+        expect(mixColors('#ff000000', '#ff0000', 0.5)).toBe('#ff000080');
     });
 
     it('measures contrast as WCAG does', () => {

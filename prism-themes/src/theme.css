@@ -309,16 +309,19 @@ html {
 /* #region background */
 /*
  * Drawn by body::before and body::after, fixed behind everything, so it shows with any layout and on
- * the sign-in page. The aurora's third blob is html::before. The body's own background is the
- * canvas under them. Each background has its own settings: colors come from backgrounds.css,
- * numbers are tokens (--pt-bg-<kind>-<setting>); speeds are percentages of the normal pace.
+ * the sign-in page. The aurora's third blob is html::before. The body's own background (the
+ * palette's Background color) is the canvas under them: Plain is that alone.
+ *
+ * Shared settings are tokens --pt-bg-<kind>-<name> and attributes data-pt-bg-<kind>-<name>; colors
+ * are set per mode and backgrounds.css (generated) gives the showing mode's as --pt-bg-<kind>[-<n>].
+ * Colors carry their own opacity. Speeds are percentages of the normal pace.
  */
 body {
     background: var(--background);
 }
 
-:is([data-pt-bg='gradient'], [data-pt-bg='grid'], [data-pt-bg='image'], [data-pt-bg='mesh'], [data-pt-bg='stars'], [data-pt-bg='waves']) body::before,
-:is([data-pt-bg='image'], [data-pt-bg='stars'], [data-pt-bg='waves']) body::after,
+:is([data-pt-bg='gradient'], [data-pt-bg='grid'], [data-pt-bg='dots'], [data-pt-bg='image'], [data-pt-bg='stars']) body::before,
+:is([data-pt-bg='image'], [data-pt-bg='stars']) body::after,
 [data-pt-bg='aurora'] body::before,
 [data-pt-bg='aurora'] body::after,
 html[data-pt-bg='aurora']::before {
@@ -329,64 +332,55 @@ html[data-pt-bg='aurora']::before {
     pointer-events: none;
 }
 
-/* Gradient: soft light of two colors, from the corners, the top or the middle. */
+/* Gradient: up to five stops; stops past the last one repeat it, so the list is always five long. */
 :root {
-    --pt-bg-gradient-a: color-mix(in oklab, var(--pt-bg-gradient-from, var(--primary)) var(--pt-bg-gradient-strength, 16%), transparent);
-    --pt-bg-gradient-b: color-mix(in oklab, var(--pt-bg-gradient-to, var(--accent)) calc(var(--pt-bg-gradient-strength, 16%) * 0.65), transparent);
+    --pt-bg-gradient-stops:
+        var(--pt-bg-gradient-1) var(--pt-bg-gradient-1-at), var(--pt-bg-gradient-2) var(--pt-bg-gradient-2-at), var(--pt-bg-gradient-3) var(--pt-bg-gradient-3-at),
+        var(--pt-bg-gradient-4) var(--pt-bg-gradient-4-at), var(--pt-bg-gradient-5) var(--pt-bg-gradient-5-at);
 }
 
 [data-pt-bg='gradient'] body::before {
-    background:
-        radial-gradient(60rem 40rem at 0% -10%, var(--pt-bg-gradient-a), transparent 70%),
-        radial-gradient(50rem 30rem at 110% 0%, var(--pt-bg-gradient-b), transparent 70%);
+    background: linear-gradient(var(--pt-bg-gradient-angle, 180deg), var(--pt-bg-gradient-stops));
 }
 
-[data-pt-bg='gradient'][data-pt-bg-gradient-shape='top'] body::before {
-    background: linear-gradient(180deg, var(--pt-bg-gradient-a), var(--pt-bg-gradient-b) 40%, transparent 85%);
+[data-pt-bg='gradient'][data-pt-bg-gradient-type='radial'] body::before {
+    background: radial-gradient(circle farthest-corner at var(--pt-bg-gradient-at, 0% 0%), var(--pt-bg-gradient-stops));
 }
 
-[data-pt-bg='gradient'][data-pt-bg-gradient-shape='center'] body::before {
-    background:
-        radial-gradient(70rem 45rem at 50% 35%, var(--pt-bg-gradient-a), transparent 70%),
-        radial-gradient(60rem 30rem at 50% 110%, var(--pt-bg-gradient-b), transparent 70%);
+[data-pt-bg='gradient'][data-pt-bg-gradient-type='conic'] body::before {
+    background: conic-gradient(from var(--pt-bg-gradient-angle, 180deg) at var(--pt-bg-gradient-at, 50% 50%), var(--pt-bg-gradient-stops));
 }
 
-/* Grid: lines or dots, faded toward the bottom, toward the edges or not at all. */
+/* Grid and dots: a pattern faded toward the bottom, toward the edges, or not at all. */
 [data-pt-bg='grid'] body::before {
-    --pt-grid-line: color-mix(in oklab, var(--pt-bg-grid-color, var(--foreground)) var(--pt-bg-grid-strength, 5%), transparent);
     background-image:
-        linear-gradient(var(--pt-grid-line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--pt-grid-line) 1px, transparent 1px);
+        linear-gradient(var(--pt-bg-grid) var(--pt-bg-grid-width, 1px), transparent var(--pt-bg-grid-width, 1px)),
+        linear-gradient(90deg, var(--pt-bg-grid) var(--pt-bg-grid-width, 1px), transparent var(--pt-bg-grid-width, 1px));
     background-size: var(--pt-bg-grid-size, 32px) var(--pt-bg-grid-size, 32px);
+}
+
+[data-pt-bg='dots'] body::before {
+    background-image: radial-gradient(circle, var(--pt-bg-dots) calc(var(--pt-bg-dots-dot, 2px) / 2), transparent calc(var(--pt-bg-dots-dot, 2px) / 2 + 0.5px));
+    background-size: var(--pt-bg-dots-size, 24px) var(--pt-bg-dots-size, 24px);
+}
+
+:is([data-pt-bg='grid'][data-pt-bg-grid-fade='top'], [data-pt-bg='dots'][data-pt-bg-dots-fade='top']) body::before {
     mask-image: radial-gradient(ellipse at top, black 30%, transparent 80%);
 }
 
-/* A dot is smaller than a line, so it takes three times the strength to show as much. */
-[data-pt-bg='grid'][data-pt-bg-grid-style='dots'] body::before {
-    background-image: radial-gradient(circle, color-mix(in oklab, var(--pt-bg-grid-color, var(--foreground)) min(100%, calc(var(--pt-bg-grid-strength, 5%) * 3)), transparent) 1.4px, transparent 1.9px);
-}
-
-[data-pt-bg='grid'][data-pt-bg-grid-fade='edges'] body::before {
+:is([data-pt-bg='grid'][data-pt-bg-grid-fade='edges'], [data-pt-bg='dots'][data-pt-bg-dots-fade='edges']) body::before {
     mask-image: radial-gradient(ellipse at center, black 35%, transparent 85%);
 }
 
-[data-pt-bg='grid'][data-pt-bg-grid-fade='none'] body::before {
-    mask-image: none;
-}
-
-/* Picture: covering the page or repeated, darkened and blurred as set. */
+/* Picture: covering the page or repeated, darkened and blurred as set. A blurred picture reaches past the window, so its soft edge is not seen. */
 [data-pt-bg='image'] body::before {
     background: var(--pt-bg-image, none) center / cover no-repeat;
+    inset: calc(var(--pt-bg-image-blur, 0px) * -2);
+    filter: blur(var(--pt-bg-image-blur, 0px));
 }
 
 [data-pt-bg='image'][data-pt-bg-image-fit='tile'] body::before {
     background: var(--pt-bg-image, none) top left repeat;
-}
-
-/* A blurred picture reaches past the window, so its soft edge is not seen. */
-[data-pt-bg='image'] body::before {
-    inset: calc(var(--pt-bg-image-blur, 0px) * -2);
-    filter: blur(var(--pt-bg-image-blur, 0px));
 }
 
 [data-pt-bg='image'] body::after {
@@ -394,7 +388,7 @@ html[data-pt-bg='aurora']::before {
     opacity: var(--pt-bg-dim, 55%);
 }
 
-/* Aurora: three slow blobs of color drifting about. */
+/* Aurora: three slow, soft blobs of color drifting about. */
 [data-pt-bg='aurora'] body::before,
 [data-pt-bg='aurora'] body::after,
 html[data-pt-bg='aurora']::before {
@@ -402,32 +396,31 @@ html[data-pt-bg='aurora']::before {
     width: var(--pt-bg-aurora-size, 60vmax);
     height: var(--pt-bg-aurora-size, 60vmax);
     border-radius: 50%;
-    filter: blur(80px);
-    opacity: var(--pt-bg-aurora-strength, 32%);
+    background: radial-gradient(closest-side, var(--pt-blob), transparent);
+    filter: blur(60px);
     animation: pt-drift calc(28s * 100 / var(--pt-bg-aurora-speed, 100)) ease-in-out infinite alternate;
 }
 
 [data-pt-bg='aurora'] body::before {
-    background: var(--pt-bg-aurora-a, var(--primary));
-    top: calc(var(--pt-bg-aurora-size, 60vmax) * -0.42);
-    left: calc(var(--pt-bg-aurora-size, 60vmax) * -0.25);
+    --pt-blob: var(--pt-bg-aurora-1);
+    top: calc(var(--pt-bg-aurora-size, 60vmax) * -0.35);
+    left: calc(var(--pt-bg-aurora-size, 60vmax) * -0.2);
 }
 
 [data-pt-bg='aurora'] body::after {
-    background: var(--pt-bg-aurora-b, var(--accent));
-    bottom: calc(var(--pt-bg-aurora-size, 60vmax) * -0.5);
-    right: calc(var(--pt-bg-aurora-size, 60vmax) * -0.33);
+    --pt-blob: var(--pt-bg-aurora-2);
+    bottom: calc(var(--pt-bg-aurora-size, 60vmax) * -0.4);
+    right: calc(var(--pt-bg-aurora-size, 60vmax) * -0.25);
     animation-duration: calc(36s * 100 / var(--pt-bg-aurora-speed, 100));
     animation-direction: alternate-reverse;
 }
 
 html[data-pt-bg='aurora']::before {
-    background: var(--pt-bg-aurora-c, var(--pt-cyan));
+    --pt-blob: var(--pt-bg-aurora-3);
     top: 30%;
     left: 40%;
     width: calc(var(--pt-bg-aurora-size, 60vmax) * 0.67);
     height: calc(var(--pt-bg-aurora-size, 60vmax) * 0.67);
-    opacity: calc(var(--pt-bg-aurora-strength, 32%) * 0.62);
     animation-duration: calc(44s * 100 / var(--pt-bg-aurora-speed, 100));
 }
 
@@ -440,71 +433,19 @@ html[data-pt-bg='aurora']::before {
     }
 }
 
-/* Waves: bands of color rolling sideways along the bottom. */
-[data-pt-bg='waves'] body::before,
-[data-pt-bg='waves'] body::after {
-    inset: auto;
-    left: -50%;
-    width: 200%;
-    height: var(--pt-bg-waves-height, 40vh);
-    bottom: calc(var(--pt-bg-waves-height, 40vh) * -0.25);
-    background: radial-gradient(50% 60% at 50% 100%, color-mix(in oklab, var(--pt-bg-waves-a, var(--primary)) var(--pt-bg-waves-strength, 30%), transparent), transparent 70%);
-    border-radius: 45%;
-    animation: pt-wave calc(18s * 100 / var(--pt-bg-waves-speed, 100)) linear infinite;
-}
-
-[data-pt-bg='waves'] body::after {
-    bottom: calc(var(--pt-bg-waves-height, 40vh) * -0.45);
-    background: radial-gradient(50% 60% at 50% 100%, color-mix(in oklab, var(--pt-bg-waves-b, var(--accent)) calc(var(--pt-bg-waves-strength, 30%) * 0.73), transparent), transparent 70%);
-    animation-duration: calc(26s * 100 / var(--pt-bg-waves-speed, 100));
-    animation-direction: reverse;
-}
-
-@keyframes pt-wave {
-    from {
-        transform: translateX(0) rotate(0deg);
-    }
-    to {
-        transform: translateX(25%) rotate(360deg);
-    }
-}
-
-/* Color mesh: four soft blobs of color, slowly shifting; made for glass. */
-[data-pt-bg='mesh'] body::before {
-    --pt-mesh: var(--pt-bg-mesh-strength, 85%);
-    background:
-        radial-gradient(42vmax 42vmax at 12% 25%, color-mix(in oklab, var(--pt-bg-mesh-a, var(--pt-primary)) var(--pt-mesh), transparent), transparent 62%),
-        radial-gradient(36vmax 36vmax at 88% 12%, color-mix(in oklab, var(--pt-bg-mesh-b, var(--pt-blue)) calc(var(--pt-mesh) * 0.82), transparent), transparent 62%),
-        radial-gradient(46vmax 46vmax at 72% 88%, color-mix(in oklab, var(--pt-bg-mesh-c, var(--pt-magenta)) calc(var(--pt-mesh) * 0.82), transparent), transparent 62%),
-        radial-gradient(34vmax 34vmax at 4% 92%, color-mix(in oklab, var(--pt-bg-mesh-d, var(--pt-cyan)) calc(var(--pt-mesh) * 0.7), transparent), transparent 62%),
-        var(--background);
-    background-size: 140% 140%;
-    animation: pt-mesh calc(30s * 100 / var(--pt-bg-mesh-speed, 100)) ease-in-out infinite alternate;
-}
-
-@keyframes pt-mesh {
-    from {
-        background-position: 0% 0%;
-    }
-    to {
-        background-position: 100% 100%;
-    }
-}
-
 /* Stars: two layers of dots that twinkle out of step. More of them means a smaller tile. */
 [data-pt-bg='stars'] body::before,
 [data-pt-bg='stars'] body::after {
-    --pt-star: var(--pt-bg-stars-color, var(--foreground));
     --pt-star-size: calc(var(--pt-bg-stars-size, 100) / 100);
     background-image:
-        radial-gradient(calc(1.5px * var(--pt-star-size)) calc(1.5px * var(--pt-star-size)) at 20% 30%, var(--pt-star), transparent),
-        radial-gradient(calc(1px * var(--pt-star-size)) calc(1px * var(--pt-star-size)) at 70% 20%, var(--pt-star), transparent),
-        radial-gradient(calc(1.2px * var(--pt-star-size)) calc(1.2px * var(--pt-star-size)) at 40% 80%, var(--pt-star), transparent),
-        radial-gradient(calc(1px * var(--pt-star-size)) calc(1px * var(--pt-star-size)) at 85% 65%, var(--pt-star), transparent),
-        radial-gradient(calc(1.4px * var(--pt-star-size)) calc(1.4px * var(--pt-star-size)) at 10% 75%, color-mix(in oklab, var(--pt-star) 50%, var(--accent)), transparent),
-        radial-gradient(calc(1px * var(--pt-star-size)) calc(1px * var(--pt-star-size)) at 55% 50%, var(--pt-star), transparent);
+        radial-gradient(calc(1.5px * var(--pt-star-size)) calc(1.5px * var(--pt-star-size)) at 20% 30%, var(--pt-bg-stars), transparent),
+        radial-gradient(calc(1px * var(--pt-star-size)) calc(1px * var(--pt-star-size)) at 70% 20%, var(--pt-bg-stars), transparent),
+        radial-gradient(calc(1.2px * var(--pt-star-size)) calc(1.2px * var(--pt-star-size)) at 40% 80%, var(--pt-bg-stars), transparent),
+        radial-gradient(calc(1px * var(--pt-star-size)) calc(1px * var(--pt-star-size)) at 85% 65%, var(--pt-bg-stars), transparent),
+        radial-gradient(calc(1.4px * var(--pt-star-size)) calc(1.4px * var(--pt-star-size)) at 10% 75%, var(--pt-bg-stars), transparent),
+        radial-gradient(calc(1px * var(--pt-star-size)) calc(1px * var(--pt-star-size)) at 55% 50%, var(--pt-bg-stars), transparent);
     background-size: calc(840px / var(--pt-bg-stars-density, 3)) calc(840px / var(--pt-bg-stars-density, 3));
-    opacity: calc(var(--pt-bg-stars-brightness, 55%) * 0.8);
+    opacity: 0.8;
     animation: pt-twinkle 6s ease-in-out infinite alternate;
 }
 
@@ -521,10 +462,10 @@ html[data-pt-bg='aurora']::before {
 
 @keyframes pt-twinkle {
     from {
-        opacity: calc(var(--pt-bg-stars-brightness, 55%) * 0.27);
+        opacity: 0.3;
     }
     to {
-        opacity: var(--pt-bg-stars-brightness, 55%);
+        opacity: 1;
     }
 }
 /* #endregion background */

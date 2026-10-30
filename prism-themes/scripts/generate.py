@@ -88,65 +88,86 @@ def colors(dark, light):
     return {**{f'd_{role}': value for role, value in dark.items()}, **{f'l_{role}': value for role, value in light.items()}}
 
 
-# The palette roles a background color can be: they follow dark and light mode and presets.
-BG_ROLES = {'primary': 'Primary', 'blue': 'Blue', 'cyan': 'Cyan', 'green': 'Green', 'yellow': 'Yellow', 'red': 'Red', 'magenta': 'Magenta'}
-BG_ROLES_TEXT = {'text': 'Text', **BG_ROLES}
-SPEED = dict(type='number', label='Speed', min=25, max=200, step=25)
+STOPS = 5
+SPEED = dict(type='number', label='Speed', min=25, max=200, step=25, default=100)
+FADE = dict(type='select', label='Fade', options={'top': 'Toward the bottom', 'edges': 'Toward the edges', 'none': 'No fade'}, default='top')
+# Where a radial or angular gradient is centred: option => CSS position.
+POSITIONS = {'top-left': '0% 0%', 'top': '50% 0%', 'top-right': '100% 0%', 'left': '0% 50%', 'center': '50% 50%', 'right': '100% 50%', 'bottom-left': '0% 100%', 'bottom': '50% 100%', 'bottom-right': '100% 100%'}
 
-# Each background's own settings, shown under the gallery when it is chosen. Colors are
-# <html> attributes (backgrounds.css turns them into --pt-bg-* colors); numbers are tokens.
+# Each background's settings shared by dark and light mode, shown under the gallery when it is
+# chosen. Numbers are tokens (--pt-bg-<kind>-<name>), selects and toggles <html> attributes.
 BACKGROUND = {
     'gradient': {
-        'from': dict(type='select', label='First color', options=BG_ROLES, default='primary'),
-        'to': dict(type='select', label='Second color', options=BG_ROLES, default='blue'),
-        'shape': dict(type='select', label='Shape', options={'corners': 'From the corners', 'top': 'From the top', 'center': 'From the middle'}, default='corners'),
-        'strength': dict(type='number', label='Strength', min=0, max=60, step=2, unit='%', default=16),
+        'type': dict(type='select', label='Type', options={'linear': 'Linear', 'radial': 'Radial', 'conic': 'Angular'}, default='radial'),
+        'angle': dict(type='number', label='Angle', min=0, max=359, step=1, unit='deg', default=180),
+        'center': dict(type='select', label='Center', options={key: key.replace('-', ' ').capitalize() for key in POSITIONS}, default='top-left'),
+    },
+    'grid': {
+        'size': dict(type='number', label='Cell size', min=8, max=128, step=4, unit='px', default=32),
+        'width': dict(type='number', label='Line width', min=1, max=4, step=1, unit='px', default=1),
+        'fade': FADE,
+    },
+    'dots': {
+        'size': dict(type='number', label='Spacing', min=8, max=96, step=4, unit='px', default=24),
+        'dot': dict(type='number', label='Dot size', min=1, max=8, step=1, unit='px', default=2),
+        'fade': FADE,
     },
     'aurora': {
-        'a': dict(type='select', label='First color', options=BG_ROLES, default='primary'),
-        'b': dict(type='select', label='Second color', options=BG_ROLES, default='blue'),
-        'c': dict(type='select', label='Third color', options=BG_ROLES, default='cyan'),
-        'strength': dict(type='number', label='Strength', min=10, max=60, step=2, unit='%', default=32),
         'size': dict(type='number', label='Size', min=30, max=90, step=5, unit='vmax', default=60),
-        'speed': dict(SPEED, default=100),
-    },
-    'waves': {
-        'a': dict(type='select', label='Front color', options=BG_ROLES, default='primary'),
-        'b': dict(type='select', label='Back color', options=BG_ROLES, default='blue'),
-        'height': dict(type='number', label='Height', min=20, max=70, step=5, unit='vh', default=40),
-        'strength': dict(type='number', label='Strength', min=10, max=60, step=2, unit='%', default=30),
-        'speed': dict(SPEED, default=100),
+        'speed': SPEED,
     },
     'stars': {
         'density': dict(type='number', label='How many', min=1, max=6, step=1, default=3),
         'size': dict(type='number', label='Star size', min=50, max=250, step=25, default=100),
-        'color': dict(type='select', label='Color', options=BG_ROLES_TEXT, default='text'),
-        'brightness': dict(type='number', label='Brightness', min=20, max=100, step=5, unit='%', default=55),
         'twinkle': dict(type='toggle', label='Twinkle', help='Stars fade in and out slowly.', default=True),
-    },
-    'mesh': {
-        'a': dict(type='select', label='First color', options=BG_ROLES, default='primary'),
-        'b': dict(type='select', label='Second color', options=BG_ROLES, default='blue'),
-        'c': dict(type='select', label='Third color', options=BG_ROLES, default='magenta'),
-        'd': dict(type='select', label='Fourth color', options=BG_ROLES, default='cyan'),
-        'strength': dict(type='number', label='Strength', min=20, max=100, step=5, unit='%', default=85),
-        'speed': dict(SPEED, default=100),
-    },
-    'grid': {
-        'style': dict(type='select', label='Pattern', options={'lines': 'Lines', 'dots': 'Dots'}, default='lines'),
-        'size': dict(type='number', label='Cell size', min=16, max=96, step=4, unit='px', default=32),
-        'color': dict(type='select', label='Color', options=BG_ROLES_TEXT, default='text'),
-        'strength': dict(type='number', label='Strength', min=2, max=30, step=1, unit='%', default=5),
-        'fade': dict(type='select', label='Fade', options={'top': 'Toward the bottom', 'edges': 'Toward the edges', 'none': 'No fade'}, default='top'),
     },
     'image': {
         'fit': dict(type='select', label='Fill', options={'cover': 'Cover the page', 'tile': 'Repeat'}, default='cover'),
         'blur': dict(type='number', label='Blur', min=0, max=24, step=1, unit='px', default=0),
     },
 }
-BG_DEFAULTS = {f'bg_{kind}_{name}': spec['default'] for kind, params in BACKGROUND.items() for name, spec in params.items()}
+# Each background's colors, one per mode (bg_<mode>_<kind>[_<name>]), any color with its opacity.
+# The gradient's stops are colors and positions of their own, below.
+MODE_COLORS = {'grid': {'': 'Line color'}, 'dots': {'': 'Dot color'}, 'aurora': {'1': 'First color', '2': 'Second color', '3': 'Third color'}, 'stars': {'': 'Star color'}}
+BG_SHARED = {f'bg_{kind}_{name}': spec['default'] for kind, params in BACKGROUND.items() for name, spec in params.items()}
 
-BASE = {'radius': 10, 'font': 'plex', 'labels': 'sans', 'font_size': 16, 'switches': 'rounded', 'surface_style': 'raised', 'blur': 14, 'opacity': 70, 'background': 'gradient', 'background_dim': 55, **BG_DEFAULTS, 'motion': 'full'}
+
+def tint(color, alpha):
+    """A palette color with an opacity, in the panel's color syntax."""
+    if color.startswith('#'):
+        return color[:7] + ('' if alpha >= 1 else f'{round(alpha * 255):02x}')
+
+    return color if alpha >= 1 else f'{color[:-1]} / {num(alpha)})'
+
+
+def background_colors(dark, light):
+    """The background colors a preset starts with, made from its palette."""
+    out = {}
+    for mode, palette in (('d', dark), ('l', light)):
+        weight = 1 if mode == 'd' else .7
+        stops = [(tint(palette['primary'], .22 * weight), 0), (tint(palette['primary'], 0), 70)]
+        out[f'bg_{mode}_gradient_stops'] = len(stops)
+        for index in range(1, STOPS + 1):
+            color, at = stops[min(index, len(stops)) - 1]
+            out[f'bg_{mode}_gradient_{index}'] = color
+            out[f'bg_{mode}_gradient_{index}_at'] = at
+        out[f'bg_{mode}_grid'] = tint(palette['text'], .06)
+        out[f'bg_{mode}_dots'] = tint(palette['text'], .16)
+        out[f'bg_{mode}_aurora_1'] = tint(palette['primary'], .35 * weight)
+        out[f'bg_{mode}_aurora_2'] = tint(palette['blue'], .3 * weight)
+        out[f'bg_{mode}_aurora_3'] = tint(palette['cyan'], .22 * weight)
+        out[f'bg_{mode}_stars'] = tint(palette['text'], .7)
+
+    return out
+
+
+BASE = {'radius': 10, 'font': 'plex', 'labels': 'sans', 'font_size': 16, 'switches': 'rounded', 'surface_style': 'raised', 'blur': 14, 'opacity': 70, 'background': 'gradient', 'background_dim': 55, **BG_SHARED, 'motion': 'full'}
+
+
+def look(dark, light, **changes):
+    """A preset's values: its palettes, the base look with background colors made from them, and its changes."""
+    return {**colors(dark, light), **BASE, **background_colors(dark, light), **changes}
+
 
 # Prism Slate: the look of Prism's own pictures. Deep navy behind near-black cards, periwinkle for
 # the brand, Inter for text and JetBrains Mono for the small labels.
@@ -163,15 +184,16 @@ SLATE_LIGHT = {
     'red': '#d23a55', 'green': '#15934a', 'yellow': '#a16207', 'blue': '#4f63d8', 'magenta': '#9b4fd8', 'cyan': '#0e7490',
 }
 
+# Prism Slate first: it is the look a new panel starts with.
 PRESETS = [
-    {'id': 'studio', 'name': 'Studio', 'description': 'Blue, with soft shadows and a gradient behind.', 'values': {**colors(*generated(255, .17)), **BASE}},
-    {'id': 'studio-classic', 'name': 'Studio classic', 'description': 'Indigo and flat, close to the panel you know.', 'values': {**colors(*generated(270, .17)), **BASE, 'radius': 6, 'surface_style': 'flat', 'background': 'plain'}},
-    {'id': 'terminal', 'name': 'Terminal', 'description': 'Green on black, monospace and square.', 'values': {**colors(*generated(145, .17, 'strong')), **BASE, 'radius': 2, 'font': 'mono', 'surface_style': 'outlined', 'background': 'grid', 'switches': 'square'}},
     {'id': 'prism-slate', 'name': 'Prism Slate', 'description': "Prism's own look: navy and periwinkle, Inter, monospace labels.",
-     'values': {**colors(SLATE_DARK, SLATE_LIGHT), **BASE, 'radius': 14, 'font': 'inter', 'labels': 'mono', 'surface_style': 'raised', 'background': 'plain'}},
+     'values': look(SLATE_DARK, SLATE_LIGHT, radius=14, font='inter', labels='mono', surface_style='raised', background='plain')},
+    {'id': 'studio', 'name': 'Studio', 'description': 'Blue, with soft shadows and a gradient behind.', 'values': look(*generated(255, .17))},
+    {'id': 'studio-classic', 'name': 'Studio classic', 'description': 'Indigo and flat, close to the panel you know.', 'values': look(*generated(270, .17), radius=6, surface_style='flat', background='plain')},
+    {'id': 'terminal', 'name': 'Terminal', 'description': 'Green on black, monospace and square.', 'values': look(*generated(145, .17, 'strong'), radius=2, font='mono', surface_style='outlined', background='grid', switches='square')},
     *[
         {'id': f'catppuccin-{flavour}', 'name': f'Catppuccin {label}', 'description': 'The light flavour in light and dark mode.' if flavour == 'latte' else f'Catppuccin {label} in dark mode, Latte in light mode.',
-         'values': {**colors(catppuccin(flavour), catppuccin('latte')), **BASE, 'radius': 12, 'surface_style': 'flat', 'background': 'plain'}}
+         'values': look(catppuccin(flavour), catppuccin('latte'), radius=12, surface_style='flat', background='plain')}
         for flavour, label in [('mocha', 'Mocha'), ('macchiato', 'Macchiato'), ('frappe', 'Frappé'), ('latte', 'Latte')]
     ],
 ]
@@ -204,19 +226,33 @@ add('surface_style', type='select', label='Cards and bars', help='How cards, men
 add('blur', type='number', label='Glass blur', help='For Glass.', tab='Surfaces', default=DEFAULTS['blur'], min=0, max=40, step=2, unit='px', token='--pt-blur')
 add('opacity', type='number', label='Glass solidity', help='For Glass: how much of the card color covers what is behind.', tab='Surfaces', default=DEFAULTS['opacity'], min=30, max=100, step=5, unit='%', token='--pt-opacity')
 
-add('background', type='select', label='Background', tab='Background', options={'plain': 'Plain', 'gradient': 'Gradient', 'aurora': 'Aurora (moving)', 'waves': 'Waves (moving)', 'stars': 'Stars (moving)', 'mesh': 'Color mesh (moving)', 'grid': 'Grid', 'image': 'Picture'}, default=DEFAULTS['background'], attribute='data-pt-bg')
+add('background', type='select', label='Background', tab='Background', options={'plain': 'Plain', 'gradient': 'Gradient', 'grid': 'Grid', 'dots': 'Dots', 'aurora': 'Aurora (moving)', 'stars': 'Stars (moving)', 'image': 'Picture'}, default=DEFAULTS['background'], attribute='data-pt-bg')
 add('background_image', type='image', label='Background picture', help='Used when the background is Picture.', tab='Background', token='--pt-bg-image')
 add('background_dim', type='number', label='Darken the picture', tab='Background', default=DEFAULTS['background_dim'], min=0, max=95, step=5, unit='%', token='--pt-bg-dim')
-BG_LABELS = {'gradient': 'Gradient', 'aurora': 'Aurora', 'waves': 'Waves', 'stars': 'Stars', 'mesh': 'Color mesh', 'grid': 'Grid', 'image': 'Picture'}
+BG_LABELS = {'gradient': 'Gradient', 'grid': 'Grid', 'dots': 'Dots', 'aurora': 'Aurora', 'stars': 'Stars', 'image': 'Picture'}
+# Search finds each by its background's name too, such as "Stars: How many".
 for kind, params in BACKGROUND.items():
     for name, spec in params.items():
         key = f'bg_{kind}_{name}'
-        name_css = key.replace('_', '-')
         spec = {k: v for k, v in spec.items() if k != 'default'}
-        # Search finds each by its background's name too, such as "Stars: How many".
         spec['label'] = f"{BG_LABELS[kind]}: {spec['label']}"
-        place = {'token': f'--pt-{name_css}'} if spec['type'] == 'number' else {'attribute': f'data-pt-{name_css}'}
+        place = {'token': '--pt-' + key.replace('_', '-')} if spec['type'] == 'number' else {'attribute': 'data-pt-' + key.replace('_', '-')}
         add(key, **spec, tab='Background', default=DEFAULTS[key], **place)
+MODE_KEYS = []  # each per-mode background token without its mode: backgrounds.css picks the mode's
+for mode, mode_label in MODES.items():
+    paren = f' ({mode_label.lower()})'
+    add(f'bg_{mode}_gradient_stops', type='number', label=f'Gradient: Number of stops{paren}', tab='Background', default=DEFAULTS[f'bg_{mode}_gradient_stops'], min=2, max=STOPS, step=1)
+    for index in range(1, STOPS + 1):
+        add(f'bg_{mode}_gradient_{index}', type='color', label=f'Gradient: Stop {index} color{paren}', tab='Background', default=DEFAULTS[f'bg_{mode}_gradient_{index}'], token=f'--pt-bg-{mode}-gradient-{index}')
+        add(f'bg_{mode}_gradient_{index}_at', type='number', label=f'Gradient: Stop {index} position{paren}', tab='Background', default=DEFAULTS[f'bg_{mode}_gradient_{index}_at'], min=0, max=100, step=1, unit='%', token=f'--pt-bg-{mode}-gradient-{index}-at')
+        if mode == 'd':
+            MODE_KEYS += [f'gradient-{index}', f'gradient-{index}-at']
+    for kind, names in MODE_COLORS.items():
+        for name, label in names.items():
+            key = f'bg_{mode}_{kind}' + (f'_{name}' if name else '')
+            add(key, type='color', label=f'{BG_LABELS[kind]}: {label}{paren}', tab='Background', default=DEFAULTS[key], token='--pt-' + key.replace('_', '-'))
+            if mode == 'd':
+                MODE_KEYS.append(kind + (f'-{name}' if name else ''))
 
 add('motion', type='select', label='Motion', help='People who ask their system for less motion always get it.', tab='Motion', options={'full': 'Full', 'reduced': 'Reduced', 'none': 'None'}, default=DEFAULTS['motion'], attribute='data-pt-motion')
 
@@ -226,7 +262,7 @@ add('presets', type='text', label='Your presets', help='Presets made in Prism Pr
 
 manifest = {
     '$schema': './node_modules/@pterodactyl/sdk/manifest.schema.json',
-    'id': 'prism-themes', 'type': 'theme', 'name': 'Prism Themes', 'version': '0.3.0',
+    'id': 'prism-themes', 'type': 'theme', 'name': 'Prism Themes', 'version': '0.4.0',
     'description': 'One theme tool: colors for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.',
     'author': 'Donkare', 'icon': 'icon.png',
     'requires': {'panel': '^2.0.0-dev', 'sdk': '>=2.0.0-beta.6 <3.0', 'extensions': {'prism-core': '>=0.1.0'}},
@@ -235,17 +271,14 @@ manifest = {
 }
 open(os.path.join(root, 'extension.json'), 'w', encoding='utf8', newline='\n').write(json.dumps(manifest, indent=4, ensure_ascii=False) + '\n')
 
-# Each background color setting, as the palette role it names. The attribute is on <html>, where
-# .dark and .light set the roles, so each color is taken in the scheme showing.
-css = ['/* Written by scripts/generate.py: do not edit. Each background color setting as its palette role. */']
-for kind, params in BACKGROUND.items():
-    for name, spec in params.items():
-        if spec['type'] != 'select' or not set(spec['options']) <= set(BG_ROLES_TEXT):
-            continue
-        name_css = f'bg-{kind}-{name}'
-        for role in spec['options']:
-            source = '--foreground' if role == 'text' else f'--pt-{role}'
-            css.append(f"[data-pt-{name_css}='{role}'] {{ --pt-{name_css}: var({source}); }}")
+# The background colors of the mode showing (.dark and .light are on <html>), and the gradient's
+# center as a position.
+css = ['/* Written by scripts/generate.py: do not edit. The background colors of the mode showing, and the gradient center. */']
+for mode, scheme in (('d', 'dark'), ('l', 'light')):
+    css.append(f'.{scheme} {{')
+    css += [f'    --pt-bg-{name}: var(--pt-bg-{mode}-{name});' for name in MODE_KEYS]
+    css.append('}')
+css += [f"[data-pt-bg-gradient-center='{key}'] {{ --pt-bg-gradient-at: {value}; }}" for key, value in POSITIONS.items()]
 open(os.path.join(root, 'src', 'backgrounds.css'), 'w', encoding='utf8', newline='\n').write('\n'.join(css) + '\n')
 
 roles = [{'key': role, 'label': label, 'help': help_text, 'group': group} for role, (label, help_text, group) in ROLES.items()]

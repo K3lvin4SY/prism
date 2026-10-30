@@ -42,3 +42,8 @@
 .ppx-color-input::-moz-color-swatch {
     border: none;
 }
+
+/* A checkerboard under colors that may be see-through, so their opacity shows. */
+.ppx-checker {
+    background: repeating-conic-gradient(color-mix(in oklab, var(--muted-foreground) 35%, var(--card)) 0 25%, var(--card) 0 50%) 0 0 / 10px 10px;
+}

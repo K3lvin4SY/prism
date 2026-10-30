@@ -72,6 +72,25 @@ export const toHex = (text: string): string => {
     return rgb ? `#${byte(rgb.r)}${byte(rgb.g)}${byte(rgb.b)}` : '#000000';
 };
 
+/** A color as #rrggbb and its opacity from 0 to 1, for a picker with an opacity of its own. */
+export function splitAlpha(text: string): { hex: string; alpha: number } {
+    const rgb = parseColor(text);
+
+    return rgb ? { hex: `#${byte(rgb.r)}${byte(rgb.g)}${byte(rgb.b)}`, alpha: rgb.a } : { hex: '#000000', alpha: 1 };
+}
+
+/** #rrggbb with an opacity, as #rrggbbaa, or #rrggbb when it is opaque. */
+export const withAlpha = (hex: string, alpha: number): string => (alpha >= 1 ? hex.slice(0, 7).toLowerCase() : `${hex.slice(0, 7).toLowerCase()}${byte(alpha)}`);
+
+/** The color part of the way from one color to another, opacity included: a stop added between two. */
+export function mixColors(from: string, to: string, part: number): string {
+    const a = parseColor(from) ?? { r: 0, g: 0, b: 0, a: 1 };
+    const b = parseColor(to) ?? a;
+    const at = (x: number, y: number) => x + (y - x) * clamp(part);
+
+    return withAlpha(`#${byte(at(a.r, b.r))}${byte(at(a.g, b.g))}${byte(at(a.b, b.b))}`, at(a.a, b.a));
+}
+
 /** Lightness, chroma and hue of a color, for the palette generator. */
 export function toOklch(text: string): { l: number; c: number; h: number } {
     const rgb = parseColor(text) ?? { r: 0, g: 0, b: 0, a: 1 };

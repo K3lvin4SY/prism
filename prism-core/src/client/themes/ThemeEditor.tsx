@@ -7,7 +7,7 @@ import { reloadPreview, usePreviewDraft, usePreviewNote } from '../preview';
 import ExtensionMark from '../ExtensionMark';
 import SaveBar, { describeValue } from '../SaveBar';
 import { THEME_ID, optionsOf, themeApi, themeKeys, type ThemeSetting } from './api';
-import { contrast, normaliseColor, toHex, toOklch } from './color';
+import { contrast, mixColors, normaliseColor, splitAlpha, toHex, toOklch, withAlpha } from './color';
 import { asSettings, generatePalette, type Tint } from './generate';
 import { BUILT_IN, ROLES, isLook, lookOf, matches, newId, readCustom, writeCustom, type Mode, type Preset, type Values } from './presets';
 
@@ -107,7 +107,7 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
     // Glass blur and solidity only matter for Glass; search still reaches them.
     const fields = list.filter((setting) => isLook(setting.key) && sectionOf(setting) === section && (!GLASS_ONLY.includes(setting.key) || values.surface_style === 'glass' || focus === setting.key));
     const field = (setting: ThemeSetting) => (
-        <div key={setting.key} id={`ppx-setting-${THEME_ID}-${setting.key}`} className={cn('ppx:scroll-mt-24 ppx:rounded-md ppx:border-b ppx:border-border ppx:pb-3 ppx:last:border-b-0', focus === setting.key && 'ppx:ring-2 ppx:ring-primary ppx:ring-offset-4 ppx:ring-offset-card')}>
+        <div key={setting.key} id={`ppx-setting-${THEME_ID}-${setting.key}`} className={cn('ppx:scroll-mt-24 ppx:border-b ppx:border-border ppx:pb-3 ppx:last:border-b-0', focus === setting.key && 'ppx:ring-2 ppx:ring-primary ppx:ring-offset-4 ppx:ring-offset-card')}>
             <Field setting={setting} value={values[setting.key]} values={values} onChange={(value) => change(setting.key, value)} onSchema={(fresh) => queryClient.setQueryData(themeKeys.settings, fresh)} />
         </div>
     );
@@ -157,7 +157,7 @@ export default function ThemeEditor({ section, focus, onDirty }: { section: stri
                             <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>{section}</h3>
                             <div className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:p-4'}>
                                 {section === 'Background' ? (
-                                    <Backgrounds list={fields} values={values} focus={focus ?? null} change={change} field={field} />
+                                    <Backgrounds list={fields} values={values} focus={focus ?? null} change={change} apply={apply} field={field} />
                                 ) : fields.length === 0 ? (
                                     <p className={'ppx:text-sm ppx:text-muted-foreground'}>Nothing to set here.</p>
                                 ) : (
@@ -346,9 +346,9 @@ function Presets({ values, apply }: { values: Values; apply: (changes: Values) =
 }
 
 /** A small icon button; its label shows as a tooltip and is read out. */
-function IconAction({ icon, label, danger = false, onClick }: { icon: string; label: string; danger?: boolean; onClick: () => void }) {
+function IconAction({ icon, label, danger = false, disabled = false, onClick }: { icon: string; label: string; danger?: boolean; disabled?: boolean; onClick: () => void }) {
     return (
-        <button type={'button'} onClick={onClick} title={label} aria-label={label} className={cn('ppx:flex ppx:size-8 ppx:cursor-pointer ppx:items-center ppx:justify-center ppx:rounded-md ppx:text-muted-foreground ppx:transition-colors', danger ? 'ppx:hover:bg-destructive/15 ppx:hover:text-destructive' : 'ppx:hover:bg-muted ppx:hover:text-foreground')}>
+        <button type={'button'} onClick={onClick} disabled={disabled} title={label} aria-label={label} className={cn('ppx:flex ppx:size-8 ppx:cursor-pointer ppx:items-center ppx:justify-center ppx:rounded-md ppx:text-muted-foreground ppx:transition-colors ppx:disabled:cursor-default ppx:disabled:opacity-40', danger ? 'ppx:hover:bg-destructive/15 ppx:hover:text-destructive' : 'ppx:hover:bg-muted ppx:hover:text-foreground')}>
             <NamedIcon name={icon} size={15} />
         </button>
     );
@@ -569,11 +569,11 @@ function Label({ setting, unit }: { setting: ThemeSetting; unit?: ReactNode }) {
     );
 }
 
-function Choice({ options, value, onChange, children }: { options: { value: string; label: string }[]; value: unknown; onChange: (value: string) => void; children?: (option: { value: string; label: string }) => ReactNode }) {
+function Choice({ options, value, onChange, wide = false, children }: { options: { value: string; label: string }[]; value: unknown; onChange: (value: string) => void; wide?: boolean; children?: (option: { value: string; label: string }) => ReactNode }) {
     return (
-        <div className={'ppx:grid ppx:grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] ppx:gap-2'}>
+        <div className={cn('ppx:grid ppx:gap-2', wide ? 'ppx:grid-cols-[repeat(auto-fill,minmax(12rem,1fr))]' : 'ppx:grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))]')}>
             {options.map((option) => (
-                <button key={option.value} type={'button'} aria-pressed={value === option.value} onClick={() => onChange(option.value)} className={cn('ppx:flex ppx:cursor-pointer ppx:flex-col ppx:items-center ppx:gap-2 ppx:rounded-lg ppx:border ppx:p-3', value === option.value ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary')}>
+                <button key={option.value} type={'button'} aria-pressed={value === option.value} onClick={() => onChange(option.value)} className={cn('ppx:flex ppx:cursor-pointer ppx:flex-col ppx:items-center ppx:gap-2 ppx:rounded-lg ppx:border ppx:py-3', wide ? 'ppx:px-6' : 'ppx:px-3', value === option.value ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary')}>
                     {children?.(option)}
                     <span className={'ppx:text-sm'}>{option.label}</span>
                 </button>
@@ -694,142 +694,437 @@ function SurfacePicker({ setting, value, values, onChange }: { setting: ThemeSet
 
 /* #region Background */
 
-const BACKGROUND_LABELS: Record<string, string> = { plain: 'Plain', gradient: 'Gradient', aurora: 'Aurora', waves: 'Waves', stars: 'Stars', mesh: 'Color mesh', grid: 'Grid', image: 'Your picture' };
-const MOVING = ['aurora', 'waves', 'stars', 'mesh'];
-/** The background a setting belongs to: bg_<kind>_*, and the picture's own two. */
-const kindOf = (key: string) => (key === 'background_image' || key === 'background_dim' ? 'image' : (/^bg_([a-z]+)_/.exec(key)?.[1] ?? null));
+const BACKGROUND_LABELS: Record<string, string> = { plain: 'Plain', gradient: 'Gradient', grid: 'Grid', dots: 'Dots', aurora: 'Aurora', stars: 'Stars', image: 'Your picture' };
+const MOVING = ['aurora', 'stars'];
 /** Numbers kept without a unit that read as a percentage. */
 const PERCENT = /(_speed|^bg_stars_size)$/;
+/** The most stops a gradient has; as generate.py's STOPS. */
+const STOPS = 5;
+const POSITIONS: Record<string, string> = { 'top-left': '0% 0%', top: '50% 0%', 'top-right': '100% 0%', left: '0% 50%', center: '50% 50%', right: '100% 50%', 'bottom-left': '0% 100%', bottom: '50% 100%', 'bottom-right': '100% 100%' };
+const GRADIENT_TYPES = [
+    { value: 'linear', label: 'Linear' },
+    { value: 'radial', label: 'Radial' },
+    { value: 'conic', label: 'Angular' },
+];
 
-/** A small picture of a background, from the draft palette and its own settings. */
-function backgroundPicture(kind: string, values: Values, pick: Paint): CSSProperties {
-    const get = (name: string, fallback: number) => num(values[`bg_${kind}_${name}`], fallback);
-    const role = (name: string, fallback: string) => {
-        const value = typeof values[`bg_${kind}_${name}`] === 'string' ? String(values[`bg_${kind}_${name}`]) : fallback;
+/** The background a setting belongs to, and its mode when it is set per mode: bg_<kind>_*, bg_<mode>_<kind>*, and the picture's own two. */
+function placeOf(key: string): { kind: string | null; mode: Mode | null } {
+    if (key === 'background_image' || key === 'background_dim') return { kind: 'image', mode: null };
+    const match = /^bg_(?:([dl])_)?([a-z]+)/.exec(key);
 
-        return pick(value);
-    };
-    const bg = pick('background');
-    // A picture this small needs more color than the page to read the same.
-    const boost = 1.8;
-
-    switch (kind) {
-        case 'gradient': {
-            const s = get('strength', 16) * boost;
-            const a = mix(role('from', 'primary'), s);
-            const b = mix(role('to', 'blue'), s * 0.65);
-            const shape = values.bg_gradient_shape;
-            const image = shape === 'top' ? `linear-gradient(180deg, ${a}, ${b} 40%, transparent 85%)` : shape === 'center' ? `radial-gradient(70% 70% at 50% 40%, ${a}, transparent 70%), radial-gradient(70% 50% at 50% 110%, ${b}, transparent 70%)` : `radial-gradient(90% 90% at 0% -10%, ${a}, transparent 70%), radial-gradient(80% 70% at 110% 0%, ${b}, transparent 70%)`;
-
-            return { background: `${image}, ${bg}` };
-        }
-        case 'aurora': {
-            const s = get('strength', 32) * boost;
-            const size = get('size', 60) / 60;
-
-            return {
-                background: `radial-gradient(${45 * size}% ${60 * size}% at 25% 25%, ${mix(role('a', 'primary'), s)}, transparent), radial-gradient(${45 * size}% ${60 * size}% at 75% 80%, ${mix(role('b', 'blue'), s)}, transparent), radial-gradient(${30 * size}% ${40 * size}% at 55% 50%, ${mix(role('c', 'cyan'), s * 0.62)}, transparent), ${bg}`,
-            };
-        }
-        case 'waves': {
-            const s = get('strength', 30) * boost;
-            const h = get('height', 40);
-
-            return { background: `radial-gradient(70% ${h * 1.6}% at 40% 100%, ${mix(role('a', 'primary'), s)}, transparent 70%), radial-gradient(70% ${h * 1.3}% at 75% 100%, ${mix(role('b', 'blue'), s * 0.73)}, transparent 70%), ${bg}` };
-        }
-        case 'stars': {
-            const star = mix(role('color', 'text'), get('brightness', 55) + 30);
-            const size = get('size', 100) / 100;
-            const tile = 180 / get('density', 3);
-            const dot = (px: number, x: number, y: number) => `radial-gradient(${px * size}px ${px * size}px at ${x}% ${y}%, ${star}, transparent)`;
-
-            return { background: `${[dot(1.5, 20, 30), dot(1, 70, 20), dot(1.2, 40, 80), dot(1, 85, 65), dot(1.4, 10, 75), dot(1, 55, 50)].join(', ')}, ${pick('deep')}`, backgroundSize: `${tile}px ${tile}px` };
-        }
-        case 'mesh': {
-            const s = get('strength', 85);
-
-            return {
-                background: `radial-gradient(55% 75% at 12% 25%, ${mix(role('a', 'primary'), s)}, transparent 62%), radial-gradient(50% 70% at 88% 12%, ${mix(role('b', 'blue'), s * 0.82)}, transparent 62%), radial-gradient(60% 80% at 72% 88%, ${mix(role('c', 'magenta'), s * 0.82)}, transparent 62%), radial-gradient(45% 65% at 4% 92%, ${mix(role('d', 'cyan'), s * 0.7)}, transparent 62%), ${bg}`,
-            };
-        }
-        case 'grid': {
-            const line = mix(role('color', 'text'), get('strength', 5) * (values.bg_grid_style === 'dots' ? 3 : 1) * 2.5);
-            const size = get('size', 32) / 2;
-            const fade = values.bg_grid_fade === 'none' ? undefined : values.bg_grid_fade === 'edges' ? 'radial-gradient(ellipse at center, black 35%, transparent 85%)' : 'radial-gradient(ellipse at top, black 30%, transparent 90%)';
-            const image = values.bg_grid_style === 'dots' ? `radial-gradient(circle, ${line} 1px, transparent 1.5px)` : `linear-gradient(${line} 1px, transparent 1px), linear-gradient(90deg, ${line} 1px, transparent 1px)`;
-
-            return { backgroundColor: bg, backgroundImage: image, backgroundSize: `${size}px ${size}px`, maskImage: fade };
-        }
-        default:
-            return { background: bg };
-    }
+    return { kind: match?.[2] ?? null, mode: (match?.[1] as Mode | undefined) ?? null };
 }
 
-/** A palette role chosen from round swatches; the color follows the scheme and the palette. */
-function RolePicker({ setting, value, pick, onChange }: { setting: ThemeSetting; value: unknown; pick: Paint; onChange: (value: string) => void }) {
-    const options = optionsOf(setting);
+/** A setting's label without its background's name and mode, which the editor shows already. */
+const shortLabel = (setting: ThemeSetting): ThemeSetting => ({ ...setting, label: setting.label.replace(/^[^:]+: /, '').replace(/ \((dark|light)\)$/, '') });
+
+interface Stop {
+    id: number;
+    color: string;
+    at: number;
+}
+
+function readStops(values: Values, mode: Mode): Stop[] {
+    const count = Math.min(STOPS, Math.max(2, num(values[`bg_${mode}_gradient_stops`], 2)));
+
+    return Array.from({ length: count }, (_, index) => ({ id: index, color: String(values[`bg_${mode}_gradient_${index + 1}`] ?? '#00000000'), at: num(values[`bg_${mode}_gradient_${index + 1}_at`], index === 0 ? 0 : 100) }));
+}
+
+const sortStops = (stops: Stop[]) => [...stops].sort((a, b) => a.at - b.at || a.id - b.id);
+
+/** The settings of a list of stops: in order, and each slot past the last stop repeating it, as theme.css always lists five. */
+function writeStops(stops: Stop[], mode: Mode): Values {
+    const sorted = sortStops(stops);
+    const out: Values = { [`bg_${mode}_gradient_stops`]: sorted.length };
+    for (let index = 0; index < STOPS; index++) {
+        const stop = sorted[Math.min(index, sorted.length - 1)];
+        out[`bg_${mode}_gradient_${index + 1}`] = stop.color;
+        out[`bg_${mode}_gradient_${index + 1}_at`] = stop.at;
+    }
+
+    return out;
+}
+
+const stopList = (stops: Stop[]) => sortStops(stops).map((stop) => `${stop.color} ${stop.at}%`).join(', ');
+
+/** The gradient as theme.css draws it. */
+function gradientImage(values: Values, stops: string): string {
+    const angle = num(values.bg_gradient_angle, 180);
+    const at = POSITIONS[String(values.bg_gradient_center)] ?? '50% 50%';
+    if (values.bg_gradient_type === 'radial') return `radial-gradient(circle farthest-corner at ${at}, ${stops})`;
+    if (values.bg_gradient_type === 'conic') return `conic-gradient(from ${angle}deg at ${at}, ${stops})`;
+
+    return `linear-gradient(${angle}deg, ${stops})`;
+}
+
+/**
+ * A background drawn small, as theme.css draws it: the palette's Background color with the
+ * background's layer over it, patterns at `scale` of their size.
+ */
+function BackgroundPicture({ kind, values, mode, scale, className, children }: { kind: string; values: Values; mode: Mode; scale: number; className?: string; children?: ReactNode }) {
+    const color = (name: string) => String(values[`bg_${mode}_${name}`] ?? 'transparent');
+    const fade = (name: string) => (values[`bg_${name}_fade`] === 'none' ? undefined : values[`bg_${name}_fade`] === 'edges' ? 'radial-gradient(ellipse at center, black 35%, transparent 85%)' : 'radial-gradient(ellipse at top, black 30%, transparent 80%)');
+    const canvas = String(values[`${mode}_background`] ?? 'transparent');
+    let layer: CSSProperties | null = null;
+
+    switch (kind) {
+        case 'gradient':
+            layer = { background: gradientImage(values, stopList(readStops(values, mode))) };
+            break;
+        case 'grid': {
+            const size = num(values.bg_grid_size, 32) * scale;
+            const width = num(values.bg_grid_width, 1);
+            const line = color('grid');
+            layer = { backgroundImage: `linear-gradient(${line} ${width}px, transparent ${width}px), linear-gradient(90deg, ${line} ${width}px, transparent ${width}px)`, backgroundSize: `${size}px ${size}px`, maskImage: fade('grid') };
+            break;
+        }
+        case 'dots': {
+            const size = num(values.bg_dots_size, 24) * scale;
+            const dot = num(values.bg_dots_dot, 2) / 2;
+            layer = { backgroundImage: `radial-gradient(circle, ${color('dots')} ${dot}px, transparent ${dot + 0.5}px)`, backgroundSize: `${size}px ${size}px`, maskImage: fade('dots') };
+            break;
+        }
+        case 'aurora': {
+            const size = num(values.bg_aurora_size, 60) / 60;
+            layer = {
+                background: [
+                    `radial-gradient(${40 * size}% ${60 * size}% at 18% 18%, ${color('aurora_1')}, transparent)`,
+                    `radial-gradient(${40 * size}% ${60 * size}% at 82% 85%, ${color('aurora_2')}, transparent)`,
+                    `radial-gradient(${27 * size}% ${40 * size}% at 55% 50%, ${color('aurora_3')}, transparent)`,
+                ].join(', '),
+            };
+            break;
+        }
+        case 'stars': {
+            const size = num(values.bg_stars_size, 100) / 100;
+            const tile = (840 / num(values.bg_stars_density, 3)) * scale;
+            const dot = (px: number, x: number, y: number) => `radial-gradient(${px * size}px ${px * size}px at ${x}% ${y}%, ${color('stars')}, transparent)`;
+            layer = { backgroundImage: [dot(1.5, 20, 30), dot(1, 70, 20), dot(1.2, 40, 80), dot(1, 85, 65), dot(1.4, 10, 75), dot(1, 55, 50)].join(', '), backgroundSize: `${tile}px ${tile}px`, opacity: 0.8 };
+            break;
+        }
+        case 'image': {
+            const image = typeof values.background_image === 'string' && values.background_image !== '' ? values.background_image.replace(/["\\]/g, '') : null;
+            const dim = mix(canvas, num(values.background_dim, 55));
+            if (image) layer = { background: values.bg_image_fit === 'tile' ? `linear-gradient(${dim}, ${dim}), url("${image}") top left / ${200 * scale}px repeat` : `linear-gradient(${dim}, ${dim}), url("${image}") center / cover no-repeat` };
+            break;
+        }
+    }
 
     return (
-        <>
-            <Label setting={setting} unit={<span className={'ppx:font-sans ppx:text-xs ppx:text-muted-foreground'}>{options.find((option) => option.value === value)?.label}</span>} />
-            <div className={'ppx:flex ppx:flex-wrap ppx:gap-2.5 ppx:py-1'} role={'radiogroup'} aria-label={setting.label}>
-                {options.map((option) => (
-                    <button key={option.value} type={'button'} role={'radio'} aria-checked={value === option.value} aria-label={option.label} title={option.label} onClick={() => onChange(option.value)} className={cn('ppx:size-7 ppx:cursor-pointer ppx:rounded-full ppx:border', value === option.value ? 'ppx:outline-2 ppx:outline-offset-2 ppx:outline-primary' : 'ppx:hover:scale-110')} style={{ background: pick(option.value), borderColor: mix(pick('text'), 20) }} />
+        <span className={cn('ppx:relative ppx:block ppx:overflow-hidden', className)} style={{ background: canvas }}>
+            {layer && <span className={'ppx:absolute ppx:inset-0'} style={layer} />}
+            {children}
+        </span>
+    );
+}
+
+/** A swatch over a checkerboard, so its opacity shows; clicking it opens the color picker. */
+function ColorSwatch({ value, label, onPick, className }: { value: string; label: string; onPick: (hex: string) => void; className?: string }) {
+    return (
+        <span className={cn('ppx-color-input ppx-checker ppx:relative ppx:inline-block ppx:shrink-0', className ?? 'ppx:h-8 ppx:w-10')}>
+            <span className={'ppx:absolute ppx:inset-0'} style={{ background: value }} />
+            <input type={'color'} value={toHex(value)} onChange={(event) => onPick(event.target.value)} aria-label={label} className={'ppx:absolute ppx:inset-0 ppx:size-full ppx:cursor-pointer ppx:opacity-0'} />
+        </span>
+    );
+}
+
+const boxInput = 'ppx:rounded-md ppx:border ppx:border-input-border ppx:bg-input ppx:px-2 ppx:py-1 ppx:font-mono ppx:text-xs ppx:tabular-nums';
+
+/** A typed value that takes effect on Enter or leaving the box; a value it cannot read goes back. */
+function TypedBox({ value, read, label, suffix, className }: { value: string; read: (text: string) => boolean; label: string; suffix?: string; className?: string }) {
+    const [text, setText] = useState(value);
+    useEffect(() => setText(value), [value]);
+    const commit = () => {
+        if (text !== value && !read(text)) setText(value);
+    };
+
+    return (
+        <span className={'ppx:relative ppx:inline-flex ppx:shrink-0'}>
+            <input value={text} onChange={(event) => setText(event.target.value)} onBlur={commit} onKeyDown={(event) => event.key === 'Enter' && commit()} spellCheck={false} aria-label={label} className={cn(boxInput, suffix && 'ppx:pr-5', className)} />
+            {suffix && <span className={'ppx:pointer-events-none ppx:absolute ppx:top-1/2 ppx:right-2 ppx:-translate-y-1/2 ppx:text-xs ppx:text-muted-foreground'}>{suffix}</span>}
+        </span>
+    );
+}
+
+/** A whole number from min to max, typed. */
+function NumberBox({ value, min, max, label, suffix, onChange, className }: { value: number; min: number; max: number; label: string; suffix?: string; onChange: (value: number) => void; className?: string }) {
+    return (
+        <TypedBox
+            value={String(value)}
+            label={label}
+            suffix={suffix}
+            className={className ?? 'ppx:w-16'}
+            read={(text) => {
+                const number = Math.round(Number(text.replace(/[%°]/g, '').trim()));
+                if (text.trim() === '' || !Number.isFinite(number)) return false;
+                onChange(Math.min(max, Math.max(min, number)));
+
+                return true;
+            }}
+        />
+    );
+}
+
+/** A color as its six hex digits (as Figma shows them), keeping its opacity. */
+function HexBox({ value, label, onChange }: { value: string; label: string; onChange: (color: string) => void }) {
+    const { hex, alpha } = splitAlpha(value);
+
+    return (
+        <TypedBox
+            value={hex.slice(1).toUpperCase()}
+            label={label}
+            className={'ppx:w-20'}
+            read={(text) => {
+                const digits = text.trim().replace(/^#/, '');
+                if (!/^[0-9a-f]{6}$/i.test(digits)) return false;
+                onChange(withAlpha(`#${digits}`, alpha));
+
+                return true;
+            }}
+        />
+    );
+}
+
+/** Any color and its opacity: a swatch that opens the color picker, its hex and its opacity. */
+function ColorField({ label, help, value, opacity = true, onChange }: { label: string; help?: string | null; value: string; opacity?: boolean; onChange: (color: string) => void }) {
+    const { hex, alpha } = splitAlpha(value);
+
+    return (
+        <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2'}>
+            <div className={'ppx:min-w-36 ppx:flex-1'}>
+                <p className={'ppx:text-sm ppx:font-medium'}>{label}</p>
+                {help && <p className={'ppx:text-xs ppx:text-muted-foreground'}>{help}</p>}
+            </div>
+            <ColorSwatch value={value} label={label} onPick={(next) => onChange(opacity ? withAlpha(next, alpha) : next)} />
+            <HexBox value={value} label={`${label}, hex`} onChange={onChange} />
+            {opacity && <NumberBox value={Math.round(alpha * 100)} min={0} max={100} label={`${label}, opacity`} suffix={'%'} onChange={(percent) => onChange(withAlpha(hex, percent / 100))} />}
+        </div>
+    );
+}
+
+/** Where a radial or angular gradient is centred, from nine points. */
+function CenterPicker({ value, onChange }: { value: unknown; onChange: (value: string) => void }) {
+    return (
+        <div className={'ppx:flex ppx:items-center ppx:gap-3'}>
+            <span className={'ppx:text-sm'}>Center</span>
+            <div className={'ppx:grid ppx:grid-cols-3 ppx:gap-1 ppx:rounded-md ppx:border ppx:border-border ppx:p-1'} role={'radiogroup'} aria-label={'Center'}>
+                {Object.keys(POSITIONS).map((key) => (
+                    <button key={key} type={'button'} role={'radio'} aria-checked={value === key} aria-label={key.replace('-', ' ')} title={key.replace('-', ' ')} onClick={() => onChange(key)} className={cn('ppx:size-4 ppx:cursor-pointer ppx:rounded-sm', value === key ? 'ppx:bg-primary' : 'ppx:bg-muted ppx:hover:bg-primary/50')} />
                 ))}
             </div>
-        </>
+        </div>
     );
 }
 
 /**
- * Background: a gallery of every background, each drawn small with its own settings, then the
- * settings of the chosen one. A setting found by search for another background shows that one's.
+ * The gradient, edited as in Figma: its type, angle and center; a bar with a handle per stop, which
+ * drag along it (a click on the bar adds a stop there); and the stops as rows of position, color
+ * and opacity. Up to five stops, at least two.
  */
-function Backgrounds({ list, values, focus, change, field }: { list: ThemeSetting[]; values: Values; focus: string | null; change: (key: string, value: unknown) => void; field: (setting: ThemeSetting) => ReactNode }) {
-    const pick = usePalette(values);
+function GradientEditor({ values, mode, apply }: { values: Values; mode: Mode; apply: (changes: Values) => void }) {
+    const saved = readStops(values, mode);
+    const savedList = stopList(saved);
+    const [stops, setStops] = useState<Stop[]>(saved);
+    const [selected, setSelected] = useState(0);
+    const current = useRef(stops);
+    const nextId = useRef(STOPS);
+    const bar = useRef<HTMLDivElement>(null);
+
+    // A preset, Discard or the other mode brings other stops: start from those.
+    useEffect(() => {
+        if (stopList(current.current) === savedList) return;
+        current.current = saved;
+        setStops(saved);
+        setSelected(0);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [savedList, mode]);
+
+    const update = (next: Stop[]) => {
+        current.current = next;
+        setStops(next);
+        apply(writeStops(next, mode));
+    };
+    const setStop = (id: number, change: Partial<Stop>) => update(current.current.map((stop) => (stop.id === id ? { ...stop, ...change } : stop)));
+    const sorted = sortStops(stops);
+    const chosen = stops.find((stop) => stop.id === selected) ?? sorted[0];
+    const type = String(values.bg_gradient_type ?? 'linear');
+    const angle = num(values.bg_gradient_angle, 180);
+
+    const add = (at: number) => {
+        if (current.current.length >= STOPS) return;
+        const list = sortStops(current.current);
+        const before = [...list].reverse().find((stop) => stop.at <= at);
+        const after = list.find((stop) => stop.at > at);
+        const color = before && after ? mixColors(before.color, after.color, (at - before.at) / (after.at - before.at || 1)) : (before ?? after)!.color;
+        const id = nextId.current++;
+        update([...current.current, { id, color, at }]);
+        setSelected(id);
+    };
+    // The + button: halfway from the chosen stop to the next, or to the one before the last.
+    const addBeside = () => {
+        const index = sorted.findIndex((stop) => stop.id === chosen.id);
+        const other = sorted[index + 1] ?? sorted[index - 1];
+        add(Math.round((chosen.at + other.at) / 2));
+    };
+    const remove = (id: number) => {
+        if (current.current.length <= 2) return;
+        const next = current.current.filter((stop) => stop.id !== id);
+        update(next);
+        setSelected(sortStops(next)[0].id);
+    };
+    const atPointer = (x: number) => {
+        const box = bar.current!.getBoundingClientRect();
+
+        return Math.round(Math.min(100, Math.max(0, ((x - box.left) / box.width) * 100)));
+    };
+    const drag = (id: number) => (event: React.PointerEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setSelected(id);
+        const handle = event.currentTarget;
+        handle.focus();
+        handle.setPointerCapture(event.pointerId);
+        const move = (moved: PointerEvent) => setStop(id, { at: atPointer(moved.clientX) });
+        const done = () => {
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', done);
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', done);
+    };
+
+    return (
+        <div className={'ppx:flex ppx:flex-col ppx:gap-3'}>
+            <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2'}>
+                <div className={'ppx:w-36'}>
+                    <Select value={type} onChange={(next) => apply({ bg_gradient_type: next })} options={GRADIENT_TYPES} />
+                </div>
+                {type !== 'radial' && (
+                    <>
+                        <NumberBox value={angle} min={0} max={359} label={'Angle'} suffix={'°'} onChange={(next) => apply({ bg_gradient_angle: next })} />
+                        <IconAction icon={'rotate-cw'} label={'Turn a quarter'} onClick={() => apply({ bg_gradient_angle: (angle + 90) % 360 })} />
+                    </>
+                )}
+                <span className={'ppx:flex-1'} />
+                <IconAction icon={'arrow-left-right'} label={'Reverse the stops'} onClick={() => update(current.current.map((stop) => ({ ...stop, at: 100 - stop.at })))} />
+            </div>
+            {type !== 'linear' && <CenterPicker value={values.bg_gradient_center} onChange={(next) => apply({ bg_gradient_center: next })} />}
+
+            <div className={'ppx:px-2.5 ppx:py-1'}>
+                <div ref={bar} onPointerDown={(event) => event.button === 0 && add(atPointer(event.clientX))} title={stops.length < STOPS ? 'Click to add a stop' : undefined} className={cn('ppx-checker ppx:relative ppx:h-9 ppx:rounded-md ppx:border ppx:border-border', stops.length < STOPS ? 'ppx:cursor-copy' : '')}>
+                    <span className={'ppx:absolute ppx:inset-0 ppx:rounded-[inherit]'} style={{ background: `linear-gradient(90deg, ${stopList(stops)})` }} />
+                    {stops.map((stop) => (
+                        <button
+                            key={stop.id}
+                            type={'button'}
+                            aria-label={`Stop at ${stop.at}%`}
+                            onPointerDown={drag(stop.id)}
+                            onKeyDown={(event) => {
+                                const step = event.shiftKey ? 10 : 1;
+                                if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                                    event.preventDefault();
+                                    setStop(stop.id, { at: Math.min(100, Math.max(0, stop.at + (event.key === 'ArrowLeft' ? -step : step))) });
+                                } else if (event.key === 'Delete' || event.key === 'Backspace') remove(stop.id);
+                            }}
+                            className={cn('ppx-checker ppx:absolute ppx:top-1/2 ppx:size-6 ppx:-translate-x-1/2 ppx:-translate-y-1/2 ppx:cursor-grab ppx:rounded-md ppx:border-2 ppx:shadow-md ppx:active:cursor-grabbing', stop.id === chosen.id ? 'ppx:z-10 ppx:border-primary ppx:ring-2 ppx:ring-primary/40' : 'ppx:border-white')}
+                            style={{ left: `${stop.at}%` }}
+                        >
+                            <span className={'ppx:absolute ppx:inset-0 ppx:rounded-[3px]'} style={{ background: stop.color }} />
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className={'ppx:flex ppx:items-center ppx:justify-between'}>
+                <p className={'ppx:text-sm ppx:font-medium'}>Stops</p>
+                <IconAction icon={'plus'} label={'Add a stop'} disabled={stops.length >= STOPS} onClick={addBeside} />
+            </div>
+            <div className={'ppx:flex ppx:flex-col ppx:gap-1'}>
+                {sorted.map((stop) => {
+                    const { hex, alpha } = splitAlpha(stop.color);
+
+                    return (
+                        <div key={stop.id} onFocusCapture={() => setSelected(stop.id)} onClick={() => setSelected(stop.id)} className={cn('ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2 ppx:rounded-md ppx:px-2 ppx:py-1.5', stop.id === chosen.id ? 'ppx:bg-primary/10 ppx:ring-1 ppx:ring-primary/40' : 'ppx:hover:bg-muted/30')}>
+                            <NumberBox value={stop.at} min={0} max={100} label={'Position'} suffix={'%'} onChange={(at) => setStop(stop.id, { at })} />
+                            <ColorSwatch value={stop.color} label={'Stop color'} className={'ppx:h-7 ppx:w-7'} onPick={(next) => setStop(stop.id, { color: withAlpha(next, alpha) })} />
+                            <HexBox value={stop.color} label={'Stop color, hex'} onChange={(color) => setStop(stop.id, { color })} />
+                            <NumberBox value={Math.round(alpha * 100)} min={0} max={100} label={'Stop opacity'} suffix={'%'} onChange={(percent) => setStop(stop.id, { color: withAlpha(hex, percent / 100) })} />
+                            <span className={'ppx:flex-1'} />
+                            <IconAction icon={'minus'} label={'Remove this stop'} disabled={stops.length <= 2} onClick={() => remove(stop.id)} />
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Background: a gallery of every background drawn small, a larger picture of the chosen one, and
+ * its settings: its colors per mode (with the Dark and Light switch) and the ones both modes share.
+ * A setting found by search for another background shows that one's.
+ */
+function Backgrounds({ list, values, focus, change, apply, field }: { list: ThemeSetting[]; values: Values; focus: string | null; change: (key: string, value: unknown) => void; apply: (changes: Values) => void; field: (setting: ThemeSetting) => ReactNode }) {
     const setting = list.find((item) => item.key === 'background');
     const value = String(values.background ?? 'plain');
     const [peek, setPeek] = useState<string | null>(null);
-    useEffect(() => setPeek(focus ? kindOf(focus) : null), [focus]);
+    const [mode, setMode] = useState<Mode>(schemeNow);
+    useEffect(() => {
+        if (!focus) return;
+        const place = placeOf(focus);
+        setPeek(place.kind);
+        if (place.mode) setMode(place.mode);
+    }, [focus]);
     if (!setting) return null;
 
     const shown = peek ?? value;
-    const own = list.filter((item) => kindOf(item.key) === shown).map((item) => ({ ...item, label: item.label.replace(/^[^:]+: /, '') }));
+    const other: Mode = mode === 'd' ? 'l' : 'd';
+    const ofShown = (item: ThemeSetting) => placeOf(item.key).kind === shown;
+    const shared = list.filter((item) => ofShown(item) && placeOf(item.key).mode === null && !item.key.startsWith('bg_gradient_'));
+    const colors = shown === 'gradient' ? [] : list.filter((item) => ofShown(item) && placeOf(item.key).mode === mode && item.type === 'color');
+    const perMode = list.filter((item) => ofShown(item) && placeOf(item.key).mode === mode);
     const image = typeof values.background_image === 'string' && values.background_image !== '' ? values.background_image : null;
-    const still = MOVING.includes(shown) && values.motion !== 'full';
     const choose = (kind: string) => {
         setPeek(null);
         change('background', kind);
     };
+    const wrap = (key: string, content: ReactNode) => (
+        <div key={key} id={`ppx-setting-${THEME_ID}-${key}`} className={cn('ppx:scroll-mt-24 ppx:border-b ppx:border-border ppx:pb-3 ppx:last:border-b-0', focus === key && 'ppx:ring-2 ppx:ring-primary ppx:ring-offset-4 ppx:ring-offset-card')}>
+            {content}
+        </div>
+    );
 
     return (
         <>
-            <div id={`ppx-setting-${THEME_ID}-background`} className={cn('ppx:scroll-mt-24 ppx:grid ppx:grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] ppx:gap-x-3 ppx:gap-y-4 ppx:rounded-md ppx:pb-1', focus === 'background' && 'ppx:ring-2 ppx:ring-primary ppx:ring-offset-4 ppx:ring-offset-card')} role={'radiogroup'} aria-label={'Background'}>
-                {optionsOf(setting).map((option) => {
-                    const active = option.value === value;
-                    const picture = option.value === 'image';
+            <div id={`ppx-setting-${THEME_ID}-background`} className={cn('ppx:scroll-mt-24 ppx:grid ppx:grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] ppx:gap-x-3 ppx:gap-y-4 ppx:pb-1', focus === 'background' && 'ppx:ring-2 ppx:ring-primary ppx:ring-offset-4 ppx:ring-offset-card')} role={'radiogroup'} aria-label={'Background'}>
+                {optionsOf(setting)
+                    .filter((option) => option.value in BACKGROUND_LABELS)
+                    .map((option) => {
+                        const active = option.value === value;
+                        const empty = option.value === 'image' && !image;
 
-                    return (
-                        <button key={option.value} type={'button'} role={'radio'} aria-checked={active} onClick={() => choose(option.value)} className={'ppx:group ppx:flex ppx:cursor-pointer ppx:flex-col ppx:gap-1.5 ppx:text-left'}>
-                            <span
-                                className={cn('ppx:relative ppx:flex ppx:h-20 ppx:w-full ppx:items-center ppx:justify-center ppx:overflow-hidden ppx:rounded-lg ppx:border', picture && !image ? 'ppx:border-dashed ppx:border-border' : 'ppx:border-border', active ? chosen : 'ppx:group-hover:outline-1 ppx:group-hover:outline-offset-3 ppx:group-hover:outline-primary/50')}
-                                style={picture ? (image ? { background: `linear-gradient(${mix(pick('background'), num(values.background_dim, 55))}, ${mix(pick('background'), num(values.background_dim, 55))}), url("${image.replace(/["\\]/g, '')}") center / cover` } : { background: pick('background') }) : backgroundPicture(option.value, values, pick)}
-                            >
-                                {picture && !image && <NamedIcon name={'image'} size={20} className={'ppx:text-muted-foreground'} />}
-                                {active && <Check />}
-                            </span>
-                            <span className={cn('ppx:flex ppx:items-baseline ppx:gap-1.5 ppx:text-sm', active ? 'ppx:font-semibold ppx:text-primary' : '')}>
-                                {BACKGROUND_LABELS[option.value] ?? option.label.replace(/ \(moving\)$/, '')}
-                                {MOVING.includes(option.value) && <span className={'ppx:text-xs ppx:font-normal ppx:text-muted-foreground'}>moves</span>}
-                            </span>
-                        </button>
-                    );
-                })}
+                        return (
+                            <button key={option.value} type={'button'} role={'radio'} aria-checked={active} onClick={() => choose(option.value)} className={'ppx:group ppx:flex ppx:cursor-pointer ppx:flex-col ppx:gap-1.5 ppx:text-left'}>
+                                <BackgroundPicture kind={option.value} values={values} mode={mode} scale={0.5} className={cn('ppx:h-20 ppx:w-full ppx:rounded-lg ppx:border ppx:border-border', empty && 'ppx:border-dashed', active ? chosen : 'ppx:group-hover:outline-1 ppx:group-hover:outline-offset-3 ppx:group-hover:outline-primary/50')}>
+                                    {empty && (
+                                        <span className={'ppx:absolute ppx:inset-0 ppx:flex ppx:items-center ppx:justify-center'}>
+                                            <NamedIcon name={'image'} size={20} className={'ppx:text-muted-foreground'} />
+                                        </span>
+                                    )}
+                                    {active && <Check />}
+                                </BackgroundPicture>
+                                <span className={cn('ppx:flex ppx:items-baseline ppx:gap-1.5 ppx:text-sm', active && 'ppx:font-semibold ppx:text-primary')}>
+                                    {BACKGROUND_LABELS[option.value]}
+                                    {MOVING.includes(option.value) && <span className={'ppx:text-xs ppx:font-normal ppx:text-muted-foreground'}>moves</span>}
+                                </span>
+                            </button>
+                        );
+                    })}
             </div>
 
             <div className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:border-t ppx:border-border ppx:pt-4'}>
                 <div className={'ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-2'}>
-                    <p className={'ppx:flex-1 ppx:text-sm ppx:font-semibold'}>{BACKGROUND_LABELS[shown] ?? shown}</p>
+                    <p className={'ppx:text-sm ppx:font-semibold'}>{BACKGROUND_LABELS[shown] ?? shown}</p>
                     {shown !== value && (
                         <>
                             <span className={'ppx:text-xs ppx:text-muted-foreground'}>Used when the background is {BACKGROUND_LABELS[shown]}.</span>
@@ -838,30 +1133,41 @@ function Backgrounds({ list, values, focus, change, field }: { list: ThemeSettin
                             </Button.Text>
                         </>
                     )}
+                    <span className={'ppx:flex-1'} />
+                    {shown !== 'image' && (
+                        <div className={'prism-switch ppx:flex ppx:gap-1 ppx:rounded-lg ppx:bg-muted/40 ppx:p-1'} role={'group'} aria-label={'Colors for'}>
+                            {MODES.map(([key, label]) => (
+                                <button key={key} type={'button'} aria-pressed={mode === key} onClick={() => setMode(key)} className={cn('prism-switch-item ppx:flex ppx:cursor-pointer ppx:items-center ppx:gap-1.5 ppx:rounded-md ppx:px-3 ppx:py-1 ppx:text-sm', mode === key ? 'ppx:bg-card ppx:font-semibold ppx:shadow-sm' : 'ppx:text-muted-foreground ppx:hover:text-foreground')}>
+                                    <NamedIcon name={key === 'd' ? 'moon' : 'sun'} size={13} /> {label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    {perMode.length > 0 && (
+                        <Button.Text size={'small'} onClick={() => apply(Object.fromEntries(perMode.map((item) => [item.key.replace(`bg_${mode}_`, `bg_${other}_`), values[item.key]])))}>
+                            <NamedIcon name={'copy'} size={13} /> Copy to {other === 'd' ? 'dark' : 'light'}
+                        </Button.Text>
+                    )}
                 </div>
-                {still && <Alert type={'info'}>Motion is set to {values.motion === 'none' ? 'None' : 'Reduced'}, so this background stays still. Change that under Motion.</Alert>}
-                {own.length === 0 ? (
-                    <p className={'ppx:text-sm ppx:text-muted-foreground'}>Just the Background color, from Colors.</p>
-                ) : (
-                    <div className={'ppx:flex ppx:flex-col ppx:gap-3'}>
-                        {own.map((item) =>
-                            item.type === 'select' && optionsOf(item).every((option) => option.value in ROLE_SWATCHES) ? (
-                                <div key={item.key} id={`ppx-setting-${THEME_ID}-${item.key}`} className={cn('ppx:scroll-mt-24 ppx:rounded-md ppx:border-b ppx:border-border ppx:pb-3 ppx:last:border-b-0', focus === item.key && 'ppx:ring-2 ppx:ring-primary ppx:ring-offset-4 ppx:ring-offset-card')}>
-                                    <RolePicker setting={item} value={values[item.key]} pick={pick} onChange={(next) => change(item.key, next)} />
-                                </div>
-                            ) : (
-                                field(item)
-                            )
-                        )}
-                    </div>
-                )}
+                {MOVING.includes(shown) && values.motion !== 'full' && <Alert type={'info'}>Motion is set to {values.motion === 'none' ? 'None' : 'Reduced'}, so this background stays still. Change that under Motion.</Alert>}
+
+                <BackgroundPicture kind={shown} values={values} mode={mode} scale={1} className={'ppx:h-36 ppx:rounded-lg ppx:border ppx:border-border'}>
+                    <span className={'ppx:absolute ppx:top-4 ppx:left-4 ppx:flex ppx:w-44 ppx:flex-col ppx:gap-1.5 ppx:rounded-lg ppx:border ppx:p-3'} style={{ background: String(values[`${mode}_surface`]), borderColor: String(values[`${mode}_border`]) }} aria-hidden>
+                        <span className={'ppx:h-2 ppx:w-20 ppx:rounded-full'} style={{ background: String(values[`${mode}_text`]) }} />
+                        <span className={'ppx:h-1.5 ppx:w-28 ppx:rounded-full'} style={{ background: String(values[`${mode}_muted_text`]) }} />
+                    </span>
+                </BackgroundPicture>
+
+                <div className={'ppx:flex ppx:flex-col ppx:gap-3'}>
+                    {shown === 'plain' && wrap(`${mode}_background`, <ColorField label={'Color'} help={`The Background color of the ${mode === 'd' ? 'dark' : 'light'} palette, as in Colors.`} value={String(values[`${mode}_background`] ?? '')} opacity={false} onChange={(color) => change(`${mode}_background`, color)} />)}
+                    {shown === 'gradient' && wrap(`bg_${mode}_gradient_1`, <GradientEditor values={values} mode={mode} apply={apply} />)}
+                    {colors.map((item) => wrap(item.key, <ColorField label={shortLabel(item).label} value={String(values[item.key] ?? '')} onChange={(color) => change(item.key, color)} />))}
+                    {shared.map((item) => field(shortLabel(item)))}
+                </div>
             </div>
         </>
     );
 }
-
-/** The palette roles a background color can be. */
-const ROLE_SWATCHES: Record<string, true> = { text: true, primary: true, blue: true, cyan: true, green: true, yellow: true, red: true, magenta: true };
 
 /* #endregion Background */
 
@@ -896,7 +1202,7 @@ function Field({ setting, value, values, onChange, onSchema }: { setting: ThemeS
                 return (
                     <>
                         <Label setting={setting} />
-                        <Choice options={options} value={value} onChange={onChange}>
+                        <Choice options={options} value={value} onChange={onChange} wide>
                             {(option) => <SwitchSample shape={option.value} radius={num(values.radius, 10)} />}
                         </Choice>
                     </>

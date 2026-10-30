@@ -3,7 +3,7 @@
     "id": "prism-themes",
     "type": "theme",
     "name": "Prism Themes",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "One theme tool: colors for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.",
     "author": "Donkare",
     "icon": "icon.png",
@@ -428,11 +428,10 @@
                 "options": {
                     "plain": "Plain",
                     "gradient": "Gradient",
-                    "aurora": "Aurora (moving)",
-                    "waves": "Waves (moving)",
-                    "stars": "Stars (moving)",
-                    "mesh": "Color mesh (moving)",
                     "grid": "Grid",
+                    "dots": "Dots",
+                    "aurora": "Aurora (moving)",
+                    "stars": "Stars (moving)",
                     "image": "Picture"
                 },
                 "default": "plain",
@@ -456,119 +455,114 @@
                 "unit": "%",
                 "token": "--pt-bg-dim"
             },
-            "bg_gradient_from": {
+            "bg_gradient_type": {
                 "type": "select",
-                "label": "Gradient: First color",
+                "label": "Gradient: Type",
                 "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
+                    "linear": "Linear",
+                    "radial": "Radial",
+                    "conic": "Angular"
                 },
                 "tab": "Background",
-                "default": "primary",
-                "attribute": "data-pt-bg-gradient-from"
+                "default": "radial",
+                "attribute": "data-pt-bg-gradient-type"
             },
-            "bg_gradient_to": {
-                "type": "select",
-                "label": "Gradient: Second color",
-                "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "blue",
-                "attribute": "data-pt-bg-gradient-to"
-            },
-            "bg_gradient_shape": {
-                "type": "select",
-                "label": "Gradient: Shape",
-                "options": {
-                    "corners": "From the corners",
-                    "top": "From the top",
-                    "center": "From the middle"
-                },
-                "tab": "Background",
-                "default": "corners",
-                "attribute": "data-pt-bg-gradient-shape"
-            },
-            "bg_gradient_strength": {
+            "bg_gradient_angle": {
                 "type": "number",
-                "label": "Gradient: Strength",
+                "label": "Gradient: Angle",
                 "min": 0,
-                "max": 60,
-                "step": 2,
-                "unit": "%",
+                "max": 359,
+                "step": 1,
+                "unit": "deg",
                 "tab": "Background",
-                "default": 16,
-                "token": "--pt-bg-gradient-strength"
+                "default": 180,
+                "token": "--pt-bg-gradient-angle"
             },
-            "bg_aurora_a": {
+            "bg_gradient_center": {
                 "type": "select",
-                "label": "Aurora: First color",
+                "label": "Gradient: Center",
                 "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
+                    "top-left": "Top left",
+                    "top": "Top",
+                    "top-right": "Top right",
+                    "left": "Left",
+                    "center": "Center",
+                    "right": "Right",
+                    "bottom-left": "Bottom left",
+                    "bottom": "Bottom",
+                    "bottom-right": "Bottom right"
                 },
                 "tab": "Background",
-                "default": "primary",
-                "attribute": "data-pt-bg-aurora-a"
+                "default": "top-left",
+                "attribute": "data-pt-bg-gradient-center"
             },
-            "bg_aurora_b": {
-                "type": "select",
-                "label": "Aurora: Second color",
-                "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "blue",
-                "attribute": "data-pt-bg-aurora-b"
-            },
-            "bg_aurora_c": {
-                "type": "select",
-                "label": "Aurora: Third color",
-                "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "cyan",
-                "attribute": "data-pt-bg-aurora-c"
-            },
-            "bg_aurora_strength": {
+            "bg_grid_size": {
                 "type": "number",
-                "label": "Aurora: Strength",
-                "min": 10,
-                "max": 60,
-                "step": 2,
-                "unit": "%",
+                "label": "Grid: Cell size",
+                "min": 8,
+                "max": 128,
+                "step": 4,
+                "unit": "px",
                 "tab": "Background",
                 "default": 32,
-                "token": "--pt-bg-aurora-strength"
+                "token": "--pt-bg-grid-size"
+            },
+            "bg_grid_width": {
+                "type": "number",
+                "label": "Grid: Line width",
+                "min": 1,
+                "max": 4,
+                "step": 1,
+                "unit": "px",
+                "tab": "Background",
+                "default": 1,
+                "token": "--pt-bg-grid-width"
+            },
+            "bg_grid_fade": {
+                "type": "select",
+                "label": "Grid: Fade",
+                "options": {
+                    "top": "Toward the bottom",
+                    "edges": "Toward the edges",
+                    "none": "No fade"
+                },
+                "tab": "Background",
+                "default": "top",
+                "attribute": "data-pt-bg-grid-fade"
+            },
+            "bg_dots_size": {
+                "type": "number",
+                "label": "Dots: Spacing",
+                "min": 8,
+                "max": 96,
+                "step": 4,
+                "unit": "px",
+                "tab": "Background",
+                "default": 24,
+                "token": "--pt-bg-dots-size"
+            },
+            "bg_dots_dot": {
+                "type": "number",
+                "label": "Dots: Dot size",
+                "min": 1,
+                "max": 8,
+                "step": 1,
+                "unit": "px",
+                "tab": "Background",
+                "default": 2,
+                "token": "--pt-bg-dots-dot"
+            },
+            "bg_dots_fade": {
+                "type": "select",
+                "label": "Dots: Fade",
+                "options": {
+                    "top": "Toward the bottom",
+                    "edges": "Toward the edges",
+                    "none": "No fade"
+                },
+                "tab": "Background",
+                "default": "top",
+                "attribute": "data-pt-bg-dots-fade"
             },
             "bg_aurora_size": {
                 "type": "number",
@@ -591,70 +585,6 @@
                 "default": 100,
                 "token": "--pt-bg-aurora-speed"
             },
-            "bg_waves_a": {
-                "type": "select",
-                "label": "Waves: Front color",
-                "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "primary",
-                "attribute": "data-pt-bg-waves-a"
-            },
-            "bg_waves_b": {
-                "type": "select",
-                "label": "Waves: Back color",
-                "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "blue",
-                "attribute": "data-pt-bg-waves-b"
-            },
-            "bg_waves_height": {
-                "type": "number",
-                "label": "Waves: Height",
-                "min": 20,
-                "max": 70,
-                "step": 5,
-                "unit": "vh",
-                "tab": "Background",
-                "default": 40,
-                "token": "--pt-bg-waves-height"
-            },
-            "bg_waves_strength": {
-                "type": "number",
-                "label": "Waves: Strength",
-                "min": 10,
-                "max": 60,
-                "step": 2,
-                "unit": "%",
-                "tab": "Background",
-                "default": 30,
-                "token": "--pt-bg-waves-strength"
-            },
-            "bg_waves_speed": {
-                "type": "number",
-                "label": "Waves: Speed",
-                "min": 25,
-                "max": 200,
-                "step": 25,
-                "tab": "Background",
-                "default": 100,
-                "token": "--pt-bg-waves-speed"
-            },
             "bg_stars_density": {
                 "type": "number",
                 "label": "Stars: How many",
@@ -675,34 +605,6 @@
                 "default": 100,
                 "token": "--pt-bg-stars-size"
             },
-            "bg_stars_color": {
-                "type": "select",
-                "label": "Stars: Color",
-                "options": {
-                    "text": "Text",
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "text",
-                "attribute": "data-pt-bg-stars-color"
-            },
-            "bg_stars_brightness": {
-                "type": "number",
-                "label": "Stars: Brightness",
-                "min": 20,
-                "max": 100,
-                "step": 5,
-                "unit": "%",
-                "tab": "Background",
-                "default": 55,
-                "token": "--pt-bg-stars-brightness"
-            },
             "bg_stars_twinkle": {
                 "type": "toggle",
                 "label": "Stars: Twinkle",
@@ -710,153 +612,6 @@
                 "tab": "Background",
                 "default": true,
                 "attribute": "data-pt-bg-stars-twinkle"
-            },
-            "bg_mesh_a": {
-                "type": "select",
-                "label": "Color mesh: First color",
-                "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "primary",
-                "attribute": "data-pt-bg-mesh-a"
-            },
-            "bg_mesh_b": {
-                "type": "select",
-                "label": "Color mesh: Second color",
-                "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "blue",
-                "attribute": "data-pt-bg-mesh-b"
-            },
-            "bg_mesh_c": {
-                "type": "select",
-                "label": "Color mesh: Third color",
-                "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "magenta",
-                "attribute": "data-pt-bg-mesh-c"
-            },
-            "bg_mesh_d": {
-                "type": "select",
-                "label": "Color mesh: Fourth color",
-                "options": {
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "cyan",
-                "attribute": "data-pt-bg-mesh-d"
-            },
-            "bg_mesh_strength": {
-                "type": "number",
-                "label": "Color mesh: Strength",
-                "min": 20,
-                "max": 100,
-                "step": 5,
-                "unit": "%",
-                "tab": "Background",
-                "default": 85,
-                "token": "--pt-bg-mesh-strength"
-            },
-            "bg_mesh_speed": {
-                "type": "number",
-                "label": "Color mesh: Speed",
-                "min": 25,
-                "max": 200,
-                "step": 25,
-                "tab": "Background",
-                "default": 100,
-                "token": "--pt-bg-mesh-speed"
-            },
-            "bg_grid_style": {
-                "type": "select",
-                "label": "Grid: Pattern",
-                "options": {
-                    "lines": "Lines",
-                    "dots": "Dots"
-                },
-                "tab": "Background",
-                "default": "lines",
-                "attribute": "data-pt-bg-grid-style"
-            },
-            "bg_grid_size": {
-                "type": "number",
-                "label": "Grid: Cell size",
-                "min": 16,
-                "max": 96,
-                "step": 4,
-                "unit": "px",
-                "tab": "Background",
-                "default": 32,
-                "token": "--pt-bg-grid-size"
-            },
-            "bg_grid_color": {
-                "type": "select",
-                "label": "Grid: Color",
-                "options": {
-                    "text": "Text",
-                    "primary": "Primary",
-                    "blue": "Blue",
-                    "cyan": "Cyan",
-                    "green": "Green",
-                    "yellow": "Yellow",
-                    "red": "Red",
-                    "magenta": "Magenta"
-                },
-                "tab": "Background",
-                "default": "text",
-                "attribute": "data-pt-bg-grid-color"
-            },
-            "bg_grid_strength": {
-                "type": "number",
-                "label": "Grid: Strength",
-                "min": 2,
-                "max": 30,
-                "step": 1,
-                "unit": "%",
-                "tab": "Background",
-                "default": 5,
-                "token": "--pt-bg-grid-strength"
-            },
-            "bg_grid_fade": {
-                "type": "select",
-                "label": "Grid: Fade",
-                "options": {
-                    "top": "Toward the bottom",
-                    "edges": "Toward the edges",
-                    "none": "No fade"
-                },
-                "tab": "Background",
-                "default": "top",
-                "attribute": "data-pt-bg-grid-fade"
             },
             "bg_image_fit": {
                 "type": "select",
@@ -879,6 +634,288 @@
                 "tab": "Background",
                 "default": 0,
                 "token": "--pt-bg-image-blur"
+            },
+            "bg_d_gradient_stops": {
+                "type": "number",
+                "label": "Gradient: Number of stops (dark)",
+                "tab": "Background",
+                "default": 2,
+                "min": 2,
+                "max": 5,
+                "step": 1
+            },
+            "bg_d_gradient_1": {
+                "type": "color",
+                "label": "Gradient: Stop 1 color (dark)",
+                "tab": "Background",
+                "default": "#98adfe38",
+                "token": "--pt-bg-d-gradient-1"
+            },
+            "bg_d_gradient_1_at": {
+                "type": "number",
+                "label": "Gradient: Stop 1 position (dark)",
+                "tab": "Background",
+                "default": 0,
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "token": "--pt-bg-d-gradient-1-at"
+            },
+            "bg_d_gradient_2": {
+                "type": "color",
+                "label": "Gradient: Stop 2 color (dark)",
+                "tab": "Background",
+                "default": "#98adfe00",
+                "token": "--pt-bg-d-gradient-2"
+            },
+            "bg_d_gradient_2_at": {
+                "type": "number",
+                "label": "Gradient: Stop 2 position (dark)",
+                "tab": "Background",
+                "default": 70,
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "token": "--pt-bg-d-gradient-2-at"
+            },
+            "bg_d_gradient_3": {
+                "type": "color",
+                "label": "Gradient: Stop 3 color (dark)",
+                "tab": "Background",
+                "default": "#98adfe00",
+                "token": "--pt-bg-d-gradient-3"
+            },
+            "bg_d_gradient_3_at": {
+                "type": "number",
+                "label": "Gradient: Stop 3 position (dark)",
+                "tab": "Background",
+                "default": 70,
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "token": "--pt-bg-d-gradient-3-at"
+            },
+            "bg_d_gradient_4": {
+                "type": "color",
+                "label": "Gradient: Stop 4 color (dark)",
+                "tab": "Background",
+                "default": "#98adfe00",
+                "token": "--pt-bg-d-gradient-4"
+            },
+            "bg_d_gradient_4_at": {
+                "type": "number",
+                "label": "Gradient: Stop 4 position (dark)",
+                "tab": "Background",
+                "default": 70,
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "token": "--pt-bg-d-gradient-4-at"
+            },
+            "bg_d_gradient_5": {
+                "type": "color",
+                "label": "Gradient: Stop 5 color (dark)",
+                "tab": "Background",
+                "default": "#98adfe00",
+                "token": "--pt-bg-d-gradient-5"
+            },
+            "bg_d_gradient_5_at": {
+                "type": "number",
+                "label": "Gradient: Stop 5 position (dark)",
+                "tab": "Background",
+                "default": 70,
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "token": "--pt-bg-d-gradient-5-at"
+            },
+            "bg_d_grid": {
+                "type": "color",
+                "label": "Grid: Line color (dark)",
+                "tab": "Background",
+                "default": "#f5f7ff0f",
+                "token": "--pt-bg-d-grid"
+            },
+            "bg_d_dots": {
+                "type": "color",
+                "label": "Dots: Dot color (dark)",
+                "tab": "Background",
+                "default": "#f5f7ff29",
+                "token": "--pt-bg-d-dots"
+            },
+            "bg_d_aurora_1": {
+                "type": "color",
+                "label": "Aurora: First color (dark)",
+                "tab": "Background",
+                "default": "#98adfe59",
+                "token": "--pt-bg-d-aurora-1"
+            },
+            "bg_d_aurora_2": {
+                "type": "color",
+                "label": "Aurora: Second color (dark)",
+                "tab": "Background",
+                "default": "#98adfe4c",
+                "token": "--pt-bg-d-aurora-2"
+            },
+            "bg_d_aurora_3": {
+                "type": "color",
+                "label": "Aurora: Third color (dark)",
+                "tab": "Background",
+                "default": "#67e8f938",
+                "token": "--pt-bg-d-aurora-3"
+            },
+            "bg_d_stars": {
+                "type": "color",
+                "label": "Stars: Star color (dark)",
+                "tab": "Background",
+                "default": "#f5f7ffb2",
+                "token": "--pt-bg-d-stars"
+            },
+            "bg_l_gradient_stops": {
+                "type": "number",
+                "label": "Gradient: Number of stops (light)",
+                "tab": "Background",
+                "default": 2,
+                "min": 2,
+                "max": 5,
+                "step": 1
+            },
+            "bg_l_gradient_1": {
+                "type": "color",
+                "label": "Gradient: Stop 1 color (light)",
+                "tab": "Background",
+                "default": "#4f63d827",
+                "token": "--pt-bg-l-gradient-1"
+            },
+            "bg_l_gradient_1_at": {
+                "type": "number",
+                "label": "Gradient: Stop 1 position (light)",
+                "tab": "Background",
+                "default": 0,
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "token": "--pt-bg-l-gradient-1-at"
+            },
+            "bg_l_gradient_2": {
+                "type": "color",
+                "label": "Gradient: Stop 2 color (light)",
+                "tab": "Background",
+                "default": "#4f63d800",
+                "token": "--pt-bg-l-gradient-2"
+            },
+            "bg_l_gradient_2_at": {
+                "type": "number",
+                "label": "Gradient: Stop 2 position (light)",
+                "tab": "Background",
+                "default": 70,
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "token": "--pt-bg-l-gradient-2-at"
+            },
+            "bg_l_gradient_3": {
+                "type": "color",
+                "label": "Gradient: Stop 3 color (light)",
+                "tab": "Background",
+                "default": "#4f63d800",
+                "token": "--pt-bg-l-gradient-3"
+            },
+            "bg_l_gradient_3_at": {
+                "type": "number",
+                "label": "Gradient: Stop 3 position (light)",
+                "tab": "Background",
+                "default": 70,
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "token": "--pt-bg-l-gradient-3-at"
+            },
+            "bg_l_gradient_4": {
+                "type": "color",
+                "label": "Gradient: Stop 4 color (light)",
+                "tab": "Background",
+                "default": "#4f63d800",
+                "token": "--pt-bg-l-gradient-4"
+            },
+            "bg_l_gradient_4_at": {
+                "type": "number",
+                "label": "Gradient: Stop 4 position (light)",
+                "tab": "Background",
+                "default": 70,
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "token": "--pt-bg-l-gradient-4-at"
+            },
+            "bg_l_gradient_5": {
+                "type": "color",
+                "label": "Gradient: Stop 5 color (light)",
+                "tab": "Background",
+                "default": "#4f63d800",
+                "token": "--pt-bg-l-gradient-5"
+            },
+            "bg_l_gradient_5_at": {
+                "type": "number",
+                "label": "Gradient: Stop 5 position (light)",
+                "tab": "Background",
+                "default": 70,
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "token": "--pt-bg-l-gradient-5-at"
+            },
+            "bg_l_grid": {
+                "type": "color",
+                "label": "Grid: Line color (light)",
+                "tab": "Background",
+                "default": "#141a330f",
+                "token": "--pt-bg-l-grid"
+            },
+            "bg_l_dots": {
+                "type": "color",
+                "label": "Dots: Dot color (light)",
+                "tab": "Background",
+                "default": "#141a3329",
+                "token": "--pt-bg-l-dots"
+            },
+            "bg_l_aurora_1": {
+                "type": "color",
+                "label": "Aurora: First color (light)",
+                "tab": "Background",
+                "default": "#4f63d83e",
+                "token": "--pt-bg-l-aurora-1"
+            },
+            "bg_l_aurora_2": {
+                "type": "color",
+                "label": "Aurora: Second color (light)",
+                "tab": "Background",
+                "default": "#4f63d836",
+                "token": "--pt-bg-l-aurora-2"
+            },
+            "bg_l_aurora_3": {
+                "type": "color",
+                "label": "Aurora: Third color (light)",
+                "tab": "Background",
+                "default": "#0e749027",
+                "token": "--pt-bg-l-aurora-3"
+            },
+            "bg_l_stars": {
+                "type": "color",
+                "label": "Stars: Star color (light)",
+                "tab": "Background",
+                "default": "#141a33b2",
+                "token": "--pt-bg-l-stars"
             },
             "motion": {
                 "type": "select",
