@@ -88,7 +88,65 @@ def colors(dark, light):
     return {**{f'd_{role}': value for role, value in dark.items()}, **{f'l_{role}': value for role, value in light.items()}}
 
 
-BASE = {'radius': 10, 'font': 'plex', 'labels': 'sans', 'font_size': 16, 'switches': 'rounded', 'surface_style': 'raised', 'blur': 14, 'opacity': 70, 'background': 'gradient', 'background_dim': 55, 'motion': 'full'}
+# The palette roles a background color can be: they follow dark and light mode and presets.
+BG_ROLES = {'primary': 'Primary', 'blue': 'Blue', 'cyan': 'Cyan', 'green': 'Green', 'yellow': 'Yellow', 'red': 'Red', 'magenta': 'Magenta'}
+BG_ROLES_TEXT = {'text': 'Text', **BG_ROLES}
+SPEED = dict(type='number', label='Speed', min=25, max=200, step=25)
+
+# Each background's own settings, shown under the gallery when it is chosen. Colors are
+# <html> attributes (backgrounds.css turns them into --pt-bg-* colors); numbers are tokens.
+BACKGROUND = {
+    'gradient': {
+        'from': dict(type='select', label='First color', options=BG_ROLES, default='primary'),
+        'to': dict(type='select', label='Second color', options=BG_ROLES, default='blue'),
+        'shape': dict(type='select', label='Shape', options={'corners': 'From the corners', 'top': 'From the top', 'center': 'From the middle'}, default='corners'),
+        'strength': dict(type='number', label='Strength', min=0, max=60, step=2, unit='%', default=16),
+    },
+    'aurora': {
+        'a': dict(type='select', label='First color', options=BG_ROLES, default='primary'),
+        'b': dict(type='select', label='Second color', options=BG_ROLES, default='blue'),
+        'c': dict(type='select', label='Third color', options=BG_ROLES, default='cyan'),
+        'strength': dict(type='number', label='Strength', min=10, max=60, step=2, unit='%', default=32),
+        'size': dict(type='number', label='Size', min=30, max=90, step=5, unit='vmax', default=60),
+        'speed': dict(SPEED, default=100),
+    },
+    'waves': {
+        'a': dict(type='select', label='Front color', options=BG_ROLES, default='primary'),
+        'b': dict(type='select', label='Back color', options=BG_ROLES, default='blue'),
+        'height': dict(type='number', label='Height', min=20, max=70, step=5, unit='vh', default=40),
+        'strength': dict(type='number', label='Strength', min=10, max=60, step=2, unit='%', default=30),
+        'speed': dict(SPEED, default=100),
+    },
+    'stars': {
+        'density': dict(type='number', label='How many', min=1, max=6, step=1, default=3),
+        'size': dict(type='number', label='Star size', min=50, max=250, step=25, default=100),
+        'color': dict(type='select', label='Color', options=BG_ROLES_TEXT, default='text'),
+        'brightness': dict(type='number', label='Brightness', min=20, max=100, step=5, unit='%', default=55),
+        'twinkle': dict(type='toggle', label='Twinkle', help='Stars fade in and out slowly.', default=True),
+    },
+    'mesh': {
+        'a': dict(type='select', label='First color', options=BG_ROLES, default='primary'),
+        'b': dict(type='select', label='Second color', options=BG_ROLES, default='blue'),
+        'c': dict(type='select', label='Third color', options=BG_ROLES, default='magenta'),
+        'd': dict(type='select', label='Fourth color', options=BG_ROLES, default='cyan'),
+        'strength': dict(type='number', label='Strength', min=20, max=100, step=5, unit='%', default=85),
+        'speed': dict(SPEED, default=100),
+    },
+    'grid': {
+        'style': dict(type='select', label='Pattern', options={'lines': 'Lines', 'dots': 'Dots'}, default='lines'),
+        'size': dict(type='number', label='Cell size', min=16, max=96, step=4, unit='px', default=32),
+        'color': dict(type='select', label='Color', options=BG_ROLES_TEXT, default='text'),
+        'strength': dict(type='number', label='Strength', min=2, max=30, step=1, unit='%', default=5),
+        'fade': dict(type='select', label='Fade', options={'top': 'Toward the bottom', 'edges': 'Toward the edges', 'none': 'No fade'}, default='top'),
+    },
+    'image': {
+        'fit': dict(type='select', label='Fill', options={'cover': 'Cover the page', 'tile': 'Repeat'}, default='cover'),
+        'blur': dict(type='number', label='Blur', min=0, max=24, step=1, unit='px', default=0),
+    },
+}
+BG_DEFAULTS = {f'bg_{kind}_{name}': spec['default'] for kind, params in BACKGROUND.items() for name, spec in params.items()}
+
+BASE = {'radius': 10, 'font': 'plex', 'labels': 'sans', 'font_size': 16, 'switches': 'rounded', 'surface_style': 'raised', 'blur': 14, 'opacity': 70, 'background': 'gradient', 'background_dim': 55, **BG_DEFAULTS, 'motion': 'full'}
 
 # Prism Slate: the look of Prism's own pictures. Deep navy behind near-black cards, periwinkle for
 # the brand, Inter for text and JetBrains Mono for the small labels.
@@ -140,7 +198,7 @@ add('radius', type='number', label='Corner rounding', tab='Type and shape', defa
 add('font', type='select', label='Font', tab='Type and shape', options={'plex': 'IBM Plex Sans', 'inter': 'Inter', 'system': 'System', 'rounded': 'Rounded', 'serif': 'Serif', 'mono': 'Monospace'}, default=DEFAULTS['font'], attribute='data-pt-font')
 add('labels', type='select', label='Small labels', help='Headings in capitals, such as the groups of the Ctrl+K search and the badges: in the text font or in monospace.', tab='Type and shape', options={'sans': 'Like the text', 'mono': 'Monospace'}, default=DEFAULTS['labels'], attribute='data-pt-labels')
 add('font_size', type='number', label='Text size', tab='Type and shape', default=DEFAULTS['font_size'], min=13, max=18, step=1, unit='px', token='--pt-font-size')
-add('switches', type='select', label='Switches', help='The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding.', tab='Type and shape', options={'rounded': 'Rounded', 'square': 'Square'}, default=DEFAULTS['switches'], attribute='data-pt-switches')
+add('switches', type='select', label='Switches', help='The shape of every switch: on/off toggles and choices such as Files and Editor. Square follows the corner rounding.', tab='Type and shape', options={'rounded': 'Rounded', 'square': 'Square'}, default=DEFAULTS['switches'], attribute='data-pt-switches')
 
 add('surface_style', type='select', label='Cards and bars', help='How cards, menus and bars stand out from the background.', tab='Surfaces', options={'flat': 'Flat', 'raised': 'Soft shadow', 'outlined': 'Outlined', 'glow': 'Glow', 'glass': 'Glass'}, default=DEFAULTS['surface_style'], attribute='data-pt-surface')
 add('blur', type='number', label='Glass blur', help='For Glass.', tab='Surfaces', default=DEFAULTS['blur'], min=0, max=40, step=2, unit='px', token='--pt-blur')
@@ -149,6 +207,16 @@ add('opacity', type='number', label='Glass solidity', help='For Glass: how much 
 add('background', type='select', label='Background', tab='Background', options={'plain': 'Plain', 'gradient': 'Gradient', 'aurora': 'Aurora (moving)', 'waves': 'Waves (moving)', 'stars': 'Stars (moving)', 'mesh': 'Color mesh (moving)', 'grid': 'Grid', 'image': 'Picture'}, default=DEFAULTS['background'], attribute='data-pt-bg')
 add('background_image', type='image', label='Background picture', help='Used when the background is Picture.', tab='Background', token='--pt-bg-image')
 add('background_dim', type='number', label='Darken the picture', tab='Background', default=DEFAULTS['background_dim'], min=0, max=95, step=5, unit='%', token='--pt-bg-dim')
+BG_LABELS = {'gradient': 'Gradient', 'aurora': 'Aurora', 'waves': 'Waves', 'stars': 'Stars', 'mesh': 'Color mesh', 'grid': 'Grid', 'image': 'Picture'}
+for kind, params in BACKGROUND.items():
+    for name, spec in params.items():
+        key = f'bg_{kind}_{name}'
+        name_css = key.replace('_', '-')
+        spec = {k: v for k, v in spec.items() if k != 'default'}
+        # Search finds each by its background's name too, such as "Stars: How many".
+        spec['label'] = f"{BG_LABELS[kind]}: {spec['label']}"
+        place = {'token': f'--pt-{name_css}'} if spec['type'] == 'number' else {'attribute': f'data-pt-{name_css}'}
+        add(key, **spec, tab='Background', default=DEFAULTS[key], **place)
 
 add('motion', type='select', label='Motion', help='People who ask their system for less motion always get it.', tab='Motion', options={'full': 'Full', 'reduced': 'Reduced', 'none': 'None'}, default=DEFAULTS['motion'], attribute='data-pt-motion')
 
@@ -158,7 +226,7 @@ add('presets', type='text', label='Your presets', help='Presets made in Prism Pr
 
 manifest = {
     '$schema': './node_modules/@pterodactyl/sdk/manifest.schema.json',
-    'id': 'prism-themes', 'type': 'theme', 'name': 'Prism Themes', 'version': '0.2.0',
+    'id': 'prism-themes', 'type': 'theme', 'name': 'Prism Themes', 'version': '0.3.0',
     'description': 'One theme tool: colors for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.',
     'author': 'Donkare', 'icon': 'icon.png',
     'requires': {'panel': '^2.0.0-dev', 'sdk': '>=2.0.0-beta.6 <3.0', 'extensions': {'prism-core': '>=0.1.0'}},
@@ -166,6 +234,19 @@ manifest = {
     'theme': {'extends': 'classic', 'stylesheet': 'dist/theme.css', 'schemes': ['dark', 'light'], 'settings': S},
 }
 open(os.path.join(root, 'extension.json'), 'w', encoding='utf8', newline='\n').write(json.dumps(manifest, indent=4, ensure_ascii=False) + '\n')
+
+# Each background color setting, as the palette role it names. The attribute is on <html>, where
+# .dark and .light set the roles, so each color is taken in the scheme showing.
+css = ['/* Written by scripts/generate.py: do not edit. Each background color setting as its palette role. */']
+for kind, params in BACKGROUND.items():
+    for name, spec in params.items():
+        if spec['type'] != 'select' or not set(spec['options']) <= set(BG_ROLES_TEXT):
+            continue
+        name_css = f'bg-{kind}-{name}'
+        for role in spec['options']:
+            source = '--foreground' if role == 'text' else f'--pt-{role}'
+            css.append(f"[data-pt-{name_css}='{role}'] {{ --pt-{name_css}: var({source}); }}")
+open(os.path.join(root, 'src', 'backgrounds.css'), 'w', encoding='utf8', newline='\n').write('\n'.join(css) + '\n')
 
 roles = [{'key': role, 'label': label, 'help': help_text, 'group': group} for role, (label, help_text, group) in ROLES.items()]
 open(os.path.join(extensions, 'builtins.json'), 'w', encoding='utf8', newline='\n').write(json.dumps({'roles': roles, 'presets': PRESETS}, indent=2, ensure_ascii=False) + '\n')

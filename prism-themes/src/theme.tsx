@@ -15,6 +15,8 @@ const skins: ThemeSkins = {
     DropdownMenu: skin('DropdownMenu', { root: (state, below) => below('pt-surface pt-overlay') }),
     Select: skin('Select', { popup: (state, below) => below('pt-surface pt-overlay') }),
     Dialog: skin('Dialog', { backdrop: (state, below) => below('backdrop-blur-sm'), root: (state, below) => below('pt-surface pt-overlay') }),
+    // On/off toggles, so the Switches setting can square them.
+    Switch: skin('Switch', { control: (state, below) => below('pt-toggle'), thumb: (state, below) => below('pt-toggle-thumb') }),
 };
 
 /*

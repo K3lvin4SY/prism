@@ -3,7 +3,7 @@
     "id": "prism-themes",
     "type": "theme",
     "name": "Prism Themes",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "One theme tool: colors for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.",
     "author": "Donkare",
     "icon": "icon.png",
@@ -373,7 +373,7 @@
             "switches": {
                 "type": "select",
                 "label": "Switches",
-                "help": "The shape of every Prism switch, such as Files, Editor and Trash. Square follows the corner rounding.",
+                "help": "The shape of every switch: on/off toggles and choices such as Files and Editor. Square follows the corner rounding.",
                 "tab": "Type and shape",
                 "options": {
                     "rounded": "Rounded",
@@ -455,6 +455,430 @@
                 "step": 5,
                 "unit": "%",
                 "token": "--pt-bg-dim"
+            },
+            "bg_gradient_from": {
+                "type": "select",
+                "label": "Gradient: First color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "primary",
+                "attribute": "data-pt-bg-gradient-from"
+            },
+            "bg_gradient_to": {
+                "type": "select",
+                "label": "Gradient: Second color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "blue",
+                "attribute": "data-pt-bg-gradient-to"
+            },
+            "bg_gradient_shape": {
+                "type": "select",
+                "label": "Gradient: Shape",
+                "options": {
+                    "corners": "From the corners",
+                    "top": "From the top",
+                    "center": "From the middle"
+                },
+                "tab": "Background",
+                "default": "corners",
+                "attribute": "data-pt-bg-gradient-shape"
+            },
+            "bg_gradient_strength": {
+                "type": "number",
+                "label": "Gradient: Strength",
+                "min": 0,
+                "max": 60,
+                "step": 2,
+                "unit": "%",
+                "tab": "Background",
+                "default": 16,
+                "token": "--pt-bg-gradient-strength"
+            },
+            "bg_aurora_a": {
+                "type": "select",
+                "label": "Aurora: First color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "primary",
+                "attribute": "data-pt-bg-aurora-a"
+            },
+            "bg_aurora_b": {
+                "type": "select",
+                "label": "Aurora: Second color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "blue",
+                "attribute": "data-pt-bg-aurora-b"
+            },
+            "bg_aurora_c": {
+                "type": "select",
+                "label": "Aurora: Third color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "cyan",
+                "attribute": "data-pt-bg-aurora-c"
+            },
+            "bg_aurora_strength": {
+                "type": "number",
+                "label": "Aurora: Strength",
+                "min": 10,
+                "max": 60,
+                "step": 2,
+                "unit": "%",
+                "tab": "Background",
+                "default": 32,
+                "token": "--pt-bg-aurora-strength"
+            },
+            "bg_aurora_size": {
+                "type": "number",
+                "label": "Aurora: Size",
+                "min": 30,
+                "max": 90,
+                "step": 5,
+                "unit": "vmax",
+                "tab": "Background",
+                "default": 60,
+                "token": "--pt-bg-aurora-size"
+            },
+            "bg_aurora_speed": {
+                "type": "number",
+                "label": "Aurora: Speed",
+                "min": 25,
+                "max": 200,
+                "step": 25,
+                "tab": "Background",
+                "default": 100,
+                "token": "--pt-bg-aurora-speed"
+            },
+            "bg_waves_a": {
+                "type": "select",
+                "label": "Waves: Front color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "primary",
+                "attribute": "data-pt-bg-waves-a"
+            },
+            "bg_waves_b": {
+                "type": "select",
+                "label": "Waves: Back color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "blue",
+                "attribute": "data-pt-bg-waves-b"
+            },
+            "bg_waves_height": {
+                "type": "number",
+                "label": "Waves: Height",
+                "min": 20,
+                "max": 70,
+                "step": 5,
+                "unit": "vh",
+                "tab": "Background",
+                "default": 40,
+                "token": "--pt-bg-waves-height"
+            },
+            "bg_waves_strength": {
+                "type": "number",
+                "label": "Waves: Strength",
+                "min": 10,
+                "max": 60,
+                "step": 2,
+                "unit": "%",
+                "tab": "Background",
+                "default": 30,
+                "token": "--pt-bg-waves-strength"
+            },
+            "bg_waves_speed": {
+                "type": "number",
+                "label": "Waves: Speed",
+                "min": 25,
+                "max": 200,
+                "step": 25,
+                "tab": "Background",
+                "default": 100,
+                "token": "--pt-bg-waves-speed"
+            },
+            "bg_stars_density": {
+                "type": "number",
+                "label": "Stars: How many",
+                "min": 1,
+                "max": 6,
+                "step": 1,
+                "tab": "Background",
+                "default": 3,
+                "token": "--pt-bg-stars-density"
+            },
+            "bg_stars_size": {
+                "type": "number",
+                "label": "Stars: Star size",
+                "min": 50,
+                "max": 250,
+                "step": 25,
+                "tab": "Background",
+                "default": 100,
+                "token": "--pt-bg-stars-size"
+            },
+            "bg_stars_color": {
+                "type": "select",
+                "label": "Stars: Color",
+                "options": {
+                    "text": "Text",
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "text",
+                "attribute": "data-pt-bg-stars-color"
+            },
+            "bg_stars_brightness": {
+                "type": "number",
+                "label": "Stars: Brightness",
+                "min": 20,
+                "max": 100,
+                "step": 5,
+                "unit": "%",
+                "tab": "Background",
+                "default": 55,
+                "token": "--pt-bg-stars-brightness"
+            },
+            "bg_stars_twinkle": {
+                "type": "toggle",
+                "label": "Stars: Twinkle",
+                "help": "Stars fade in and out slowly.",
+                "tab": "Background",
+                "default": true,
+                "attribute": "data-pt-bg-stars-twinkle"
+            },
+            "bg_mesh_a": {
+                "type": "select",
+                "label": "Color mesh: First color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "primary",
+                "attribute": "data-pt-bg-mesh-a"
+            },
+            "bg_mesh_b": {
+                "type": "select",
+                "label": "Color mesh: Second color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "blue",
+                "attribute": "data-pt-bg-mesh-b"
+            },
+            "bg_mesh_c": {
+                "type": "select",
+                "label": "Color mesh: Third color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "magenta",
+                "attribute": "data-pt-bg-mesh-c"
+            },
+            "bg_mesh_d": {
+                "type": "select",
+                "label": "Color mesh: Fourth color",
+                "options": {
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "cyan",
+                "attribute": "data-pt-bg-mesh-d"
+            },
+            "bg_mesh_strength": {
+                "type": "number",
+                "label": "Color mesh: Strength",
+                "min": 20,
+                "max": 100,
+                "step": 5,
+                "unit": "%",
+                "tab": "Background",
+                "default": 85,
+                "token": "--pt-bg-mesh-strength"
+            },
+            "bg_mesh_speed": {
+                "type": "number",
+                "label": "Color mesh: Speed",
+                "min": 25,
+                "max": 200,
+                "step": 25,
+                "tab": "Background",
+                "default": 100,
+                "token": "--pt-bg-mesh-speed"
+            },
+            "bg_grid_style": {
+                "type": "select",
+                "label": "Grid: Pattern",
+                "options": {
+                    "lines": "Lines",
+                    "dots": "Dots"
+                },
+                "tab": "Background",
+                "default": "lines",
+                "attribute": "data-pt-bg-grid-style"
+            },
+            "bg_grid_size": {
+                "type": "number",
+                "label": "Grid: Cell size",
+                "min": 16,
+                "max": 96,
+                "step": 4,
+                "unit": "px",
+                "tab": "Background",
+                "default": 32,
+                "token": "--pt-bg-grid-size"
+            },
+            "bg_grid_color": {
+                "type": "select",
+                "label": "Grid: Color",
+                "options": {
+                    "text": "Text",
+                    "primary": "Primary",
+                    "blue": "Blue",
+                    "cyan": "Cyan",
+                    "green": "Green",
+                    "yellow": "Yellow",
+                    "red": "Red",
+                    "magenta": "Magenta"
+                },
+                "tab": "Background",
+                "default": "text",
+                "attribute": "data-pt-bg-grid-color"
+            },
+            "bg_grid_strength": {
+                "type": "number",
+                "label": "Grid: Strength",
+                "min": 2,
+                "max": 30,
+                "step": 1,
+                "unit": "%",
+                "tab": "Background",
+                "default": 5,
+                "token": "--pt-bg-grid-strength"
+            },
+            "bg_grid_fade": {
+                "type": "select",
+                "label": "Grid: Fade",
+                "options": {
+                    "top": "Toward the bottom",
+                    "edges": "Toward the edges",
+                    "none": "No fade"
+                },
+                "tab": "Background",
+                "default": "top",
+                "attribute": "data-pt-bg-grid-fade"
+            },
+            "bg_image_fit": {
+                "type": "select",
+                "label": "Picture: Fill",
+                "options": {
+                    "cover": "Cover the page",
+                    "tile": "Repeat"
+                },
+                "tab": "Background",
+                "default": "cover",
+                "attribute": "data-pt-bg-image-fit"
+            },
+            "bg_image_blur": {
+                "type": "number",
+                "label": "Picture: Blur",
+                "min": 0,
+                "max": 24,
+                "step": 1,
+                "unit": "px",
+                "tab": "Background",
+                "default": 0,
+                "token": "--pt-bg-image-blur"
             },
             "motion": {
                 "type": "select",
