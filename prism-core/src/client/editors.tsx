@@ -51,7 +51,7 @@ export function HighlightsEditor({ value, onChange }: { value: unknown; onChange
                             type={'color'}
                             value={rule.color}
                             onChange={(event) => setRule(index, { color: event.target.value })}
-                            className={'ppx:size-8 ppx:cursor-pointer ppx:rounded ppx:border-0 ppx:bg-transparent'}
+                            className={'ppx-color-input ppx:size-8'}
                             aria-label={'Color'}
                         />
                         <Input value={rule.pattern} onChange={(event) => setRule(index, { pattern: event.target.value })} placeholder={rule.regex ? 'Pattern, such as \\bkicked\\b' : 'Text to color'} className={'ppx:min-w-48 ppx:flex-1 ppx:font-mono'} />

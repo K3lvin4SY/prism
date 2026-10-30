@@ -16,3 +16,29 @@
 .ppx-label {
     font-family: var(--pt-font-label, inherit);
 }
+
+/*
+ * Color boxes: the color fills the box, with a quiet edge. Without this the browser draws its own
+ * bright frame inside the box.
+ */
+.ppx-color-input {
+    padding: 0;
+    cursor: pointer;
+    background: none;
+    border: 1px solid color-mix(in oklab, var(--border) 80%, var(--muted-foreground));
+    border-radius: calc(var(--radius) * 0.6);
+    overflow: hidden;
+}
+
+.ppx-color-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.ppx-color-input::-webkit-color-swatch {
+    border: none;
+    border-radius: 0;
+}
+
+.ppx-color-input::-moz-color-swatch {
+    border: none;
+}

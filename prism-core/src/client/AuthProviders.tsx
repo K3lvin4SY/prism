@@ -290,7 +290,7 @@ function ProviderCard({
                         </Field>
                         <Field label={'Button border color'}>
                             <div className={'ppx:flex ppx:items-center ppx:gap-2'}>
-                                <input type={'color'} value={draft.color ?? '#888888'} onChange={(event) => set({ color: event.target.value })} aria-label={'Button border color'} />
+                                <input type={'color'} value={draft.color ?? '#888888'} onChange={(event) => set({ color: event.target.value })} aria-label={'Button border color'} className={'ppx-color-input ppx:h-8 ppx:w-10'} />
                                 {draft.color && (
                                     <Button.Text size={'small'} onClick={() => set({ color: null })}>
                                         None

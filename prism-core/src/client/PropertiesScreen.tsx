@@ -628,7 +628,7 @@ function Field({ field, hint, value, onChange }: { field: SettingField; hint: Hi
         return (
             <>
                 <Label field={field} />
-                <input type={'color'} value={typeof value === 'string' ? value : '#000000'} onChange={(event) => onChange(event.target.value)} aria-label={field.label} />
+                <input type={'color'} value={typeof value === 'string' ? value : '#000000'} onChange={(event) => onChange(event.target.value)} aria-label={field.label} className={'ppx-color-input ppx:h-8 ppx:w-10'} />
             </>
         );
     }
