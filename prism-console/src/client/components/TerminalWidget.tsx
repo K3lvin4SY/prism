@@ -445,9 +445,7 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                         />
                     )}
                     <div className={'pcn:flex pcn:items-center pcn:gap-2 pcn:rounded-lg pcn:border pcn:border-white/15 pcn:bg-black/20 pcn:px-3 pcn:py-1.5 pcn:transition-colors pcn:focus-within:border-primary'}>
-                        <span aria-hidden className={'pcn:shrink-0 pcn:font-mono pcn:text-primary'}>
-                            &gt;
-                        </span>
+                        <NamedIcon name={'chevron-right'} size={16} className={'pcn:shrink-0 pcn:opacity-60'} />
                         <div className={'pcn:relative pcn:min-w-0 pcn:flex-1'} style={{ fontFamily: family, fontSize: `${settings.fontSize}px` }}>
                             {suggestion && (
                                 <div aria-hidden className={'pcn:pointer-events-none pcn:absolute pcn:inset-0 pcn:flex pcn:items-center pcn:whitespace-pre pcn:opacity-35'}>
@@ -464,7 +462,7 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                                     setCursor(-1);
                                 }}
                                 onKeyDown={onKey}
-                                placeholder={'Type a command…'}
+                                placeholder={'Type a command…  ↑ history · Tab accepts · Ctrl+R search'}
                                 aria-label={'Command'}
                                 aria-expanded={historyOpen}
                                 className={'pcn:w-full pcn:bg-transparent pcn:outline-none pcn:placeholder:opacity-50'}
@@ -472,15 +470,16 @@ export default function TerminalWidget({ server, store, settings, onSettings, hi
                                 spellCheck={false}
                             />
                         </div>
+                        <IconButton icon={'history'} label={'Command history (↑ or Ctrl+R)'} active={historyOpen} onClick={() => toggleHistory.current()} />
                         <button
                             type={'button'}
-                            onMouseDown={(event) => event.preventDefault()}
-                            onClick={() => toggleHistory.current()}
-                            title={'Command history (↑ or Ctrl+R)'}
-                            aria-pressed={historyOpen}
-                            className={cn('pcn:flex pcn:shrink-0 pcn:items-center pcn:gap-1.5 pcn:rounded pcn:px-1 pcn:font-mono pcn:text-xs pcn:cursor-pointer pcn:transition-colors', historyOpen ? 'pcn:text-foreground' : 'pcn:text-muted-foreground pcn:hover:text-foreground')}
+                            onClick={submit}
+                            aria-label={'Send'}
+                            title={'Send'}
+                            className={'pcn:flex pcn:size-7 pcn:shrink-0 pcn:items-center pcn:justify-center pcn:rounded-md pcn:bg-primary pcn:text-primary-foreground pcn:cursor-pointer pcn:disabled:opacity-40'}
+                            disabled={command.trim() === ''}
                         >
-                            <span className={'pcn:tracking-tighter'}>↑↓</span> history
+                            <NamedIcon name={'arrow-right'} size={15} />
                         </button>
                     </div>
                 </div>

@@ -14,7 +14,7 @@ const LAYOUTS: Record<string, { widgets: [Widget, Area][]; compact?: boolean }> 
     dashboard: { widgets: [['tiles', 'top'], ['terminal', 'main'], ['power', 'side'], ['info', 'side'], ['charts', 'bottom']] },
     side: { widgets: [['terminal', 'main'], ['power', 'side'], ['info', 'side'], ['tiles', 'side'], ['charts', 'side']] },
     monitor: { widgets: [['charts', 'top'], ['tiles', 'top'], ['terminal', 'main'], ['power', 'side'], ['info', 'side']] },
-    focus: { widgets: [['terminal', 'main'], ['charts', 'bottom']] },
+    focus: { widgets: [['power', 'top'], ['terminal', 'main'], ['charts', 'bottom']] },
     compact: { compact: true, widgets: [['terminal', 'main'], ['power', 'bottom'], ['tiles', 'bottom'], ['charts', 'bottom']] },
 };
 

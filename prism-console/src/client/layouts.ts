@@ -58,8 +58,9 @@ export const LAYOUTS: Record<LayoutId, { label: string; description: string; wid
     },
     focus: {
         label: 'Focus',
-        description: 'a large terminal with the live charts below',
+        description: 'the power buttons, a large terminal and the live charts below',
         widgets: [
+            { widget: 'power', area: 'top' },
             { widget: 'terminal', area: 'main' },
             { widget: 'charts', area: 'bottom' },
         ],
