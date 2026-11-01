@@ -74,7 +74,7 @@ export default function VersionsScreen() {
                     <span className={'trs:flex trs:size-12 trs:items-center trs:justify-center trs:rounded-lg trs:bg-primary/15 trs:text-primary'}>
                         <NamedIcon name={ICONS[kind]} size={22} />
                     </span>
-                    <div className={'trs:min-w-0 trs:flex-1'}>
+                    <div className={'trs:min-w-0 trs:flex-1 trs:basis-40'}>
                         <p className={'trs:text-lg trs:font-semibold'}>
                             {KIND_NAMES[kind]} {kind === 'vanilla' ? (data.info.version ?? '') : (data.info.build ?? '')}
                         </p>
@@ -84,7 +84,7 @@ export default function VersionsScreen() {
                         </p>
                     </div>
                     {hasPreviews && (
-                        <div className={'trs:w-44'}>
+                        <div className={'trs:w-full trs:sm:w-44'}>
                             <Select
                                 value={channel}
                                 onChange={(value) => setChannel(value as typeof channel)}

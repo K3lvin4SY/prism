@@ -33,6 +33,8 @@ import {
     type VersionSummary,
 } from '../api/versions';
 import JobProgress from '../components/JobProgress';
+import { Sheet, useWide } from '../components/Sheet';
+import { NamedIcon } from '../icons';
 import { useMcInfo } from '../hooks/useMcInfo';
 import { allowSnapshots } from '../config';
 
@@ -105,6 +107,9 @@ function JavaVersions({ identifier, overview, onStarted }: { identifier: string;
     const [channel, setChannel] = useState<'all' | 'RELEASE' | 'SNAPSHOT'>(allowSnapshots() ? 'all' : 'RELEASE');
     const [selected, setSelected] = useState<VersionSummary | null>(null);
     const [preselect, setPreselect] = useState<number | null>(null);
+    const [picking, setPicking] = useState(false);
+    const closePicker = useCallback(() => setPicking(false), []);
+    const wide = useWide();
 
     const versions = useQuery({ queryKey: keys.versionList(identifier, type), queryFn: () => getVersions(identifier, type), staleTime: 300_000 });
     const currentVersions = useQuery({
@@ -125,6 +130,35 @@ function JavaVersions({ identifier, overview, onStarted }: { identifier: string;
         [versions.data, channel, search]
     );
 
+    const softwareList = (
+        <div className={'mcs:flex mcs:flex-col mcs:gap-3'}>
+            {Object.entries(overview.types ?? {}).map(([group, entries]) => (
+                <div key={group}>
+                    <p className={'mcs:text-xs mcs:uppercase mcs:tracking-wide mcs:text-muted-foreground mcs:mb-1'}>{GROUP_LABELS[group] ?? group}</p>
+                    {Object.entries(entries).map(([id, software]) => (
+                        <button
+                            key={id}
+                            type={'button'}
+                            onClick={() => {
+                                setType(id);
+                                setPicking(false);
+                            }}
+                            className={cn(
+                                'mcs:flex mcs:w-full mcs:items-center mcs:gap-2 mcs:rounded mcs:px-2 mcs:py-1.5 mcs:pointer-coarse:py-2.5 mcs:text-sm mcs:cursor-pointer mcs:text-left',
+                                id === type ? 'mcs:bg-primary mcs:text-primary-foreground' : 'mcs:hover:bg-muted'
+                            )}
+                        >
+                            <img src={software.icon} alt={''} className={'mcs:size-5 mcs:rounded-sm'} loading={'lazy'} />
+                            <span className={'mcs:flex-1 mcs:truncate'}>{software.name}</span>
+                            {id === info.mcjarsType && <span className={'mcs:text-xs mcs:opacity-80'}>Installed</span>}
+                            <span className={'mcs:text-xs mcs:opacity-70'}>{software.builds}b</span>
+                        </button>
+                    ))}
+                </div>
+            ))}
+        </div>
+    );
+
     return (
         <>
             <CurrentCard
@@ -140,40 +174,37 @@ function JavaVersions({ identifier, overview, onStarted }: { identifier: string;
             />
 
             <div className={'mcs:grid mcs:gap-4 mcs:lg:grid-cols-[240px_1fr]'}>
-                <TitledGreyBox title={'Software'}>
-                    <div className={'mcs:flex mcs:flex-col mcs:gap-3 mcs:max-h-[640px] mcs:overflow-y-auto'}>
-                        {Object.entries(overview.types ?? {}).map(([group, entries]) => (
-                            <div key={group}>
-                                <p className={'mcs:text-xs mcs:uppercase mcs:tracking-wide mcs:text-muted-foreground mcs:mb-1'}>{GROUP_LABELS[group] ?? group}</p>
-                                {Object.entries(entries).map(([id, software]) => (
-                                    <button
-                                        key={id}
-                                        type={'button'}
-                                        onClick={() => setType(id)}
-                                        className={cn(
-                                            'mcs:flex mcs:w-full mcs:items-center mcs:gap-2 mcs:rounded mcs:px-2 mcs:py-1.5 mcs:text-sm mcs:cursor-pointer mcs:text-left',
-                                            id === type ? 'mcs:bg-primary mcs:text-primary-foreground' : 'mcs:hover:bg-muted'
-                                        )}
-                                    >
-                                        <img src={software.icon} alt={''} className={'mcs:size-5 mcs:rounded-sm'} loading={'lazy'} />
-                                        <span className={'mcs:flex-1 mcs:truncate'}>{software.name}</span>
-                                        <span className={'mcs:text-xs mcs:opacity-70'}>{software.builds}b</span>
-                                    </button>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                </TitledGreyBox>
+                {wide && (
+                    <TitledGreyBox title={'Software'}>
+                        <div className={'mcs:max-h-[640px] mcs:overflow-y-auto'}>{softwareList}</div>
+                    </TitledGreyBox>
+                )}
 
-                <div className={'mcs:flex mcs:flex-col mcs:gap-3'}>
+                <div className={'mcs:flex mcs:flex-col mcs:gap-3 mcs:min-w-0'}>
+                    {!wide && (
+                        <button
+                            type={'button'}
+                            onClick={() => setPicking(true)}
+                            className={'pt-surface mcs:flex mcs:w-full mcs:items-center mcs:gap-3 mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:px-3 mcs:py-2.5 mcs:text-left mcs:cursor-pointer mcs:hover:border-primary'}
+                        >
+                            {selectedType ? <img src={selectedType.icon} alt={''} className={'mcs:size-8 mcs:rounded'} /> : <div className={'mcs:size-8 mcs:rounded mcs:bg-muted'} />}
+                            <div className={'mcs:min-w-0 mcs:flex-1'}>
+                                <p className={'mcs:text-xs mcs:text-muted-foreground'}>Software</p>
+                                <p className={'mcs:truncate mcs:font-semibold'}>{selectedType?.name ?? type}</p>
+                            </div>
+                            <span className={'mcs:inline-flex mcs:items-center mcs:gap-1 mcs:text-sm mcs:text-primary'}>
+                                Change <NamedIcon name={'chevron-down'} size={16} />
+                            </span>
+                        </button>
+                    )}
                     {selectedType && (
-                        <p className={'mcs:text-sm mcs:text-muted-foreground'}>
+                        <p className={cn('mcs:text-sm mcs:text-muted-foreground', !wide && 'mcs:line-clamp-2')}>
                             <strong className={'mcs:text-foreground'}>{selectedType.name}</strong>: {selectedType.description}
                         </p>
                     )}
-                    <div className={'mcs:flex mcs:flex-wrap mcs:gap-2'}>
-                        <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={'Search versions…'} className={'mcs:flex-1 mcs:min-w-48'} />
-                        <div className={'mcs:w-44'}>
+                    <div className={'mcs:flex mcs:gap-2'}>
+                        <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={'Search versions…'} className={'mcs:min-w-0 mcs:flex-1'} />
+                        <div className={'mcs:w-36 mcs:shrink-0 mcs:sm:w-44'}>
                             <Select
                                 value={channel}
                                 onChange={(value) => setChannel(value as typeof channel)}
@@ -229,6 +260,12 @@ function JavaVersions({ identifier, overview, onStarted }: { identifier: string;
                     )}
                 </div>
             </div>
+
+            {!wide && (
+                <Sheet open={picking} title={'Software'} onClose={closePicker}>
+                    {softwareList}
+                </Sheet>
+            )}
 
             {selected && (
                 <BuildsDialog

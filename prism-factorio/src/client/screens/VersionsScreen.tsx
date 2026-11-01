@@ -54,7 +54,7 @@ export default function VersionsScreen() {
                     <span className={'fct:flex fct:size-12 fct:items-center fct:justify-center fct:rounded-lg fct:bg-primary/15 fct:text-primary'}>
                         <NamedIcon name={'settings'} size={22} />
                     </span>
-                    <div className={'fct:min-w-0 fct:flex-1'}>
+                    <div className={'fct:min-w-0 fct:flex-1 fct:basis-40'}>
                         <p className={'fct:text-lg fct:font-semibold'}>Factorio {data.installed ?? '(not installed yet)'}</p>
                         <p className={'fct:text-xs fct:text-muted-foreground'}>A reinstall installs {following}.</p>
                     </div>
