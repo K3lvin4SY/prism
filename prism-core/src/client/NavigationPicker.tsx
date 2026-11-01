@@ -1,5 +1,6 @@
 import { useId, useState, type ReactNode } from 'react';
 import { cn } from '@pterodactyl/sdk';
+import { NamedIcon } from './icons';
 
 /** Prism Layout's navigation layouts, named as the cards show them. */
 const LAYOUTS: [string, string][] = [
@@ -88,89 +89,113 @@ export interface Device {
     value: unknown;
 }
 
-const DRAG = 'application/x-prism-layout';
+const DRAG = 'application/x-prism-device';
 const nameOf = (layout: unknown) => LAYOUTS.find(([key]) => key === layout)?.[1] ?? 'None';
 
+/** The chip each device is dragged by: Prism Layout's settings for computers, tablets and phones, or the device's own label. */
+const chipOf = (device: Device): [string, string] => {
+    if (device.key.endsWith('_mobile')) return ['smartphone', 'Mobile'];
+    if (device.key.endsWith('_tablet')) return ['tablet', 'Tablet'];
+    if (device.key === 'bars') return ['monitor', 'PC'];
+
+    return ['monitor', device.label];
+};
+
 /**
- * Prism Layout's navigation for every kind of device: the eight layouts once, dragged onto the
- * computer, tablet and phone screens below, each of which gets its own copy. Clicking a layout and
- * then a screen does the same, for a keyboard or a touch screen.
+ * Prism Layout's navigation for every kind of device: the eight layouts once, with the PC, tablet and
+ * mobile chips sitting on the layout each one uses. Dragging a chip onto another layout moves it there;
+ * clicking a chip and then a layout does the same, for a keyboard or a touch screen.
  */
 export default function NavigationBoard({ devices, onChange }: { devices: Device[]; onChange: (key: string, layout: string) => void }) {
     const [held, setHeld] = useState<string | null>(null);
     const [over, setOver] = useState<string | null>(null);
+    const holding = devices.find((device) => device.key === held);
+
+    const place = (key: string, layout: string) => {
+        onChange(key, layout);
+        setHeld(null);
+        setOver(null);
+    };
 
     return (
         <div className={'ppx:@container ppx:flex ppx:flex-col ppx:gap-4'}>
             <div>
                 <p className={'ppx:text-sm ppx:font-medium'}>Layouts</p>
-                <p className={'ppx:text-xs ppx:text-muted-foreground'}>Drag a layout onto a screen below, or click a layout and then a screen.</p>
+                <p className={'ppx:text-xs ppx:text-muted-foreground'}>Drag PC, tablet or mobile onto a layout, or click one and then a layout.</p>
             </div>
             <div className={'ppx:grid ppx:grid-cols-2 ppx:gap-2 ppx:@sm:grid-cols-4'}>
-                {LAYOUTS.map(([layout, name]) => (
-                    <button
-                        key={layout}
-                        type={'button'}
-                        draggable
-                        onDragStart={(event) => {
-                            event.dataTransfer.setData(DRAG, layout);
-                            event.dataTransfer.effectAllowed = 'copy';
-                            setHeld(layout);
-                        }}
-                        onDragEnd={() => {
-                            setHeld(null);
-                            setOver(null);
-                        }}
-                        onClick={() => setHeld(held === layout ? null : layout)}
-                        aria-pressed={held === layout}
-                        className={cn(
-                            'ppx:flex ppx:cursor-grab ppx:flex-col ppx:gap-1.5 ppx:rounded-xl ppx:border ppx:bg-background/60 ppx:p-1 ppx:pb-1.5 ppx:text-left ppx:transition-colors ppx:active:cursor-grabbing',
-                            held === layout ? 'ppx:border-primary ppx:ring-1 ppx:ring-primary' : 'ppx:border-border ppx:hover:border-primary/60'
-                        )}
-                    >
-                        <NavigationDrawing layout={layout} className={'ppx:pointer-events-none ppx:w-full'} />
-                        <span className={'ppx-label ppx:px-1 ppx:text-[10px] ppx:leading-tight ppx:font-medium ppx:tracking-[0.1em] ppx:text-foreground/85 ppx:uppercase'}>{name}</span>
-                    </button>
-                ))}
-            </div>
-            <div className={'ppx:grid ppx:grid-cols-1 ppx:gap-3 ppx:@sm:grid-cols-3'}>
-                {devices.map((device) => (
-                    <button
-                        key={device.key}
-                        type={'button'}
-                        onDragOver={(event) => {
-                            if (!event.dataTransfer.types.includes(DRAG)) return;
-                            event.preventDefault();
-                            event.dataTransfer.dropEffect = 'copy';
-                            setOver(device.key);
-                        }}
-                        onDragLeave={() => setOver((current) => (current === device.key ? null : current))}
-                        onDrop={(event) => {
-                            event.preventDefault();
-                            const layout = event.dataTransfer.getData(DRAG);
-                            if (layout) onChange(device.key, layout);
-                            setHeld(null);
-                            setOver(null);
-                        }}
-                        onClick={() => {
-                            if (!held) return;
-                            onChange(device.key, held);
-                            setHeld(null);
-                        }}
-                        aria-label={`${device.label}: ${nameOf(device.value)}${held ? `. Put ${nameOf(held)} here` : ''}`}
-                        className={cn(
-                            'ppx:flex ppx:flex-col ppx:gap-2 ppx:rounded-2xl ppx:border-2 ppx:border-dashed ppx:p-2 ppx:text-left ppx:transition-colors',
-                            over === device.key ? 'ppx:border-primary ppx:bg-primary/10' : held ? 'ppx:cursor-pointer ppx:border-primary/50' : 'ppx:cursor-default ppx:border-border'
-                        )}
-                    >
-                        <NavigationDrawing layout={String(device.value)} className={'ppx:pointer-events-none ppx:w-full'} />
-                        <span className={'ppx-label ppx:px-1 ppx:text-[10px] ppx:leading-tight ppx:font-medium ppx:tracking-[0.1em] ppx:text-primary ppx:uppercase'}>{nameOf(device.value)}</span>
-                        <span className={'ppx:px-1'}>
-                            <span className={'ppx:block ppx:text-sm ppx:font-medium'}>{device.label}</span>
-                            {device.help && <span className={'ppx:block ppx:text-xs ppx:text-muted-foreground'}>{device.help}</span>}
-                        </span>
-                    </button>
-                ))}
+                {LAYOUTS.map(([layout, name]) => {
+                    const here = devices.filter((device) => device.value === layout);
+
+                    return (
+                        <div
+                            key={layout}
+                            onDragOver={(event) => {
+                                if (!event.dataTransfer.types.includes(DRAG)) return;
+                                event.preventDefault();
+                                event.dataTransfer.dropEffect = 'move';
+                                setOver(layout);
+                            }}
+                            onDragLeave={(event) => {
+                                if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                                setOver((current) => (current === layout ? null : current));
+                            }}
+                            onDrop={(event) => {
+                                event.preventDefault();
+                                const key = event.dataTransfer.getData(DRAG);
+                                if (key) place(key, layout);
+                            }}
+                            className={cn(
+                                'ppx:flex ppx:flex-col ppx:gap-1.5 ppx:rounded-xl ppx:border ppx:bg-background/60 ppx:p-1 ppx:pb-1.5 ppx:transition-colors',
+                                over === layout ? 'ppx:border-primary ppx:bg-primary/10 ppx:ring-1 ppx:ring-primary' : held ? 'ppx:border-primary/50' : 'ppx:border-border'
+                            )}
+                        >
+                            <button
+                                type={'button'}
+                                disabled={!holding}
+                                onClick={() => holding && place(holding.key, layout)}
+                                aria-label={holding ? `Put ${chipOf(holding)[1]} on ${name}` : name}
+                                className={cn('ppx:flex ppx:flex-col ppx:gap-1.5 ppx:text-left', holding ? 'ppx:cursor-pointer' : 'ppx:cursor-default')}
+                            >
+                                <NavigationDrawing layout={layout} className={'ppx:pointer-events-none ppx:w-full'} />
+                                <span className={'ppx-label ppx:px-1 ppx:text-[10px] ppx:leading-tight ppx:font-medium ppx:tracking-[0.1em] ppx:text-foreground/85 ppx:uppercase'}>{name}</span>
+                            </button>
+                            <div className={'ppx:flex ppx:min-h-6 ppx:flex-wrap ppx:gap-1 ppx:px-0.5'}>
+                                {here.map((device) => {
+                                    const [icon, label] = chipOf(device);
+
+                                    return (
+                                        <button
+                                            key={device.key}
+                                            type={'button'}
+                                            draggable
+                                            onDragStart={(event) => {
+                                                event.dataTransfer.setData(DRAG, device.key);
+                                                event.dataTransfer.effectAllowed = 'move';
+                                                setHeld(device.key);
+                                            }}
+                                            onDragEnd={() => {
+                                                setHeld(null);
+                                                setOver(null);
+                                            }}
+                                            onClick={() => setHeld(held === device.key ? null : device.key)}
+                                            aria-pressed={held === device.key}
+                                            aria-label={`${device.label}: ${nameOf(device.value)}`}
+                                            title={device.help ? `${device.label}. ${device.help}` : device.label}
+                                            className={cn(
+                                                'ppx:inline-flex ppx:h-6 ppx:cursor-grab ppx:items-center ppx:gap-1 ppx:rounded-md ppx:px-1.5 ppx:text-[10px] ppx:font-semibold ppx:tracking-[0.08em] ppx:uppercase ppx:transition-colors ppx:active:cursor-grabbing',
+                                                held === device.key ? 'ppx:bg-primary ppx:text-primary-foreground' : 'ppx:bg-primary/15 ppx:text-primary ppx:hover:bg-primary/25'
+                                            )}
+                                        >
+                                            <NamedIcon name={icon} size={13} />
+                                            {label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
