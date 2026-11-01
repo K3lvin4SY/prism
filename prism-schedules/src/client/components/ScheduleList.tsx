@@ -8,9 +8,9 @@ import { describeCondition, flatten } from '../steps';
 
 export const STATUS: Record<string, { label: string; icon: string; tone: string }> = {
     running: { label: 'Running', icon: 'loader', tone: 'psc:text-primary' },
-    done: { label: 'Succeeded', icon: 'circle-check', tone: 'psc:text-green-500' },
+    done: { label: 'Succeeded', icon: 'circle-check', tone: 'psc:text-success' },
     failed: { label: 'Failed', icon: 'circle-x', tone: 'psc:text-destructive' },
-    cancelled: { label: 'Stopped', icon: 'circle-stop', tone: 'psc:text-yellow-500' },
+    cancelled: { label: 'Stopped', icon: 'circle-stop', tone: 'psc:text-warning' },
     skipped: { label: 'Skipped', icon: 'circle-slash', tone: 'psc:text-muted-foreground' },
 };
 
@@ -114,7 +114,7 @@ function Card({ schedule, state, run, onOpen }: { schedule: Schedule; state: Sta
                     {steps} {steps === 1 ? 'step' : 'steps'}
                 </span>
                 {schedule.conditions.all.length > 0 && <span title={schedule.conditions.all.map(describeCondition).join(', ')}>{schedule.conditions.all.length} conditions</span>}
-                {schedule.pausedUntil && <span className={'psc:text-yellow-500'}>Paused until {new Date(schedule.pausedUntil).toLocaleString()}</span>}
+                {schedule.pausedUntil && <span className={'psc:text-warning'}>Paused until {new Date(schedule.pausedUntil).toLocaleString()}</span>}
                 {schedule.trigger.type === 'cron' && schedule.enabled && !schedule.pausedUntil && <span>Next {relative(schedule.nextRunAt)}</span>}
                 <span className={'psc:flex psc:items-center psc:gap-1'}>
                     Last {relative(schedule.lastRunAt)}

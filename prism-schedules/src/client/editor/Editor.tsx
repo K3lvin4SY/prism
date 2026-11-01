@@ -113,7 +113,7 @@ export default function Editor({ state, schedule, draft, tab, onTab, onClose, on
             {current === 'trigger' && <TriggerTab state={state} trigger={value.trigger} onChange={(trigger) => update({ trigger })} disabled={!canEdit} />}
             {current === 'conditions' && <ConditionsTab conditions={value.conditions} minecraft={state.minecraft} onChange={(conditions) => update({ conditions })} disabled={!canEdit} />}
             {current === 'settings' && <SettingsTab state={state} schedule={schedule} value={value} onChange={update} disabled={!canEdit} onDeleted={onClose} />}
-            {current === 'history' && schedule && <HistoryTab schedule={schedule} steps={value.steps} />}
+            {current === 'history' && schedule && <HistoryTab schedule={schedule} steps={value.steps} schedules={state.schedules} />}
         </div>
     );
 }

@@ -91,12 +91,6 @@ export default function StepList({ steps, onChange, schedules, disabled, depth }
                             )}
                             {!disabled && (
                                 <div className={'psc:flex psc:shrink-0 psc:items-center'}>
-                                    <Button.Text size={'small'} aria-label={'Move up'} title={'Move up'} disabled={index === 0} onClick={() => move(index, index - 1)}>
-                                        <NamedIcon name={'arrow-up'} size={14} />
-                                    </Button.Text>
-                                    <Button.Text size={'small'} aria-label={'Move down'} title={'Move down'} disabled={index === steps.length - 1} onClick={() => move(index, index + 1)}>
-                                        <NamedIcon name={'arrow-down'} size={14} />
-                                    </Button.Text>
                                     <Button.Text size={'small'} aria-label={'Duplicate'} title={'Duplicate'} onClick={() => onChange([...steps.slice(0, index + 1), cloneStep(step), ...steps.slice(index + 1)])}>
                                         <NamedIcon name={'copy'} size={14} />
                                     </Button.Text>
@@ -130,7 +124,7 @@ export default function StepList({ steps, onChange, schedules, disabled, depth }
                             <div className={'psc:grid psc:gap-3 psc:border-t psc:border-border psc:p-3 psc:md:grid-cols-2'}>
                                 {(['then', 'else'] as const).map((branch) => (
                                     <div key={branch} className={'psc:flex psc:flex-col psc:gap-2 psc:rounded-md psc:bg-muted/30 psc:p-2'}>
-                                        <p className={cn('psc:text-xs psc:font-semibold psc:uppercase psc:tracking-wide', branch === 'then' ? 'psc:text-green-500' : 'psc:text-yellow-500')}>{branch === 'then' ? 'Then' : 'Else'}</p>
+                                        <p className={cn('psc:text-xs psc:font-semibold psc:uppercase psc:tracking-wide', branch === 'then' ? 'psc:text-success' : 'psc:text-warning')}>{branch === 'then' ? 'Then' : 'Else'}</p>
                                         <StepList steps={step[branch] ?? []} onChange={(list) => replace(index, { ...step, [branch]: list })} schedules={schedules} disabled={disabled} depth={depth + 1} />
                                     </div>
                                 ))}
