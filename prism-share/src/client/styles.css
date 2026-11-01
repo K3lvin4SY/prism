@@ -2,3 +2,8 @@
 @import 'tailwindcss/utilities.css' layer(utilities) prefix(psh);
 @import '@pterodactyl/sdk/theme.css';
 @source './**/*.{ts,tsx}';
+
+/* The link dialog has two columns, so it is wider than the panel's dialogs. Unlayered, so it beats the skin's max width. */
+[role='dialog']:has(.psh-link-editor) {
+    max-width: 60rem;
+}

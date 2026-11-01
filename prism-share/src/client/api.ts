@@ -71,5 +71,24 @@ export async function listFolder(server: string, directory: string): Promise<Fol
         .sort((a, b) => Number(b.directory) - Number(a.directory) || a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 }
 
+export interface ShareActivity {
+    id: string;
+    /** Without its "server:" prefix: "prism-share.open". */
+    event: string;
+    properties: Record<string, unknown>;
+    timestamp: string;
+}
+
+export const activityKey = (server: string) => ['prism-share', server, 'activity'] as const;
+
+/** The server's latest share link activity, from the panel's own activity log. */
+export async function getActivity(server: string): Promise<ShareActivity[]> {
+    const { data } = await http.get<{ data: { attributes: Omit<ShareActivity, 'event'> & { event: string } }[] }>(`/api/client/servers/${server}/activity`, {
+        params: { 'filter[event]': 'prism-share.', sort: '-timestamp', per_page: 10 },
+    });
+
+    return data.data.map(({ attributes }) => ({ ...attributes, event: attributes.event.replace(/^server:/, ''), properties: attributes.properties ?? {} }));
+}
+
 /** The address to give out: the token is in the fragment, so it never reaches a server's logs. */
 export const shareUrl = (token: string) => `${window.location.origin}/share#${token}`;
