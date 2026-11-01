@@ -59,7 +59,7 @@ export default function Calendar({ state, onOpen }: { state: State; onOpen: (id:
             </div>
 
             <div className={'pt-surface psc:overflow-x-auto psc:rounded-lg psc:border psc:border-border psc:bg-card'}>
-                <div className={'psc:grid psc:min-w-[720px]'} style={{ gridTemplateColumns: '3.5rem repeat(7, minmax(0, 1fr))' }}>
+                <div className={'psc:grid psc:min-w-[660px] psc:grid-cols-[3.1rem_repeat(7,minmax(0,1fr))] psc:sm:min-w-[720px] psc:sm:grid-cols-[3.5rem_repeat(7,minmax(0,1fr))]'}>
                     <div className={'psc:border-b psc:border-border'} />
                     {days.map((day, index) => (
                         <div key={index} className={cn('psc:border-b psc:border-l psc:border-border psc:px-2 psc:py-2 psc:text-center psc:text-xs psc:font-semibold', index === 0 && 'psc:text-primary')}>
@@ -93,7 +93,7 @@ export default function Calendar({ state, onOpen }: { state: State; onOpen: (id:
 function Row({ hour, days, cells, now, onOpen }: { hour: number; days: Date[]; cells: Map<string, { schedule: Schedule; index: number; at: Date }[]>; now: Date; onOpen: (id: number) => void }) {
     return (
         <>
-            <div className={'psc:border-b psc:border-border psc:px-2 psc:py-1.5 psc:text-right psc:text-xs psc:tabular-nums psc:text-muted-foreground'}>{String(hour).padStart(2, '0')}:00</div>
+            <div className={'psc:border-b psc:border-border psc:px-1.5 psc:py-1.5 psc:text-right psc:text-xs psc:tabular-nums psc:text-muted-foreground psc:sm:px-2'}>{String(hour).padStart(2, '0')}:00</div>
             {days.map((_, day) => {
                 const items = cells.get(`${day}-${hour}`) ?? [];
                 const current = day === 0 && now.getHours() === hour;
@@ -108,7 +108,7 @@ function Row({ hour, days, cells, now, onOpen }: { hour: number; days: Date[]; c
                                 type={'button'}
                                 onClick={() => onOpen(schedule.id)}
                                 title={`${schedule.name} · ${at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}${count > 1 ? ` and ${count - 1} more this hour` : ''}`}
-                                className={'psc:min-w-0 psc:flex-1 psc:cursor-pointer psc:truncate psc:rounded psc:px-1.5 psc:py-0.5 psc:text-left psc:text-[11px] psc:font-medium psc:text-white psc:hover:opacity-90'}
+                                className={'psc:min-w-0 psc:flex-1 psc:cursor-pointer psc:truncate psc:rounded psc:px-1 psc:py-0.5 psc:sm:px-1.5 psc:text-left psc:text-[11px] psc:font-medium psc:text-white psc:hover:opacity-90'}
                                 style={{ background: color(schedule, index) }}
                             >
                                 {count > 1 ? `${count}×` : `:${String(at.getMinutes()).padStart(2, '0')}`} {schedule.name}
