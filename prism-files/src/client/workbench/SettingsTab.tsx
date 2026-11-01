@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent, type ReactNode } from 'react';
-import { Button, Input, Select, Switch, cn } from '@pterodactyl/sdk';
+import { Button, Select, Switch, cn } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import type { EditorSettings, Keybinds } from '../config';
 
@@ -166,18 +166,13 @@ export default function SettingsTab({
                         </Button>
                     </Row>
                     <Row label={'Tab size'} description={'Spaces per indent.'} changed={editor.tabSize !== defaults.editor.tabSize} onReset={() => setEditor({ tabSize: defaults.editor.tabSize })}>
-                        <Input
-                            type={'number'}
-                            min={1}
-                            max={8}
-                            value={editor.tabSize}
-                            onChange={(event) => {
-                                const value = Number(event.target.value);
-                                if (value >= 1 && value <= 8) setEditor({ tabSize: value });
-                            }}
-                            className={'pfl:w-20 pfl:text-center'}
-                            aria-label={'Tab size'}
-                        />
+                        <Button size={'small'} isSecondary aria-label={'Fewer spaces'} disabled={editor.tabSize <= 1} onClick={() => setEditor({ tabSize: editor.tabSize - 1 })}>
+                            <NamedIcon name={'minus'} size={14} />
+                        </Button>
+                        <span className={'pfl:w-12 pfl:text-center pfl:font-mono pfl:text-sm pfl:tabular-nums'}>{editor.tabSize}</span>
+                        <Button size={'small'} isSecondary aria-label={'More spaces'} disabled={editor.tabSize >= 8} onClick={() => setEditor({ tabSize: editor.tabSize + 1 })}>
+                            <NamedIcon name={'plus'} size={14} />
+                        </Button>
                     </Row>
                     {SWITCHES.map((item) => (
                         <Row key={item.key} label={item.label} description={item.description} changed={editor[item.key] !== defaults.editor[item.key]} onReset={() => setEditor({ [item.key]: defaults.editor[item.key] })}>

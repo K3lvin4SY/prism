@@ -289,7 +289,7 @@ export default function Workbench({ server, editor: settings, keybinds, showHidd
     const active = current && file === current.path ? current : null;
 
     return (
-        <div className={'pfl-workbench pfl:flex pfl:h-[calc(100vh-13rem)] pfl:min-h-[30rem] pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border'}>
+        <div className={'pt-surface pfl-workbench pfl:flex pfl:h-[calc(100vh-13rem)] pfl:min-h-[30rem] pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card'}>
             {/* Activity bar */}
             <div className={'pfl:flex pfl:w-11 pfl:shrink-0 pfl:flex-col pfl:items-center pfl:gap-1 pfl:border-r pfl:border-border pfl:py-2'}>
                 <ActivityButton icon={'files'} label={'Explorer'} active={state.explorer} onClick={() => ((state.explorer = !state.explorer), state.changed())} />

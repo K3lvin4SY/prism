@@ -135,7 +135,7 @@ export default function TrashView({ server, items, ignored }: { server: string; 
             </div>
 
             {selected.size > 0 && (
-                <div className={'pt-surface pt-overlay pfl:sticky pfl:bottom-4 pfl:mx-auto pfl:flex pfl:items-center pfl:gap-2 pfl:rounded-full pfl:border pfl:border-border pfl:bg-card pfl:px-4 pfl:py-2 pfl:shadow-2xl'}>
+                <div className={'pt-surface pt-overlay pfl:sticky pfl:bottom-4 pfl:mx-auto pfl:flex pfl:items-center pfl:gap-2 pfl:rounded-xl pfl:border pfl:border-border pfl:bg-card pfl:px-4 pfl:py-2 pfl:shadow-2xl'}>
                     <span className={'pfl:text-sm'}>{selected.size} selected</span>
                     {permissions.create && (
                         <Button size={'small'} disabled={busy} onClick={() => restore([...selected], 'skip')}>

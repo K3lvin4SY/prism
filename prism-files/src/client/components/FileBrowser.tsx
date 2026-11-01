@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Checkbox, Dialog, Input, Spinner, bytesToString, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
@@ -297,9 +297,10 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
                         })}
                     </div>
                 ) : (
-                    <div className={'pfl:grid pfl:grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] pfl:gap-2 pfl:p-3'}>
+                    <div className={'pfl:grid pfl:grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] pfl:gap-3 pfl:p-3'}>
                         {entries.map((entry) => {
                             const icon = fileIcon(entry.name, entry.directory);
+                            const isSelected = selected.has(entry.name);
 
                             return (
                                 <button
@@ -313,13 +314,40 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
                                         setMenu({ x: event.clientX, y: event.clientY, entry });
                                     }}
                                     title={entry.name}
-                                    className={cn('pfl:flex pfl:flex-col pfl:items-center pfl:gap-1.5 pfl:rounded-lg pfl:border pfl:p-3 pfl:text-center pfl:cursor-pointer', selected.has(entry.name) ? 'pfl:border-primary pfl:bg-primary/15' : 'pfl:border-transparent pfl:hover:bg-muted/50')}
+                                    className={cn(
+                                        'pfl:group pfl:relative pfl:flex pfl:flex-col pfl:gap-2 pfl:rounded-xl pfl:border pfl:p-2 pfl:text-left pfl:cursor-pointer',
+                                        isSelected ? 'pfl:border-primary pfl:bg-primary/10' : 'pfl:border-border/70 pfl:hover:border-border pfl:hover:bg-muted/30'
+                                    )}
                                 >
-                                    <span className={'pfl:flex pfl:size-12 pfl:items-center pfl:justify-center pfl:rounded-lg pfl:bg-muted/50'}>
-                                        <NamedIcon name={icon.icon} size={26} className={icon.color} />
+                                    <span className={'pfl:flex pfl:aspect-[4/3] pfl:w-full pfl:items-center pfl:justify-center pfl:overflow-hidden pfl:rounded-lg pfl:bg-muted/50'}>
+                                        <Thumbnail server={server} entry={entry} fallback={<NamedIcon name={icon.icon} size={30} className={icon.color} />} />
                                     </span>
-                                    <span className={'pfl:line-clamp-2 pfl:w-full pfl:break-all pfl:text-xs'}>{entry.name}</span>
-                                    <span className={'pfl:text-[10px] pfl:text-muted-foreground'}>{entry.directory ? fromNow(entry.modified) : bytesToString(entry.size)}</span>
+                                    {/* The check only toggles this card, as the list's checkbox does. */}
+                                    <span
+                                        role={'checkbox'}
+                                        aria-checked={isSelected}
+                                        aria-label={`Select ${entry.name}`}
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            setSelected((current) => new Set(isSelected ? [...current].filter((name) => name !== entry.name) : [...current, entry.name]));
+                                            setAnchor(entry.name);
+                                        }}
+                                        onDoubleClick={(event) => event.stopPropagation()}
+                                        className={cn(
+                                            'pfl:absolute pfl:left-3.5 pfl:top-3.5 pfl:flex pfl:size-5 pfl:items-center pfl:justify-center pfl:rounded-[min(calc(var(--radius)*0.4),0.375rem)] pfl:border pfl:shadow-sm',
+                                            isSelected ? 'pfl:border-primary pfl:bg-primary pfl:text-primary-foreground' : 'pfl:border-border pfl:bg-card/80 pfl:opacity-0 pfl:group-hover:opacity-100'
+                                        )}
+                                    >
+                                        {isSelected && <NamedIcon name={'check'} size={13} />}
+                                    </span>
+                                    <span className={'pfl:flex pfl:min-w-0 pfl:flex-col pfl:px-0.5'}>
+                                        <span className={'pfl:flex pfl:min-w-0 pfl:items-center pfl:gap-1 pfl:text-xs'}>
+                                            <span className={'pfl:truncate'}>{entry.name}</span>
+                                            {isProtected(entry.path) && <NamedIcon name={'lock'} size={11} className={'pfl:shrink-0 pfl:text-amber-400'} />}
+                                            {entry.symlink && <NamedIcon name={'link'} size={11} className={'pfl:shrink-0 pfl:text-muted-foreground'} />}
+                                        </span>
+                                        <span className={'pfl:text-[10px] pfl:text-muted-foreground'}>{entry.directory ? fromNow(entry.modified) : bytesToString(entry.size)}</span>
+                                    </span>
                                 </button>
                             );
                         })}
@@ -332,7 +360,7 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
 
             {/* Bulk actions */}
             {chosen.length > 0 && (
-                <div className={'pt-surface pt-overlay pfl:sticky pfl:bottom-4 pfl:z-20 pfl:mx-auto pfl:flex pfl:flex-wrap pfl:items-center pfl:gap-2 pfl:rounded-full pfl:border pfl:border-border pfl:bg-card pfl:px-4 pfl:py-2 pfl:shadow-2xl'}>
+                <div className={'pt-surface pt-overlay pfl:sticky pfl:bottom-4 pfl:z-20 pfl:mx-auto pfl:flex pfl:flex-wrap pfl:items-center pfl:gap-2 pfl:rounded-xl pfl:border pfl:border-border pfl:bg-card pfl:px-4 pfl:py-2 pfl:shadow-2xl'}>
                     <span className={'pfl:text-sm pfl:font-medium'}>{chosen.length} selected</span>
                     {permissions.update && (
                         <Button size={'small'} isSecondary disabled={busy} onClick={() => !blocked(chosen) && setDialog({ kind: 'move', entries: chosen })}>
@@ -477,6 +505,50 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
                 />
             )}
         </div>
+    );
+}
+
+/** Images up to this size get a picture in the grid; larger ones keep their icon. */
+const THUMBNAIL_BYTES = 8 * 1024 * 1024;
+
+/**
+ * An image file's own picture for its grid card, asked for once the card scrolls into view, so a
+ * folder of hundreds of images does not ask the node for every one at once. Anything else, or an
+ * image that fails to load, shows the fallback icon.
+ */
+function Thumbnail({ server, entry, fallback }: { server: string; entry: FileEntry; fallback: ReactNode }) {
+    const wanted = !entry.directory && previewKind(entry.name, entry.mimetype) === 'image' && entry.size > 0 && entry.size <= THUMBNAIL_BYTES;
+    const holder = useRef<HTMLSpanElement>(null);
+    const [visible, setVisible] = useState(false);
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        if (!wanted || visible || !holder.current) return;
+        const observer = new IntersectionObserver(([item]) => item?.isIntersecting && setVisible(true), { rootMargin: '200px' });
+        observer.observe(holder.current);
+
+        return () => observer.disconnect();
+    }, [wanted, visible]);
+
+    const url = useQuery({
+        queryKey: ['prism-files', server, 'thumbnail', entry.path, entry.modified],
+        queryFn: () => downloadUrl(server, entry.path),
+        enabled: wanted && visible,
+        staleTime: Infinity,
+        gcTime: 0,
+        retry: false,
+    });
+
+    if (!wanted || failed) return <>{fallback}</>;
+
+    return (
+        <span ref={holder} className={'pfl:flex pfl:size-full pfl:items-center pfl:justify-center'}>
+            {url.data ? (
+                <img src={url.data} alt={''} draggable={false} onError={() => setFailed(true)} className={'pfl:size-full pfl:object-cover'} style={{ imageRendering: entry.size < 20_000 ? 'pixelated' : 'auto' }} />
+            ) : (
+                fallback
+            )}
+        </span>
     );
 }
 

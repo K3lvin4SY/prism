@@ -2,7 +2,3 @@
 @import 'tailwindcss/utilities.css' layer(utilities) prefix(pfl);
 @import '@pterodactyl/sdk/theme.css';
 @source './**/*.{ts,tsx}';
-
-.pfl-workbench {
-    background: var(--editor-background, var(--color-card));
-}
