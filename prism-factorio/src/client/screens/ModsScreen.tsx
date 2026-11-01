@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Input, Select, ServerContentBlock, Spinner, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { keys } from '../api/client';
 import { accountSource, getMeta, getMods, install, modKeys, search, type ModHit, type SearchParams, type SortOrder } from '../api/mods';
 import JobProgress from '../components/JobProgress';
+import { FiltersButton, Sheet, useWide } from '../components/Sheet';
 import { Pager, Tabs } from '../components/content/ui';
 import FilterSidebar, { emptyFilters, type FilterState } from '../components/mods/FilterSidebar';
 import InstalledMods from '../components/mods/InstalledMods';
@@ -44,6 +45,9 @@ export default function ModsScreen() {
     const [open, setOpen] = useState<ModHit | null>(null);
     const [installing, setInstalling] = useState<string[]>([]);
     const [job, setJob] = useState<string | null>(null);
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const closeFilters = useCallback(() => setFiltersOpen(false), []);
+    const wide = useWide();
 
     const state = useQuery({ queryKey: keys.mods(identifier), queryFn: () => getMods(identifier), refetchInterval: job ? false : 15_000 });
     const meta = useQuery({ queryKey: modKeys.meta(identifier), queryFn: () => getMeta(identifier), staleTime: 3_600_000 });
@@ -99,6 +103,31 @@ export default function ModsScreen() {
     const confirm = state.data?.confirmInstalls ?? true;
     const running = state.data?.running ?? false;
 
+    const sidebar = (
+        <>
+            {state.data?.account && (
+                <p className={'fct:mb-3 fct:text-xs fct:text-muted-foreground'}>
+                    Downloads as {state.data.account.username}, from {accountSource(state.data.account.from)}.
+                </p>
+            )}
+            {meta.isLoading ? (
+                <Spinner centered />
+            ) : meta.isError || !meta.data ? (
+                <Alert type={'danger'}>{httpErrorToHuman(meta.error)}</Alert>
+            ) : (
+                <FilterSidebar
+                    meta={meta.data}
+                    state={filters}
+                    onChange={(next) => {
+                        setFilters(next);
+                        setPage(1);
+                    }}
+                />
+            )}
+        </>
+    );
+    const active = filters.categories.length;
+
     return (
         <ServerContentBlock title={'Mods'}>
             <div className={'fct:flex fct:flex-col fct:gap-4'}>
@@ -143,37 +172,57 @@ export default function ModsScreen() {
                     )
                 ) : (
                     <div className={'fct:grid fct:gap-4 fct:lg:grid-cols-[260px_1fr]'}>
-                        <div className={'fct:min-w-0'}>
-                            {state.data?.account && (
-                                <p className={'fct:mb-3 fct:text-xs fct:text-muted-foreground'}>
-                                    Downloads as {state.data.account.username}, from {accountSource(state.data.account.from)}.
-                                </p>
-                            )}
-                            {meta.isLoading ? (
-                                <Spinner centered />
-                            ) : meta.isError || !meta.data ? (
-                                <Alert type={'danger'}>{httpErrorToHuman(meta.error)}</Alert>
-                            ) : (
-                                <FilterSidebar
-                                    meta={meta.data}
-                                    state={filters}
-                                    onChange={(next) => {
-                                        setFilters(next);
-                                        setPage(1);
-                                    }}
-                                />
-                            )}
-                        </div>
+                        {wide && <div className={'fct:min-w-0'}>{sidebar}</div>}
 
                         <div className={'fct:flex fct:flex-col fct:gap-3 fct:min-w-0'}>
                             <div className={'fct:relative'}>
                                 <NamedIcon name={'search'} size={16} className={'fct:absolute fct:left-3 fct:top-1/2 fct:-translate-y-1/2 fct:text-muted-foreground fct:pointer-events-none'} />
                                 <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={'Search the Factorio mod portal…'} className={'fct:w-full fct:pl-9'} />
                             </div>
-                            <div className={'fct:flex fct:flex-wrap fct:items-center fct:gap-2'}>
+                            {wide ? (
+                                <div className={'fct:flex fct:flex-wrap fct:items-center fct:gap-2'}>
+                                    <div className={'fct:flex fct:items-center fct:gap-2'}>
+                                        <span className={'fct:text-sm fct:text-muted-foreground'}>Sort by</span>
+                                        <div className={'fct:w-44'}>
+                                            <Select
+                                                value={sort}
+                                                onChange={(value) => {
+                                                    setSort(value as SortOrder);
+                                                    setPage(1);
+                                                }}
+                                                options={SORTS}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={'fct:flex fct:items-center fct:gap-2'}>
+                                        <span className={'fct:text-sm fct:text-muted-foreground'}>View</span>
+                                        <div className={'fct:w-24'}>
+                                            <Select
+                                                value={limit}
+                                                onChange={(value) => {
+                                                    setLimit(Number(value));
+                                                    setPage(1);
+                                                }}
+                                                options={[10, 20, 50].map((value) => ({ value, label: String(value) }))}
+                                            />
+                                        </div>
+                                    </div>
+                                    <button
+                                        type={'button'}
+                                        onClick={toggleLayout}
+                                        aria-label={layout === 'list' ? 'Show as grid' : 'Show as list'}
+                                        className={'fct:flex fct:size-9 fct:items-center fct:justify-center fct:rounded-md fct:border fct:border-border fct:bg-card fct:cursor-pointer fct:hover:bg-muted'}
+                                    >
+                                        <NamedIcon name={layout === 'list' ? 'layout-grid' : 'list'} size={16} />
+                                    </button>
+                                    <div className={'fct:ml-auto'}>
+                                        <Pager page={page} total={totalPages} onPage={setPage} />
+                                    </div>
+                                </div>
+                            ) : (
                                 <div className={'fct:flex fct:items-center fct:gap-2'}>
-                                    <span className={'fct:text-sm fct:text-muted-foreground'}>Sort by</span>
-                                    <div className={'fct:w-44'}>
+                                    <FiltersButton count={active} onClick={() => setFiltersOpen(true)} />
+                                    <div className={'fct:min-w-0 fct:flex-1 fct:sm:max-w-56'}>
                                         <Select
                                             value={sort}
                                             onChange={(value) => {
@@ -184,31 +233,7 @@ export default function ModsScreen() {
                                         />
                                     </div>
                                 </div>
-                                <div className={'fct:flex fct:items-center fct:gap-2'}>
-                                    <span className={'fct:text-sm fct:text-muted-foreground'}>View</span>
-                                    <div className={'fct:w-24'}>
-                                        <Select
-                                            value={limit}
-                                            onChange={(value) => {
-                                                setLimit(Number(value));
-                                                setPage(1);
-                                            }}
-                                            options={[10, 20, 50].map((value) => ({ value, label: String(value) }))}
-                                        />
-                                    </div>
-                                </div>
-                                <button
-                                    type={'button'}
-                                    onClick={toggleLayout}
-                                    aria-label={layout === 'list' ? 'Show as grid' : 'Show as list'}
-                                    className={'fct:flex fct:size-9 fct:items-center fct:justify-center fct:rounded-md fct:border fct:border-border fct:bg-card fct:cursor-pointer fct:hover:bg-muted'}
-                                >
-                                    <NamedIcon name={layout === 'list' ? 'layout-grid' : 'list'} size={16} />
-                                </button>
-                                <div className={'fct:ml-auto'}>
-                                    <Pager page={page} total={totalPages} onPage={setPage} />
-                                </div>
-                            </div>
+                            )}
 
                             {results.isError && <Alert type={'danger'}>{httpErrorToHuman(results.error)}</Alert>}
 
@@ -246,6 +271,21 @@ export default function ModsScreen() {
                     </div>
                 )}
             </div>
+
+            {!wide && tab === 'browse' && (
+                <Sheet
+                    open={filtersOpen}
+                    title={'Filters'}
+                    onClose={closeFilters}
+                    footer={
+                        <Button className={'fct:w-full'} onClick={closeFilters}>
+                            {results.data ? `Show ${results.data.total.toLocaleString()} mods` : 'Show results'}
+                        </Button>
+                    }
+                >
+                    <div className={'fct:flex fct:flex-col fct:gap-3'}>{sidebar}</div>
+                </Sheet>
+            )}
 
             {open && (
                 <ModDialog

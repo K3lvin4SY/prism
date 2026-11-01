@@ -50,7 +50,7 @@ export function Chip({ children, title, tone }: { children: ReactNode; title?: s
 }
 
 /** "+ Install" on solid green, or "✓ Installed" with a green border. */
-export function InstallButton({ installed, busy = false, disabled = false, onClick }: { installed: boolean; busy?: boolean; disabled?: boolean; onClick: () => void }) {
+export function InstallButton({ installed, busy = false, disabled = false, compact = false, onClick }: { installed: boolean; busy?: boolean; disabled?: boolean; compact?: boolean; onClick: () => void }) {
     return (
         <button
             type={'button'}
@@ -60,11 +60,12 @@ export function InstallButton({ installed, busy = false, disabled = false, onCli
                 onClick();
             }}
             className={cn(
-                'cks:inline-flex cks:items-center cks:gap-1.5 cks:rounded-lg cks:border-2 cks:px-3 cks:py-1.5 cks:text-sm cks:font-semibold cks:cursor-pointer cks:whitespace-nowrap cks:transition-colors cks:disabled:cursor-not-allowed cks:disabled:opacity-60',
+                compact ? 'cks:gap-1 cks:px-2.5 cks:py-1 cks:text-xs' : 'cks:gap-1.5 cks:px-3 cks:py-1.5 cks:text-sm',
+                'cks:inline-flex cks:shrink-0 cks:items-center cks:rounded-lg cks:border-2 cks:font-semibold cks:cursor-pointer cks:whitespace-nowrap cks:transition-colors cks:disabled:cursor-not-allowed cks:disabled:opacity-60',
                 installed ? 'cks:border-success cks:bg-transparent cks:text-success cks:hover:bg-success/10' : 'cks:border-success cks:bg-success cks:text-success-foreground cks:hover:brightness-110'
             )}
         >
-            {busy ? <Spinner size={'small'} /> : <NamedIcon name={installed ? 'check' : 'plus'} size={16} />}
+            {busy ? <Spinner size={'small'} /> : <NamedIcon name={installed ? 'check' : 'plus'} size={compact ? 14 : 16} />}
             {busy ? 'Installing' : installed ? 'Installed' : 'Install'}
         </button>
     );
@@ -96,7 +97,7 @@ export function FilterRow({ label, on, onToggle }: { label: string; on: boolean;
             onClick={onToggle}
             aria-pressed={on}
             className={cn(
-                'cks:flex cks:w-full cks:items-center cks:gap-2 cks:rounded-md cks:px-2 cks:py-1 cks:text-sm cks:text-left cks:cursor-pointer',
+                'cks:flex cks:w-full cks:items-center cks:gap-2 cks:rounded-md cks:px-2 cks:py-1 cks:pointer-coarse:py-2 cks:text-sm cks:text-left cks:cursor-pointer',
                 on ? 'cks:bg-primary/20 cks:font-semibold' : 'cks:hover:bg-muted'
             )}
         >

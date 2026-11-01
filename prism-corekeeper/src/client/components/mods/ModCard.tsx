@@ -43,6 +43,28 @@ export default function ModCard({ hit, layout, busy = false, onOpen, onInstall }
 
     const action = <InstallButton installed={hit.installed === true} busy={busy} onClick={hit.installed ? onOpen : onInstall} />;
 
+    // Phones get one short line of stats beside a smaller button instead of the chips and stats column.
+    const warning = sides?.warn ? 'Client only' : null;
+    const phoneRow = (
+        <div className={'cks:flex cks:items-center cks:justify-between cks:gap-2 cks:sm:hidden'}>
+            <div className={'cks:flex cks:min-w-0 cks:items-center cks:gap-3 cks:text-xs cks:text-muted-foreground'}>
+                <span className={'cks:inline-flex cks:items-center cks:gap-1'}>
+                    <NamedIcon name={'download'} size={12} /> <strong className={'cks:text-foreground cks:font-semibold'}>{compactNumber(hit.downloads)}</strong>
+                </span>
+                {warning ? (
+                    <span className={'cks:truncate cks:text-warning'}>{warning}</span>
+                ) : (
+                    hit.updated > 0 && (
+                        <span className={'cks:inline-flex cks:min-w-0 cks:items-center cks:gap-1'}>
+                            <NamedIcon name={'history'} size={12} /> <span className={'cks:truncate'}>{fromNow(new Date(hit.updated * 1000).toISOString())}</span>
+                        </span>
+                    )
+                )}
+            </div>
+            <InstallButton installed={hit.installed === true} busy={busy} compact onClick={hit.installed ? onOpen : onInstall} />
+        </div>
+    );
+
     return (
         <div
             role={'button'}
@@ -55,17 +77,18 @@ export default function ModCard({ hit, layout, busy = false, onOpen, onInstall }
                 }
             }}
             className={
-                'pt-surface cks:relative cks:flex cks:gap-4 cks:rounded-lg cks:border cks:border-border cks:bg-card cks:p-4 cks:text-left cks:cursor-pointer cks:hover:border-primary cks:min-w-0 cks:overflow-hidden cks:focus-visible:outline-2 cks:focus-visible:outline-primary'
+                'pt-surface cks:relative cks:flex cks:gap-3 cks:sm:gap-4 cks:rounded-lg cks:border cks:border-border cks:bg-card cks:p-3 cks:sm:p-4 cks:text-left cks:cursor-pointer cks:hover:border-primary cks:min-w-0 cks:overflow-hidden cks:focus-visible:outline-2 cks:focus-visible:outline-primary'
             }
         >
-            <ItemIcon src={hit.icon} className={cn('cks:shrink-0', layout === 'list' ? 'cks:size-20' : 'cks:size-16')} />
-            <div className={'cks:min-w-0 cks:flex-1 cks:flex cks:flex-col cks:gap-1.5'}>
-                <div className={'cks:flex cks:flex-wrap cks:items-baseline cks:gap-x-2'}>
-                    <span className={'cks:text-lg cks:font-bold cks:text-foreground cks:truncate'}>{hit.title}</span>
-                    {hit.author && <span className={'cks:text-sm cks:text-muted-foreground'}>by {hit.author}</span>}
+            <ItemIcon src={hit.icon} className={cn('cks:shrink-0 cks:size-12', layout === 'list' ? 'cks:sm:size-20' : 'cks:sm:size-16')} />
+            <div className={'cks:min-w-0 cks:flex-1 cks:flex cks:flex-col cks:gap-1 cks:sm:gap-1.5'}>
+                <div className={'cks:flex cks:min-w-0 cks:items-baseline cks:gap-x-2 cks:sm:flex-wrap'}>
+                    <span className={'cks:min-w-0 cks:text-base cks:sm:text-lg cks:font-bold cks:text-foreground cks:truncate'}>{hit.title}</span>
+                    {hit.author && <span className={'cks:hidden cks:sm:inline cks:text-sm cks:text-muted-foreground'}>by {hit.author}</span>}
                 </div>
-                <p className={'cks:text-sm cks:text-muted-foreground cks:line-clamp-2'}>{hit.summary}</p>
-                <div className={'cks:flex cks:flex-wrap cks:gap-1.5'}>
+                <p className={'cks:text-xs cks:sm:text-sm cks:text-muted-foreground cks:line-clamp-2'}>{hit.summary}</p>
+                {phoneRow}
+                <div className={'cks:hidden cks:sm:flex cks:flex-wrap cks:gap-1.5'}>
                     <SourceBadge source={hit.source} />
                     {hit.alsoOn && <SourceBadge source={hit.alsoOn.source} className={'cks:opacity-80'} />}
                     {sides && (
@@ -79,14 +102,14 @@ export default function ModCard({ hit, layout, busy = false, onOpen, onInstall }
                     {hit.gameVersions[0] && <Chip title={hit.gameVersions.join(', ')}>{hit.gameVersions[0]}</Chip>}
                 </div>
                 {layout === 'grid' && (
-                    <div className={'cks:mt-auto cks:flex cks:flex-wrap cks:items-end cks:justify-between cks:gap-2 cks:pt-1'}>
+                    <div className={'cks:mt-auto cks:hidden cks:sm:flex cks:flex-wrap cks:items-end cks:justify-between cks:gap-2 cks:pt-1'}>
                         {stats}
                         {action}
                     </div>
                 )}
             </div>
             {layout === 'list' && (
-                <div className={'cks:flex cks:shrink-0 cks:flex-col cks:items-end cks:justify-between cks:gap-3'}>
+                <div className={'cks:hidden cks:sm:flex cks:shrink-0 cks:flex-col cks:items-end cks:justify-between cks:gap-3'}>
                     {stats}
                     {action}
                 </div>

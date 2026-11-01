@@ -31,7 +31,7 @@ function environment(hit: ProjectHit): { label: string; icon: string } | null {
  * "+ Install" on a solid green background, or "✓ Installed" with only a green border.
  * Installed projects open their versions; the rest go straight to installing.
  */
-export function InstallButton({ installed, busy = false, onClick }: { installed: boolean; busy?: boolean; onClick: () => void }) {
+export function InstallButton({ installed, busy = false, compact = false, onClick }: { installed: boolean; busy?: boolean; compact?: boolean; onClick: () => void }) {
     return (
         <button
             type={'button'}
@@ -41,13 +41,14 @@ export function InstallButton({ installed, busy = false, onClick }: { installed:
                 onClick();
             }}
             className={cn(
-                'mcs:inline-flex mcs:items-center mcs:gap-1.5 mcs:rounded-lg mcs:border-2 mcs:px-3 mcs:py-1.5 mcs:text-sm mcs:font-semibold mcs:cursor-pointer mcs:whitespace-nowrap mcs:transition-colors mcs:disabled:cursor-wait mcs:disabled:opacity-80',
+                compact ? 'mcs:gap-1 mcs:px-2.5 mcs:py-1 mcs:text-xs' : 'mcs:gap-1.5 mcs:px-3 mcs:py-1.5 mcs:text-sm',
+                'mcs:inline-flex mcs:shrink-0 mcs:items-center mcs:rounded-lg mcs:border-2 mcs:font-semibold mcs:cursor-pointer mcs:whitespace-nowrap mcs:transition-colors mcs:disabled:cursor-wait mcs:disabled:opacity-80',
                 installed
                     ? 'mcs:border-success mcs:bg-transparent mcs:text-success mcs:hover:bg-success/10'
                     : 'mcs:border-success mcs:bg-success mcs:text-success-foreground mcs:hover:brightness-110'
             )}
         >
-            {busy ? <Spinner size={'small'} /> : <NamedIcon name={installed ? 'check' : 'plus'} size={16} />}
+            {busy ? <Spinner size={'small'} /> : <NamedIcon name={installed ? 'check' : 'plus'} size={compact ? 14 : 16} />}
             {busy ? 'Installing' : installed ? 'Installed' : 'Install'}
         </button>
     );
@@ -89,6 +90,23 @@ export default function ProjectCard({ hit, layout, categories, loaders, onOpen, 
 
     const action = <InstallButton installed={hit.installed} busy={busy} onClick={hit.installed ? onOpen : onInstall} />;
 
+    // Phones get one short line of stats beside a smaller button instead of the chips and stats column.
+    const phoneRow = (
+        <div className={'mcs:flex mcs:items-center mcs:justify-between mcs:gap-2 mcs:sm:hidden'}>
+            <div className={'mcs:flex mcs:min-w-0 mcs:items-center mcs:gap-3 mcs:text-xs mcs:text-muted-foreground'}>
+                <span className={'mcs:inline-flex mcs:items-center mcs:gap-1'}>
+                    <NamedIcon name={'download'} size={12} /> <strong className={'mcs:text-foreground mcs:font-semibold'}>{compactNumber(hit.downloads)}</strong>
+                </span>
+                {hit.updated && (
+                    <span className={'mcs:inline-flex mcs:min-w-0 mcs:items-center mcs:gap-1'}>
+                        <NamedIcon name={'history'} size={12} /> <span className={'mcs:truncate'}>{fromNow(hit.updated)}</span>
+                    </span>
+                )}
+            </div>
+            <InstallButton installed={hit.installed} busy={busy} compact onClick={hit.installed ? onOpen : onInstall} />
+        </div>
+    );
+
     return (
         <div
             role={'button'}
@@ -101,17 +119,18 @@ export default function ProjectCard({ hit, layout, categories, loaders, onOpen, 
                 }
             }}
             className={
-                'pt-surface mcs:relative mcs:flex mcs:gap-4 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-4 mcs:text-left mcs:cursor-pointer mcs:hover:border-primary mcs:min-w-0 mcs:overflow-hidden mcs:focus-visible:outline-2 mcs:focus-visible:outline-primary'
+                'pt-surface mcs:relative mcs:flex mcs:gap-3 mcs:sm:gap-4 mcs:rounded-lg mcs:border mcs:border-border mcs:bg-card mcs:p-3 mcs:sm:p-4 mcs:text-left mcs:cursor-pointer mcs:hover:border-primary mcs:min-w-0 mcs:overflow-hidden mcs:focus-visible:outline-2 mcs:focus-visible:outline-primary'
             }
         >
-            <ProjectIcon src={hit.icon} className={cn('mcs:shrink-0', layout === 'list' ? 'mcs:size-20' : 'mcs:size-16')} />
-            <div className={'mcs:min-w-0 mcs:flex-1 mcs:flex mcs:flex-col mcs:gap-1.5'}>
-                <div className={'mcs:flex mcs:flex-wrap mcs:items-baseline mcs:gap-x-2'}>
-                    <span className={'mcs:text-lg mcs:font-bold mcs:text-foreground mcs:truncate'}>{hit.title}</span>
-                    {hit.author && <span className={'mcs:text-sm mcs:text-muted-foreground'}>by {hit.author}</span>}
+            <ProjectIcon src={hit.icon} className={cn('mcs:shrink-0 mcs:size-12', layout === 'list' ? 'mcs:sm:size-20' : 'mcs:sm:size-16')} />
+            <div className={'mcs:min-w-0 mcs:flex-1 mcs:flex mcs:flex-col mcs:gap-1 mcs:sm:gap-1.5'}>
+                <div className={'mcs:flex mcs:min-w-0 mcs:items-baseline mcs:gap-x-2 mcs:sm:flex-wrap'}>
+                    <span className={'mcs:min-w-0 mcs:text-base mcs:sm:text-lg mcs:font-bold mcs:text-foreground mcs:truncate'}>{hit.title}</span>
+                    {hit.author && <span className={'mcs:hidden mcs:sm:inline mcs:text-sm mcs:text-muted-foreground'}>by {hit.author}</span>}
                 </div>
-                <p className={'mcs:text-sm mcs:text-muted-foreground mcs:line-clamp-2'}>{hit.description}</p>
-                <div className={'mcs:flex mcs:flex-wrap mcs:gap-1.5'}>
+                <p className={'mcs:text-xs mcs:sm:text-sm mcs:text-muted-foreground mcs:line-clamp-2'}>{hit.description}</p>
+                {phoneRow}
+                <div className={'mcs:hidden mcs:sm:flex mcs:flex-wrap mcs:gap-1.5'}>
                     {env && (
                         <Chip>
                             <NamedIcon name={env.icon} size={12} /> {env.label}
@@ -130,14 +149,14 @@ export default function ProjectCard({ hit, layout, categories, loaders, onOpen, 
                     {extraLoaders > 0 && <Chip title={hit.loaders.slice(MAX_LOADER_CHIPS).map(tagLabel).join(', ')}>+{extraLoaders}</Chip>}
                 </div>
                 {layout === 'grid' && (
-                    <div className={'mcs:mt-auto mcs:flex mcs:flex-wrap mcs:items-end mcs:justify-between mcs:gap-2 mcs:pt-1'}>
+                    <div className={'mcs:mt-auto mcs:hidden mcs:sm:flex mcs:flex-wrap mcs:items-end mcs:justify-between mcs:gap-2 mcs:pt-1'}>
                         {stats}
                         {action}
                     </div>
                 )}
             </div>
             {layout === 'list' && (
-                <div className={'mcs:flex mcs:shrink-0 mcs:flex-col mcs:items-end mcs:justify-between mcs:gap-3'}>
+                <div className={'mcs:hidden mcs:sm:flex mcs:shrink-0 mcs:flex-col mcs:items-end mcs:justify-between mcs:gap-3'}>
                     {stats}
                     {action}
                 </div>

@@ -32,6 +32,28 @@ export default function ModCard({ hit, layout, busy = false, category, onOpen, o
 
     const action = <InstallButton installed={hit.installed === true} busy={busy} onClick={hit.installed ? onOpen : onInstall} />;
 
+    // Phones get one short line of stats beside a smaller button instead of the chips and stats column.
+    const warning = hit.version ? null : hit.linux ? 'Not for this game build' : 'No server build';
+    const phoneRow = (
+        <div className={'sfy:flex sfy:items-center sfy:justify-between sfy:gap-2 sfy:sm:hidden'}>
+            <div className={'sfy:flex sfy:min-w-0 sfy:items-center sfy:gap-3 sfy:text-xs sfy:text-muted-foreground'}>
+                <span className={'sfy:inline-flex sfy:items-center sfy:gap-1'}>
+                    <NamedIcon name={'download'} size={12} /> <strong className={'sfy:text-foreground sfy:font-semibold'}>{compactNumber(hit.downloads)}</strong>
+                </span>
+                {warning ? (
+                    <span className={'sfy:truncate sfy:text-warning'}>{warning}</span>
+                ) : (
+                    hit.updated > 0 && (
+                        <span className={'sfy:inline-flex sfy:min-w-0 sfy:items-center sfy:gap-1'}>
+                            <NamedIcon name={'history'} size={12} /> <span className={'sfy:truncate'}>{fromNow(new Date(hit.updated * 1000).toISOString())}</span>
+                        </span>
+                    )
+                )}
+            </div>
+            <InstallButton installed={hit.installed === true} busy={busy} compact onClick={hit.installed ? onOpen : onInstall} />
+        </div>
+    );
+
     return (
         <div
             role={'button'}
@@ -44,29 +66,30 @@ export default function ModCard({ hit, layout, busy = false, category, onOpen, o
                 }
             }}
             className={
-                'pt-surface sfy:relative sfy:flex sfy:gap-4 sfy:rounded-lg sfy:border sfy:border-border sfy:bg-card sfy:p-4 sfy:text-left sfy:cursor-pointer sfy:hover:border-primary sfy:min-w-0 sfy:overflow-hidden sfy:focus-visible:outline-2 sfy:focus-visible:outline-primary'
+                'pt-surface sfy:relative sfy:flex sfy:gap-3 sfy:sm:gap-4 sfy:rounded-lg sfy:border sfy:border-border sfy:bg-card sfy:p-3 sfy:sm:p-4 sfy:text-left sfy:cursor-pointer sfy:hover:border-primary sfy:min-w-0 sfy:overflow-hidden sfy:focus-visible:outline-2 sfy:focus-visible:outline-primary'
             }
         >
-            <ItemIcon src={hit.icon} className={cn('sfy:shrink-0', layout === 'list' ? 'sfy:size-20' : 'sfy:size-16')} />
-            <div className={'sfy:min-w-0 sfy:flex-1 sfy:flex sfy:flex-col sfy:gap-1.5'}>
-                <div className={'sfy:flex sfy:flex-wrap sfy:items-baseline sfy:gap-x-2'}>
-                    <span className={'sfy:text-lg sfy:font-bold sfy:text-foreground sfy:truncate'}>{hit.title}</span>
-                    {hit.author && <span className={'sfy:text-sm sfy:text-muted-foreground'}>by {hit.author}</span>}
+            <ItemIcon src={hit.icon} className={cn('sfy:shrink-0 sfy:size-12', layout === 'list' ? 'sfy:sm:size-20' : 'sfy:sm:size-16')} />
+            <div className={'sfy:min-w-0 sfy:flex-1 sfy:flex sfy:flex-col sfy:gap-1 sfy:sm:gap-1.5'}>
+                <div className={'sfy:flex sfy:min-w-0 sfy:items-baseline sfy:gap-x-2 sfy:sm:flex-wrap'}>
+                    <span className={'sfy:min-w-0 sfy:text-base sfy:sm:text-lg sfy:font-bold sfy:text-foreground sfy:truncate'}>{hit.title}</span>
+                    {hit.author && <span className={'sfy:hidden sfy:sm:inline sfy:text-sm sfy:text-muted-foreground'}>by {hit.author}</span>}
                 </div>
-                <p className={'sfy:text-sm sfy:text-muted-foreground sfy:line-clamp-2'}>{hit.summary}</p>
-                <div className={'sfy:flex sfy:flex-wrap sfy:gap-1.5'}>
+                <p className={'sfy:text-xs sfy:sm:text-sm sfy:text-muted-foreground sfy:line-clamp-2'}>{hit.summary}</p>
+                {phoneRow}
+                <div className={'sfy:hidden sfy:sm:flex sfy:flex-wrap sfy:gap-1.5'}>
                     {category && <Chip>{category}</Chip>}
                     {hit.version ? <Chip>{hit.version}</Chip> : <Chip tone={'warning'}>{hit.linux ? 'Not for this game build' : 'No server build'}</Chip>}
                 </div>
                 {layout === 'grid' && (
-                    <div className={'sfy:mt-auto sfy:flex sfy:flex-wrap sfy:items-end sfy:justify-between sfy:gap-2 sfy:pt-1'}>
+                    <div className={'sfy:mt-auto sfy:hidden sfy:sm:flex sfy:flex-wrap sfy:items-end sfy:justify-between sfy:gap-2 sfy:pt-1'}>
                         {stats}
                         {action}
                     </div>
                 )}
             </div>
             {layout === 'list' && (
-                <div className={'sfy:flex sfy:shrink-0 sfy:flex-col sfy:items-end sfy:justify-between sfy:gap-3'}>
+                <div className={'sfy:hidden sfy:sm:flex sfy:shrink-0 sfy:flex-col sfy:items-end sfy:justify-between sfy:gap-3'}>
                     {stats}
                     {action}
                 </div>

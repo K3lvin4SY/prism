@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Input, Select, ServerContentBlock, Spinner, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { keys } from '../api/client';
 import { SOURCE_NAMES, getMeta, getMods, install, modKeys, repair, restart, search, type ModHit, type SearchParams, type SortOrder, type SourceName } from '../api/mods';
 import JobProgress from '../components/JobProgress';
+import { FiltersButton, Sheet, useWide } from '../components/Sheet';
 import { Pager, Tabs } from '../components/content/ui';
 import FilterSidebar, { emptyFilters, type FilterState } from '../components/mods/FilterSidebar';
 import InstalledMods from '../components/mods/InstalledMods';
@@ -44,6 +45,9 @@ export default function ModsScreen() {
     const [open, setOpen] = useState<ModHit | null>(null);
     const [installing, setInstalling] = useState<string[]>([]);
     const [job, setJob] = useState<string | null>(null);
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const closeFilters = useCallback(() => setFiltersOpen(false), []);
+    const wide = useWide();
 
     const state = useQuery({ queryKey: keys.mods(identifier), queryFn: () => getMods(identifier), refetchInterval: job ? false : 15_000 });
     const meta = useQuery({ queryKey: modKeys.meta(identifier), queryFn: () => getMeta(identifier), staleTime: 3_600_000 });
@@ -107,6 +111,27 @@ export default function ModsScreen() {
     const running = state.data?.running ?? false;
     const errors = Object.entries(results.data?.errors ?? {}) as [SourceName, string][];
 
+    const sidebar = (
+        <>
+            {meta.isLoading ? (
+                <Spinner centered />
+            ) : meta.isError || !meta.data ? (
+                <Alert type={'danger'}>{httpErrorToHuman(meta.error)}</Alert>
+            ) : (
+                <FilterSidebar
+                    meta={meta.data}
+                    state={filters}
+                    configured={configured}
+                    onChange={(next) => {
+                        setFilters(next);
+                        setPage(1);
+                    }}
+                />
+            )}
+        </>
+    );
+    const active = filters.sources.length + filters.categories.length + filters.sides.length + (filters.gameVersion !== null ? 1 : 0);
+
     return (
         <ServerContentBlock title={'Mods'}>
             <div className={'cks:flex cks:flex-col cks:gap-4'}>
@@ -164,33 +189,57 @@ export default function ModsScreen() {
                     )
                 ) : (
                     <div className={'cks:grid cks:gap-4 cks:lg:grid-cols-[260px_1fr]'}>
-                        <div className={'cks:min-w-0'}>
-                            {meta.isLoading ? (
-                                <Spinner centered />
-                            ) : meta.isError || !meta.data ? (
-                                <Alert type={'danger'}>{httpErrorToHuman(meta.error)}</Alert>
-                            ) : (
-                                <FilterSidebar
-                                    meta={meta.data}
-                                    state={filters}
-                                    configured={configured}
-                                    onChange={(next) => {
-                                        setFilters(next);
-                                        setPage(1);
-                                    }}
-                                />
-                            )}
-                        </div>
+                        {wide && <div className={'cks:min-w-0'}>{sidebar}</div>}
 
                         <div className={'cks:flex cks:flex-col cks:gap-3 cks:min-w-0'}>
                             <div className={'cks:relative'}>
                                 <NamedIcon name={'search'} size={16} className={'cks:absolute cks:left-3 cks:top-1/2 cks:-translate-y-1/2 cks:text-muted-foreground cks:pointer-events-none'} />
                                 <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={'Search Core Keeper mods…'} className={'cks:w-full cks:pl-9'} />
                             </div>
-                            <div className={'cks:flex cks:flex-wrap cks:items-center cks:gap-2'}>
+                            {wide ? (
+                                <div className={'cks:flex cks:flex-wrap cks:items-center cks:gap-2'}>
+                                    <div className={'cks:flex cks:items-center cks:gap-2'}>
+                                        <span className={'cks:text-sm cks:text-muted-foreground'}>Sort by</span>
+                                        <div className={'cks:w-44'}>
+                                            <Select
+                                                value={sort}
+                                                onChange={(value) => {
+                                                    setSort(value as SortOrder);
+                                                    setPage(1);
+                                                }}
+                                                options={SORTS}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={'cks:flex cks:items-center cks:gap-2'}>
+                                        <span className={'cks:text-sm cks:text-muted-foreground'}>View</span>
+                                        <div className={'cks:w-24'}>
+                                            <Select
+                                                value={limit}
+                                                onChange={(value) => {
+                                                    setLimit(Number(value));
+                                                    setPage(1);
+                                                }}
+                                                options={[10, 20, 50].map((value) => ({ value, label: String(value) }))}
+                                            />
+                                        </div>
+                                    </div>
+                                    <button
+                                        type={'button'}
+                                        onClick={toggleLayout}
+                                        aria-label={layout === 'list' ? 'Show as grid' : 'Show as list'}
+                                        className={'cks:flex cks:size-9 cks:items-center cks:justify-center cks:rounded-md cks:border cks:border-border cks:bg-card cks:cursor-pointer cks:hover:bg-muted'}
+                                    >
+                                        <NamedIcon name={layout === 'list' ? 'layout-grid' : 'list'} size={16} />
+                                    </button>
+                                    <div className={'cks:ml-auto'}>
+                                        <Pager page={page} total={totalPages} onPage={setPage} />
+                                    </div>
+                                </div>
+                            ) : (
                                 <div className={'cks:flex cks:items-center cks:gap-2'}>
-                                    <span className={'cks:text-sm cks:text-muted-foreground'}>Sort by</span>
-                                    <div className={'cks:w-44'}>
+                                    <FiltersButton count={active} onClick={() => setFiltersOpen(true)} />
+                                    <div className={'cks:min-w-0 cks:flex-1 cks:sm:max-w-56'}>
                                         <Select
                                             value={sort}
                                             onChange={(value) => {
@@ -201,31 +250,7 @@ export default function ModsScreen() {
                                         />
                                     </div>
                                 </div>
-                                <div className={'cks:flex cks:items-center cks:gap-2'}>
-                                    <span className={'cks:text-sm cks:text-muted-foreground'}>View</span>
-                                    <div className={'cks:w-24'}>
-                                        <Select
-                                            value={limit}
-                                            onChange={(value) => {
-                                                setLimit(Number(value));
-                                                setPage(1);
-                                            }}
-                                            options={[10, 20, 50].map((value) => ({ value, label: String(value) }))}
-                                        />
-                                    </div>
-                                </div>
-                                <button
-                                    type={'button'}
-                                    onClick={toggleLayout}
-                                    aria-label={layout === 'list' ? 'Show as grid' : 'Show as list'}
-                                    className={'cks:flex cks:size-9 cks:items-center cks:justify-center cks:rounded-md cks:border cks:border-border cks:bg-card cks:cursor-pointer cks:hover:bg-muted'}
-                                >
-                                    <NamedIcon name={layout === 'list' ? 'layout-grid' : 'list'} size={16} />
-                                </button>
-                                <div className={'cks:ml-auto'}>
-                                    <Pager page={page} total={totalPages} onPage={setPage} />
-                                </div>
-                            </div>
+                            )}
 
                             {sources.length === 0 && <Alert type={'warning'}>No mod source is set up yet. An administrator adds a mod.io API key or a Steam Web API key in Prism Properties.</Alert>}
                             {errors.map(([source, message]) => (
@@ -268,6 +293,21 @@ export default function ModsScreen() {
                     </div>
                 )}
             </div>
+
+            {!wide && tab === 'browse' && (
+                <Sheet
+                    open={filtersOpen}
+                    title={'Filters'}
+                    onClose={closeFilters}
+                    footer={
+                        <Button className={'cks:w-full'} onClick={closeFilters}>
+                            {results.data ? `Show ${results.data.total.toLocaleString()} mods` : 'Show results'}
+                        </Button>
+                    }
+                >
+                    <div className={'cks:flex cks:flex-col cks:gap-3'}>{sidebar}</div>
+                </Sheet>
+            )}
 
             {open && (
                 <ModDialog

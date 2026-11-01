@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Input, Select, Spinner, Switch, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, Input, Select, Spinner, Switch, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { NamedIcon } from '../../icons';
+import { FiltersButton, Sheet, useWide } from '../Sheet';
+import { FilterSection } from './tags';
 import { contentKeys, getCategories, getDependencies, getProject, install, search, type BrowseKind, type ContentKind, type ProjectHit, type SearchParams, type SortOrder } from '../../api/content';
 import { usePreferences, useSetConfirmInstalls } from '../../api/preferences';
 import { useMcInfo } from '../../hooks/useMcInfo';
-import FilterSidebar, { emptyFilters, type FilterState } from './FilterSidebar';
+import FilterSidebar, { activeFilters, emptyFilters, type FilterState } from './FilterSidebar';
 import InstalledList from './InstalledList';
 import { CurrentModpack } from './Modpack';
 import ProjectCard from './ProjectCard';
@@ -88,6 +90,9 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
     const [layout, setLayout] = useState<'list' | 'grid'>(readLayout);
     const [open, setOpen] = useState<{ hit: ProjectHit; quick: boolean } | null>(null);
     const [installing, setInstalling] = useState<string[]>([]);
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const closeFilters = useCallback(() => setFiltersOpen(false), []);
+    const wide = useWide();
     const queryClient = useQueryClient();
     const preferences = usePreferences();
     const setConfirmInstalls = useSetConfirmInstalls();
@@ -157,6 +162,41 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
 
     const totalPages = results.data ? Math.max(1, Math.ceil(Math.min(results.data.total, 10_000) / limit)) : 1;
 
+    const sidebar = meta.isLoading ? (
+        <Spinner centered />
+    ) : meta.isError || !meta.data ? (
+        <Alert type={'danger'}>{httpErrorToHuman(meta.error)}</Alert>
+    ) : (
+        <FilterSidebar filters={meta.data} state={filters} onChange={changeFilters} />
+    );
+    const sortSelect = <Select value={sort} onChange={(value) => { setSort(value as SortOrder); setPage(1); }} options={SORTS} />;
+    const limitSelect = (
+        <Select
+            value={limit}
+            onChange={(value) => { setLimit(Number(value)); setPage(1); }}
+            options={[10, 20, 50, 100].map((value) => ({ value, label: String(value) }))}
+        />
+    );
+    const layoutButton = (
+        <button
+            type={'button'}
+            onClick={toggleLayout}
+            aria-label={layout === 'list' ? 'Show as grid' : 'Show as list'}
+            className={'mcs:flex mcs:size-9 mcs:items-center mcs:justify-center mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:cursor-pointer mcs:hover:bg-muted'}
+        >
+            <NamedIcon name={layout === 'list' ? 'layout-grid' : 'list'} size={16} />
+        </button>
+    );
+    const confirmSwitch = kind !== 'modpacks' && preferences.data && (
+        <Switch
+            checked={preferences.data.confirmInstalls}
+            disabled={setConfirmInstalls.isPending}
+            onChange={(checked) => setConfirmInstalls.mutate(checked)}
+            label={'Confirm installs'}
+            className={'mcs:ml-2'}
+        />
+    );
+
     return (
         <div className={'mcs:flex mcs:flex-col mcs:gap-4'}>
             <div className={'mcs:flex mcs:gap-1 mcs:border-b mcs:border-border'}>
@@ -183,59 +223,35 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
                 )
             ) : (
                 <div className={'mcs:grid mcs:gap-4 mcs:lg:grid-cols-[260px_1fr]'}>
-                    <div className={'mcs:min-w-0'}>
-                        {meta.isLoading ? (
-                            <Spinner centered />
-                        ) : meta.isError || !meta.data ? (
-                            <Alert type={'danger'}>{httpErrorToHuman(meta.error)}</Alert>
-                        ) : (
-                            <FilterSidebar filters={meta.data} state={filters} onChange={changeFilters} />
-                        )}
-                    </div>
+                    {wide && <div className={'mcs:min-w-0'}>{sidebar}</div>}
 
                     <div className={'mcs:flex mcs:flex-col mcs:gap-3 mcs:min-w-0'}>
                         <div className={'mcs:relative'}>
                             <NamedIcon name={'search'} size={16} className={'mcs:absolute mcs:left-3 mcs:top-1/2 mcs:-translate-y-1/2 mcs:text-muted-foreground mcs:pointer-events-none'} />
                             <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Search ${kind}…`} className={'mcs:w-full mcs:pl-9'} />
                         </div>
-                        <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
-                            <div className={'mcs:flex mcs:items-center mcs:gap-2'}>
-                                <span className={'mcs:text-sm mcs:text-muted-foreground'}>Sort by</span>
-                                <div className={'mcs:w-44'}>
-                                    <Select value={sort} onChange={(value) => { setSort(value as SortOrder); setPage(1); }} options={SORTS} />
+                        {wide ? (
+                            <div className={'mcs:flex mcs:flex-wrap mcs:items-center mcs:gap-2'}>
+                                <div className={'mcs:flex mcs:items-center mcs:gap-2'}>
+                                    <span className={'mcs:text-sm mcs:text-muted-foreground'}>Sort by</span>
+                                    <div className={'mcs:w-44'}>{sortSelect}</div>
+                                </div>
+                                <div className={'mcs:flex mcs:items-center mcs:gap-2'}>
+                                    <span className={'mcs:text-sm mcs:text-muted-foreground'}>View</span>
+                                    <div className={'mcs:w-24'}>{limitSelect}</div>
+                                </div>
+                                {layoutButton}
+                                {confirmSwitch}
+                                <div className={'mcs:ml-auto'}>
+                                    <Pager page={page} total={totalPages} onPage={setPage} />
                                 </div>
                             </div>
+                        ) : (
                             <div className={'mcs:flex mcs:items-center mcs:gap-2'}>
-                                <span className={'mcs:text-sm mcs:text-muted-foreground'}>View</span>
-                                <div className={'mcs:w-24'}>
-                                    <Select
-                                        value={limit}
-                                        onChange={(value) => { setLimit(Number(value)); setPage(1); }}
-                                        options={[10, 20, 50, 100].map((value) => ({ value, label: String(value) }))}
-                                    />
-                                </div>
+                                <FiltersButton count={activeFilters(filters)} onClick={() => setFiltersOpen(true)} />
+                                <div className={'mcs:min-w-0 mcs:flex-1 mcs:sm:max-w-56'}>{sortSelect}</div>
                             </div>
-                            <button
-                                type={'button'}
-                                onClick={toggleLayout}
-                                aria-label={layout === 'list' ? 'Show as grid' : 'Show as list'}
-                                className={'mcs:flex mcs:size-9 mcs:items-center mcs:justify-center mcs:rounded-md mcs:border mcs:border-border mcs:bg-card mcs:cursor-pointer mcs:hover:bg-muted'}
-                            >
-                                <NamedIcon name={layout === 'list' ? 'layout-grid' : 'list'} size={16} />
-                            </button>
-                            {kind !== 'modpacks' && preferences.data && (
-                                <Switch
-                                    checked={preferences.data.confirmInstalls}
-                                    disabled={setConfirmInstalls.isPending}
-                                    onChange={(checked) => setConfirmInstalls.mutate(checked)}
-                                    label={'Confirm installs'}
-                                    className={'mcs:ml-2'}
-                                />
-                            )}
-                            <div className={'mcs:ml-auto'}>
-                                <Pager page={page} total={totalPages} onPage={setPage} />
-                            </div>
-                        </div>
+                        )}
 
                         {results.isError && <Alert type={'danger'}>{httpErrorToHuman(results.error)}</Alert>}
 
@@ -265,6 +281,36 @@ export default function ContentBrowser({ kind }: { kind: BrowseKind }) {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {!wide && tab === 'browse' && (
+                <Sheet
+                    open={filtersOpen}
+                    title={'Filters'}
+                    onClose={closeFilters}
+                    footer={
+                        <Button className={'mcs:w-full'} onClick={closeFilters}>
+                            {results.data ? `Show ${results.data.total.toLocaleString()} ${kind}` : 'Show results'}
+                        </Button>
+                    }
+                >
+                    <div className={'mcs:flex mcs:flex-col mcs:gap-3'}>
+                        <FilterSection title={'Display'} defaultOpen={false}>
+                            <div className={'mcs:flex mcs:flex-col mcs:gap-3 mcs:px-1'}>
+                                <div className={'mcs:flex mcs:items-center mcs:gap-2'}>
+                                    <span className={'mcs:flex-1 mcs:text-sm'}>Per page</span>
+                                    <div className={'mcs:w-24'}>{limitSelect}</div>
+                                </div>
+                                <div className={'mcs:hidden mcs:md:flex mcs:items-center mcs:gap-2'}>
+                                    <span className={'mcs:flex-1 mcs:text-sm'}>{layout === 'list' ? 'List' : 'Grid'}</span>
+                                    {layoutButton}
+                                </div>
+                                {confirmSwitch}
+                            </div>
+                        </FilterSection>
+                        {sidebar}
+                    </div>
+                </Sheet>
             )}
 
             {open && (

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Input, Select, ServerContentBlock, Spinner, cn, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { keys } from '../api/client';
 import { getMeta, getMods, install, modKeys, search, type ModHit, type SearchParams, type SortOrder } from '../api/mods';
 import JobProgress from '../components/JobProgress';
+import { Sheet, useWide } from '../components/Sheet';
 import { Pager, Tabs } from '../components/content/ui';
 import FilterSidebar from '../components/mods/FilterSidebar';
 import InstalledMods from '../components/mods/InstalledMods';
@@ -43,6 +44,9 @@ export default function ModsScreen() {
     const [open, setOpen] = useState<ModHit | null>(null);
     const [installing, setInstalling] = useState<string[]>([]);
     const [job, setJob] = useState<string | null>(null);
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const closeFilters = useCallback(() => setFiltersOpen(false), []);
+    const wide = useWide();
 
     const state = useQuery({ queryKey: keys.mods(identifier), queryFn: () => getMods(identifier), refetchInterval: job ? false : 15_000 });
     const meta = useQuery({ queryKey: modKeys.meta(identifier), queryFn: () => getMeta(identifier), staleTime: 3_600_000 });
@@ -97,6 +101,18 @@ export default function ModsScreen() {
     const confirm = state.data?.confirmInstalls ?? true;
     const running = state.data?.running ?? false;
 
+    const sidebar = (
+        <>
+            {meta.isLoading ? (
+                <Spinner centered />
+            ) : meta.isError || !meta.data ? (
+                <Alert type={'danger'}>{httpErrorToHuman(meta.error)}</Alert>
+            ) : (
+                <FilterSidebar meta={meta.data} state={state.data} />
+            )}
+        </>
+    );
+
     return (
         <ServerContentBlock title={'Mods'}>
             <div className={'sfy:flex sfy:flex-col sfy:gap-4'}>
@@ -136,25 +152,59 @@ export default function ModsScreen() {
                     )
                 ) : (
                     <div className={'sfy:grid sfy:gap-4 sfy:lg:grid-cols-[260px_1fr]'}>
-                        <div className={'sfy:min-w-0'}>
-                            {meta.isLoading ? (
-                                <Spinner centered />
-                            ) : meta.isError || !meta.data ? (
-                                <Alert type={'danger'}>{httpErrorToHuman(meta.error)}</Alert>
-                            ) : (
-                                <FilterSidebar meta={meta.data} state={state.data} />
-                            )}
-                        </div>
+                        {wide && <div className={'sfy:min-w-0'}>{sidebar}</div>}
 
                         <div className={'sfy:flex sfy:flex-col sfy:gap-3 sfy:min-w-0'}>
                             <div className={'sfy:relative'}>
                                 <NamedIcon name={'search'} size={16} className={'sfy:absolute sfy:left-3 sfy:top-1/2 sfy:-translate-y-1/2 sfy:text-muted-foreground sfy:pointer-events-none'} />
                                 <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={'Search ficsit.app (three letters or more)…'} className={'sfy:w-full sfy:pl-9'} />
                             </div>
-                            <div className={'sfy:flex sfy:flex-wrap sfy:items-center sfy:gap-2'}>
+                            {wide ? (
+                                <div className={'sfy:flex sfy:flex-wrap sfy:items-center sfy:gap-2'}>
+                                    <div className={'sfy:flex sfy:items-center sfy:gap-2'}>
+                                        <span className={'sfy:text-sm sfy:text-muted-foreground'}>Sort by</span>
+                                        <div className={'sfy:w-44'}>
+                                            <Select
+                                                value={sort}
+                                                onChange={(value) => {
+                                                    setSort(value as SortOrder);
+                                                    setPage(1);
+                                                }}
+                                                options={SORTS}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={'sfy:flex sfy:items-center sfy:gap-2'}>
+                                        <span className={'sfy:text-sm sfy:text-muted-foreground'}>View</span>
+                                        <div className={'sfy:w-24'}>
+                                            <Select
+                                                value={limit}
+                                                onChange={(value) => {
+                                                    setLimit(Number(value));
+                                                    setPage(1);
+                                                }}
+                                                options={[10, 20, 50].map((value) => ({ value, label: String(value) }))}
+                                            />
+                                        </div>
+                                    </div>
+                                    <button
+                                        type={'button'}
+                                        onClick={toggleLayout}
+                                        aria-label={layout === 'list' ? 'Show as grid' : 'Show as list'}
+                                        className={'sfy:flex sfy:size-9 sfy:items-center sfy:justify-center sfy:rounded-md sfy:border sfy:border-border sfy:bg-card sfy:cursor-pointer sfy:hover:bg-muted'}
+                                    >
+                                        <NamedIcon name={layout === 'list' ? 'layout-grid' : 'list'} size={16} />
+                                    </button>
+                                    <div className={'sfy:ml-auto'}>
+                                        <Pager page={page} total={totalPages} onPage={setPage} />
+                                    </div>
+                                </div>
+                            ) : (
                                 <div className={'sfy:flex sfy:items-center sfy:gap-2'}>
-                                    <span className={'sfy:text-sm sfy:text-muted-foreground'}>Sort by</span>
-                                    <div className={'sfy:w-44'}>
+                                    <button type={'button'} onClick={() => setFiltersOpen(true)} aria-label={'About these mods'} className={'sfy:flex sfy:size-9 sfy:shrink-0 sfy:items-center sfy:justify-center sfy:rounded-md sfy:border sfy:border-border sfy:bg-card sfy:cursor-pointer sfy:hover:bg-muted'}>
+                                        <NamedIcon name={'info'} size={16} />
+                                    </button>
+                                    <div className={'sfy:min-w-0 sfy:flex-1 sfy:sm:max-w-56'}>
                                         <Select
                                             value={sort}
                                             onChange={(value) => {
@@ -165,31 +215,7 @@ export default function ModsScreen() {
                                         />
                                     </div>
                                 </div>
-                                <div className={'sfy:flex sfy:items-center sfy:gap-2'}>
-                                    <span className={'sfy:text-sm sfy:text-muted-foreground'}>View</span>
-                                    <div className={'sfy:w-24'}>
-                                        <Select
-                                            value={limit}
-                                            onChange={(value) => {
-                                                setLimit(Number(value));
-                                                setPage(1);
-                                            }}
-                                            options={[10, 20, 50].map((value) => ({ value, label: String(value) }))}
-                                        />
-                                    </div>
-                                </div>
-                                <button
-                                    type={'button'}
-                                    onClick={toggleLayout}
-                                    aria-label={layout === 'list' ? 'Show as grid' : 'Show as list'}
-                                    className={'sfy:flex sfy:size-9 sfy:items-center sfy:justify-center sfy:rounded-md sfy:border sfy:border-border sfy:bg-card sfy:cursor-pointer sfy:hover:bg-muted'}
-                                >
-                                    <NamedIcon name={layout === 'list' ? 'layout-grid' : 'list'} size={16} />
-                                </button>
-                                <div className={'sfy:ml-auto'}>
-                                    <Pager page={page} total={totalPages} onPage={setPage} />
-                                </div>
-                            </div>
+                            )}
 
                             {results.isError && <Alert type={'danger'}>{httpErrorToHuman(results.error)}</Alert>}
 
@@ -227,6 +253,16 @@ export default function ModsScreen() {
                     </div>
                 )}
             </div>
+
+            {!wide && tab === 'browse' && (
+                <Sheet
+                    open={filtersOpen}
+                    title={'This server'}
+                    onClose={closeFilters}
+                >
+                    <div className={'sfy:flex sfy:flex-col sfy:gap-3'}>{sidebar}</div>
+                </Sheet>
+            )}
 
             {open && (
                 <ModDialog

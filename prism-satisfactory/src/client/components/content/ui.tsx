@@ -50,7 +50,7 @@ export function Chip({ children, title, tone }: { children: ReactNode; title?: s
 }
 
 /** "+ Install" on solid green, or "✓ Installed" with a green border. */
-export function InstallButton({ installed, busy = false, disabled = false, onClick }: { installed: boolean; busy?: boolean; disabled?: boolean; onClick: () => void }) {
+export function InstallButton({ installed, busy = false, disabled = false, compact = false, onClick }: { installed: boolean; busy?: boolean; disabled?: boolean; compact?: boolean; onClick: () => void }) {
     return (
         <button
             type={'button'}
@@ -60,11 +60,12 @@ export function InstallButton({ installed, busy = false, disabled = false, onCli
                 onClick();
             }}
             className={cn(
-                'sfy:inline-flex sfy:items-center sfy:gap-1.5 sfy:rounded-lg sfy:border-2 sfy:px-3 sfy:py-1.5 sfy:text-sm sfy:font-semibold sfy:cursor-pointer sfy:whitespace-nowrap sfy:transition-colors sfy:disabled:cursor-not-allowed sfy:disabled:opacity-60',
+                compact ? 'sfy:gap-1 sfy:px-2.5 sfy:py-1 sfy:text-xs' : 'sfy:gap-1.5 sfy:px-3 sfy:py-1.5 sfy:text-sm',
+                'sfy:inline-flex sfy:shrink-0 sfy:items-center sfy:rounded-lg sfy:border-2 sfy:font-semibold sfy:cursor-pointer sfy:whitespace-nowrap sfy:transition-colors sfy:disabled:cursor-not-allowed sfy:disabled:opacity-60',
                 installed ? 'sfy:border-success sfy:bg-transparent sfy:text-success sfy:hover:bg-success/10' : 'sfy:border-success sfy:bg-success sfy:text-success-foreground sfy:hover:brightness-110'
             )}
         >
-            {busy ? <Spinner size={'small'} /> : <NamedIcon name={installed ? 'check' : 'plus'} size={16} />}
+            {busy ? <Spinner size={'small'} /> : <NamedIcon name={installed ? 'check' : 'plus'} size={compact ? 14 : 16} />}
             {busy ? 'Installing' : installed ? 'Installed' : 'Install'}
         </button>
     );
@@ -96,7 +97,7 @@ export function FilterRow({ label, on, onToggle }: { label: string; on: boolean;
             onClick={onToggle}
             aria-pressed={on}
             className={cn(
-                'sfy:flex sfy:w-full sfy:items-center sfy:gap-2 sfy:rounded-md sfy:px-2 sfy:py-1 sfy:text-sm sfy:text-left sfy:cursor-pointer',
+                'sfy:flex sfy:w-full sfy:items-center sfy:gap-2 sfy:rounded-md sfy:px-2 sfy:py-1 sfy:pointer-coarse:py-2 sfy:text-sm sfy:text-left sfy:cursor-pointer',
                 on ? 'sfy:bg-primary/20 sfy:font-semibold' : 'sfy:hover:bg-muted'
             )}
         >

@@ -23,6 +23,9 @@ interface Props {
     onChange: (state: FilterState) => void;
 }
 
+/** How many filters differ from the server's defaults, for the Filters button. */
+export const activeFilters = (state: FilterState) => state.categories.length + state.exclude.length + (state.loaders !== null ? 1 : 0) + (state.gameVersions !== null ? 1 : 0);
+
 const toggle = (list: string[], value: string) => (list.includes(value) ? list.filter((entry) => entry !== value) : [...list, value]);
 
 /** Game version, loader and category filters, laid out like Modrinth's discover sidebar. */

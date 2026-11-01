@@ -50,7 +50,7 @@ export function Chip({ children, title, tone }: { children: ReactNode; title?: s
 }
 
 /** "+ Install" on solid green, or "✓ Installed" with a green border. */
-export function InstallButton({ installed, busy = false, disabled = false, onClick }: { installed: boolean; busy?: boolean; disabled?: boolean; onClick: () => void }) {
+export function InstallButton({ installed, busy = false, disabled = false, compact = false, onClick }: { installed: boolean; busy?: boolean; disabled?: boolean; compact?: boolean; onClick: () => void }) {
     return (
         <button
             type={'button'}
@@ -60,11 +60,12 @@ export function InstallButton({ installed, busy = false, disabled = false, onCli
                 onClick();
             }}
             className={cn(
-                'fct:inline-flex fct:items-center fct:gap-1.5 fct:rounded-lg fct:border-2 fct:px-3 fct:py-1.5 fct:text-sm fct:font-semibold fct:cursor-pointer fct:whitespace-nowrap fct:transition-colors fct:disabled:cursor-not-allowed fct:disabled:opacity-60',
+                compact ? 'fct:gap-1 fct:px-2.5 fct:py-1 fct:text-xs' : 'fct:gap-1.5 fct:px-3 fct:py-1.5 fct:text-sm',
+                'fct:inline-flex fct:shrink-0 fct:items-center fct:rounded-lg fct:border-2 fct:font-semibold fct:cursor-pointer fct:whitespace-nowrap fct:transition-colors fct:disabled:cursor-not-allowed fct:disabled:opacity-60',
                 installed ? 'fct:border-success fct:bg-transparent fct:text-success fct:hover:bg-success/10' : 'fct:border-success fct:bg-success fct:text-success-foreground fct:hover:brightness-110'
             )}
         >
-            {busy ? <Spinner size={'small'} /> : <NamedIcon name={installed ? 'check' : 'plus'} size={16} />}
+            {busy ? <Spinner size={'small'} /> : <NamedIcon name={installed ? 'check' : 'plus'} size={compact ? 14 : 16} />}
             {busy ? 'Installing' : installed ? 'Installed' : 'Install'}
         </button>
     );
@@ -96,7 +97,7 @@ export function FilterRow({ label, on, onToggle }: { label: string; on: boolean;
             onClick={onToggle}
             aria-pressed={on}
             className={cn(
-                'fct:flex fct:w-full fct:items-center fct:gap-2 fct:rounded-md fct:px-2 fct:py-1 fct:text-sm fct:text-left fct:cursor-pointer',
+                'fct:flex fct:w-full fct:items-center fct:gap-2 fct:rounded-md fct:px-2 fct:py-1 fct:pointer-coarse:py-2 fct:text-sm fct:text-left fct:cursor-pointer',
                 on ? 'fct:bg-primary/20 fct:font-semibold' : 'fct:hover:bg-muted'
             )}
         >

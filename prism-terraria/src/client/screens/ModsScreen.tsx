@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Badge, Button, Checkbox, Dialog, Input, Select, ServerContentBlock, Spinner, Switch, bytesToString, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
@@ -20,6 +20,7 @@ import {
     type WorkshopHit,
 } from '../api/mods';
 import JobProgress from '../components/JobProgress';
+import { FiltersButton, Sheet, useWide } from '../components/Sheet';
 import { Chip, FilterRow, FilterSection, InstallButton, ItemIcon, Pager, Tabs } from '../components/content/ui';
 import { useTerrariaInfo } from '../hooks/useTerrariaInfo';
 
@@ -32,6 +33,9 @@ const SORTS: { value: ModSort; label: string }[] = [
 ];
 
 const SIDE_LABELS: Record<string, string> = { Both: 'Client and server', Server: 'Server only', NoSync: 'No sync', Client: 'Client only' };
+
+const DEFAULT_SIDES = ['Both', 'Server', 'NoSync'];
+const DEFAULT_VERSION = '1.4.4';
 
 const updatedAt = (time: number | null) => (time ? fromNow(new Date(time * 1000).toISOString()) : null);
 
@@ -89,7 +93,10 @@ function WorkshopBrowser({ overview }: { overview: ModsOverview | undefined }) {
     const { identifier } = useTerrariaInfo();
     const queryClient = useQueryClient();
     const [query, setQuery] = useState('');
-    const [params, setParams] = useState<SearchParams>({ query: '', sort: 'trend', categories: [], sides: ['Both', 'Server', 'NoSync'], gameVersion: '1.4.4', page: 1, limit: 20 });
+    const [params, setParams] = useState<SearchParams>({ query: '', sort: 'trend', categories: [], sides: DEFAULT_SIDES, gameVersion: DEFAULT_VERSION, page: 1, limit: 20 });
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const closeFilters = useCallback(() => setFiltersOpen(false), []);
+    const wide = useWide();
     const [open, setOpen] = useState<WorkshopHit | null>(null);
     const [busy, setBusy] = useState<string[]>([]);
 
@@ -134,47 +141,69 @@ function WorkshopBrowser({ overview }: { overview: ModsOverview | undefined }) {
         }
     };
 
+    const sidesChanged = params.sides.length !== DEFAULT_SIDES.length || DEFAULT_SIDES.some((side) => !params.sides.includes(side));
+    const active = params.categories.length + (sidesChanged ? 1 : 0) + (params.gameVersion !== DEFAULT_VERSION ? 1 : 0);
+    const sortSelect = <Select value={params.sort} onChange={(value) => change({ sort: value as ModSort })} options={SORTS} disabled={params.query !== ''} />;
+
+    const filterSections = (
+        <div className={'trs:flex trs:flex-col trs:gap-3 trs:min-w-0'}>
+            {active > 0 && (
+                <button
+                    type={'button'}
+                    onClick={() => change({ categories: [], sides: DEFAULT_SIDES, gameVersion: DEFAULT_VERSION })}
+                    className={'trs:flex trs:items-center trs:justify-center trs:gap-2 trs:rounded-lg trs:border trs:border-border trs:bg-card trs:py-2 trs:text-sm trs:cursor-pointer trs:hover:bg-muted'}
+                >
+                    <NamedIcon name={'x'} size={14} /> Reset filters
+                </button>
+            )}
+            <FilterSection title={'tModLoader version'}>
+                {[...(results.data?.gameVersions ?? ['1.4.4', '1.4.3']), 'Any'].map((version) => (
+                    <FilterRow
+                        key={version}
+                        label={version === 'Any' ? 'Any version' : `Terraria ${version}`}
+                        on={(params.gameVersion ?? 'Any') === version}
+                        onToggle={() => change({ gameVersion: version === 'Any' ? null : version })}
+                    />
+                ))}
+            </FilterSection>
+            <FilterSection title={'Runs on'}>
+                {(results.data?.sides ?? ['Both', 'Server', 'NoSync', 'Client']).map((side) => (
+                    <FilterRow key={side} label={SIDE_LABELS[side] ?? side} on={params.sides.includes(side)} onToggle={() => change({ sides: toggle(params.sides, side) })} />
+                ))}
+                <p className={'trs:px-2 trs:pt-2 trs:text-xs trs:text-muted-foreground'}>Client-only mods do nothing on a server.</p>
+            </FilterSection>
+            <FilterSection title={'Category'}>
+                {(results.data?.categories ?? []).map((category) => (
+                    <FilterRow key={category} label={category} on={params.categories.includes(category)} onToggle={() => change({ categories: toggle(params.categories, category) })} />
+                ))}
+            </FilterSection>
+        </div>
+    );
+
     return (
         <div className={'trs:grid trs:gap-4 trs:lg:grid-cols-[240px_1fr]'}>
-            <div className={'trs:flex trs:flex-col trs:gap-3 trs:min-w-0'}>
-                <FilterSection title={'tModLoader version'}>
-                    {[...(results.data?.gameVersions ?? ['1.4.4', '1.4.3']), 'Any'].map((version) => (
-                        <FilterRow
-                            key={version}
-                            label={version === 'Any' ? 'Any version' : `Terraria ${version}`}
-                            on={(params.gameVersion ?? 'Any') === version}
-                            onToggle={() => change({ gameVersion: version === 'Any' ? null : version })}
-                        />
-                    ))}
-                </FilterSection>
-                <FilterSection title={'Runs on'}>
-                    {(results.data?.sides ?? ['Both', 'Server', 'NoSync', 'Client']).map((side) => (
-                        <FilterRow key={side} label={SIDE_LABELS[side] ?? side} on={params.sides.includes(side)} onToggle={() => change({ sides: toggle(params.sides, side) })} />
-                    ))}
-                    <p className={'trs:px-2 trs:pt-2 trs:text-xs trs:text-muted-foreground'}>Client-only mods do nothing on a server.</p>
-                </FilterSection>
-                <FilterSection title={'Category'}>
-                    {(results.data?.categories ?? []).map((category) => (
-                        <FilterRow key={category} label={category} on={params.categories.includes(category)} onToggle={() => change({ categories: toggle(params.categories, category) })} />
-                    ))}
-                </FilterSection>
-            </div>
+            {wide && filterSections}
 
             <div className={'trs:flex trs:flex-col trs:gap-3 trs:min-w-0'}>
                 <div className={'trs:relative'}>
                     <NamedIcon name={'search'} size={16} className={'trs:absolute trs:left-3 trs:top-1/2 trs:-translate-y-1/2 trs:text-muted-foreground trs:pointer-events-none'} />
                     <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={'Search the tModLoader Workshop…'} className={'trs:w-full trs:pl-9'} />
                 </div>
-                <div className={'trs:flex trs:flex-wrap trs:items-center trs:gap-2'}>
-                    <span className={'trs:text-sm trs:text-muted-foreground'}>Sort by</span>
-                    <div className={'trs:w-48'}>
-                        <Select value={params.sort} onChange={(value) => change({ sort: value as ModSort })} options={SORTS} disabled={params.query !== ''} />
+                {wide ? (
+                    <div className={'trs:flex trs:flex-wrap trs:items-center trs:gap-2'}>
+                        <span className={'trs:text-sm trs:text-muted-foreground'}>Sort by</span>
+                        <div className={'trs:w-48'}>{sortSelect}</div>
+                        {params.query !== '' && <span className={'trs:text-xs trs:text-muted-foreground'}>Searches are sorted by relevance.</span>}
+                        <div className={'trs:ml-auto'}>
+                            <Pager page={params.page} total={totalPages} onPage={(page) => change({ page })} />
+                        </div>
                     </div>
-                    {params.query !== '' && <span className={'trs:text-xs trs:text-muted-foreground'}>Searches are sorted by relevance.</span>}
-                    <div className={'trs:ml-auto'}>
-                        <Pager page={params.page} total={totalPages} onPage={(page) => change({ page })} />
+                ) : (
+                    <div className={'trs:flex trs:items-center trs:gap-2'}>
+                        <FiltersButton count={active} onClick={() => setFiltersOpen(true)} />
+                        <div className={'trs:min-w-0 trs:flex-1 trs:sm:max-w-56'}>{sortSelect}</div>
                     </div>
-                </div>
+                )}
 
                 {results.isError && <Alert type={'danger'}>{httpErrorToHuman(results.error)}</Alert>}
                 {results.isLoading ? (
@@ -206,6 +235,21 @@ function WorkshopBrowser({ overview }: { overview: ModsOverview | undefined }) {
                 </div>
             </div>
 
+            {!wide && (
+                <Sheet
+                    open={filtersOpen}
+                    title={'Filters'}
+                    onClose={closeFilters}
+                    footer={
+                        <Button className={'trs:w-full'} onClick={closeFilters}>
+                            {results.data ? `Show ${results.data.total.toLocaleString()} mods` : 'Show results'}
+                        </Button>
+                    }
+                >
+                    {filterSections}
+                </Sheet>
+            )}
+
             {open && <WorkshopDialog id={open.id} hit={open} running={overview?.running ?? false} onClose={() => setOpen(null)} />}
         </div>
     );
@@ -223,16 +267,30 @@ function WorkshopCard({ hit, busy, onOpen, onInstall }: { hit: WorkshopHit; busy
                     onOpen();
                 }
             }}
-            className={'pt-surface trs:flex trs:gap-4 trs:rounded-lg trs:border trs:border-border trs:bg-card trs:p-4 trs:cursor-pointer trs:hover:border-primary trs:min-w-0 trs:overflow-hidden'}
+            className={'pt-surface trs:flex trs:gap-3 trs:sm:gap-4 trs:rounded-lg trs:border trs:border-border trs:bg-card trs:p-3 trs:sm:p-4 trs:cursor-pointer trs:hover:border-primary trs:min-w-0 trs:overflow-hidden'}
         >
-            <ItemIcon src={hit.icon} className={'trs:size-20 trs:shrink-0'} />
-            <div className={'trs:flex trs:min-w-0 trs:flex-1 trs:flex-col trs:gap-1.5'}>
-                <div className={'trs:flex trs:flex-wrap trs:items-baseline trs:gap-x-2'}>
-                    <span className={'trs:truncate trs:text-lg trs:font-bold'}>{hit.title}</span>
-                    {hit.author && <span className={'trs:text-sm trs:text-muted-foreground'}>by {hit.author}</span>}
+            <ItemIcon src={hit.icon} className={'trs:size-12 trs:sm:size-20 trs:shrink-0'} />
+            <div className={'trs:flex trs:min-w-0 trs:flex-1 trs:flex-col trs:gap-1 trs:sm:gap-1.5'}>
+                <div className={'trs:flex trs:min-w-0 trs:items-baseline trs:gap-x-2 trs:sm:flex-wrap'}>
+                    <span className={'trs:min-w-0 trs:truncate trs:text-base trs:sm:text-lg trs:font-bold'}>{hit.title}</span>
+                    {hit.author && <span className={'trs:hidden trs:sm:inline trs:text-sm trs:text-muted-foreground'}>by {hit.author}</span>}
                 </div>
-                <p className={'trs:line-clamp-2 trs:text-sm trs:text-muted-foreground'}>{hit.description}</p>
-                <div className={'trs:flex trs:flex-wrap trs:gap-1.5'}>
+                <p className={'trs:line-clamp-2 trs:text-xs trs:sm:text-sm trs:text-muted-foreground'}>{hit.description}</p>
+                <div className={'trs:flex trs:items-center trs:justify-between trs:gap-2 trs:sm:hidden'}>
+                    <div className={'trs:flex trs:min-w-0 trs:items-center trs:gap-3 trs:text-xs trs:text-muted-foreground'}>
+                        <span className={'trs:inline-flex trs:items-center trs:gap-1'}>
+                            <NamedIcon name={'users'} size={12} /> <strong className={'trs:font-semibold trs:text-foreground'}>{compactNumber(hit.subscriptions)}</strong>
+                        </span>
+                        {hit.side === 'Client' && <span className={'trs:text-warning'}>Client only</span>}
+                        {hit.updated && (
+                            <span className={'trs:inline-flex trs:min-w-0 trs:items-center trs:gap-1'}>
+                                <NamedIcon name={'history'} size={12} /> <span className={'trs:truncate'}>{updatedAt(hit.updated)}</span>
+                            </span>
+                        )}
+                    </div>
+                    <InstallButton installed={hit.installed} busy={busy} compact onClick={onInstall} />
+                </div>
+                <div className={'trs:hidden trs:sm:flex trs:flex-wrap trs:gap-1.5'}>
                     {hit.side && (
                         <Chip tone={hit.side === 'Client' ? 'warning' : undefined}>
                             <NamedIcon name={hit.side === 'Client' ? 'monitor' : hit.side === 'Server' ? 'server' : 'globe'} size={12} /> {SIDE_LABELS[hit.side] ?? hit.side}
@@ -251,7 +309,7 @@ function WorkshopCard({ hit, busy, onOpen, onInstall }: { hit: WorkshopHit; busy
                     )}
                 </div>
             </div>
-            <div className={'trs:flex trs:shrink-0 trs:flex-col trs:items-end trs:justify-between trs:gap-3'}>
+            <div className={'trs:hidden trs:sm:flex trs:shrink-0 trs:flex-col trs:items-end trs:justify-between trs:gap-3'}>
                 <div className={'trs:flex trs:flex-col trs:items-end trs:gap-1 trs:text-sm trs:text-muted-foreground'}>
                     <span className={'trs:inline-flex trs:items-center trs:gap-1'} title={`${hit.subscriptions.toLocaleString()} subscribers`}>
                         <NamedIcon name={'users'} size={14} /> <strong className={'trs:font-semibold trs:text-foreground'}>{compactNumber(hit.subscriptions)}</strong>

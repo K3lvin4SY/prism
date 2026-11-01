@@ -109,7 +109,7 @@ export function FilterRow({
                 onClick={onToggle}
                 aria-pressed={state === 'on'}
                 className={cn(
-                    'mcs:flex mcs:flex-1 mcs:min-w-0 mcs:items-center mcs:gap-2 mcs:rounded-md mcs:px-2 mcs:py-1 mcs:text-sm mcs:text-left mcs:cursor-pointer',
+                    'mcs:flex mcs:flex-1 mcs:min-w-0 mcs:items-center mcs:gap-2 mcs:rounded-md mcs:px-2 mcs:py-1 mcs:pointer-coarse:py-2 mcs:text-sm mcs:text-left mcs:cursor-pointer',
                     state === 'on' && 'mcs:bg-primary/20 mcs:font-semibold',
                     state === 'excluded' && 'mcs:bg-destructive/15 mcs:line-through mcs:opacity-80',
                     state === 'off' && 'mcs:hover:bg-muted'
@@ -128,7 +128,7 @@ export function FilterRow({
                     aria-label={state === 'excluded' ? `Stop excluding ${label}` : `Exclude ${label}`}
                     className={cn(
                         'mcs:rounded-md mcs:p-1 mcs:cursor-pointer mcs:text-muted-foreground mcs:hover:text-destructive',
-                        state === 'excluded' ? 'mcs:text-destructive mcs:opacity-100' : 'mcs:opacity-0 mcs:group-hover:opacity-100 mcs:focus:opacity-100'
+                        state === 'excluded' ? 'mcs:text-destructive mcs:opacity-100' : 'mcs:opacity-0 mcs:group-hover:opacity-100 mcs:focus:opacity-100 mcs:pointer-coarse:opacity-60'
                     )}
                 >
                     <NamedIcon name={'ban'} size={14} />

@@ -103,17 +103,17 @@ function Catalog({ running, confirm, onInstalled }: { running: boolean; confirm:
                         const sameMajor = testedOnMajor(plugin.tested, catalog.data.tshock);
 
                         return (
-                            <div key={plugin.id} className={'pt-surface trs:flex trs:gap-3 trs:rounded-lg trs:border trs:border-border trs:bg-card trs:p-4 trs:min-w-0'}>
-                                <ItemIcon src={null} className={'trs:size-12 trs:shrink-0'} />
-                                <div className={'trs:flex trs:min-w-0 trs:flex-1 trs:flex-col trs:gap-1.5'}>
+                            <div key={plugin.id} className={'pt-surface trs:flex trs:gap-3 trs:rounded-lg trs:border trs:border-border trs:bg-card trs:p-3 trs:sm:p-4 trs:min-w-0'}>
+                                <ItemIcon src={null} className={'trs:size-10 trs:sm:size-12 trs:shrink-0'} />
+                                <div className={'trs:flex trs:min-w-0 trs:flex-1 trs:flex-col trs:gap-1 trs:sm:gap-1.5'}>
                                     <div className={'trs:flex trs:flex-wrap trs:items-baseline trs:gap-x-2'}>
                                         <a href={plugin.homepage} target={'_blank'} rel={'noreferrer'} className={'trs:truncate trs:font-bold trs:hover:underline'}>
                                             {plugin.name}
                                         </a>
                                         {plugin.author && <span className={'trs:text-sm trs:text-muted-foreground'}>by {plugin.author}</span>}
                                     </div>
-                                    <p className={'trs:line-clamp-3 trs:text-sm trs:text-muted-foreground'}>{plugin.description}</p>
-                                    <div className={'trs:flex trs:flex-wrap trs:gap-1.5'}>
+                                    <p className={'trs:line-clamp-2 trs:text-xs trs:sm:line-clamp-3 trs:sm:text-sm trs:text-muted-foreground'}>{plugin.description}</p>
+                                    <div className={'trs:hidden trs:sm:flex trs:flex-wrap trs:gap-1.5'}>
                                         {plugin.version && <Chip>v{plugin.version}</Chip>}
                                         {plugin.tested && (
                                             <Chip tone={sameMajor === false ? 'warning' : undefined} title={sameMajor === false ? 'Made for another major TShock version' : undefined}>
@@ -129,7 +129,7 @@ function Catalog({ running, confirm, onInstalled }: { running: boolean; confirm:
                                             </a>
                                         )}
                                     </div>
-                                    <div className={'trs:mt-auto trs:flex trs:justify-end trs:pt-1'}>
+                                    <div className={'trs:mt-auto trs:flex trs:justify-end trs:sm:pt-1'}>
                                         {plugin.download ? (
                                             <InstallButton
                                                 installed={plugin.installed}
