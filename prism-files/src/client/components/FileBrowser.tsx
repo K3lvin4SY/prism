@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent, 
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Checkbox, Dialog, Input, Spinner, bytesToString, cn, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
-import { chmod, compress, copyFile, decompress, downloadUrl, fileKeys, listFiles, pull, type FileEntry } from '../api';
+import { chmod, compress, copyFile, decompress, downloadUrl, fileKeys, listFiles, type FileEntry } from '../api';
 import { useFileActions, useFilePermissions, useIsProtected, validName } from '../actions';
 import { getConfig } from '../config';
 import { basename, dirname, fileIcon, isArchive, isEditable, join, matchesAny, previewKind } from '../lib/paths';
@@ -10,6 +10,7 @@ import { readDrop, type UploadQueue } from '../lib/uploads';
 import ContextMenu from './ContextMenu';
 import { ChmodDialog, PreviewDialog } from './Dialogs';
 import Prompt from './Prompt';
+import UploadDialog from './UploadDialog';
 
 type Sort = 'name' | 'size' | 'modified';
 
@@ -26,7 +27,7 @@ interface Props {
 }
 
 type Dialogs =
-    | { kind: 'newFile' | 'newFolder' | 'pull' }
+    | { kind: 'newFile' | 'newFolder' | 'upload' }
     | { kind: 'rename'; entry: FileEntry }
     | { kind: 'move'; entries: FileEntry[] }
     | { kind: 'chmod'; entries: FileEntry[] }
@@ -48,8 +49,7 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
     const [menu, setMenu] = useState<{ x: number; y: number; entry: FileEntry } | null>(null);
     const [dropping, setDropping] = useState(false);
     const [busy, setBusy] = useState(false);
-    const input = useRef<HTMLInputElement>(null);
-    const folderInput = useRef<HTMLInputElement>(null);
+    const [newMenu, setNewMenu] = useState<{ x: number; y: number } | null>(null);
 
     const entries = useMemo(() => {
         const term = filter.trim().toLowerCase();
@@ -172,49 +172,54 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
                 </nav>
                 <div className={'pfl:relative'}>
                     <NamedIcon name={'search'} size={14} className={'pfl:pointer-events-none pfl:absolute pfl:left-2.5 pfl:top-1/2 pfl:-translate-y-1/2 pfl:text-muted-foreground'} />
-                    <Input value={filter} onChange={(event) => setFilter(event.target.value)} placeholder={'Filter this folder'} className={'pfl:w-48 pfl:pl-8'} />
+                    <Input value={filter} onChange={(event) => setFilter(event.target.value)} placeholder={'Filter this folder'} className={'pfl:h-9 pfl:w-48 pfl:pl-8'} />
                 </div>
-                <div className={'prism-switch pfl:flex pfl:rounded-md pfl:border pfl:border-border pfl:p-0.5'}>
+                {/* How the folder is shown: one group of same-sized icon buttons. */}
+                <div className={'prism-switch pfl:flex pfl:h-9 pfl:items-center pfl:gap-0.5 pfl:rounded-md pfl:border pfl:border-border pfl:p-0.5'}>
                     {(['list', 'grid'] as const).map((value) => (
-                        <button key={value} type={'button'} onClick={() => onView(value)} aria-label={value === 'list' ? 'List' : 'Grid'} className={cn('prism-switch-item pfl:flex pfl:size-7 pfl:items-center pfl:justify-center pfl:rounded pfl:cursor-pointer', view === value ? 'pfl:bg-muted pfl:text-foreground' : 'pfl:text-muted-foreground')}>
+                        <ToolButton key={value} label={value === 'list' ? 'List view' : 'Grid view'} active={view === value} onClick={() => onView(value)}>
                             <NamedIcon name={value === 'list' ? 'list' : 'layout-grid'} size={15} />
-                        </button>
+                        </ToolButton>
                     ))}
+                    <span className={'pfl:mx-0.5 pfl:h-4 pfl:w-px pfl:bg-border'} />
+                    <ToolButton label={showHidden ? 'Hide hidden files' : 'Show hidden files'} active={showHidden} onClick={() => onShowHidden(!showHidden)}>
+                        <NamedIcon name={showHidden ? 'eye' : 'eye-off'} size={15} />
+                    </ToolButton>
+                    <ToolButton label={'Refresh'} onClick={() => actions.refresh(directory)}>
+                        <NamedIcon name={'refresh-cw'} size={15} className={files.isFetching ? 'pfl:animate-spin' : ''} />
+                    </ToolButton>
                 </div>
-                <button type={'button'} title={showHidden ? 'Hide hidden files' : 'Show hidden files'} onClick={() => onShowHidden(!showHidden)} className={cn('pfl:flex pfl:size-8 pfl:items-center pfl:justify-center pfl:rounded-md pfl:cursor-pointer pfl:hover:bg-muted', showHidden ? 'pfl:text-foreground' : 'pfl:text-muted-foreground')}>
-                    <NamedIcon name={showHidden ? 'eye' : 'eye-off'} size={15} />
-                </button>
-                <button type={'button'} title={'Refresh'} onClick={() => actions.refresh(directory)} className={'pfl:flex pfl:size-8 pfl:items-center pfl:justify-center pfl:rounded-md pfl:text-muted-foreground pfl:cursor-pointer pfl:hover:bg-muted'}>
-                    <NamedIcon name={'refresh-cw'} size={15} className={files.isFetching ? 'pfl:animate-spin' : ''} />
-                </button>
                 {permissions.create && (
                     <>
-                        <Button isSecondary size={'small'} onClick={() => setDialog({ kind: 'newFile' })}>
-                            <NamedIcon name={'file-plus'} size={14} /> New file
+                        <Button
+                            isSecondary
+                            className={'pfl:h-9'}
+                            onMouseDown={(event) => event.stopPropagation()}
+                            onClick={(event) => {
+                                const rect = event.currentTarget.getBoundingClientRect();
+                                setNewMenu(newMenu ? null : { x: rect.left, y: rect.bottom + 4 });
+                            }}
+                            aria-haspopup={'menu'}
+                            aria-expanded={!!newMenu}
+                        >
+                            <NamedIcon name={'plus'} size={15} /> New <NamedIcon name={'chevron-down'} size={13} className={'pfl:text-muted-foreground'} />
                         </Button>
-                        <Button isSecondary size={'small'} onClick={() => setDialog({ kind: 'newFolder' })} aria-label={'New folder'}>
-                            <NamedIcon name={'folder-plus'} size={14} />
+                        <Button className={'pfl:h-9'} onClick={() => setDialog({ kind: 'upload' })}>
+                            <NamedIcon name={'upload'} size={15} /> Upload
                         </Button>
-                        <Button isSecondary size={'small'} onClick={() => setDialog({ kind: 'pull' })} aria-label={'Download from a URL'} title={'Download from a URL'}>
-                            <NamedIcon name={'link'} size={14} />
-                        </Button>
-                        <Button size={'small'} onClick={() => input.current?.click()}>
-                            <NamedIcon name={'upload'} size={14} /> Upload
-                        </Button>
-                        <Button isSecondary size={'small'} onClick={() => folderInput.current?.click()} aria-label={'Upload a folder'} title={'Upload a folder'}>
-                            <NamedIcon name={'folder-up'} size={14} />
-                        </Button>
-                        <input ref={input} type={'file'} multiple hidden onChange={(event) => (queue.add([...(event.target.files ?? [])].map((file) => ({ file })), directory), (event.target.value = ''))} />
-                        <input
-                            ref={folderInput}
-                            type={'file'}
-                            hidden
-                            {...({ webkitdirectory: '' } as object)}
-                            onChange={(event) => (queue.add([...(event.target.files ?? [])].map((file) => ({ file, relative: file.webkitRelativePath || undefined })), directory), (event.target.value = ''))}
-                        />
                     </>
                 )}
             </div>
+            {newMenu && (
+                <ContextMenu
+                    menu={newMenu}
+                    onClose={() => setNewMenu(null)}
+                    items={[
+                        { icon: 'file-plus', label: 'File', run: () => setDialog({ kind: 'newFile' }) },
+                        { icon: 'folder-plus', label: 'Folder', run: () => setDialog({ kind: 'newFolder' }) },
+                    ]}
+                />
+            )}
 
             {files.isError && <Alert type={'danger'}>{httpErrorToHuman(files.error)}</Alert>}
 
@@ -417,22 +422,7 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
                 <Prompt title={'New file'} label={`In ${directory}`} confirm={'Create'} validate={validName} onClose={() => setDialog(null)} onSubmit={async (name) => onEdit(await actions.newFile(directory, name))} />
             )}
             {dialog?.kind === 'newFolder' && <Prompt title={'New folder'} label={`In ${directory}`} confirm={'Create'} validate={validName} onClose={() => setDialog(null)} onSubmit={(name) => actions.newFolder(directory, name)} />}
-            {dialog?.kind === 'pull' && (
-                <Prompt
-                    title={'Download from a URL'}
-                    label={'The node downloads the file straight into this folder.'}
-                    confirm={'Download'}
-                    validate={(value) => (/^https?:\/\/\S+$/.test(value.trim()) ? null : 'Enter an http or https link.')}
-                    onClose={() => setDialog(null)}
-                    onSubmit={async (url) => {
-                        await pull(server, url, directory).catch((error) => {
-                            toast.error(httpErrorToHuman(error));
-                            throw error;
-                        });
-                        toast.success('The download started. Refresh in a moment to see the file.');
-                    }}
-                />
-            )}
+            {dialog?.kind === 'upload' && <UploadDialog server={server} directory={directory} queue={queue} onClose={() => setDialog(null)} />}
             {dialog?.kind === 'rename' && (
                 <Prompt
                     title={`Rename ${dialog.entry.name}`}
@@ -505,6 +495,22 @@ export default function FileBrowser({ server, directory, onNavigate, onEdit, que
                 />
             )}
         </div>
+    );
+}
+
+/** A square icon button in the toolbar's view group; `active` marks a view or toggle that is on. */
+function ToolButton({ label, active, onClick, children }: { label: string; active?: boolean; onClick: () => void; children: ReactNode }) {
+    return (
+        <button
+            type={'button'}
+            title={label}
+            aria-label={label}
+            aria-pressed={active}
+            onClick={onClick}
+            className={cn('prism-switch-item pfl:flex pfl:size-7 pfl:items-center pfl:justify-center pfl:rounded pfl:cursor-pointer pfl:transition-colors', active ? 'pfl:bg-muted pfl:text-foreground' : 'pfl:text-muted-foreground pfl:hover:bg-muted/60 pfl:hover:text-foreground')}
+        >
+            {children}
+        </button>
     );
 }
 
