@@ -2,14 +2,17 @@ import { useQuery } from '@tanstack/react-query';
 import { http } from '@pterodactyl/sdk';
 import { NamedIcon } from './icons';
 
-/** The picture each installed extension ships as its icon, by id, as the admin extensions page shows it. */
+/**
+ * The picture each installed extension ships as its icon, by id, as the admin extensions page
+ * shows it; null for one whose manifest names an icon instead of a picture.
+ */
 function useExtensionIcons() {
     return useQuery({
         queryKey: ['prism-core', 'extension-icons'],
         queryFn: async () => {
             const { data } = await http.get<{ data: { id: string; icon_url: string | null }[] }>('/api/admin/extensions');
 
-            return Object.fromEntries(data.data.filter((extension) => extension.icon_url).map((extension) => [extension.id, extension.icon_url!])) as Record<string, string>;
+            return Object.fromEntries(data.data.map((extension) => [extension.id, extension.icon_url])) as Record<string, string | null>;
         },
         staleTime: 10 * 60_000,
     });
@@ -17,12 +20,12 @@ function useExtensionIcons() {
 
 /**
  * An extension's own picture in its settings header, as tall as the name and two lines of
- * description beside it. Without one (Prism Export, say) Prism Core's stands in; its icon on a
- * tile only until the pictures are known.
+ * description beside it. Something that is not an extension (Prism Export, say) gets Prism Core's;
+ * an extension without a picture yet, and anything until the pictures are known, its icon on a tile.
  */
 export default function ExtensionMark({ id, icon }: { id: string; icon: string }) {
     const icons = useExtensionIcons().data;
-    const url = icons?.[id] ?? icons?.['prism-core'];
+    const url = icons ? (id in icons ? icons[id] : icons['prism-core']) : null;
 
     return url ? (
         <img src={url} alt={''} className={'ppx:size-17 ppx:shrink-0 ppx:rounded-xl ppx:object-cover'} />

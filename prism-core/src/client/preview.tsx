@@ -41,6 +41,7 @@ const HOMES: Record<string, Home> = {
     'prism-corekeeper': { label: 'Core Keeper', path: '/corekeeper-mods', tag: 'core-keeper', startup: 'CoreKeeperServer' },
     'prism-factorio': { label: 'Factorio', path: '/factorio-mods', tag: 'factorio', startup: 'bin/x64/factorio' },
     'prism-satisfactory': { label: 'Satisfactory', path: '/satisfactory-mods', tag: 'satisfactory', startup: 'FactoryGame' },
+    'prism-notes': { label: 'Notes', path: '/notes' },
 };
 
 /**

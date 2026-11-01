@@ -1,0 +1,31 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-notes",
+    "name": "Prism Notes",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Notes and checklists for each server, shared with its subusers: \"restart before updating mods\", who to ask about the world, what to check after an update.",
+    "author": "Donkare",
+    "icon": "notebook-pen",
+    "provider": "PrismNotes\\PrismNotesProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "pnt",
+        "screens": [
+            {
+                "id": "notes",
+                "area": "server",
+                "path": "notes",
+                "nav": { "label": "Notes", "icon": "notebook-pen" },
+                "permission": ["ext.prism-notes.read", "ext.prism-notes.manage"],
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}

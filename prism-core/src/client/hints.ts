@@ -157,6 +157,9 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
     'prism-share': {
         max_hours: { slider: { min: 1, max: 720, unit: ' h' } },
     },
+    'prism-notes': {
+        max_notes: { slider: { min: 1, max: 200 } },
+    },
 };
 
 /** Prism Console's built-in highlight rules, in the order they are listed. */

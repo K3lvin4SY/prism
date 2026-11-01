@@ -1,0 +1,11 @@
+{
+    "description": "Notes and checklists for each server, shared with its subusers.",
+    "autoload": {
+        "psr-4": {
+            "PrismNotes\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismNotesExtension"
+    }
+}
