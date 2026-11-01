@@ -132,8 +132,8 @@
     --terminal-ansi-bright-cyan: var(--pt-cyan);
     --terminal-ansi-bright-white: var(--pt-text);
 
-    /* The file editor. */
-    --editor-background: var(--pt-background);
+    /* The file editor, on the same surface as the cards around it. */
+    --editor-background: var(--pt-surface);
     --editor-foreground: var(--pt-text);
     --editor-caret: var(--pt-primary);
     --editor-active-line: color-mix(in oklab, var(--pt-raised) 50%, transparent);
