@@ -10,6 +10,8 @@ export function passwordChecks(password: string, rules: AuthConfig['password']):
     const checks: PasswordCheck[] = [{ label: `At least ${rules.min} characters`, passed: [...password].length >= rules.min }];
     if (rules.mixed) checks.push({ label: 'Upper and lower case letters', passed: /\p{Lu}/u.test(password) && /\p{Ll}/u.test(password) });
     if (rules.number) checks.push({ label: 'A number', passed: /\d/.test(password) });
+    // Laravel's Password::symbols() test, so the form and the server agree.
+    if (rules.special) checks.push({ label: 'A special character', passed: /\p{Z}|\p{S}|\p{P}/u.test(password) });
 
     return checks;
 }

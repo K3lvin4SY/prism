@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Badge, Button, ButtonStyle, Dialog, PageContentBlock, Spinner, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
+import { Alert, Button, ButtonStyle, Dialog, PageContentBlock, Spinner, fromNow, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { methodsQuery, redirectUrl, unlink, type Methods } from '../api';
-import ProviderMark from '../components/ProviderMark';
+import { ProviderTile } from '../components/ProviderMark';
 import { NamedIcon } from '../icons';
 import { clearStatus, failureMessage, peekStatus } from '../lib/messages';
 
@@ -28,11 +28,6 @@ export default function SignInMethodsScreen() {
     return (
         <PageContentBlock title={'Sign-in methods'}>
             <div className={'pau:mx-auto pau:flex pau:max-w-3xl pau:flex-col pau:gap-4'}>
-                <div>
-                    <h1 className={'pau:font-header pau:text-xl pau:font-semibold'}>Sign-in methods</h1>
-                    <p className={'pau:text-sm pau:text-muted-foreground'}>Link an account from another service to sign in with it. Your two-factor code is still asked for when you have it turned on.</p>
-                </div>
-
                 {status?.status === 'linked' && <Alert type={'success'}>{nameOf(status.provider) ?? 'The provider'} is linked. You can sign in with it now.</Alert>}
                 {status?.status === 'error' && <Alert type={'danger'}>{failureMessage(status.reason, nameOf(status.provider))}</Alert>}
 
@@ -44,51 +39,68 @@ export default function SignInMethodsScreen() {
                 {query.isError && <Alert type={'danger'}>{httpErrorToHuman(query.error)}</Alert>}
 
                 {data && (
-                    <div className={'pau:flex pau:flex-col pau:gap-2'}>
-                        <div className={'pt-surface pau:flex pau:items-center pau:gap-3 pau:rounded-lg pau:border pau:border-border pau:bg-card pau:p-4'}>
-                            <div className={'pau:flex pau:size-10 pau:shrink-0 pau:items-center pau:justify-center pau:rounded-lg pau:bg-muted'}>
-                                <NamedIcon name={'lock'} size={20} />
+                    <>
+                        <div className={'pt-surface pau:overflow-hidden pau:rounded-lg pau:border pau:border-border pau:bg-card'}>
+                            <div className={'pau:px-5 pau:py-4'}>
+                                <h1 className={'pau:font-header pau:text-lg pau:font-semibold'}>Sign-in methods</h1>
+                                <p className={'pau:text-sm pau:text-muted-foreground'}>Account · {data.username}</p>
                             </div>
-                            <div className={'pau:min-w-0 pau:flex-1'}>
-                                <div className={'pau:font-medium'}>Password</div>
-                                <div className={'pau:text-sm pau:text-muted-foreground'}>
-                                    {data.password ? 'You can sign in with your username or email and password.' : 'Not set yet. Set one under Account to sign in without a provider.'}
-                                </div>
-                            </div>
-                            <Badge variant={'soft'} tone={data.password ? 'success' : 'neutral'}>{data.password ? 'Set' : 'Not set'}</Badge>
+
+                            <MethodRow
+                                tile={
+                                    <span className={'pau:flex pau:size-10 pau:shrink-0 pau:items-center pau:justify-center pau:rounded-lg pau:border pau:border-border pau:bg-muted/40 pau:text-muted-foreground'}>
+                                        <NamedIcon name={'lock'} size={20} />
+                                    </span>
+                                }
+                                name={'Password'}
+                                detail={data.password ? 'Your username or email and password' : 'Set one under Account to sign in without a provider'}
+                                status={data.password ? <Status on label={'Set'} /> : <Status label={'Not set'} />}
+                            />
+
+                            {data.providers.length === 0 && <p className={'pau:border-t pau:border-border pau:px-5 pau:py-6 pau:text-center pau:text-sm pau:text-muted-foreground'}>No sign-in providers have been set up on this panel yet.</p>}
+
+                            {data.providers.map((provider) => (
+                                <MethodRow
+                                    key={provider.slug}
+                                    tile={<ProviderTile provider={provider} />}
+                                    name={provider.name}
+                                    detail={
+                                        provider.identity
+                                            ? (provider.identity.email ?? provider.identity.name ?? (provider.identity.last_used_at ? `Last used ${fromNow(provider.identity.last_used_at)}` : `Linked ${fromNow(provider.identity.linked_at)}`))
+                                            : 'Not linked'
+                                    }
+                                    title={provider.identity ? (provider.identity.last_used_at ? `Last used ${fromNow(provider.identity.last_used_at)}` : `Linked ${fromNow(provider.identity.linked_at)}`) : undefined}
+                                    status={provider.identity ? <Status on label={'Linked'} /> : null}
+                                    action={
+                                        provider.identity ? (
+                                            <Button.Text size={'small'} disabled={only} title={only ? 'This is your only way to sign in. Set a password or link another provider first.' : undefined} onClick={() => setUnlinking(provider)}>
+                                                Unlink
+                                            </Button.Text>
+                                        ) : provider.enabled ? (
+                                            <ButtonStyle as={'a'} href={redirectUrl(provider.slug, 'link')} size={'small'} className={'pau:no-underline'}>
+                                                Link
+                                            </ButtonStyle>
+                                        ) : null
+                                    }
+                                />
+                            ))}
                         </div>
 
-                        {data.providers.length === 0 && <p className={'pau:py-6 pau:text-center pau:text-sm pau:text-muted-foreground'}>No sign-in providers have been set up on this panel yet.</p>}
+                        {only && data.providers.some((provider) => provider.identity) && <p className={'pau:-mt-2 pau:text-xs pau:text-muted-foreground'}>You need at least one way to sign in, so your only one cannot be unlinked.</p>}
 
-                        {data.providers.map((provider) => (
-                            <div key={provider.slug} className={'pt-surface pau:flex pau:flex-wrap pau:items-center pau:gap-3 pau:rounded-lg pau:border pau:border-border pau:bg-card pau:p-4'}>
-                                <div className={'pau:flex pau:size-10 pau:shrink-0 pau:items-center pau:justify-center pau:overflow-hidden pau:rounded-lg pau:bg-muted'}>
-                                    {provider.identity?.avatar ? <img src={provider.identity.avatar} alt={''} className={'pau:size-10 pau:object-cover'} /> : <ProviderMark provider={provider} />}
-                                </div>
-                                <div className={'pau:min-w-0 pau:flex-1'}>
-                                    <div className={'pau:flex pau:items-center pau:gap-2 pau:font-medium'}>
-                                        {provider.identity?.avatar && <ProviderMark provider={provider} size={16} />}
-                                        {provider.name}
-                                    </div>
-                                    <div className={'pau:truncate pau:text-sm pau:text-muted-foreground'}>
-                                        {provider.identity
-                                            ? [provider.identity.name ?? provider.identity.email, provider.identity.last_used_at ? `last used ${fromNow(provider.identity.last_used_at)}` : `linked ${fromNow(provider.identity.linked_at)}`].filter(Boolean).join(' · ')
-                                            : 'Not linked'}
-                                    </div>
-                                </div>
-                                {provider.identity ? (
-                                    <Button.Text size={'small'} disabled={only} title={only ? 'This is your only way to sign in. Set a password or link another provider first.' : undefined} onClick={() => setUnlinking(provider)}>
-                                        <NamedIcon name={'unlink'} size={16} className={'pau:mr-1'} /> Unlink
-                                    </Button.Text>
-                                ) : provider.enabled ? (
-                                    <ButtonStyle as={'a'} href={redirectUrl(provider.slug, 'link')} size={'small'} className={'pau:no-underline'}>
-                                        <NamedIcon name={'link'} size={16} className={'pau:mr-1'} /> Link
-                                    </ButtonStyle>
-                                ) : null}
+                        {(data.matched_by_email || data.admin_unmatched) && (
+                            <div className={'pt-surface pau:flex pau:items-center pau:gap-3 pau:rounded-lg pau:border pau:border-primary/25 pau:bg-primary/10 pau:px-5 pau:py-4 pau:text-sm'}>
+                                <NamedIcon name={'mail'} size={20} className={'pau:shrink-0 pau:text-primary'} />
+                                <span>
+                                    {data.matched_by_email
+                                        ? 'Signing in with a provider that has confirmed this account\'s email links it here by itself.'
+                                        : 'Providers are matched to accounts by email, but not admin accounts: link yours here.'}
+                                </span>
                             </div>
-                        ))}
-                        {only && data.providers.some((provider) => provider.identity) && <p className={'pau:text-xs pau:text-muted-foreground'}>You need at least one way to sign in, so your only one cannot be unlinked.</p>}
-                    </div>
+                        )}
+
+                        <p className={'pau:text-xs pau:text-muted-foreground'}>Your two-factor code is still asked for when you have it turned on.</p>
+                    </>
                 )}
             </div>
 
@@ -117,5 +129,29 @@ export default function SignInMethodsScreen() {
                 </Dialog.Confirm>
             )}
         </PageContentBlock>
+    );
+}
+
+/** A row of the sign-in methods card: tile, name and detail, status, action. */
+function MethodRow({ tile, name, detail, title, status, action }: { tile: ReactNode; name: string; detail: string; title?: string; status: ReactNode; action?: ReactNode }) {
+    return (
+        <div className={'pau:grid pau:grid-cols-[auto_minmax(0,1fr)_auto] pau:items-center pau:gap-x-4 pau:gap-y-1 pau:border-t pau:border-border pau:px-5 pau:py-3 pau:sm:grid-cols-[auto_minmax(0,1fr)_8rem_auto]'}>
+            {tile}
+            <div className={'pau:min-w-0'} title={title}>
+                <div className={'pau:truncate pau:font-semibold'}>{name}</div>
+                <div className={'pau:truncate pau:text-sm pau:text-muted-foreground'}>{detail}</div>
+            </div>
+            <div className={'pau:hidden pau:sm:block'}>{status}</div>
+            <div className={'pau:flex pau:justify-end'}>{action}</div>
+        </div>
+    );
+}
+
+function Status({ on = false, label }: { on?: boolean; label: string }) {
+    return (
+        <span className={on ? 'pau:inline-flex pau:items-center pau:gap-2 pau:text-sm pau:text-success' : 'pau:inline-flex pau:items-center pau:gap-2 pau:text-sm pau:text-muted-foreground'}>
+            <span className={on ? 'pau:size-2 pau:rounded-full pau:bg-success' : 'pau:size-2 pau:rounded-full pau:bg-muted-foreground/50'} />
+            {label}
+        </span>
     );
 }

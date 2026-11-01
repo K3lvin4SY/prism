@@ -27,9 +27,12 @@ class PrismAuthProvider extends ExtensionProvider
         $options = static fn (array $values): array => array_map(static fn ($value, $label) => ['value' => $value, 'label' => $label], array_keys($values), $values);
 
         $this->registerSettings(new ExtensionSettingsDefinition($this->settings(), [
-            // Sign-in page
-            Setting::make('button_style', 'button_style', 'rows', ['required', 'string', 'in:rows,icons'])->label('Provider buttons')->help('A full-width button per provider, or a row of icons.')->tab('Sign-in')->field('select', $options(['rows' => 'Buttons', 'icons' => 'Icons']))->frontend()->public(),
-            Setting::make('divider_text', 'divider_text', 'Or continue with', ['nullable', 'string', 'max:60'])->label('Divider text')->help('Above the provider buttons. Empty leaves just a line.')->tab('Sign-in')->field('text')->frontend()->public(),
+            // Providers, edited by Prism Properties through the admin API: they hold secrets.
+            Setting::make('providers', 'providers', '', ['nullable', 'string', 'max:1'])->label('Sign-in providers')->help('Google, Discord, GitHub, Steam and any OpenID Connect provider. Client secrets are stored encrypted and never shown again.')->tab('Providers')->textarea(1),
+
+            // How the sign-in page shows them
+            Setting::make('button_style', 'button_style', 'rows', ['required', 'string', 'in:rows,icons'])->label('Buttons')->help('A full-width button per provider, or a row of icons.')->tab('Providers')->field('select', $options(['rows' => 'Rows', 'icons' => 'Icons']))->frontend()->public(),
+            Setting::make('divider_text', 'divider_text', 'Or continue with', ['nullable', 'string', 'max:60'])->label('Divider')->help('Above the provider buttons. Empty leaves just a line.')->tab('Providers')->field('text')->frontend()->public(),
 
             // Accounts
             Setting::make('link_by_email', 'link_by_email', true, ['required', 'boolean'])->label('Match accounts by email')->help('Someone signing in with a provider for the first time is linked to the account with the same email, if the provider has confirmed the address.')->tab('Accounts')->field('toggle'),
@@ -43,6 +46,7 @@ class PrismAuthProvider extends ExtensionProvider
             Setting::make('password_min', 'password_min', 8, ['required', 'integer', 'min:8', 'max:64'])->label('Shortest password')->tab('Sign-up')->field('number')->frontend()->public(),
             Setting::make('password_mixed', 'password_mixed', false, ['required', 'boolean'])->label('Password needs upper and lower case')->tab('Sign-up')->field('toggle')->frontend()->public(),
             Setting::make('password_number', 'password_number', false, ['required', 'boolean'])->label('Password needs a number')->tab('Sign-up')->field('toggle')->frontend()->public(),
+            Setting::make('password_special', 'password_special', false, ['required', 'boolean'])->label('Password needs a special character')->tab('Sign-up')->field('toggle')->frontend()->public(),
             Setting::make('domains_allowed', 'domains_allowed', '', ['nullable', 'string', 'max:5000'])->label('Only these email domains')->help('One per line, like example.com; subdomains count. Empty allows every domain.')->tab('Sign-up')->textarea(5000),
             Setting::make('domains_blocked', 'domains_blocked', '', ['nullable', 'string', 'max:5000'])->label('Never these email domains')->help('One per line, like throwaway mail services.')->tab('Sign-up')->textarea(5000),
             Setting::make('terms_url', 'terms_url', '', ['nullable', 'string', 'max:512', 'regex:#^(https?://|/)#'])->label('Terms page')->help('With an address here, people tick "I accept the terms" to sign up.')->tab('Sign-up')->field('text')->frontend()->public(),
@@ -52,8 +56,6 @@ class PrismAuthProvider extends ExtensionProvider
             Setting::make('limit_per_hour', 'limit_per_hour', 5, ['required', 'integer', 'min:1', 'max:100'])->label('Sign-ups per network per hour')->help('Sign-ups and resent emails from one network address.')->tab('Sign-up')->field('number'),
             Setting::make('verify_hours', 'verify_hours', 24, ['required', 'integer', 'min:1', 'max:168'])->label('Email link works for (hours)')->tab('Sign-up')->field('number'),
 
-            // Providers, edited by Prism Properties through the admin API: they hold secrets.
-            Setting::make('providers', 'providers', '', ['nullable', 'string', 'max:1'])->label('Sign-in providers')->help('Google, Discord, GitHub, Steam and any OpenID Connect provider. Client secrets are stored encrypted and never shown again.')->tab('Providers')->textarea(1),
         ]));
     }
 }

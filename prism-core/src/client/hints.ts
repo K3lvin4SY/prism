@@ -11,6 +11,8 @@ export interface Hint {
     editor?: 'highlights' | 'consoleLayout' | 'lines' | 'keybinds' | 'datetime' | 'authProviders' | 'navigation' | 'shortcut';
     /** Draw a select as buttons side by side. */
     segmented?: boolean;
+    /** Draw the field's section as one bar, each label beside its control (selects and short text only). */
+    inline?: boolean;
 }
 
 export const HINTS: Record<PrismId, Record<string, Hint>> = {
@@ -130,7 +132,8 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         egg_tags: { section: 'Detection' },
     },
     'prism-auth': {
-        button_style: { segmented: true },
+        button_style: { section: 'On the sign-in page', segmented: true, inline: true },
+        divider_text: { section: 'On the sign-in page', inline: true },
         link_by_email: { section: 'Existing accounts' },
         link_admins: { section: 'Existing accounts' },
         auto_create: { section: 'New people' },
@@ -141,6 +144,7 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         password_min: { section: 'Passwords', slider: { min: 8, max: 64 } },
         password_mixed: { section: 'Passwords' },
         password_number: { section: 'Passwords' },
+        password_special: { section: 'Passwords' },
         domains_allowed: { section: 'Email domains', editor: 'lines' },
         domains_blocked: { section: 'Email domains', editor: 'lines' },
         bot_trap: { section: 'Bots and limits' },

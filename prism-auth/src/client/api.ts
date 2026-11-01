@@ -35,7 +35,7 @@ export interface SignupInput {
     turnstile?: string;
 }
 
-export type SignupResult = { status: 'sent'; email: string } | { status: 'signed-in'; result: LoginData };
+export type SignupResult = { status: 'sent'; email: string; hours: number } | { status: 'signed-in'; result: LoginData };
 
 /** What an emailed confirmation link is for. */
 export interface Confirmation {
@@ -59,6 +59,11 @@ export interface MethodIdentity {
 export interface Methods {
     password: boolean;
     methods: number;
+    username: string;
+    /** A provider sign-in with this account's confirmed email links it by itself. */
+    matched_by_email: boolean;
+    /** Matching by email is on, but not for admins like this one. */
+    admin_unmatched: boolean;
     providers: (PublicProvider & { enabled: boolean; identity: MethodIdentity | null })[];
 }
 

@@ -248,6 +248,6 @@ final class SignupController
 
     private function sent(string $email): JsonResponse
     {
-        return response()->json(['data' => ['status' => 'sent', 'email' => $email]]);
+        return response()->json(['data' => ['status' => 'sent', 'email' => $email, 'hours' => $this->hours()]]);
     }
 }

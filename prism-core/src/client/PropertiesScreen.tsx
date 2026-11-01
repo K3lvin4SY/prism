@@ -401,38 +401,61 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
             {layout && tab === 'Presets' && <LayoutPresets values={values} onPick={pick} />}
             {layout && (tab === 'Branding' || tab === 'Sign-in page') && <BrandingPreview schema={schema} draft={draft} tab={tab} />}
 
-            {sections.map((section) => (
-                <section key={section.title} className={'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
-                    <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>{section.title}</h3>
-                    <div className={'ppx:flex ppx:flex-col ppx:divide-y ppx:divide-border'}>
-                        {section.fields.map((field) => {
-                            // Prism Layout's navigation for each device is one board, drawn in place of the first.
-                            const board = section.fields.filter((item) => hints[item.input]?.editor === 'navigation');
-                            if (board.includes(field) && board[0] !== field) return null;
-
-                            return board[0] === field ? (
-                                <div key={field.input} id={`ppx-setting-${extension.id}-${field.input}`} className={'ppx:scroll-mt-24 ppx:px-4 ppx:py-3'}>
-                                    <NavigationBoard
-                                        devices={board.map((item) => ({ key: item.input, label: item.label, help: item.help, value: value(item) }))}
-                                        onChange={(key, next) => {
-                                            const item = board.find((entry) => entry.input === key);
-                                            if (item) change(item, next);
-                                        }}
-                                    />
+            {sections.map((section) => {
+                const only = section.fields.length === 1 ? section.fields[0] : null;
+                // Prism Auth's providers editor is a card of its own, with its own heading.
+                if (only && hints[only.input]?.editor === 'authProviders') {
+                    return (
+                        <div key={section.title} id={`ppx-setting-${extension.id}-${only.input}`} className={'ppx:scroll-mt-24'}>
+                            <ProvidersEditor help={only.help} />
+                        </div>
+                    );
+                }
+                if (section.fields.every((field) => hints[field.input]?.inline)) {
+                    return (
+                        <section key={section.title} aria-label={section.title} className={'pt-surface ppx:flex ppx:flex-wrap ppx:items-center ppx:gap-x-8 ppx:gap-y-3 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:px-4 ppx:py-3'}>
+                            {section.fields.map((field) => (
+                                <div key={field.input} id={`ppx-setting-${extension.id}-${field.input}`} className={cn('ppx:flex ppx:min-w-0 ppx:items-center ppx:gap-4 ppx:scroll-mt-24', field.field !== 'select' && 'ppx:flex-1', focus === field.input && 'ppx:rounded-md ppx:ring-2 ppx:ring-primary')}>
+                                    <InlineField field={field} value={value(field)} onChange={(next) => change(field, next)} />
                                 </div>
-                            ) : (
-                            <div key={field.input} id={`ppx-setting-${extension.id}-${field.input}`} className={cn('ppx:scroll-mt-24 ppx:px-4 ppx:py-3 ppx:transition-shadow', focus === field.input && 'ppx:rounded-md ppx:ring-2 ppx:ring-primary ppx:ring-inset')}>
-                                {field.field === 'file' ? (
-                                    <FileField extension={extension} field={field} onSchema={(fresh) => queryClient.setQueryData(settingsKey(extension.id), fresh)} />
+                            ))}
+                        </section>
+                    );
+                }
+
+                return (
+                    <section key={section.title} className={'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
+                        <h3 className={'ppx:border-b ppx:border-border ppx:px-4 ppx:py-3 ppx:text-sm ppx:font-semibold'}>{section.title}</h3>
+                        <div className={'ppx:flex ppx:flex-col ppx:divide-y ppx:divide-border'}>
+                            {section.fields.map((field) => {
+                                // Prism Layout's navigation for each device is one board, drawn in place of the first.
+                                const board = section.fields.filter((item) => hints[item.input]?.editor === 'navigation');
+                                if (board.includes(field) && board[0] !== field) return null;
+
+                                return board[0] === field ? (
+                                    <div key={field.input} id={`ppx-setting-${extension.id}-${field.input}`} className={'ppx:scroll-mt-24 ppx:px-4 ppx:py-3'}>
+                                        <NavigationBoard
+                                            devices={board.map((item) => ({ key: item.input, label: item.label, help: item.help, value: value(item) }))}
+                                            onChange={(key, next) => {
+                                                const item = board.find((entry) => entry.input === key);
+                                                if (item) change(item, next);
+                                            }}
+                                        />
+                                    </div>
                                 ) : (
-                                    <Field field={field} hint={hints[field.input] ?? {}} value={value(field)} onChange={(next) => change(field, next)} />
-                                )}
-                            </div>
-                            );
-                        })}
-                    </div>
-                </section>
-            ))}
+                                <div key={field.input} id={`ppx-setting-${extension.id}-${field.input}`} className={cn('ppx:scroll-mt-24 ppx:px-4 ppx:py-3 ppx:transition-shadow', focus === field.input && 'ppx:rounded-md ppx:ring-2 ppx:ring-primary ppx:ring-inset')}>
+                                    {field.field === 'file' ? (
+                                        <FileField extension={extension} field={field} onSchema={(fresh) => queryClient.setQueryData(settingsKey(extension.id), fresh)} />
+                                    ) : (
+                                        <Field field={field} hint={hints[field.input] ?? {}} value={value(field)} onChange={(next) => change(field, next)} />
+                                    )}
+                                </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+                );
+            })}
 
             {layout && tab === 'Server cards' && <EggPictures />}
 
@@ -457,6 +480,43 @@ function ExtensionSettings({ extension, schema, tab, focus, onDirty }: { extensi
                 }
             />
         </div>
+    );
+}
+
+/** A setting in an inline bar: a small caps label beside a segmented select or a text box. */
+function InlineField({ field, value, onChange }: { field: SettingField; value: unknown; onChange: (value: unknown) => void }) {
+    const label = <span className={'ppx:shrink-0 ppx:font-mono ppx:text-xs ppx:uppercase ppx:tracking-widest ppx:text-muted-foreground'}>{field.label}</span>;
+
+    if (field.field === 'select') {
+        return (
+            <>
+                {label}
+                <div role={'radiogroup'} aria-label={field.label} title={field.help ?? undefined} className={'prism-switch ppx:flex ppx:gap-1 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-muted/40 ppx:p-1'}>
+                    {field.options.map((option) => (
+                        <button
+                            key={String(option.value)}
+                            type={'button'}
+                            role={'radio'}
+                            aria-checked={option.value === value}
+                            onClick={() => onChange(option.value)}
+                            className={cn(
+                                'prism-switch-item ppx:rounded-md ppx:px-4 ppx:py-1.5 ppx:text-sm ppx:cursor-pointer',
+                                option.value === value ? 'ppx:bg-primary ppx:font-semibold ppx:text-primary-foreground' : 'ppx:text-muted-foreground ppx:hover:text-foreground'
+                            )}
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+                </div>
+            </>
+        );
+    }
+
+    return (
+        <>
+            {label}
+            <Input value={typeof value === 'string' ? value : ''} onChange={(event) => onChange(event.target.value)} title={field.help ?? undefined} aria-label={field.label} className={'ppx:min-w-48 ppx:flex-1'} />
+        </>
     );
 }
 

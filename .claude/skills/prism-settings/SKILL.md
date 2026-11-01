@@ -249,22 +249,22 @@ Each server's admin password for its API is kept encrypted in that server's meta
 
 | Tab | Key | Label | Default | Field |
 | --- | --- | --- | --- | --- |
-| Sign-in | `button_style` | Provider buttons (`rows`, `icons`) | `'rows'` | select, public |
-| Sign-in | `divider_text` | Divider text | `'Or continue with'` | text, public |
+| Providers | `providers` | Sign-in providers | `''` | textarea, drawn as `ProvidersEditor` (the providers themselves are rows in `prism_auth_providers`, saved through the admin API) |
+| Providers | `button_style` | Buttons (`rows`, `icons`) | `'rows'` | select, public; with `divider_text` an `inline` hint bar under the providers card |
+| Providers | `divider_text` | Divider | `'Or continue with'` | text, public |
 | Accounts | `link_by_email` | Match accounts by email | `true` | toggle |
 | Accounts | `link_admins` | Match admin accounts too | `false` | toggle |
 | Accounts | `auto_create` | Make an account on first sign-in | `false` | toggle, public |
 | Sign-up | `signup_enabled` | Let people sign up | `false` | toggle, public |
 | Sign-up | `signup_username` | Username (`choose`, `generate`) | `'choose'` | select, public |
 | Sign-up | `signup_names` | Ask for first and last name | `true` | toggle, public |
-| Sign-up | `password_min`, `password_mixed`, `password_number` | Password rules | `8`, `false`, `false` | number/toggle, public |
+| Sign-up | `password_min`, `password_mixed`, `password_number`, `password_special` | Password rules (special is Laravel's `symbols()`, checked the same way in the form) | `8`, `false`, `false`, `false` | number/toggle, public |
 | Sign-up | `domains_allowed`, `domains_blocked` | Email domain lists | `''` | textarea (lines) |
 | Sign-up | `terms_url` | Terms page | `''` | text, public |
 | Sign-up | `bot_trap` | Bot trap | `true` | toggle, public |
 | Sign-up | `turnstile_site_key` / `turnstile_secret` | Cloudflare Turnstile | `''` | text, public / password |
 | Sign-up | `limit_per_hour` | Sign-ups per network per hour | `5` | number |
 | Sign-up | `verify_hours` | Email link works for | `24` | number |
-| Providers | `providers` | Sign-in providers | `''` | textarea, drawn as `ProvidersEditor` (the providers themselves are rows in `prism_auth_providers`, saved through the admin API) |
 
 "Public" settings are `->frontend()->public()`: the sign-in page gets them before anyone signs in.
 

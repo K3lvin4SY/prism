@@ -10,6 +10,7 @@ use Illuminate\Http\Response;
 use PrismAuth\Models\AuthProvider;
 use PrismAuth\Models\Identity;
 use PrismAuth\Support\Accounts;
+use PrismAuth\Support\Settings;
 use Pterodactyl\Facades\Activity;
 use Pterodactyl\Models\User;
 
@@ -27,6 +28,10 @@ final class IdentitiesController
         return response()->json(['data' => [
             'password' => ! Accounts::passwordless($user),
             'methods' => Accounts::methods($user),
+            'username' => $user->username,
+            // Whether a provider sign-in with this account's confirmed email links it by itself.
+            'matched_by_email' => Settings::bool('link_by_email', true) && (! $user->root_admin || Settings::bool('link_admins')),
+            'admin_unmatched' => Settings::bool('link_by_email', true) && $user->root_admin && ! Settings::bool('link_admins'),
             'providers' => $providers->map(function (AuthProvider $provider) use ($identities): array {
                 $identity = $identities->get($provider->id);
 

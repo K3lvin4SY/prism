@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type DragEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Dialog, Input, Spinner, Switch, cn, http, httpErrorToHuman, toast } from '@pterodactyl/sdk';
 import { NamedIcon } from './icons';
@@ -50,13 +50,36 @@ const PRESETS: Preset[] = [
 
 const MARKS: Record<string, string> = { google: 'brand-google', discord: 'brand-discord', github: 'brand-github', steam: 'brand-steam' };
 
-function markFor(provider: { type: string; name: string }): string {
+/** The provider's Tabler brand icon, or null for an OpenID Connect provider without one. */
+function brandFor(provider: { type: string; name: string }): string | null {
     if (MARKS[provider.type]) return MARKS[provider.type];
     if (/entra|microsoft|azure/i.test(provider.name)) return 'brand-windows';
     if (/gitlab/i.test(provider.name)) return 'brand-gitlab';
     if (/auth0/i.test(provider.name)) return 'brand-auth0';
 
-    return 'key-round';
+    return null;
+}
+
+const kindOf = (type: ProviderType) => (type === 'oidc' ? 'OpenID Connect' : type === 'steam' ? 'OpenID' : 'OAuth');
+
+/** A provider's mark as Prism Auth draws it: the brand on a white tile, others a shield. */
+function Tile({ provider, size = 36 }: { provider: { type: string; name: string; icon?: string | null }; size?: number }) {
+    const brand = brandFor(provider);
+    const icon = Math.round(size * 0.5);
+
+    if (provider.icon || brand) {
+        return (
+            <span style={{ width: size, height: size }} className={'ppx:flex ppx:shrink-0 ppx:items-center ppx:justify-center ppx:overflow-hidden ppx:rounded-lg ppx:bg-white ppx:text-neutral-900 ppx:shadow-sm'}>
+                {provider.icon ? <img src={provider.icon} alt={''} width={icon} height={icon} className={'ppx:object-contain'} /> : <NamedIcon name={brand!} size={icon} />}
+            </span>
+        );
+    }
+
+    return (
+        <span style={{ width: size, height: size }} className={'ppx:flex ppx:shrink-0 ppx:items-center ppx:justify-center ppx:rounded-lg ppx:border ppx:border-border ppx:bg-muted/40 ppx:text-primary'}>
+            <NamedIcon name={'shield'} size={icon} />
+        </span>
+    );
 }
 
 const helpFor = (provider: { type: string; name: string }) => (PRESETS.find((preset) => preset.type === provider.type && preset.name === provider.name) ?? PRESETS.find((preset) => preset.type === provider.type))?.help;
@@ -68,12 +91,15 @@ const KEY = ['prism-core', 'auth-providers'];
  * Prism Auth's sign-in providers. They are saved on their own, straight away, rather than with the
  * page's other settings, because each holds a secret the page never gets back.
  */
-export function ProvidersEditor() {
+export function ProvidersEditor({ help }: { help?: string | null }) {
     const client = useQueryClient();
     const query = useQuery({ queryKey: KEY, queryFn: async () => (await http.get<{ data: AuthProvider[] }>(API)).data.data });
     const [adding, setAdding] = useState(false);
     const [open, setOpen] = useState<number | null>(null);
-    const providers = query.data ?? [];
+    // While a row is dragged: the order as it is being shown.
+    const [dragging, setDragging] = useState<{ id: number; ids: number[] } | null>(null);
+    const loaded = query.data ?? [];
+    const providers = dragging ? dragging.ids.map((id) => loaded.find((provider) => provider.id === id)).filter((provider) => provider !== undefined) : loaded;
     const reload = () => client.invalidateQueries({ queryKey: KEY });
 
     const add = async (preset: Preset) => {
@@ -93,37 +119,74 @@ export function ProvidersEditor() {
         }
     };
 
-    const move = async (index: number, by: number) => {
-        const ids = providers.map((provider) => provider.id);
-        const [moved] = ids.splice(index, 1);
-        ids.splice(index + by, 0, moved);
+    const saveOrder = async (ids: number[]) => {
+        if (ids.join() === loaded.map((provider) => provider.id).join()) return;
+        // Shown in the new order straight away; the server's answer follows.
+        client.setQueryData<AuthProvider[]>(KEY, ids.map((id) => loaded.find((provider) => provider.id === id)).filter((provider) => provider !== undefined));
         await http.put(`${API}/order`, { ids }).catch((error) => toast.error(httpErrorToHuman(error)));
         await reload();
     };
 
-    if (query.isLoading) return <Spinner size={'small'} />;
-    if (query.isError) return <Alert type={'danger'}>{httpErrorToHuman(query.error)}</Alert>;
+    const move = (index: number, by: number) => {
+        const ids = loaded.map((provider) => provider.id);
+        if (index + by < 0 || index + by >= ids.length) return;
+        const [moved] = ids.splice(index, 1);
+        ids.splice(index + by, 0, moved);
+        void saveOrder(ids);
+    };
+
+    const dragOver = (event: DragEvent, over: number) => {
+        if (!dragging) return;
+        event.preventDefault();
+        if (over === dragging.id) return;
+        const ids = dragging.ids.filter((id) => id !== dragging.id);
+        ids.splice(dragging.ids.indexOf(over), 0, dragging.id);
+        setDragging({ ...dragging, ids });
+    };
 
     return (
-        <div className={'ppx:flex ppx:flex-col ppx:gap-2'}>
-            {providers.length === 0 && <p className={'ppx:text-sm ppx:text-muted-foreground'}>No providers yet. Add one, fill in its client ID and secret, then switch it on.</p>}
+        <div className={'pt-surface ppx:overflow-hidden ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
+            <div className={'ppx:flex ppx:items-center ppx:gap-3 ppx:px-4 ppx:py-3'}>
+                <div className={'ppx:min-w-0 ppx:flex-1'}>
+                    <h3 className={'ppx:text-base ppx:font-semibold'}>Sign-in providers</h3>
+                    {help && <p className={'ppx:text-xs ppx:text-muted-foreground'}>{help}</p>}
+                </div>
+                <Button size={'small'} onClick={() => setAdding(true)}>
+                    <NamedIcon name={'plus'} size={14} /> Add provider
+                </Button>
+            </div>
+
+            {query.isLoading && (
+                <div className={'ppx:border-t ppx:border-border ppx:p-4'}>
+                    <Spinner size={'small'} />
+                </div>
+            )}
+            {query.isError && (
+                <div className={'ppx:border-t ppx:border-border ppx:p-4'}>
+                    <Alert type={'danger'}>{httpErrorToHuman(query.error)}</Alert>
+                </div>
+            )}
+            {query.isSuccess && providers.length === 0 && (
+                <p className={'ppx:border-t ppx:border-border ppx:px-4 ppx:py-6 ppx:text-center ppx:text-sm ppx:text-muted-foreground'}>No providers yet. Add one, fill in its client ID and secret, then switch it on.</p>
+            )}
+
             {providers.map((provider, index) => (
                 <ProviderCard
                     key={provider.id}
                     provider={provider}
                     open={open === provider.id}
                     onToggle={() => setOpen(open === provider.id ? null : provider.id)}
-                    onMove={(by) => void move(index, by)}
-                    first={index === 0}
-                    last={index === providers.length - 1}
+                    onMove={(by) => move(index, by)}
+                    dragged={dragging?.id === provider.id}
+                    onDragStart={() => setDragging({ id: provider.id, ids: loaded.map((item) => item.id) })}
+                    onDragOver={(event) => dragOver(event, provider.id)}
+                    onDragEnd={() => {
+                        if (dragging) void saveOrder(dragging.ids);
+                        setDragging(null);
+                    }}
                     onSaved={reload}
                 />
             ))}
-            <div>
-                <Button size={'small'} isSecondary onClick={() => setAdding(true)}>
-                    <NamedIcon name={'plus'} size={14} /> Add a provider
-                </Button>
-            </div>
 
             {adding && (
                 <Dialog open onClose={() => setAdding(false)} title={'Add a sign-in provider'}>
@@ -135,10 +198,10 @@ export function ProvidersEditor() {
                                 onClick={() => void add(preset)}
                                 className={'pt-surface ppx:flex ppx:items-center ppx:gap-3 ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card ppx:p-3 ppx:text-left ppx:hover:border-primary ppx:cursor-pointer'}
                             >
-                                <NamedIcon name={markFor(preset)} size={22} />
+                                <Tile provider={preset} size={32} />
                                 <span className={'ppx:min-w-0'}>
                                     <span className={'ppx:block ppx:text-sm ppx:font-medium'}>{preset.name}</span>
-                                    <span className={'ppx:block ppx:text-xs ppx:text-muted-foreground'}>{preset.type === 'oidc' ? 'OpenID Connect' : 'OAuth'}</span>
+                                    <span className={'ppx:block ppx:text-xs ppx:text-muted-foreground'}>{kindOf(preset.type)}</span>
                                 </span>
                             </button>
                         ))}
@@ -164,16 +227,20 @@ function ProviderCard({
     open,
     onToggle,
     onMove,
-    first,
-    last,
+    dragged,
+    onDragStart,
+    onDragOver,
+    onDragEnd,
     onSaved,
 }: {
     provider: AuthProvider;
     open: boolean;
     onToggle: () => void;
     onMove: (by: number) => void;
-    first: boolean;
-    last: boolean;
+    dragged: boolean;
+    onDragStart: () => void;
+    onDragOver: (event: DragEvent) => void;
+    onDragEnd: () => void;
     onSaved: () => Promise<unknown>;
 }) {
     const [draft, setDraft] = useState(provider);
@@ -220,27 +287,51 @@ function ProviderCard({
     };
 
     return (
-        <div className={'pt-surface ppx:rounded-lg ppx:border ppx:border-border ppx:bg-card'}>
-            <div className={'ppx:flex ppx:items-center ppx:gap-3 ppx:p-3'}>
-                <button type={'button'} onClick={onToggle} className={'ppx:flex ppx:min-w-0 ppx:flex-1 ppx:items-center ppx:gap-3 ppx:text-left ppx:cursor-pointer'} aria-expanded={open}>
-                    <NamedIcon name={markFor(provider)} size={22} />
+        <div onDragOver={onDragOver} onDrop={(event) => event.preventDefault()} className={cn('ppx:border-t ppx:border-border', dragged && 'ppx:bg-muted/40 ppx:opacity-60')}>
+            <div className={'ppx:flex ppx:items-center ppx:gap-3 ppx:px-4 ppx:py-3'}>
+                <span
+                    draggable
+                    tabIndex={0}
+                    role={'button'}
+                    aria-label={`Move ${provider.name}. Drag, or use the arrow keys.`}
+                    title={'Drag to change the order'}
+                    onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = 'move';
+                        event.dataTransfer.setData('text/plain', String(provider.id));
+                        const row = event.currentTarget.parentElement;
+                        if (row) event.dataTransfer.setDragImage(row, 16, row.offsetHeight / 2);
+                        onDragStart();
+                    }}
+                    onDragEnd={onDragEnd}
+                    onKeyDown={(event) => {
+                        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                            event.preventDefault();
+                            onMove(event.key === 'ArrowUp' ? -1 : 1);
+                        }
+                    }}
+                    className={'ppx:-ml-1 ppx:flex ppx:shrink-0 ppx:cursor-grab ppx:rounded ppx:p-0.5 ppx:text-muted-foreground ppx:hover:text-foreground ppx:active:cursor-grabbing'}
+                >
+                    <NamedIcon name={'grip-vertical'} size={16} />
+                </span>
+                <button
+                    type={'button'}
+                    onClick={onToggle}
+                    aria-expanded={open}
+                    className={'ppx:grid ppx:min-w-0 ppx:flex-1 ppx:grid-cols-[auto_minmax(0,1fr)] ppx:items-center ppx:gap-3 ppx:text-left ppx:cursor-pointer ppx:sm:grid-cols-[auto_minmax(0,14rem)_minmax(0,1fr)]'}
+                >
+                    <Tile provider={provider} />
                     <span className={'ppx:min-w-0'}>
-                        <span className={'ppx:block ppx:truncate ppx:text-sm ppx:font-medium'}>{provider.name}</span>
-                        <span className={'ppx:block ppx:truncate ppx:text-xs ppx:text-muted-foreground'}>{provider.enabled ? provider.label : ready ? 'Off' : 'Needs its client ID and secret'}</span>
+                        <span className={'ppx:block ppx:truncate ppx:text-sm ppx:font-semibold'}>{provider.name}</span>
+                        {!provider.enabled && <span className={'ppx:block ppx:truncate ppx:text-xs ppx:text-muted-foreground'}>{ready ? 'Off' : 'Needs its client ID and secret'}</span>}
                     </span>
-                    <NamedIcon name={open ? 'chevron-up' : 'chevron-down'} size={16} className={'ppx:ml-auto ppx:text-muted-foreground'} />
+                    <span className={'ppx:hidden ppx:truncate ppx:text-sm ppx:text-muted-foreground ppx:sm:block'}>{kindOf(provider.type)}</span>
                 </button>
-                <Button.Text size={'small'} disabled={first} onClick={() => onMove(-1)} aria-label={'Move up'}>
-                    <NamedIcon name={'arrow-up'} size={14} />
-                </Button.Text>
-                <Button.Text size={'small'} disabled={last} onClick={() => onMove(1)} aria-label={'Move down'}>
-                    <NamedIcon name={'arrow-down'} size={14} />
-                </Button.Text>
+                <NamedIcon name={open ? 'chevron-up' : 'chevron-down'} size={16} className={'ppx:shrink-0 ppx:text-muted-foreground'} />
                 <Switch checked={provider.enabled} disabled={!provider.enabled && !ready} onChange={(enabled) => void save({ enabled })} aria-label={`Use ${provider.name}`} />
             </div>
 
             {open && (
-                <div className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:border-t ppx:border-border ppx:p-3'}>
+                <div className={'ppx:flex ppx:flex-col ppx:gap-3 ppx:border-t ppx:border-border ppx:bg-muted/20 ppx:px-4 ppx:py-3'}>
                     {helpFor(provider) && <p className={'ppx:text-xs ppx:text-muted-foreground'}>{helpFor(provider)}</p>}
                     <Field label={'Redirect URL'} hint={'Paste this into the provider\'s app settings.'}>
                         <div className={'ppx:flex ppx:gap-2'}>

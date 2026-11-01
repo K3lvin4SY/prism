@@ -32,6 +32,6 @@ describe('markFor', () => {
     it('uses the brand marks, and the preset names for OpenID Connect', () => {
         expect(markFor({ type: 'github', name: 'GitHub' })).toBe('brand-github');
         expect(markFor({ type: 'oidc', name: 'Microsoft Entra ID' })).toBe('brand-windows');
-        expect(markFor({ type: 'oidc', name: 'Authentik' })).toBe('key-round');
+        expect(markFor({ type: 'oidc', name: 'Authentik' })).toBe('shield');
     });
 });

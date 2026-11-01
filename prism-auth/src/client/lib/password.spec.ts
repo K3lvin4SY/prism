@@ -4,14 +4,21 @@ import { passwordChecks, validUsername } from './password';
 
 describe('passwordChecks', () => {
     it('asks only for the length by default', () => {
-        expect(passwordChecks('short', { min: 8, mixed: false, number: false })).toEqual([{ label: 'At least 8 characters', passed: false }]);
-        expect(passwordChecks('long enough', { min: 8, mixed: false, number: false }).every((check) => check.passed)).toBe(true);
+        expect(passwordChecks('short', { min: 8, mixed: false, number: false, special: false })).toEqual([{ label: 'At least 8 characters', passed: false }]);
+        expect(passwordChecks('long enough', { min: 8, mixed: false, number: false, special: false }).every((check) => check.passed)).toBe(true);
     });
 
     it('adds mixed case and a number when the settings ask for them', () => {
-        const rules = { min: 8, mixed: true, number: true };
+        const rules = { min: 8, mixed: true, number: true, special: false };
         expect(passwordChecks('alllowercase', rules).map((check) => check.passed)).toEqual([true, false, false]);
         expect(passwordChecks('Mixed4Case', rules).map((check) => check.passed)).toEqual([true, true, true]);
+    });
+
+    it('adds a special character when the setting asks for one', () => {
+        const rules = { min: 8, mixed: false, number: false, special: true };
+        expect(passwordChecks('plainpassword', rules).map((check) => check.passed)).toEqual([true, false]);
+        expect(passwordChecks('plain-password', rules).map((check) => check.passed)).toEqual([true, true]);
+        expect(passwordChecks('plain password', rules)[1].passed).toBe(true);
     });
 });
 
@@ -32,7 +39,7 @@ describe('read', () => {
             dividerText: 'Or continue with',
             autoCreate: false,
             signup: { enabled: false, username: 'choose', names: true, terms: '', botTrap: true, turnstile: '' },
-            password: { min: 8, mixed: false, number: false },
+            password: { min: 8, mixed: false, number: false, special: false },
         });
     });
 

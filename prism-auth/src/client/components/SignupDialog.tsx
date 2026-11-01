@@ -23,10 +23,11 @@ function fieldErrors(error: unknown): Errors {
     return {};
 }
 
+/** A field as the slide draws it: the label is the placeholder, and read out to screen readers. */
 function Field({ label, error, hint, children }: { label: string; error?: string; hint?: ReactNode; children: ReactNode }) {
     return (
         <label className={'pau:flex pau:flex-col pau:gap-1 pau:text-sm'}>
-            <span className={'pau:font-medium'}>{label}</span>
+            <span className={'pau:sr-only'}>{label}</span>
             {children}
             {error ? <span className={'pau:text-xs pau:text-destructive'}>{error}</span> : hint ? <span className={'pau:text-xs pau:text-muted-foreground'}>{hint}</span> : null}
         </label>
@@ -52,7 +53,7 @@ export default function SignupDialog({ pending, onClose }: { pending: Pending | 
     const [turnstile, setTurnstile] = useState('');
     const [errors, setErrors] = useState<Errors>({});
     const [busy, setBusy] = useState(false);
-    const [sent, setSent] = useState<string | null>(null);
+    const [sent, setSent] = useState<{ email: string; hours: number } | null>(null);
     const [cooldown, setCooldown] = useState(0);
 
     useEffect(() => {
@@ -93,7 +94,7 @@ export default function SignupDialog({ pending, onClose }: { pending: Pending | 
                 turnstile: turnstile || undefined,
             });
             if (result.status === 'sent') {
-                setSent(result.email);
+                setSent({ email: result.email, hours: result.hours });
                 setCooldown(60);
             } else if (result.result.complete) {
                 window.location.assign(result.result.intended);
@@ -110,21 +111,19 @@ export default function SignupDialog({ pending, onClose }: { pending: Pending | 
 
     if (sent) {
         return (
-            <Dialog open onClose={onClose} title={'Check your inbox'}>
-                <div className={'pau:flex pau:flex-col pau:items-center pau:gap-3 pau:py-2 pau:text-center'}>
-                    <div className={'pau:flex pau:size-14 pau:items-center pau:justify-center pau:rounded-full pau:bg-primary/15 pau:text-primary'}>
-                        <NamedIcon name={'mail-check'} size={28} />
-                    </div>
+            <Dialog open onClose={onClose} title={'Check your email'}>
+                <div className={'pau:flex pau:flex-col pau:gap-3'}>
+                    <NamedIcon name={'mail'} size={32} className={'pau:text-primary'} />
                     <p className={'pau:text-sm'}>
-                        If <strong>{sent}</strong> can be used, a link to confirm it is on its way. Open it to finish making your account and sign in.
+                        We sent a link to <strong>{sent.email}</strong>. It expires in {sent.hours === 1 ? '1 hour' : `${sent.hours} hours`}. Open it to finish making your account and sign in.
                     </p>
-                    <p className={'pau:text-xs pau:text-muted-foreground'}>Nothing there? Look in your spam folder, or send it again.</p>
+                    <p className={'pau:text-xs pau:text-muted-foreground'}>Nothing there? Look in your spam folder, or send it again. No email arrives if that address cannot be used here.</p>
                 </div>
                 <Dialog.Footer>
                     <Button.Text
                         disabled={cooldown > 0}
                         onClick={() =>
-                            void resend(sent)
+                            void resend(sent.email)
                                 .then(() => {
                                     toast.success('Sent again.');
                                     setCooldown(60);
@@ -160,27 +159,27 @@ export default function SignupDialog({ pending, onClose }: { pending: Pending | 
                 )}
                 {errors.form && <Alert type={'danger'}>{errors.form}</Alert>}
 
-                <Field label={'Email'} error={errors.email} hint={pending?.email_verified && email === pending.email ? `Confirmed by ${pending.provider.name}.` : 'We send a link to confirm it is yours.'}>
-                    <Input type={'email'} autoComplete={'email'} required value={email} onChange={(event) => setEmail(event.target.value)} />
-                </Field>
                 {config.signup.username === 'choose' && (
                     <Field label={'Username'} error={errors.username ?? (username && !validUsername(username) ? 'Letters, numbers, dashes, underscores and dots, starting and ending with a letter or number.' : undefined)}>
-                        <Input autoComplete={'username'} required value={username} onChange={(event) => setUsername(event.target.value)} />
+                        <Input autoComplete={'username'} placeholder={'Username'} required value={username} onChange={(event) => setUsername(event.target.value)} />
                     </Field>
                 )}
+                <Field label={'Email'} error={errors.email} hint={pending?.email_verified && email === pending.email ? `Confirmed by ${pending.provider.name}.` : undefined}>
+                    <Input type={'email'} autoComplete={'email'} placeholder={'Email'} required value={email} onChange={(event) => setEmail(event.target.value)} />
+                </Field>
                 {config.signup.names && (
                     <div className={'pau:grid pau:gap-3 pau:sm:grid-cols-2'}>
                         <Field label={'First name'} error={errors.name_first}>
-                            <Input autoComplete={'given-name'} required value={first} onChange={(event) => setFirst(event.target.value)} />
+                            <Input autoComplete={'given-name'} placeholder={'First name'} required value={first} onChange={(event) => setFirst(event.target.value)} />
                         </Field>
                         <Field label={'Last name'} error={errors.name_last}>
-                            <Input autoComplete={'family-name'} required value={last} onChange={(event) => setLast(event.target.value)} />
+                            <Input autoComplete={'family-name'} placeholder={'Last name'} required value={last} onChange={(event) => setLast(event.target.value)} />
                         </Field>
                     </div>
                 )}
                 <Field label={pending ? 'Password (optional)' : 'Password'} error={errors.password} hint={pending ? `Without one, you sign in with ${pending.provider.name}. You can set one later.` : undefined}>
                     <div className={'pau:relative'}>
-                        <Input type={showPassword ? 'text' : 'password'} autoComplete={'new-password'} required={!pending} value={password} onChange={(event) => setPassword(event.target.value)} className={'pau:pr-10'} />
+                        <Input type={showPassword ? 'text' : 'password'} autoComplete={'new-password'} placeholder={pending ? 'Password (optional)' : 'Password'} required={!pending} value={password} onChange={(event) => setPassword(event.target.value)} className={'pau:pr-10'} />
                         <button
                             type={'button'}
                             onClick={() => setShowPassword((value) => !value)}
@@ -192,17 +191,17 @@ export default function SignupDialog({ pending, onClose }: { pending: Pending | 
                     </div>
                 </Field>
                 {(password !== '' || !pending) && (
-                    <ul className={'pau:-mt-1 pau:flex pau:flex-wrap pau:gap-x-4 pau:gap-y-1 pau:text-xs'}>
+                    <ul className={'pau:-mt-1 pau:flex pau:flex-col pau:gap-1 pau:text-sm'} aria-label={'Password rules'}>
                         {checks.map((check) => (
-                            <li key={check.label} className={check.passed ? 'pau:flex pau:items-center pau:gap-1 pau:text-success' : 'pau:flex pau:items-center pau:gap-1 pau:text-muted-foreground'}>
-                                <NamedIcon name={check.passed ? 'check' : 'x'} size={12} /> {check.label}
+                            <li key={check.label} className={check.passed ? 'pau:flex pau:items-center pau:gap-2 pau:text-success' : 'pau:flex pau:items-center pau:gap-2 pau:text-muted-foreground'}>
+                                <NamedIcon name={check.passed ? 'check' : 'x'} size={14} /> {check.label}
                             </li>
                         ))}
                     </ul>
                 )}
 
                 {config.signup.terms && (
-                    <label className={'pau:flex pau:items-start pau:gap-2 pau:text-sm'}>
+                    <label className={'pau:flex pau:items-center pau:gap-2 pau:text-sm'}>
                         <Checkbox checked={terms} onChange={setTerms} />
                         <span>
                             I accept the{' '}
@@ -225,14 +224,10 @@ export default function SignupDialog({ pending, onClose }: { pending: Pending | 
                     </div>
                 )}
 
-                <button type={'submit'} hidden />
-            </form>
-            <Dialog.Footer>
-                <Button.Text onClick={close}>Cancel</Button.Text>
-                <Button disabled={!ready} isLoading={busy} onClick={() => void submit()}>
+                <Button type={'submit'} disabled={!ready} isLoading={busy} className={'pau:mt-1 pau:w-full'}>
                     Create account
                 </Button>
-            </Dialog.Footer>
+            </form>
         </Dialog>
     );
 }

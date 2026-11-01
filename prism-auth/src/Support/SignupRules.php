@@ -30,6 +30,9 @@ final class SignupRules
         if (Settings::bool('password_number')) {
             $password->numbers();
         }
+        if (Settings::bool('password_special')) {
+            $password->symbols();
+        }
 
         $choose = Settings::string('signup_username', 'choose') === 'choose';
         $names = Settings::bool('signup_names', true);

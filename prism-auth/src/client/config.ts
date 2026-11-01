@@ -14,7 +14,7 @@ export interface AuthConfig {
         botTrap: boolean;
         turnstile: string;
     };
-    password: { min: number; mixed: boolean; number: boolean };
+    password: { min: number; mixed: boolean; number: boolean; special: boolean };
 }
 
 const bool = (value: unknown, fallback: boolean) => (typeof value === 'boolean' ? value : fallback);
@@ -39,6 +39,7 @@ export function read(raw: ExtensionConfig): AuthConfig {
             min: Math.max(8, Number(get('password_min')) || 8),
             mixed: bool(get('password_mixed'), false),
             number: bool(get('password_number'), false),
+            special: bool(get('password_special'), false),
         },
     };
 }
