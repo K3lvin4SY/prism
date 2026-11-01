@@ -69,7 +69,7 @@ function Tile({ provider, size = 36 }: { provider: { type: string; name: string;
 
     if (provider.icon || brand) {
         return (
-            <span style={{ width: size, height: size }} className={'ppx:flex ppx:shrink-0 ppx:items-center ppx:justify-center ppx:overflow-hidden ppx:rounded-lg ppx:bg-white ppx:text-neutral-900 ppx:shadow-sm'}>
+            <span style={{ width: size, height: size }} className={'ppx:flex ppx:shrink-0 ppx:items-center ppx:justify-center ppx:overflow-hidden ppx:rounded-lg ppx:bg-white ppx:text-[#18181b] ppx:shadow-sm'}>
                 {provider.icon ? <img src={provider.icon} alt={''} width={icon} height={icon} className={'ppx:object-contain'} /> : <NamedIcon name={brand!} size={icon} />}
             </span>
         );

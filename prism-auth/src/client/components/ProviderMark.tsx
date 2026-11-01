@@ -41,7 +41,7 @@ export function ProviderTile({ provider, size = 40 }: { provider: Pick<PublicPro
             style={{ width: size, height: size }}
             className={
                 branded
-                    ? 'pau:flex pau:shrink-0 pau:items-center pau:justify-center pau:overflow-hidden pau:rounded-lg pau:bg-white pau:text-neutral-900 pau:shadow-sm'
+                    ? 'pau:flex pau:shrink-0 pau:items-center pau:justify-center pau:overflow-hidden pau:rounded-lg pau:bg-white pau:text-[#18181b] pau:shadow-sm'
                     : 'pau:flex pau:shrink-0 pau:items-center pau:justify-center pau:rounded-lg pau:border pau:border-border pau:bg-muted/40 pau:text-primary'
             }
         >
