@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Alert, Checkbox, Spinner, httpErrorToHuman } from '@pterodactyl/sdk';
 import { listFolder } from '../api';
 import { NamedIcon } from '../icons';
-import { MAX_PATHS, addPath, coveredBy, crumbs } from '../lib/paths';
+import { addPath, coveredBy, crumbs } from '../lib/paths';
 
 /**
  * The folders and files a link shares, picked in place: the server's folders on top, where a
@@ -14,7 +14,6 @@ import { MAX_PATHS, addPath, coveredBy, crumbs } from '../lib/paths';
 export default function FileChooser({ server, paths, disabled, onChange }: { server: string; paths: string[]; disabled?: boolean; onChange: (paths: string[]) => void }) {
     const [directory, setDirectory] = useState(paths.length === 1 && paths[0] !== '/' ? paths[0].replace(/\/[^/]+$/, '') || '/' : '/');
     const query = useQuery({ queryKey: ['prism-share', server, 'folder', directory], queryFn: () => listFolder(server, directory) });
-    const full = paths.length >= MAX_PATHS;
 
     const toggle = (path: string, on: boolean) => onChange(on ? addPath(paths, path) : paths.filter((shared) => shared !== path));
     const here = coveredBy(paths, directory);
@@ -38,7 +37,7 @@ export default function FileChooser({ server, paths, disabled, onChange }: { ser
                 </nav>
 
                 <label className={'psh:flex psh:cursor-pointer psh:items-center psh:gap-2 psh:border-b psh:border-border psh:px-3 psh:py-2 psh:text-sm'}>
-                    <Checkbox checked={here !== null} disabled={disabled || (here !== null && here !== directory) || (here === null && full)} onChange={(on) => toggle(directory, on)} />
+                    <Checkbox checked={here !== null} disabled={disabled || (here !== null && here !== directory)} onChange={(on) => toggle(directory, on)} />
                     <NamedIcon name={'folder-open'} size={14} className={'psh:text-primary'} />
                     <span className={'psh:min-w-0 psh:flex-1 psh:truncate'}>
                         Everything in <code>{directory}</code>
@@ -47,7 +46,7 @@ export default function FileChooser({ server, paths, disabled, onChange }: { ser
                 </label>
                 {directory === '/' && <p className={'psh:border-b psh:border-border psh:px-3 psh:py-2 psh:text-xs psh:text-warning'}>Sharing everything shares the whole server, config files and their passwords too. Pick a folder inside it if you can.</p>}
 
-                <div className={'psh:flex psh:max-h-56 psh:flex-col psh:overflow-y-auto psh:py-1'}>
+                <div className={'psh:flex psh:max-h-80 psh:flex-col psh:overflow-y-auto psh:py-1'}>
                     {query.isLoading && (
                         <div className={'psh:flex psh:justify-center psh:py-4'}>
                             <Spinner size={'small'} />
@@ -64,7 +63,7 @@ export default function FileChooser({ server, paths, disabled, onChange }: { ser
 
                         return (
                             <div key={entry.path} className={'psh:flex psh:items-center psh:gap-2 psh:px-3 psh:py-1 psh:text-sm psh:hover:bg-muted/50'}>
-                                <Checkbox aria-label={`Share ${entry.name}`} checked={by !== null} disabled={disabled || (by !== null && by !== entry.path) || (by === null && full)} onChange={(on) => toggle(entry.path, on)} />
+                                <Checkbox aria-label={`Share ${entry.name}`} checked={by !== null} disabled={disabled || (by !== null && by !== entry.path)} onChange={(on) => toggle(entry.path, on)} />
                                 {entry.directory ? (
                                     <button type={'button'} onClick={() => setDirectory(entry.path)} className={'psh:flex psh:min-w-0 psh:flex-1 psh:cursor-pointer psh:items-center psh:gap-2 psh:text-left'}>
                                         <NamedIcon name={'folder'} size={14} className={'psh:shrink-0 psh:text-primary'} />
@@ -75,7 +74,7 @@ export default function FileChooser({ server, paths, disabled, onChange }: { ser
                                     <button
                                         type={'button'}
                                         tabIndex={-1}
-                                        disabled={disabled || (by !== null && by !== entry.path) || (by === null && full)}
+                                        disabled={disabled || (by !== null && by !== entry.path)}
                                         onClick={() => toggle(entry.path, by === null)}
                                         className={'psh:flex psh:min-w-0 psh:flex-1 psh:cursor-pointer psh:items-center psh:gap-2 psh:text-left psh:disabled:cursor-default'}
                                     >
@@ -89,7 +88,7 @@ export default function FileChooser({ server, paths, disabled, onChange }: { ser
                 </div>
             </div>
             {paths.length > 0 && (
-                <div className={'psh:flex psh:flex-wrap psh:gap-1.5'}>
+                <div className={'psh:flex psh:max-h-28 psh:flex-wrap psh:gap-1.5 psh:overflow-y-auto'}>
                     {paths.map((path) => (
                         <span key={path} className={'psh:inline-flex psh:max-w-full psh:items-center psh:gap-1.5 psh:rounded-md psh:bg-primary/15 psh:py-0.5 psh:pr-1 psh:pl-2 psh:text-xs psh:text-primary'}>
                             <NamedIcon name={path === '/' || !/\.[^/]+$/.test(path) ? 'folder' : 'file'} size={12} />
@@ -106,11 +105,10 @@ export default function FileChooser({ server, paths, disabled, onChange }: { ser
                         </span>
                     ))}
                     <span className={'psh:self-center psh:text-xs psh:text-muted-foreground'}>
-                        {paths.length} of {MAX_PATHS}
+                        {paths.length} shared
                     </span>
                 </div>
             )}
-            {full && <p className={'psh:text-xs psh:text-muted-foreground'}>A link shares at most {MAX_PATHS} folders and files. Share a folder above them instead.</p>}
         </div>
     );
 }

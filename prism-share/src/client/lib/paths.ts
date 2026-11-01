@@ -1,6 +1,3 @@
-/** The most paths one link may share; the same as the server's limit. */
-export const MAX_PATHS = 20;
-
 /** The shared path that already covers this one (itself or a folder above it), if any. */
 export function coveredBy(paths: string[], path: string): string | null {
     return paths.find((shared) => shared === path || shared === '/' || path.startsWith(`${shared}/`)) ?? null;

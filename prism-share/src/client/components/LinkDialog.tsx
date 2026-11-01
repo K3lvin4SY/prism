@@ -6,6 +6,7 @@ import { OPTIONS, toggleOption } from '../lib/options';
 import BackupChooser from './BackupChooser';
 import ExpiryPicker, { initialHours } from './ExpiryPicker';
 import FileChooser from './FileChooser';
+import PickDialog from './PickDialog';
 
 const eyebrow = 'psh:font-mono psh:text-xs psh:font-medium psh:uppercase psh:tracking-[0.18em] psh:text-muted-foreground';
 
@@ -21,6 +22,7 @@ export default function LinkDialog({ server, data, link, onClose, onSaved }: { s
     const [backups, setBackups] = useState<string[]>(link?.backups ?? []);
     // Changing a link keeps its expiry unless a new one is picked.
     const [hours, setHours] = useState<number | null>(link ? null : initialHours(data.max_hours));
+    const [picking, setPicking] = useState<'files' | 'backups' | null>(null);
     const [made, setMade] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -52,6 +54,12 @@ export default function LinkDialog({ server, data, link, onClose, onSaved }: { s
         } finally {
             setBusy(false);
         }
+    };
+
+    // Closing the picker with nothing picked switches the option back off.
+    const cancelPick = (key: 'files' | 'backups', count: number) => {
+        setPicking(null);
+        if (count === 0) setOptions((current) => toggleOption(current, key, false));
     };
 
     const copy = () =>
@@ -97,7 +105,11 @@ export default function LinkDialog({ server, data, link, onClose, onSaved }: { s
                                             aria-label={option.label}
                                             checked={on}
                                             disabled={locked || (reason !== null && !on)}
-                                            onChange={(value) => setOptions((current) => toggleOption(current, option.key, value))}
+                                            onChange={(value) => {
+                                                setOptions((current) => toggleOption(current, option.key, value));
+                                                // Switching on files or backups goes straight to picking them.
+                                                if (value && (option.key === 'files' || option.key === 'backups')) setPicking(option.key);
+                                            }}
                                         />
                                     </div>
                                     {on && reason !== null && <p className={'psh:text-xs psh:text-destructive'}>{reason} Switch it off to save the link.</p>}
@@ -106,8 +118,14 @@ export default function LinkDialog({ server, data, link, onClose, onSaved }: { s
                                             <NamedIcon name={'triangle-alert'} size={14} /> {option.warning}
                                         </p>
                                     )}
-                                    {on && !locked && option.key === 'files' && <FileChooser server={server} paths={paths} onChange={setPaths} />}
-                                    {on && !locked && option.key === 'backups' && <BackupChooser backups={data.backups} picked={backups} onChange={setBackups} />}
+                                    {on && !locked && (option.key === 'files' || option.key === 'backups') && (
+                                        <Picks
+                                            names={option.key === 'files' ? paths : data.backups.filter((backup) => backups.includes(backup.uuid)).map((backup) => backup.name)}
+                                            mono={option.key === 'files'}
+                                            what={option.key === 'files' ? 'files' : 'backups'}
+                                            onPick={() => setPicking(option.key as 'files' | 'backups')}
+                                        />
+                                    )}
                                 </div>
                             );
                         })}
@@ -164,6 +182,57 @@ export default function LinkDialog({ server, data, link, onClose, onSaved }: { s
                     </>
                 )}
             </Dialog.Footer>
+
+            {picking === 'files' && (
+                <PickDialog<string>
+                    title={'Files to share'}
+                    description={'Tick folders and files. Everything inside a shared folder can be downloaded.'}
+                    initial={paths}
+                    done={(picked) => `Share ${picked.length} ${picked.length === 1 ? 'item' : 'items'}`}
+                    onDone={(picked) => {
+                        setPaths(picked);
+                        setPicking(null);
+                    }}
+                    onCancel={() => cancelPick('files', paths.length)}
+                >
+                    {(picked, setPicked) => <FileChooser server={server} paths={picked} onChange={setPicked} />}
+                </PickDialog>
+            )}
+            {picking === 'backups' && (
+                <PickDialog<string>
+                    title={'Backups to share'}
+                    description={'A backup is the way to share a whole world. Only finished backups can be shared.'}
+                    initial={backups}
+                    done={(picked) => `Share ${picked.length} ${picked.length === 1 ? 'backup' : 'backups'}`}
+                    onDone={(picked) => {
+                        setBackups(picked);
+                        setPicking(null);
+                    }}
+                    onCancel={() => cancelPick('backups', backups.length)}
+                >
+                    {(picked, setPicked) => <BackupChooser backups={data.backups} picked={picked} onChange={setPicked} />}
+                </PickDialog>
+            )}
         </Dialog>
+    );
+}
+
+/** Under a files or backups row: what it shares, and the button that opens the picker. */
+function Picks({ names, mono, what, onPick }: { names: string[]; mono: boolean; what: string; onPick: () => void }) {
+    const shown = names.slice(0, 3);
+
+    return (
+        <div className={'psh:flex psh:min-w-0 psh:flex-wrap psh:items-center psh:gap-1.5'}>
+            {names.length === 0 && <span className={'psh:text-xs psh:text-destructive'}>Nothing picked yet.</span>}
+            {shown.map((name) => (
+                <span key={name} className={'psh:max-w-full psh:truncate psh:rounded-md psh:bg-primary/15 psh:px-2 psh:py-0.5 psh:text-xs psh:text-primary ' + (mono ? 'psh:font-mono' : '')}>
+                    {name}
+                </span>
+            ))}
+            {names.length > shown.length && <span className={'psh:text-xs psh:text-muted-foreground'}>and {names.length - shown.length} more</span>}
+            <Button.Text size={'xsmall'} onClick={onPick}>
+                <NamedIcon name={'pencil'} size={12} className={'psh:mr-1'} /> {names.length === 0 ? `Pick ${what}` : `Change ${what}`}
+            </Button.Text>
+        </div>
     );
 }

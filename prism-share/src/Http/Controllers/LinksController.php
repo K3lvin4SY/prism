@@ -113,9 +113,9 @@ final class LinksController
             'label' => [$link ? 'sometimes' : 'required', 'string', 'between:1,64'],
             'permissions' => [$link ? 'sometimes' : 'required', 'array', 'max:'.count(Capabilities::OPTIONS)],
             'permissions.*' => ['string', 'in:'.implode(',', array_keys(Capabilities::OPTIONS))],
-            'paths' => ['sometimes', 'array', 'max:20'],
+            'paths' => ['sometimes', 'array'],
             'paths.*' => ['string', 'max:512'],
-            'backups' => ['sometimes', 'array', 'max:50'],
+            'backups' => ['sometimes', 'array'],
             'backups.*' => ['string', 'uuid'],
             'hours' => [$link ? 'sometimes' : 'required', 'integer', 'min:1', 'max:'.$this->maxHours()],
         ]);

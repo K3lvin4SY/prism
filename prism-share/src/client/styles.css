@@ -7,3 +7,8 @@
 [role='dialog']:has(.psh-link-editor) {
     max-width: 60rem;
 }
+
+/* The file and backup pickers open over it, a little wider than the panel's dialogs so long names fit. */
+[role='dialog']:has(.psh-pick-dialog):not(:has(.psh-link-editor)) {
+    max-width: 44rem;
+}
