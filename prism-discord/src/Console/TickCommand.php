@@ -7,6 +7,7 @@ namespace PrismDiscord\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use PrismDiscord\Models\Hook;
+use PrismDiscord\Support\Commands;
 use PrismDiscord\Support\Events;
 use PrismDiscord\Support\PlayerLines;
 use PrismDiscord\Support\Requests;
@@ -18,7 +19,8 @@ use Throwable;
 
 /**
  * Every minute, for servers with a webhook that wants them: notices a server starting, stopping
- * or crashing, and players joining or leaving in its console.
+ * or crashing, and players joining or leaving in its console. Also puts the slash commands on
+ * Discord when they are not there yet.
  */
 class TickCommand extends Command
 {
@@ -31,6 +33,8 @@ class TickCommand extends Command
         if (! Settings::bool('enabled')) {
             return self::SUCCESS;
         }
+
+        rescue(static fn () => Commands::sync());
 
         $wanted = Hook::query()->where('enabled', true)->get(['server_id', 'events'])->groupBy('server_id')
             ->map(static fn ($hooks): array => array_values(array_unique($hooks->flatMap(static fn (Hook $hook): array => $hook->events)->all())));

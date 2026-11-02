@@ -9,10 +9,11 @@
         "php": "^8.3",
         "extensions": { "prism-core": ">=0.1.0" }
     },
-    "description": "Discord messages when a server starts, stops or crashes, a backup finishes or fails, and players join or leave.",
+    "description": "Discord messages when a server starts, stops or crashes, a backup finishes or fails, and players join or leave, and slash commands to start, stop and check your servers from Discord.",
     "author": "Donkare",
     "icon": "message-circle",
     "provider": "PrismDiscord\\PrismDiscordProvider",
+    "routes": { "root": ["discord"] },
     "ui": {
         "entry": "dist/client.js",
         "mode": "native",
@@ -24,6 +25,13 @@
                 "path": "discord",
                 "nav": { "label": "Discord", "icon": "message-circle" },
                 "permission": ["ext.prism-discord.manage"],
+                "when": { "runtime": true }
+            },
+            {
+                "id": "account",
+                "area": "account",
+                "path": "discord",
+                "nav": { "label": "Discord", "icon": "message-circle" },
                 "when": { "runtime": true }
             }
         ]

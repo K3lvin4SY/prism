@@ -43,7 +43,7 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-share', name: 'Prism Share', icon: 'send-back', category: 'Collaboration', description: 'Guest links for a server: watch the console, chosen power buttons, files and backups, without an account, for as long as the owner chooses.' },
     { id: 'prism-notes', name: 'Prism Notes', icon: 'notebook-pen', category: 'Collaboration', description: 'Notes and checklists for each server, shared with its subusers, with pinned notes above the console.' },
     { id: 'prism-roles', name: 'Prism Roles', icon: 'user-cog', category: 'Collaboration', description: 'Reusable permission sets for subusers, such as Moderator, Builder and Viewer, panel-wide or your own; changing a role updates everyone who has it.' },
-    { id: 'prism-discord', name: 'Prism Discord', icon: 'message-circle', category: 'Collaboration', description: 'Discord messages when a server starts, stops or crashes, a backup finishes or fails, and players join or leave.' },
+    { id: 'prism-discord', name: 'Prism Discord', icon: 'message-circle', category: 'Collaboration', description: 'Discord messages when a server starts, stops or crashes, a backup finishes or fails, and players join or leave, and slash commands to start, stop and check servers.' },
 ];
 
 export const settingsKey = (id: PrismId) => ['prism-core', 'settings', id] as const;

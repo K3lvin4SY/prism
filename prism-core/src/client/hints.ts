@@ -165,6 +165,9 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
     },
     'prism-discord': {
         max_hooks: { slider: { min: 1, max: 25 } },
+        app_id: { section: 'Your Discord application' },
+        public_key: { section: 'Your Discord application' },
+        bot_token: { section: 'Your Discord application' },
     },
 };
 

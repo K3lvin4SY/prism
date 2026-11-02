@@ -19,6 +19,7 @@ class PrismDiscordProvider extends ExtensionProvider
     public function boot(): void
     {
         $this->registerApiRoutes();
+        $this->registerRootRoutes($this->extensionPath('routes', 'root.php'));
 
         $this->registerPermissions('Discord messages from Prism Discord.', [
             'manage' => 'Add, change and remove the server\'s Discord webhooks and send test messages.',
@@ -48,6 +49,9 @@ class PrismDiscordProvider extends ExtensionProvider
             Setting::make('enabled', 'enabled', true, ['required', 'boolean'])->label('Send Discord messages')->help('Off, no messages are sent and the Discord page is hidden. Webhooks are kept.')->tab('General')->field('toggle')->frontend(),
             Setting::make('players', 'players', true, ['required', 'boolean'])->label('Player joins and leaves')->help('Read from the console once a minute, for games that print them (Minecraft, Factorio, Terraria).')->tab('General')->field('toggle')->frontend(),
             Setting::make('max_hooks', 'max_hooks', 5, ['required', 'integer', 'min:1', 'max:25'])->label('Webhooks per server')->tab('General')->field('number')->frontend(),
+            Setting::make('app_id', 'app_id', '', ['nullable', 'string', 'regex:/^(\d{5,24})?$/'])->label('Application id')->help('From the Discord Developer Portal: your application, General Information. Set its Interactions Endpoint URL to this panel\'s address followed by /discord/interactions.')->tab('Slash commands'),
+            Setting::make('public_key', 'public_key', '', ['nullable', 'string', 'regex:/^([0-9a-fA-F]{64})?$/'])->label('Public key')->help('From the same page. Every command Discord sends is checked against it.')->tab('Slash commands'),
+            Setting::make('bot_token', 'bot_token', '', ['nullable', 'string', 'max:128'])->label('Bot token')->help('From the Bot page. Only used to put the commands on Discord; stored encrypted. Invite the application with the applications.commands scope.')->tab('Slash commands')->secret(),
         ]));
     }
 }

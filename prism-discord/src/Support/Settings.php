@@ -17,6 +17,9 @@ final class Settings
         'enabled' => true,
         'players' => true,
         'max_hooks' => 5,
+        'app_id' => '',
+        'public_key' => '',
+        'bot_token' => '',
     ];
 
     public static function get(string $key): mixed

@@ -49,3 +49,24 @@ export const updateHook = async (server: string, id: number, input: HookInput) =
 export const deleteHook = (server: string, id: number) => http.delete(`${base(server)}/hooks/${id}`);
 
 export const testHook = async (server: string, id: number, event: string) => (await http.post<{ data: Hook }>(`${base(server)}/hooks/${id}/test`, { event })).data.data;
+
+export interface DiscordAccount {
+    /** Whether the administrator set up slash commands. */
+    available: boolean;
+    linked: { name: string; since: string; last_used_at: string | null } | null;
+    /** The Discord name Prism Auth signs this user in with, which also links them. */
+    via_auth: string | null;
+    /** For admins: whether the commands are on Discord. */
+    commands: { configured: boolean; registered: boolean; error: string | null } | null;
+    endpoint: string;
+}
+
+const account = '/api/client/extensions/prism-discord/account';
+
+export const accountKey = ['prism-discord', 'account'] as const;
+
+export const getAccount = async () => (await http.get<{ data: DiscordAccount }>(account)).data.data;
+
+export const linkAccount = async (code: string) => (await http.post<{ data: { name: string } }>(`${account}/link`, { code })).data.data;
+
+export const unlinkAccount = () => http.delete(`${account}/link`);

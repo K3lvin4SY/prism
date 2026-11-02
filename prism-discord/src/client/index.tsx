@@ -5,6 +5,8 @@ import { configStore, setConfig } from './config';
 export default definePterodactylExtension({
     setup({ config, screens }) {
         setConfig(config);
-        screens.register('hooks', () => import('./screens/HooksScreen').then(configStore.liveModule), { visible: () => configStore.use().enabled });
+        const visible = () => configStore.use().enabled;
+        screens.register('hooks', () => import('./screens/HooksScreen').then(configStore.liveModule), { visible });
+        screens.register('account', () => import('./screens/AccountScreen').then(configStore.liveModule), { visible });
     },
 });
