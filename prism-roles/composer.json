@@ -1,0 +1,11 @@
+{
+    "description": "Reusable permission sets for subusers.",
+    "autoload": {
+        "psr-4": {
+            "PrismRoles\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismRolesExtension"
+    }
+}

@@ -160,6 +160,9 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
     'prism-notes': {
         max_notes: { slider: { min: 1, max: 200 } },
     },
+    'prism-roles': {
+        max_personal: { slider: { min: 1, max: 100 } },
+    },
 };
 
 /** Prism Console's built-in highlight rules, in the order they are listed. */

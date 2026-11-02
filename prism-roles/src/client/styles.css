@@ -1,0 +1,9 @@
+@import 'tailwindcss/theme.css' layer(theme) prefix(prl);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(prl);
+@import '@pterodactyl/sdk/theme.css';
+@source './**/*.{ts,tsx}';
+
+/* The role editor lists every permission group in columns, so it is wider than the panel's dialogs. Unlayered, so it beats the skin's max width. */
+[role='dialog']:has(.prl-role-editor) {
+    max-width: 56rem;
+}
