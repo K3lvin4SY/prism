@@ -1,0 +1,11 @@
+{
+    "description": "Per-user limits so people can create their own servers within them.",
+    "autoload": {
+        "psr-4": {
+            "PrismQuotas\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismQuotasExtension"
+    }
+}

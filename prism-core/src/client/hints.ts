@@ -196,6 +196,9 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         require_sign_in: { section: 'Who can see it' },
     },
     'prism-nodes': {},
+    'prism-quotas': {
+        who: { segmented: true },
+    },
 };
 
 /** Prism Console's built-in highlight rules, in the order they are listed. */

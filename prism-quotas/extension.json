@@ -1,0 +1,37 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-quotas",
+    "name": "Prism Quotas",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Limits per user on servers, memory, disk, CPU, backups and databases, so people can create and delete their own servers within them.",
+    "author": "Donkare",
+    "icon": "gauge",
+    "provider": "PrismQuotas\\PrismQuotasProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "pqt",
+        "screens": [
+            {
+                "id": "account-servers",
+                "area": "account",
+                "path": "create-server",
+                "nav": { "label": "Create a server", "icon": "plus" },
+                "when": { "runtime": true }
+            },
+            {
+                "id": "admin-quotas",
+                "area": "admin",
+                "path": "quotas",
+                "nav": { "label": "Quotas", "icon": "gauge" },
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}
