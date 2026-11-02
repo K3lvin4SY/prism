@@ -63,6 +63,7 @@ Prism is a set of extensions for Pterodactyl Panel 2.0. Install only the ones yo
 | <img src="assets/share.png" width="20" height="20" align="center"> **[Prism Share](prism-share)** | Guest links for a server: watch the console, chosen power buttons, files and backups, without an account and for as long as you choose. |
 | <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Notes](prism-notes)** | Notes and checklists for each server, shared with its subusers, with pinned notes above the console. |
 | <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Roles](prism-roles)** | Reusable permission sets for subusers, such as Moderator, Builder and Viewer, panel-wide or your own; changing a role updates everyone who has it. |
+| <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Discord](prism-discord)** | Discord messages when a server starts, stops or crashes, a backup finishes or fails, and players join or leave. |
 
 ## Requirements
 

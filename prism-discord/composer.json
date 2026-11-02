@@ -1,0 +1,11 @@
+{
+    "description": "Discord messages for server events.",
+    "autoload": {
+        "psr-4": {
+            "PrismDiscord\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismDiscordExtension"
+    }
+}

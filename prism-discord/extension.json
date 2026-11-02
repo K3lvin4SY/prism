@@ -1,0 +1,31 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-discord",
+    "name": "Prism Discord",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Discord messages when a server starts, stops or crashes, a backup finishes or fails, and players join or leave.",
+    "author": "Donkare",
+    "icon": "message-circle",
+    "provider": "PrismDiscord\\PrismDiscordProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "pdc",
+        "screens": [
+            {
+                "id": "hooks",
+                "area": "server",
+                "path": "discord",
+                "nav": { "label": "Discord", "icon": "message-circle" },
+                "permission": ["ext.prism-discord.manage"],
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}
