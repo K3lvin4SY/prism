@@ -1,0 +1,30 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-audit",
+    "name": "Prism Audit",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Everything that happens on the panel as one readable timeline, with filters, CSV export, and alerts on risky things such as an admin signing in from a new address.",
+    "author": "Donkare",
+    "icon": "history",
+    "provider": "PrismAudit\\PrismAuditProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "pad",
+        "screens": [
+            {
+                "id": "admin-audit",
+                "area": "admin",
+                "path": "audit",
+                "nav": { "label": "Audit", "icon": "history" },
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}

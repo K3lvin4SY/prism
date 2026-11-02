@@ -70,6 +70,7 @@ Prism is a set of extensions for Pterodactyl Panel 2.0. Install only the ones yo
 | Extension | Description |
 | --- | --- |
 | <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Mail](prism-mail)** | Your logo, color and wording on the panel's emails, a live preview and a test send for each of them, and a delivery log. |
+| <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Audit](prism-audit)** | Everything that happens on the panel as one readable timeline, with filters, CSV export and alerts on risky activity by email or webhook. |
 
 ## Requirements
 

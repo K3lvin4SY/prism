@@ -12,7 +12,7 @@ export interface SettingField {
     value: unknown;
 }
 
-export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-satisfactory' | 'prism-auth' | 'prism-share' | 'prism-notes' | 'prism-roles' | 'prism-discord' | 'prism-mail';
+export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-satisfactory' | 'prism-auth' | 'prism-share' | 'prism-notes' | 'prism-roles' | 'prism-discord' | 'prism-mail' | 'prism-audit';
 
 /** The groups of the Prism Properties sidebar, in order. */
 export const CATEGORIES = ['Appearance', 'Server tools', 'Games', 'Collaboration', 'Hosting'] as const;
@@ -45,6 +45,7 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-roles', name: 'Prism Roles', icon: 'user-cog', category: 'Collaboration', description: 'Reusable permission sets for subusers, such as Moderator, Builder and Viewer, panel-wide or your own; changing a role updates everyone who has it.' },
     { id: 'prism-discord', name: 'Prism Discord', icon: 'message-circle', category: 'Collaboration', description: 'Discord messages when a server starts, stops or crashes, a backup finishes or fails, and players join or leave, and slash commands to start, stop and check servers.' },
     { id: 'prism-mail', name: 'Prism Mail', icon: 'mail', category: 'Hosting', description: 'Your logo, color and wording on the panel\'s emails, a test send for each of them, and a log of what was sent.' },
+    { id: 'prism-audit', name: 'Prism Audit', icon: 'history', category: 'Hosting', description: 'Everything that happens on the panel as one readable timeline, with filters, CSV export and alerts on risky things such as an admin signing in from a new address.' },
 ];
 
 export const settingsKey = (id: PrismId) => ['prism-core', 'settings', id] as const;

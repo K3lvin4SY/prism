@@ -178,6 +178,19 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         footer_text: { section: 'Wording' },
         log_days: { slider: { min: 1, max: 365, unit: ' days' } },
     },
+    'prism-audit': {
+        rule_new_ip: { section: 'Sign-ins from a new address' },
+        new_ip_who: { section: 'Sign-ins from a new address', segmented: true },
+        new_ip_days: { section: 'Sign-ins from a new address', slider: { min: 1, max: 365, unit: ' days' } },
+        rule_failed: { section: 'Failed sign-ins' },
+        fail_count: { section: 'Failed sign-ins', slider: { min: 2, max: 100 } },
+        fail_minutes: { section: 'Failed sign-ins', slider: { min: 1, max: 120, unit: ' min' } },
+        rule_two_factor: { section: 'Accounts and admins' },
+        admin_events: { section: 'Accounts and admins' },
+        alert_email: { section: 'Who hears about it' },
+        alert_webhook_on: { section: 'Who hears about it' },
+        alert_webhook: { section: 'Who hears about it' },
+    },
 };
 
 /** Prism Console's built-in highlight rules, in the order they are listed. */
