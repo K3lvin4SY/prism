@@ -191,6 +191,10 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         alert_webhook_on: { section: 'Who hears about it' },
         alert_webhook: { section: 'Who hears about it' },
     },
+    'prism-status': {
+        history_days: { segmented: true },
+        require_sign_in: { section: 'Who can see it' },
+    },
 };
 
 /** Prism Console's built-in highlight rules, in the order they are listed. */

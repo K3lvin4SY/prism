@@ -1,0 +1,31 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-status",
+    "name": "Prism Status",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "A public status page at /status for the nodes and servers you choose, with uptime history and incident posts that can also show as the panel's announcement.",
+    "author": "Donkare",
+    "icon": "activity",
+    "provider": "PrismStatus\\PrismStatusProvider",
+    "routes": { "root": ["status"] },
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "pst",
+        "screens": [
+            {
+                "id": "admin-status",
+                "area": "admin",
+                "path": "status-page",
+                "nav": { "label": "Status page", "icon": "activity" },
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}

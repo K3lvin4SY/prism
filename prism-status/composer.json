@@ -1,0 +1,11 @@
+{
+    "description": "A public status page for chosen nodes and servers, with uptime history and incidents.",
+    "autoload": {
+        "psr-4": {
+            "PrismStatus\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismStatusExtension"
+    }
+}

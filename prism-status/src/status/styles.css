@@ -1,0 +1,277 @@
+/*
+ * The status page is outside the panel's app, so it has its own small stylesheet. Only pst-
+ * classes: nothing here can reach the panel's own pages. Follows the visitor's light or dark mode.
+ */
+.pst-body {
+    --pst-bg: #0b0f17;
+    --pst-card: #121826;
+    --pst-border: #232b3b;
+    --pst-text: #e5e7eb;
+    --pst-muted: #9aa3b2;
+    --pst-up: #22c55e;
+    --pst-minor: #eab308;
+    --pst-major: #f97316;
+    --pst-down: #ef4444;
+    --pst-maintenance: #3b82f6;
+    --pst-none: #2a3242;
+    margin: 0;
+    background: var(--pst-bg);
+    color: var(--pst-text);
+    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: light) {
+    .pst-body {
+        --pst-bg: #f4f6f9;
+        --pst-card: #ffffff;
+        --pst-border: #e3e7ee;
+        --pst-text: #1d2330;
+        --pst-muted: #5f6b7d;
+        --pst-none: #dde2ea;
+    }
+}
+
+.pst-page {
+    box-sizing: border-box;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 16px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pst-page *,
+.pst-page *::before,
+.pst-page *::after {
+    box-sizing: inherit;
+}
+
+.pst-page h1,
+.pst-page h2,
+.pst-page p,
+.pst-page ol {
+    margin: 0;
+}
+
+.pst-muted {
+    color: var(--pst-muted);
+}
+
+.pst-error {
+    color: var(--pst-down);
+}
+
+.pst-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+}
+
+.pst-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.pst-logo {
+    max-height: 48px;
+    max-width: 220px;
+}
+
+.pst-intro {
+    max-width: 600px;
+    white-space: pre-line;
+}
+
+.pst-overall {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--pst-up);
+}
+
+.pst-overall-minor {
+    background: var(--pst-minor);
+    color: #1d1a05;
+}
+
+.pst-overall-major {
+    background: var(--pst-down);
+}
+
+.pst-overall-maintenance {
+    background: var(--pst-maintenance);
+}
+
+.pst-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.85;
+}
+
+.pst-card {
+    background: var(--pst-card);
+    border: 1px solid var(--pst-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.pst-group + .pst-group {
+    border-top: 1px solid var(--pst-border);
+}
+
+.pst-group h2 {
+    padding: 14px 20px 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pst-muted);
+}
+
+.pst-row {
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pst-row + .pst-row {
+    border-top: 1px solid var(--pst-border);
+}
+
+.pst-row-head,
+.pst-row-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pst-row-foot {
+    font-size: 12px;
+}
+
+.pst-label {
+    font-weight: 600;
+}
+
+.pst-state {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.pst-state-up {
+    color: var(--pst-up);
+}
+
+.pst-state-degraded {
+    color: var(--pst-minor);
+}
+
+.pst-state-down {
+    color: var(--pst-down);
+}
+
+.pst-state-maintenance {
+    color: var(--pst-maintenance);
+}
+
+.pst-state-unknown {
+    color: var(--pst-muted);
+}
+
+.pst-bars {
+    display: flex;
+    gap: 2px;
+    height: 32px;
+}
+
+.pst-bar {
+    flex: 1 1 0;
+    min-width: 2px;
+    border-radius: 2px;
+    background: var(--pst-none);
+}
+
+.pst-bar-up {
+    background: var(--pst-up);
+}
+
+.pst-bar-minor {
+    background: var(--pst-minor);
+}
+
+.pst-bar-major {
+    background: var(--pst-major);
+}
+
+.pst-bar-down {
+    background: var(--pst-down);
+}
+
+.pst-incident {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-left: 4px solid var(--pst-minor);
+}
+
+.pst-impact-major {
+    border-left-color: var(--pst-down);
+}
+
+.pst-impact-maintenance {
+    border-left-color: var(--pst-maintenance);
+}
+
+.pst-resolved {
+    border-left-color: var(--pst-up);
+}
+
+.pst-incident header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pst-incident h2 {
+    font-size: 17px;
+}
+
+.pst-updates {
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pst-updates p {
+    margin-top: 2px;
+    white-space: pre-line;
+}
+
+.pst-past {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pst-past > h2 {
+    font-size: 17px;
+}
+
+.pst-footer {
+    text-align: center;
+    font-size: 13px;
+}

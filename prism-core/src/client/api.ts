@@ -12,7 +12,7 @@ export interface SettingField {
     value: unknown;
 }
 
-export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-satisfactory' | 'prism-auth' | 'prism-share' | 'prism-notes' | 'prism-roles' | 'prism-discord' | 'prism-mail' | 'prism-audit';
+export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-satisfactory' | 'prism-auth' | 'prism-share' | 'prism-notes' | 'prism-roles' | 'prism-discord' | 'prism-mail' | 'prism-audit' | 'prism-status';
 
 /** The groups of the Prism Properties sidebar, in order. */
 export const CATEGORIES = ['Appearance', 'Server tools', 'Games', 'Collaboration', 'Hosting'] as const;
@@ -46,6 +46,7 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-discord', name: 'Prism Discord', icon: 'message-circle', category: 'Collaboration', description: 'Discord messages when a server starts, stops or crashes, a backup finishes or fails, and players join or leave, and slash commands to start, stop and check servers.' },
     { id: 'prism-mail', name: 'Prism Mail', icon: 'mail', category: 'Hosting', description: 'Your logo, color and wording on the panel\'s emails, a test send for each of them, and a log of what was sent.' },
     { id: 'prism-audit', name: 'Prism Audit', icon: 'history', category: 'Hosting', description: 'Everything that happens on the panel as one readable timeline, with filters, CSV export and alerts on risky things such as an admin signing in from a new address.' },
+    { id: 'prism-status', name: 'Prism Status', icon: 'activity', category: 'Hosting', description: 'A public status page at /status for the nodes and servers you choose, with uptime history and incident posts that can also show as the announcement.' },
 ];
 
 export const settingsKey = (id: PrismId) => ['prism-core', 'settings', id] as const;
