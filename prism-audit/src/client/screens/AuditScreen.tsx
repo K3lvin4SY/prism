@@ -10,10 +10,10 @@ import { dayOf, describe, family } from '../lib/describe';
 
 const FAMILY_ICONS: Record<ReturnType<typeof family>, string> = { auth: 'key-round', user: 'user', server: 'server', admin: 'shield', other: 'puzzle' };
 const FAMILY_TONES: Record<ReturnType<typeof family>, string> = {
-    auth: 'pad:text-sky-500',
-    user: 'pad:text-violet-500',
-    server: 'pad:text-emerald-500',
-    admin: 'pad:text-amber-500',
+    auth: 'pad:text-primary',
+    user: 'pad:text-chart-2',
+    server: 'pad:text-success',
+    admin: 'pad:text-warning',
     other: 'pad:text-muted-foreground',
 };
 
@@ -98,7 +98,7 @@ function Row({ entry, onFilter }: { entry: Entry; onFilter: (next: Partial<Filte
                             <span className={'pad:font-semibold'}>{name}</span>
                         )}{' '}
                         {describe(entry.event, entry.properties)}
-                        {entry.actor?.admin && <span className={'pad:ml-1.5 pad:text-xs pad:text-amber-500'}>admin</span>}
+                        {entry.actor?.admin && <span className={'pad:ml-1.5 pad:text-xs pad:text-warning'}>admin</span>}
                         {entry.api && entry.actor && <span className={'pad:ml-1.5 pad:text-xs pad:text-muted-foreground'}>via API key</span>}
                     </p>
                     {others.length > 0 && (

@@ -195,6 +195,7 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         history_days: { segmented: true },
         require_sign_in: { section: 'Who can see it' },
     },
+    'prism-nodes': {},
 };
 
 /** Prism Console's built-in highlight rules, in the order they are listed. */

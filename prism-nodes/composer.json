@@ -1,0 +1,11 @@
+{
+    "description": "Node health, maintenance mode and moving servers between nodes.",
+    "autoload": {
+        "psr-4": {
+            "PrismNodes\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismNodesExtension"
+    }
+}

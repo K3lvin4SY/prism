@@ -72,6 +72,7 @@ Prism is a set of extensions for Pterodactyl Panel 2.0. Install only the ones yo
 | <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Mail](prism-mail)** | Your logo, color and wording on the panel's emails, a live preview and a test send for each of them, and a delivery log. |
 | <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Audit](prism-audit)** | Everything that happens on the panel as one readable timeline, with filters, CSV export and alerts on risky activity by email or webhook. |
 | <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Status](prism-status)** | A public status page for the nodes and servers you choose, with uptime history and incident posts that can also show as the announcement. |
+| <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Nodes](prism-nodes)** | A health page for every node: Wings version and updates, host and server usage with history, maintenance mode, and moving servers between nodes. |
 
 ## Requirements
 
