@@ -169,6 +169,15 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
         public_key: { section: 'Your Discord application' },
         bot_token: { section: 'Your Discord application' },
     },
+    'prism-mail': {
+        brand_color: { section: 'Branding' },
+        logo: { section: 'Branding' },
+        layout_logo: { section: 'Branding' },
+        header_text: { section: 'Wording' },
+        sign_off: { section: 'Wording' },
+        footer_text: { section: 'Wording' },
+        log_days: { slider: { min: 1, max: 365, unit: ' days' } },
+    },
 };
 
 /** Prism Console's built-in highlight rules, in the order they are listed. */

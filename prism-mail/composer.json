@@ -1,0 +1,11 @@
+{
+    "description": "Branding, wording, test sends and a delivery log for the panel's emails.",
+    "autoload": {
+        "psr-4": {
+            "PrismMail\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismMailExtension"
+    }
+}

@@ -65,6 +65,12 @@ Prism is a set of extensions for Pterodactyl Panel 2.0. Install only the ones yo
 | <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Roles](prism-roles)** | Reusable permission sets for subusers, such as Moderator, Builder and Viewer, panel-wide or your own; changing a role updates everyone who has it. |
 | <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Discord](prism-discord)** | Discord messages when a server starts, stops or crashes, a backup finishes or fails, and players join or leave, and slash commands to start, stop and check servers from Discord. |
 
+### Hosting
+
+| Extension | Description |
+| --- | --- |
+| <img src="assets/placeholder.svg" width="20" height="20" align="center"> **[Prism Mail](prism-mail)** | Your logo, color and wording on the panel's emails, a live preview and a test send for each of them, and a delivery log. |
+
 ## Requirements
 
 - Pterodactyl Panel `2.0` with extension SDK `>= 2.0.0-beta.6`

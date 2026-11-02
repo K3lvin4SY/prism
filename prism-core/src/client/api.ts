@@ -12,9 +12,9 @@ export interface SettingField {
     value: unknown;
 }
 
-export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-satisfactory' | 'prism-auth' | 'prism-share' | 'prism-notes' | 'prism-roles' | 'prism-discord';
+export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-satisfactory' | 'prism-auth' | 'prism-share' | 'prism-notes' | 'prism-roles' | 'prism-discord' | 'prism-mail';
 
-/** The groups of the Prism Properties sidebar, in order. Hosting has no extension yet. */
+/** The groups of the Prism Properties sidebar, in order. */
 export const CATEGORIES = ['Appearance', 'Server tools', 'Games', 'Collaboration', 'Hosting'] as const;
 export type Category = (typeof CATEGORIES)[number];
 
@@ -44,6 +44,7 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-notes', name: 'Prism Notes', icon: 'notebook-pen', category: 'Collaboration', description: 'Notes and checklists for each server, shared with its subusers, with pinned notes above the console.' },
     { id: 'prism-roles', name: 'Prism Roles', icon: 'user-cog', category: 'Collaboration', description: 'Reusable permission sets for subusers, such as Moderator, Builder and Viewer, panel-wide or your own; changing a role updates everyone who has it.' },
     { id: 'prism-discord', name: 'Prism Discord', icon: 'message-circle', category: 'Collaboration', description: 'Discord messages when a server starts, stops or crashes, a backup finishes or fails, and players join or leave, and slash commands to start, stop and check servers.' },
+    { id: 'prism-mail', name: 'Prism Mail', icon: 'mail', category: 'Hosting', description: 'Your logo, color and wording on the panel\'s emails, a test send for each of them, and a log of what was sent.' },
 ];
 
 export const settingsKey = (id: PrismId) => ['prism-core', 'settings', id] as const;

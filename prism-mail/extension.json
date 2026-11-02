@@ -1,0 +1,30 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-mail",
+    "name": "Prism Mail",
+    "version": "0.1.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Your logo, color and wording on the panel's emails, a test-send button for each of them, and a log of what was sent.",
+    "author": "Donkare",
+    "icon": "mail",
+    "provider": "PrismMail\\PrismMailProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "pml",
+        "screens": [
+            {
+                "id": "admin-mail",
+                "area": "admin",
+                "path": "mail",
+                "nav": { "label": "Emails", "icon": "mail" },
+                "when": { "runtime": true }
+            }
+        ]
+    }
+}
