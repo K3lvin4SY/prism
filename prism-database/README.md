@@ -16,18 +16,43 @@
 
 ---
 
+![Prism Database Manager: your data, without leaving the panel.](slides/01.png)
+
 ## Overview
 
 Prism Database Manager replaces each server's Databases page with a full database manager. Browse and edit tables, run queries, move data in and out, and keep backups without leaving the Panel.
 
 ## Features
 
-- **Table browser**: page through rows and edit them in place.
-- **SQL console**: run queries with a row limit and time limit, optionally read only.
+### SQL console
+
+![Ask your data anything.](slides/02.png)
+
+**Ask your data anything.**
+
+- **SQL console**: run queries with a row limit and a time limit, and switch the console to read only when you want it safe.
+
+### Import, export and backups
+
+![In, out, and kept safe.](slides/03.png)
+
+**In, out, and kept safe.**
+
 - **Import and export**: load SQL dumps and download exports.
 - **Backups**: back up databases on a schedule, with limits on how many are kept and how much space they use.
+
+### Sharing and usage
+
+![One database, many servers.](slides/04.png)
+
+**One database, many servers.**
+
 - **Sharing**: give another server access to a database.
 - **Usage history**: see how a database grows over time.
+
+### Also
+
+- **Table browser**: page through rows and edit them in place.
 
 ## Settings
 

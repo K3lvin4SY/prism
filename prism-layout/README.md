@@ -16,19 +16,52 @@
 
 ---
 
+![Prism Layout: one panel, shaped for every screen.](slides/01.png)
+
 ## Overview
 
 Prism Layout changes how the Panel is laid out: the navigation, the dashboard and its server cards, your branding, and the sign-in page. It works with any theme, including [Prism Themes](../prism-themes).
 
 ## Features
 
-- **Navigation layouts**: sidebar, top bar, dock, expandable dock, sidebar with top bar, rail, rail with top bar, or top bar with dock. Choose a separate layout for computers, tablets and phones.
+### Navigation
+
+![Choose how you get around.](slides/02.png)
+
+**Choose how you get around.**
+
+- **Navigation layouts**: sidebar, top bar, dock, expandable dock, sidebar with top bar, rail, rail with top bar, or top bar with dock.
+- **Per device**: drag PC, tablet and mobile onto the layout each one should use.
+
+### Server cards
+
+![Every server, at a glance.](slides/03.png)
+
+**Every server, at a glance.**
+
 - **Server cards**: rows that line up in columns or tiles (optionally with a picture), status as a badge or dot, usage as bars or numbers, the game's logo or color, and colored power buttons on each card.
 - **Dashboard**: an overview with filters above the server list.
+
+### Branding and sign-in
+
+![Make it yours.](slides/04.png)
+
+**Make it yours.**
+
 - **Branding**: your own logo and favicon, the logo's size and where it sits.
 - **Sign-in page**: card, split or backdrop; on a split page your logo with a bold headline and a tagline beside the form.
-- **Announcements**: a bar or card with a badge, a kind, audience, link, start and end time, and an optional close button.
+
+### Ctrl+K and announcements
+
+![Everything, one keystroke away.](slides/05.png)
+
+**Everything, one keystroke away.**
+
 - **Ctrl+K command palette**: jump to any server or page from the keyboard.
+- **Announcements**: a bar or card with a badge, a kind, audience, link, start and end time, and an optional close button.
+
+### Also
+
 - **Extras**: page width and spacing, a light and dark switch, grouped server pages, a collapsible sidebar, footer links, and the admin area laid out to match.
 
 ## Settings

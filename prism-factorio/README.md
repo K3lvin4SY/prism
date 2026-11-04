@@ -16,18 +16,42 @@
 
 ---
 
+![Prism Factorio: the factory must grow. So should your tools.](slides/01.png)
+
 ## Overview
 
 Prism Factorio adds Factorio tabs to every Factorio server. It finds them by egg tag or by a startup command that runs `bin/x64/factorio`, so the standard Factorio egg works without changes.
 
 ## Features
 
-- **Players**: who is online and who has played, read from the server's console, with a page per player showing what they said. Kick, ban, make admin, whitelist and message players. On a running server these are the game's own commands; on a stopped one the list files change for the next start.
-- **Mods**: search the whole Factorio mod portal for mods with a release for the server's game version, install them with the mods they need (checked against the portal's SHA-1), update them, and turn them on and off in `mod-list.json`. The Space Age expansion's mods can be turned on and off too.
-- **Versions**: every headless version there is, the latest stable or experimental version, or a fixed one. Switching reinstalls the server with the egg, which keeps the settings, saves and mods, and can back up the saves first.
-- **Properties**: everything in `data/server-settings.json` and the save the server opens. Settings the egg fills in from startup variables on each start (name, description, max players and others) are saved to those variables too.
+### Players
+
+![Run the crew, not the console.](slides/02.png)
+
+**Run the crew, not the console.**
+
+- **Players**: who is online and who has played, read from the server's console, with a page per player showing what they said.
+- **Actions**: kick, ban, make admin, whitelist and message players. On a running server these are the game's own commands; on a stopped one the list files change for the next start.
+
+### Mods
+
+![The whole portal, one search.](slides/03.png)
+
+**The whole portal, one search.**
+
+- **Mods**: search the whole Factorio mod portal for mods with a release for the server's game version, install them with the mods they need (checked against the portal's SHA-1), update them, and turn them on and off in `mod-list.json`.
+- **Space Age**: the expansion's mods can be turned on and off too.
 
 Mod downloads need a factorio.com username and token: the server's own, from Properties, or one an administrator adds in Prism Properties.
+
+### Versions and properties
+
+![Every version, every setting.](slides/04.png)
+
+**Every version, every setting.**
+
+- **Versions**: every headless version there is, the latest stable or experimental version, or a fixed one. Switching reinstalls the server with the egg, which keeps the settings, saves and mods, and can back up the saves first.
+- **Properties**: everything in `data/server-settings.json` and the save the server opens. Settings the egg fills in from startup variables on each start (name, description, max players and others) are saved to those variables too.
 
 ## Settings
 

@@ -16,11 +16,21 @@
 
 ---
 
+![Prism Share: guest links for your server, no account needed.](slides/01.png)
+
 ## Overview
 
 Prism Share adds a **Share links** page to each server. A link opens a page at `/share` that needs no account and shows only what the link allows. Each link has its own options, which can be changed while it is in use, and an expiry. Revoking a link disconnects anyone using it at once.
 
-## What a link can allow
+## Features
+
+### What a link allows
+
+![Share exactly what you mean.](slides/02.png)
+
+**Share exactly what you mean.**
+
+Each link has its own options, changeable while it is in use, and its own expiry. A link can allow:
 
 - **Watch the console**, with live CPU, memory and network use.
 - **Send console commands** (off for every link unless the administrator allows it).
@@ -28,7 +38,21 @@ Prism Share adds a **Share links** page to each server. A link opens a page at `
 - **Download files** from the folders and files the link names.
 - **Download backups**: the ones the link names. A backup is the way to share a whole world.
 
-## How it stays safe
+### The guest page
+
+![One link. No sign-up.](slides/03.png)
+
+**One link. No sign-up.**
+
+The link opens a page that needs no account and shows only what you allowed: the console, the power buttons, files and backups. Links that may send commands get a command box.
+
+### Safe by design
+
+![Open the door, keep the keys.](slides/04.png)
+
+**Open the door, keep the keys.**
+
+Guest access is checked on every request, logged, and gone the moment you revoke it.
 
 - **Never more than its maker.** Every option needs the matching panel permission (for example `control.restart` to share Restart). It is checked when the link is saved and again on every request, so whoever saved the link losing a permission takes it from the link too. Whoever saves a link vouches for it: they must be able to give every option on it.
 - **The administrator decides what may be shared at all**, and for how long, in Prism Properties.
@@ -45,6 +69,14 @@ Known limits:
 - Lowering the longest lifetime applies to new and changed links, not to links already made.
 - A file is checked for symlinks just before its download link is made; a process on the server could swap it for a symlink in the minute between. Do not share folders the game server itself rewrites with links in them.
 - The guest page runs outside the panel's app, so it uses `@tabler/icons-react` directly instead of the generated `NamedIcon` (the same Tabler icons).
+
+### Share links
+
+![Every link, in one place.](slides/05.png)
+
+**Every link, in one place.**
+
+Change what a link allows while it is in use, see who made it and when it was last opened, and revoke it with one click. Every open, download and button press is logged.
 
 ## Settings
 

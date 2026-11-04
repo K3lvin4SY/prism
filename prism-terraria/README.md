@@ -16,18 +16,45 @@
 
 ---
 
+![Prism Terraria: vanilla, TShock or tModLoader, all in one place.](slides/01.png)
+
 ## Overview
 
 Prism Terraria adds Terraria tabs to every Terraria server. It detects whether the server runs vanilla Terraria, TShock or tModLoader and shows the tabs that fit.
 
 ## Features
 
+### Players
+
+![Know who is digging.](slides/02.png)
+
+**Know who is digging.**
+
 - **Players**: who is online and their activity, read from the console and logs. On TShock, accounts, characters and bans too.
-- **World**: a map of the world file.
-- **Versions**: switch the Terraria, TShock or tModLoader release.
-- **Properties**: the server's config in groups.
+
+### Mods and plugins
+
+![Mods or plugins, your pick.](slides/03.png)
+
+**Mods or plugins, your pick.**
+
 - **Mods**: browse and install tModLoader mods from the Steam Workshop.
 - **Plugins**: browse and install TShock plugins.
+
+Which one you get depends on what the server runs.
+
+### Versions and properties
+
+![Any release, tidy config.](slides/04.png)
+
+**Any release, tidy config.**
+
+- **Versions**: switch the Terraria, TShock or tModLoader release.
+- **Properties**: the server's config in groups.
+
+### Also
+
+- **World**: a map of the world file.
 
 ## Detection
 

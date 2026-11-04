@@ -16,21 +16,51 @@
 
 ---
 
+![Prism Console: a better console for every server.](slides/01.png)
+
 ## Overview
 
 Prism Console replaces the console page of every server. It keeps everything the Panel's console does and adds layouts, search, highlight rules, quick commands and live charts. Admins set the defaults; people can keep their own choices if you allow it.
 
 ## Features
 
-- **Layouts**: several console layouts, full width or not, with or without the Panel's header.
-- **Command history**: remembered per server and following people between devices; ↑ or Ctrl+R opens it in a box above the command line.
+### Search and highlights
+
+![Find it in the noise.](slides/02.png)
+
+**Find it in the noise.**
+
 - **Search and filters**: find text in the output and filter by log level, with an All / Info / Warn / Error switch or pills with counts.
 - **Highlight rules**: color lines or words that match a pattern.
+
+### Quick commands
+
+![Type it once.](slides/03.png)
+
+**Type it once.**
+
 - **Quick commands**: buttons above the command line for commands you send often, kept for each server and shared by everyone on it.
-- **Export and copy**: save or copy the console output.
-- **Live charts**: CPU, memory, disk and network next to the console.
-- **Image pull progress**: a floating card showing progress while the server's image downloads.
+- **Command history**: remembered per server and following people between devices; ↑ or Ctrl+R opens it in a box above the command line.
+
+### Live charts
+
+![See the load as it happens.](slides/04.png)
+
+**See the load as it happens.**
+
+- **Live charts**: CPU, memory, disk and network, charted live next to the console.
+
+### Layouts and extras
+
+![Shaped the way you work.](slides/05.png)
+
+**Shaped the way you work.**
+
+- **Layouts**: several console layouts, full width or not, with or without the Panel's header.
 - **Terminal settings**: font, text size, line height, line wrapping and timestamps.
+- **Export and copy**: save or copy the console output.
+- **Image pull progress**: a floating card showing progress while the server's image downloads.
+- **Defaults and personal choices**: admins set the defaults; people can keep their own.
 
 ## Settings
 

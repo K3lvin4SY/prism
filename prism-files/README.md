@@ -16,20 +16,45 @@
 
 ---
 
+![Prism File Browser: edit server files like you edit code.](slides/01.png)
+
 ## Overview
 
 Prism File Browser replaces the Panel's file manager. Files open in a workbench built on Monaco, the editor behind VS Code, with tabs and a file tree. Deleted files go to a trash bin first, and uploads go through a queue.
 
 ## Features
 
+### Views and bulk actions
+
+![See it. Select it.](slides/02.png)
+
+**See it. Select it.**
+
+- **File views**: list or grid, with previews for images and other files.
+- **Bulk actions**: select many files to move, archive, change permissions or delete together.
+
+### Trash and uploads
+
+![Deleted is not gone.](slides/03.png)
+
+**Deleted is not gone.**
+
+- **Trash bin**: deleted files wait in a trash bin for as many days as you choose.
+- **Upload queue**: large uploads, several at the same time.
+
+### Paths and settings
+
+![Hands off what matters.](slides/04.png)
+
+**Hands off what matters.**
+
+- **Hidden and protected paths**: glob patterns that hide files or stop them from being changed, enforced on the server, optionally for admins too.
+- **Personal editor settings**: people can keep their own editor settings and keybinds if you allow it.
+
+### Also
+
 - **Editor workbench**: Monaco with tabs, a file tree, minimap, sticky scroll, bracket colors, auto save and keybinds. Colors follow your theme.
 - **Monaco on the edit page**: the Panel's own edit page uses the same editor.
-- **File views**: list or grid, with previews for images and other files.
-- **Bulk actions**: select many files to move, archive or delete together.
-- **Trash bin**: restore deleted files for a set number of days.
-- **Upload queue**: large uploads, several at the same time.
-- **Hidden and protected paths**: glob patterns that hide files or stop them from being changed, enforced on the server, optionally for admins too.
-- **Personal editor settings**: people can change their own editor settings and keybinds if you allow it.
 
 ## Settings
 

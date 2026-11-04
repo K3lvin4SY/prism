@@ -16,15 +16,37 @@
 
 ---
 
+![Prism Auth: sign in the way your players already do.](slides/01.png)
+
 ## Overview
 
 Prism Auth adds sign-in providers to the Panel's login page, a **Sign-in methods** page in account settings where people link and unlink providers, and optional sign-up with email confirmation.
 
 ## Features
 
+### Providers
+
+![Any provider, your order.](slides/02.png)
+
+**Any provider, your order.**
+
 - **Providers**: Google, Discord, Steam, GitHub and any OpenID Connect provider (Authentik, Keycloak, Entra ID, ...), added and ordered in Prism Properties.
 - **Sign-in page**: provider buttons as rows or icons, with your own divider text.
-- **Account linking**: link providers from the account page, or match accounts by email automatically, optionally including admins.
+
+### Sign-in methods
+
+![Link once, sign in anywhere.](slides/03.png)
+
+**Link once, sign in anywhere.**
+
+- **Account linking**: link and unlink providers from the account page, or match accounts by email automatically, optionally including admins.
+
+### Sign-up
+
+![Open the doors, not to bots.](slides/04.png)
+
+**Open the doors, not to bots.**
+
 - **Sign-up**: let people create an account with a confirmed email, with username rules, name fields, password rules, allowed and blocked email domains, a terms page and an expiring confirmation link.
 - **Spam protection**: a bot trap, Cloudflare Turnstile and a limit on sign-ups per network per hour.
 

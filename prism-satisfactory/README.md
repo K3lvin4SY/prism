@@ -16,6 +16,8 @@
 
 ---
 
+![Prism Satisfactory: run your factory server from the panel.](slides/01.png)
+
 ## Overview
 
 Prism Satisfactory adds Satisfactory tabs to every Satisfactory server. It finds them by egg tag, by the Steam app id (1690800) or by the startup command, so the standard Satisfactory egg works without changes.
@@ -24,10 +26,32 @@ Satisfactory keeps most of its settings itself and changes them through its HTTP
 
 ## Features
 
+### Players
+
+![Who is on shift.](slides/02.png)
+
+**Who is on shift.**
+
 - **Players**: how many are on (from the API) and who, from the joins in the server's log, with everyone seen before. The dedicated server has no kick or ban, so this is read only.
-- **Mods**: search ficsit.app, the repository the Satisfactory Mod Manager uses, and install mods with the mods they need, each at the newest version with a Linux server build for the server's game build, checked against the repository's SHA-256. The Satisfactory Mod Loader comes along with the first mod. Turn mods off without removing them, and update them.
+
+### Mods
+
+![Mods from ficsit.app.](slides/03.png)
+
+**Mods from ficsit.app.**
+
+- **Mods**: search ficsit.app, the repository the Satisfactory Mod Manager uses, and install mods with the mods they need, each at the newest version with a Linux server build for the server's game build, checked against the repository's SHA-256.
+- **Mod loader**: the Satisfactory Mod Loader comes along with the first mod. Turn mods off without removing them, and update them.
+
+### Versions and properties
+
+![Start fresh, or carry on.](slides/04.png)
+
+**Start fresh, or carry on.**
+
 - **Versions**: switch between the public and experimental Steam builds.
-- **Properties**: the server name, join and admin passwords, auto pause, autosaves, the daily restart, network quality and the egg's startup variables; start a new game at a chosen starting location, save, and pick the session that loads on start.
+- **Properties**: the server name, join and admin passwords, auto pause, autosaves, the daily restart, network quality and the egg's startup variables.
+- **Games and saves**: start a new game at a chosen starting location, save, and pick the session that loads on start.
 
 ## Settings
 

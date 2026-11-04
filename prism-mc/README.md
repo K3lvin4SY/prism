@@ -16,23 +16,52 @@
 
 ---
 
+![Prism MC: Minecraft tools for every Java and Bedrock server.](slides/01.png)
+
 ## Overview
 
 Prism MC adds Minecraft tabs to every Minecraft server. It detects the edition (Java or Bedrock), the server software (Paper, Purpur, Fabric, Forge, NeoForge, Quilt, Velocity, BungeeCord, Pumpkin, ...) and the game version, and shows only the tabs that make sense for that server.
 
 ## Features
 
+### Players
+
+![Every player, up close.](slides/02.png)
+
+**Every player, up close.**
+
 - **Players**: online and known players with 3D skins. Each player has a page with their inventory, ender chest, advancements and actions: gamemode, XP, heal, kick, teleport, op, whitelist and ban. Offline inventories can be edited.
-- **World**: a map drawn from the world's region files, with player markers.
-- **Versions**: switch the server software and game version.
-- **Properties**: `server.properties` in groups, and a MOTD editor with color codes, hex colors and gradients.
+
+### World
+
+![Your world, from above.](slides/03.png)
+
+**Your world, from above.**
+
+- **World**: a map drawn straight from the world's region files, with a marker for every player online.
+
+### Plugins and mods
+
+![Install it, safely.](slides/04.png)
+
+**Install it, safely.**
+
 - **Plugins and mods**: search Modrinth and Pumpkin Market, pick a version, install dependencies and manage what's installed.
 - **Modpacks**: install Modrinth modpacks.
-- **Crossplay**: install and update Geyser and Floodgate so Bedrock players can join, or turn on Pumpkin's own Bedrock support.
-- **Proxy networks**: link servers to a Velocity or BungeeCord proxy and set up forwarding.
 - **PatchBukkit**: Bukkit plugins on Pumpkin.
 
 Installs run as plans on the Panel's queue with progress, checksum checks and rollback.
+
+### Versions and properties
+
+![Any software, any version.](slides/05.png)
+
+**Any software, any version.**
+
+- **Versions**: switch the server software and game version.
+- **Properties**: `server.properties` in groups, and a MOTD editor with color codes, hex colors and gradients.
+- **Crossplay**: install and update Geyser and Floodgate so Bedrock players can join, or turn on Pumpkin's own Bedrock support.
+- **Proxy networks**: link servers to a Velocity or BungeeCord proxy and set up forwarding.
 
 ## Detection
 

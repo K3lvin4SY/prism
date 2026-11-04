@@ -16,18 +16,47 @@
 
 ---
 
+![Prism Schedules: your server, on autopilot.](slides/01.png)
+
 ## Overview
 
 Prism Schedules is a schedules engine for every server. Schedules are built from steps, run on the Panel's queue, and keep a history of every run with live progress.
 
 ## Features
 
+### Steps and conditions
+
+![Build it step by step.](slides/02.png)
+
+**Build it step by step.**
+
 - **Steps**: commands, power actions, backups, waits, countdowns that warn players, and Discord messages.
 - **If/Else and conditions**: run steps only when a condition holds, such as the server being online.
+
+### Triggers and presets
+
+![Runs when it should.](slides/03.png)
+
+**Runs when it should.**
+
 - **Triggers**: a time, or when the server starts, stops, crashes or becomes empty.
 - **Presets**: ready-made schedules such as a daily restart with warnings, crash recovery or an hourly backup.
-- **Week calendar**: see when every schedule runs.
-- **Run history**: each run's steps, output and live progress.
+
+### Week calendar
+
+![Your whole week at a glance.](slides/04.png)
+
+**Your whole week at a glance.**
+
+- **Week calendar**: see when every schedule runs, side by side, before they get in each other's way.
+
+### Run history
+
+![Watch every run, live.](slides/05.png)
+
+**Watch every run, live.**
+
+- **Run history**: each run keeps its steps and output. Follow the one in progress as it happens.
 
 ## Settings
 

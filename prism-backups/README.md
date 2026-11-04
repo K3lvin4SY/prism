@@ -16,16 +16,41 @@
 
 ---
 
+![Prism Backups: back up what matters, restore just what you need.](slides/01.png)
+
 ## Overview
 
 Prism Backups extends each server's Backups page. Save profiles that decide which files a backup includes, look inside any backup, and restore just the files you need instead of the whole server.
 
 ## Features
 
-- **Backup profiles**: named sets of include and exclude patterns, picked when you make a backup.
+### Backup profiles
+
+![Choose what goes in.](slides/02.png)
+
+**Choose what goes in.**
+
+- **Backup profiles**: named sets of paths to include and patterns to leave out, picked when you make a backup.
+
+### Browse and restore
+
+![Bring back one file.](slides/03.png)
+
+**Bring back one file.**
+
 - **Browse inside backups**: open a backup and look through its files.
-- **Restore single files**: bring back one file or folder from a backup.
-- **`.pteroignore` editor**: edit the server's ignore file with a tester that shows which paths it matches.
+- **Restore single files**: bring back one file or folder from a backup instead of rolling back the whole server.
+
+### .pteroignore
+
+![Ignore files, with proof.](slides/04.png)
+
+**Ignore files, with proof.**
+
+- **`.pteroignore` editor**: edit the server's ignore file next to a tester that shows which line decides a path, and why. Rules work like `.gitignore`.
+
+### Also
+
 - **Owners only**: optionally give the extras to server owners only.
 
 ## Settings

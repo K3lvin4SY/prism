@@ -16,20 +16,45 @@
 
 ---
 
+![Prism Core Keeper: dig deeper, manage less.](slides/01.png)
+
 ## Overview
 
 Prism Core Keeper adds Core Keeper tabs to every Core Keeper server. It finds them by egg tag, by the Steam app id (1963720) or by the startup command, so the standard Core Keeper egg works without changes.
 
 ## Features
 
+### Players
+
+![A page for every player.](slides/02.png)
+
+**A page for every player.**
+
 - **Players**: who is online and who has played, from the server log, with a page per player: history, admin status, their latest map sync and, with the server mod, health, food, skill levels, gear and position.
-- **Map**: the Cartography Table's shared map, as players add to it.
-- **Mods**: one browser over mod.io and the Steam Workshop, filtered by provider, game version and side. Turn mods on and off without removing them.
-- **Versions**: switch between the latest Steam build and legacy branches.
-- **Properties**: world name, slot, seed and mode, max players, Game ID, password, season and network settings.
 - **Prism server mod**: an optional mod, turned on per server in Properties, that reports player details and map syncs exactly.
 
+### Mods
+
+![mod.io and Workshop, one list.](slides/03.png)
+
+**mod.io and Workshop, one list.**
+
+- **Mods**: one browser over mod.io and the Steam Workshop, filtered by provider, game version and side. Turn mods on and off without removing them.
+
+### Versions and properties
+
+![Your world, your rules.](slides/04.png)
+
+**Your world, your rules.**
+
+- **Versions**: switch between the latest Steam build and legacy branches.
+- **Properties**: world name, slot, seed and mode, max players, Game ID, password, season and network settings.
+
 Workshop downloads and branch switches run in a short start step added to the server's startup (`.cks/start.sh`).
+
+### Also
+
+- **Map**: the Cartography Table's shared map, as players add to it.
 
 ## Settings
 
