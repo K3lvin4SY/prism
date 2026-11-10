@@ -309,9 +309,6 @@ export function MoreMenu({ controls, player, uuid, canClear }: { controls: Contr
             <DropdownMenuItem disabled={!online} className={dim(!online)} onClick={() => controls.setDialog('experience')}>
                 {label('sparkles', 'Set experience…')}
             </DropdownMenuItem>
-            <DropdownMenuItem disabled={!online} className={dim(!online)} onClick={() => controls.run('starve', 'starve', {}, `${player.name} is starving.`)}>
-                {label('carrot', 'Starve')}
-            </DropdownMenuItem>
             <DropdownMenuItem disabled={!online} className={dim(!online)} danger onClick={() => controls.setDialog('kill')}>
                 {label('skull', 'Kill…')}
             </DropdownMenuItem>

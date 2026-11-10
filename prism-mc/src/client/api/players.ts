@@ -64,7 +64,6 @@ export type PlayerAction =
     | 'xp-add'
     | 'heal'
     | 'feed'
-    | 'starve'
     | 'kill'
     | 'clear'
     | 'message'

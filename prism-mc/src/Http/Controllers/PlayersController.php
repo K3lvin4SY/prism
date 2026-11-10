@@ -32,7 +32,7 @@ class PlayersController extends Controller
     private const array GAME_MODES = ['survival', 'creative', 'adventure', 'spectator'];
 
     /** Actions that only work while the player is online. */
-    private const array ONLINE_ACTIONS = ['gamemode', 'xp-set', 'xp-add', 'heal', 'feed', 'starve', 'kill', 'clear', 'message', 'kick', 'teleport'];
+    private const array ONLINE_ACTIONS = ['gamemode', 'xp-set', 'xp-add', 'heal', 'feed', 'kill', 'clear', 'message', 'kick', 'teleport'];
 
     /** Where a player can be teleported to. */
     private const array DIMENSIONS = ['overworld', 'the_nether', 'the_end'];
@@ -420,7 +420,6 @@ class PlayersController extends Controller
             'xp-add' => $bedrock ? sprintf('xp %dL %s', $this->levels($data['value'] ?? null, true), $target) : sprintf('xp add %s %d levels', $target, $this->levels($data['value'] ?? null, true)),
             'heal' => $bedrock ? "effect $target instant_health 1 20 true" : "effect give $target minecraft:instant_health 1 20 true",
             'feed' => $bedrock ? "effect $target saturation 1 20 true" : "effect give $target minecraft:saturation 1 20 true",
-            'starve' => $bedrock ? "effect $target hunger 30 255 true" : "effect give $target minecraft:hunger 30 255 true",
             'kill' => "kill $target",
             'clear' => "clear $target",
             'message' => $this->message($target, (string) ($data['value'] ?? '')),
