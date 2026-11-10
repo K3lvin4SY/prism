@@ -40,6 +40,9 @@ class PlayersController extends Controller
     /** Actions that also work while the server is stopped, by editing the list files. */
     private const array ACCESS_ACTIONS = ['op', 'deop', 'whitelist-add', 'whitelist-remove', 'ban', 'pardon'];
 
+    /** Software that runs Bukkit plugins, where the game's own commands carry a minecraft: prefix. */
+    private const array BUKKIT = ['paper', 'purpur', 'pufferfish', 'leaf', 'folia', 'spigot', 'mohist', 'arclight'];
+
     public function index(Request $request, Server $server): JsonResponse
     {
         $info = $this->authorizeFeature($request, $server, 'players', 'players-view');
@@ -94,7 +97,7 @@ class PlayersController extends Controller
             $players[$uuid] ??= ['uuid' => $uuid, 'name' => null, 'online' => false, 'op' => null, 'whitelisted' => false, 'banned' => null, 'lastSeen' => null, 'hasData' => false];
             if ($name !== null && $name !== '') {
                 $players[$uuid]['name'] = $name;
-                $byName[strtolower($name)] = $uuid;
+                $byName[$name] = $uuid;
             }
         };
 
@@ -144,7 +147,7 @@ class PlayersController extends Controller
         }
 
         foreach ($online as $name => $id) {
-            $uuid = $id !== null && preg_match(PlayerData::UUID, strtolower($id)) ? strtolower($id) : ($byName[strtolower($name)] ?? null);
+            $uuid = $id !== null && preg_match(PlayerData::UUID, strtolower($id)) ? strtolower($id) : ($byName[$name] ?? null);
             if ($uuid === null) {
                 continue;
             }
@@ -356,10 +359,21 @@ class PlayersController extends Controller
 
         $action = $data['action'];
         $name = (string) ($data['name'] ?? '');
-        $target = $bedrock ? '"'.$name.'"' : $name;
         $reason = trim((string) preg_replace('/[\r\n§]+/u', ' ', (string) ($data['reason'] ?? '')));
         $players = PlayerData::for($server, $info['edition']);
         $running = $players->isRunning();
+
+        // Java names are case sensitive, but a plain name in a command is matched without case
+        // (to online players) or looked up in lowercase (op, whitelist and ban, which on an
+        // offline-mode server then make up a player of that lowercase name). A name selector
+        // matches the exact name, so Java servers get one. Bedrock gamertags have no case, and
+        // Pumpkin has its own commands, so those keep the plain name.
+        $exact = ! $bedrock && ! $players->isPumpkin();
+        // Plugins such as EssentialsX replace kill, tell, ban and others with commands that read
+        // only names; the game's own are reached with the minecraft: prefix on Bukkit servers.
+        $prefix = $exact && in_array($info['software'] ?? null, self::BUKKIT, true) ? 'minecraft:' : '';
+        $select = static fn (string $player): string => '@a[name="'.$player.'",limit=1]';
+        $target = $bedrock ? '"'.$name.'"' : ($exact ? $select($name) : $name);
 
         abort_if($bedrock && in_array($action, ['ban', 'pardon'], true), 422, 'Bedrock servers have no bans.');
 
@@ -370,6 +384,31 @@ class PlayersController extends Controller
             Activity::event('server:prism-mc.players.'.$action)->property(['player' => $name, 'offline' => true])->log();
 
             return new JsonResponse(['applied' => 'file']);
+        }
+
+        // Op, whitelist and ban only take a selector for players who are online. For anyone else
+        // the game looks the name up in lowercase; that finds the right player when the server
+        // checks accounts with Mojang (names are unique there whatever the case) or when its
+        // user cache already knows the name with exactly this case.
+        $access = in_array($action, self::ACCESS_ACTIONS, true);
+        if ($exact && $access && ! array_key_exists($name, PlayerData::onlineFrom($players->events(), null))) {
+            $target = $name;
+            if (! $this->lookupFinds($players, $name)) {
+                abort_unless(in_array($action, ['whitelist-add', 'whitelist-remove'], true), 409, sprintf(
+                    'This server is in offline mode, where the game looks names up in lowercase and would %s %s instead of %s. Do it while %s is online, or while the server is stopped.',
+                    match ($action) { 'op' => 'make an operator of', 'deop' => 'take operator from', 'ban' => 'ban', default => 'unban' },
+                    strtolower($name),
+                    $name,
+                    $name,
+                ));
+
+                // The whitelist can be reloaded from its file while the server runs.
+                $this->editLists($players, $action, $name, $data['uuid'] ?? null, $reason, false);
+                Daemon::server($server)->commands([$prefix.'whitelist reload']);
+                Activity::event('server:prism-mc.players.'.$action)->property(['player' => $name, 'file' => true])->log();
+
+                return new JsonResponse(['applied' => 'file']);
+            }
         }
 
         $command = match ($action) {
@@ -386,7 +425,7 @@ class PlayersController extends Controller
             'clear' => "clear $target",
             'message' => $this->message($target, (string) ($data['value'] ?? '')),
             'kick' => trim("kick $target $reason"),
-            'teleport' => $this->teleport($target, $data['value'] ?? null, $bedrock),
+            'teleport' => $this->teleport($target, $data['value'] ?? null, $bedrock, $exact ? $select : null),
             'op' => "op $target",
             'deop' => "deop $target",
             'whitelist-add' => ($bedrock ? 'allowlist' : 'whitelist')." add $target",
@@ -395,7 +434,12 @@ class PlayersController extends Controller
             'pardon' => "pardon $target",
         };
 
-        Daemon::server($server)->commands(explode("\n", $command));
+        $commands = explode("\n", $command);
+        if ($prefix !== '' && $action !== 'save') {
+            $commands = array_map(static fn (string $line): string => $prefix.$line, $commands);
+        }
+
+        Daemon::server($server)->commands($commands);
         $value = $data['value'] ?? null;
         Activity::event('server:prism-mc.players.'.$action)->property(array_filter(['player' => $name ?: null, 'value' => is_scalar($value) ? $value : (is_array($value) ? json_encode($value) : null)]))->log();
 
@@ -475,18 +519,42 @@ class PlayersController extends Controller
     }
 
     /**
+     * Whether the game, looking a name up in lowercase for op, whitelist or ban, ends up with this
+     * player: always when it checks accounts with Mojang, otherwise only when the name is already
+     * lowercase or its user cache holds the name with exactly this case.
+     */
+    private function lookupFinds(PlayerData $data, string $name): bool
+    {
+        if (($data->properties()['online-mode'] ?? 'true') === 'true' || $name === strtolower($name)) {
+            return true;
+        }
+
+        foreach ($data->jsonList('usercache.json') as $entry) {
+            $cached = (string) ($entry['name'] ?? '');
+            if (strtolower($cached) === strtolower($name)) {
+                return $cached === $name;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * The UUID a name has on this server: from its user cache, from Mojang when the server
      * checks accounts, or the offline UUID the server would make up itself.
      */
     private function uuidFor(PlayerData $data, string $name): string
     {
+        // Without Mojang, a name's case decides its UUID, so another case is another player.
+        $online = ($data->properties()['online-mode'] ?? 'true') === 'true';
         foreach ($data->jsonList('usercache.json') as $entry) {
-            if (strcasecmp((string) ($entry['name'] ?? ''), $name) === 0 && preg_match(PlayerData::UUID, (string) ($entry['uuid'] ?? ''))) {
+            $cached = (string) ($entry['name'] ?? '');
+            if (($online ? strcasecmp($cached, $name) === 0 : $cached === $name) && preg_match(PlayerData::UUID, strtolower((string) ($entry['uuid'] ?? '')))) {
                 return strtolower($entry['uuid']);
             }
         }
 
-        if (($data->properties()['online-mode'] ?? 'true') === 'true' && preg_match('/^[A-Za-z0-9_]{1,16}$/', $name)) {
+        if ($online && preg_match('/^[A-Za-z0-9_]{1,16}$/', $name)) {
             try {
                 $id = Http::timeout(5)->get('https://api.mojang.com/users/profiles/minecraft/'.$name)->json('id');
                 if (is_string($id) && preg_match('/^[0-9a-f]{32}$/', $id)) {
@@ -528,7 +596,8 @@ class PlayersController extends Controller
      * A teleport to another player, {player}, or to a place, {x, y, z, dimension}. Coordinates are
      * whole or decimal blocks inside the world border's furthest reach.
      */
-    private function teleport(string $target, mixed $value, bool $bedrock): string
+    /** @param  (callable(string): string)|null  $select  how a player is named exactly, where the game needs it */
+    private function teleport(string $target, mixed $value, bool $bedrock, ?callable $select = null): string
     {
         abort_unless(is_array($value), 422, 'Pick a player or a place to teleport to.');
 
@@ -536,7 +605,7 @@ class PlayersController extends Controller
             $to = (string) $value['player'];
             abort_unless(preg_match($bedrock ? self::BEDROCK_NAME : self::JAVA_NAME, $to) === 1, 422, 'Pick a player to teleport to.');
 
-            return sprintf('tp %s %s', $target, $bedrock ? '"'.$to.'"' : $to);
+            return sprintf('tp %s %s', $target, $bedrock ? '"'.$to.'"' : ($select ? $select($to) : $to));
         }
 
         $coordinates = [];
