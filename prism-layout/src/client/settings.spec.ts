@@ -5,12 +5,12 @@ describe('read', () => {
     it('falls back to the defaults', () => {
         expect(read({})).toMatchObject({ dashboard_panel: true, sidebar_collapse: true, brand_place: 'sidebar' });
         expect(read({ brand_place: 'left' }).brand_place).toBe('sidebar');
-        expect(read({})).toMatchObject({ enabled: true, bars: 'sidebar_top', sidebar_width: 14, width: 'normal', cards: 'rows', logo: null, logo_mode: 'name', logo_height: 32, login_style: 'backdrop', login_mark: 'logo', login_logo_size: 160 });
+        expect(read({})).toMatchObject({ enabled: true, bars: 'sidebar_top', sidebar_width: 14, width: 'wide', cards: 'rows', logo: null, logo_mode: 'beside', logo_height: 32, login_style: 'split', login_mark: 'logo', login_logo_size: 160 });
     });
 
     it('keeps sizes in range and ignores unknown options', () => {
         const settings = read({ logo: '/extension-files/prism-layout/a.png', logo_mode: 'sideways', logo_height: 400, login_logo_size: '12', login_mark: 'none', bars: 'floating', sidebar_width: 30 });
-        expect(settings).toMatchObject({ logo: '/extension-files/prism-layout/a.png', logo_mode: 'name', logo_height: 64, login_logo_size: 48, login_mark: 'none', bars: 'sidebar_top', sidebar_width: 22 });
+        expect(settings).toMatchObject({ logo: '/extension-files/prism-layout/a.png', logo_mode: 'beside', logo_height: 64, login_logo_size: 48, login_mark: 'none', bars: 'sidebar_top', sidebar_width: 22 });
     });
 
     it('reads the card styles from before rows and tiles', () => {
@@ -23,7 +23,8 @@ describe('read', () => {
     });
 
     it('takes the old sign-in tagline as the headline', () => {
-        expect(read({ login_tagline: 'Play together' })).toMatchObject({ login_title: 'Play together', login_subtitle: '' });
+        expect(read({ login_tagline: 'Play together' })).toMatchObject({ login_title: 'Play together', login_subtitle: 'Just sign-in.' });
+        expect(read({})).toMatchObject({ login_title: 'Your servers, one sign-in away.', login_subtitle: 'Just sign-in.', dock_magnify: false });
         expect(read({ login_tagline: 'Old', login_title: 'New', login_subtitle: 'More' })).toMatchObject({ login_title: 'New', login_subtitle: 'More' });
     });
 

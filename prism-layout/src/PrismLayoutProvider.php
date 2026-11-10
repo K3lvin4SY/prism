@@ -48,7 +48,7 @@ class PrismLayoutProvider extends ExtensionProvider
             Setting::make('bars_tablet', 'bars_tablet', 'top_dock', ['required', 'string', 'in:'.implode(',', array_keys(self::BARS))])->label('Navigation on tablets')->help('Screens 768 to 1023 pixels wide.')->tab('Navigation')->field('select', $options(self::BARS))->frontend(),
             Setting::make('bars_mobile', 'bars_mobile', 'dock_expand', ['required', 'string', 'in:'.implode(',', array_keys(self::BARS))])->label('Navigation on phones')->help('Screens narrower than 768 pixels. A sidebar or icon rail opens from a menu button there.')->tab('Navigation')->field('select', $options(self::BARS))->frontend(),
             Setting::make('sidebar_width', 'sidebar_width', 14, ['required', 'integer', 'min:12', 'max:22'])->label('Sidebar width')->help('In rem; 16 is about 256 pixels.')->tab('Navigation')->field('number')->frontend(),
-            $toggle('dock_magnify', true, 'Dock icons grow under the pointer', 'Navigation'),
+            $toggle('dock_magnify', false, 'Dock icons grow under the pointer', 'Navigation'),
             $toggle('group_nav', true, 'Group the server pages', 'Navigation', 'Manage, Files and data, and Configuration.'),
             $toggle('server_card', true, 'Server card in the sidebar', 'Navigation', "The open server's status and power buttons above its pages."),
             $toggle('scheme_switch', true, 'Light and dark switch', 'Navigation', 'When the theme has both.'),
@@ -57,7 +57,7 @@ class PrismLayoutProvider extends ExtensionProvider
             $toggle('sidebar_collapse', true, 'People can collapse the sidebar', 'Navigation', "A button folds the sidebar into an icon rail and back; each person's choice is remembered in their browser."),
 
             // Page
-            Setting::make('width', 'width', 'normal', ['required', 'string', 'in:normal,wide,full'])->label('Page width')->tab('Page')->field('select', $options(['normal' => 'Normal', 'wide' => 'Wide', 'full' => 'Full width']))->frontend(),
+            Setting::make('width', 'width', 'wide', ['required', 'string', 'in:normal,wide,full'])->label('Page width')->tab('Page')->field('select', $options(['normal' => 'Normal', 'wide' => 'Wide', 'full' => 'Full width']))->frontend(),
             Setting::make('density', 'density', 'cozy', ['required', 'string', 'in:compact,cozy,comfortable'])->label('Spacing')->tab('Page')->field('select', $options(['compact' => 'Compact', 'cozy' => 'Cozy', 'comfortable' => 'Comfortable']))->frontend(),
 
             // Server cards
@@ -71,18 +71,18 @@ class PrismLayoutProvider extends ExtensionProvider
 
             // Branding: everything here also reaches the sign-in pages.
             Setting::make('logo', 'logo', null)->label('Logo')->help('PNG, JPG, WebP or SVG, up to 1 MB. A wide logo works best in a top bar.')->tab('Branding')->file(self::IMAGES, 1024)->frontend()->public(),
-            Setting::make('logo_mode', 'logo_mode', 'name', ['required', 'string', 'in:beside,instead,name'])->label('Show the logo')->help('Beside the company name, instead of it, or show only the name.')->tab('Branding')->field('select', $options(['beside' => 'Beside the name', 'instead' => 'Instead of the name', 'name' => 'Name only']))->frontend()->public(),
+            Setting::make('logo_mode', 'logo_mode', 'beside', ['required', 'string', 'in:beside,instead,name'])->label('Show the logo')->help('Beside the company name, instead of it, or show only the name.')->tab('Branding')->field('select', $options(['beside' => 'Beside the name', 'instead' => 'Instead of the name', 'name' => 'Name only']))->frontend()->public(),
             Setting::make('brand_place', 'brand_place', 'sidebar', ['required', 'string', 'in:top,sidebar'])->label('Logo and name')->help('Where they go when the layout has both a top bar and a sidebar or icon rail.')->tab('Branding')->field('select', $options(['top' => 'In the top bar', 'sidebar' => 'At the top of the sidebar']))->frontend(),
             Setting::make('logo_height', 'logo_height', 32, ['required', 'integer', 'min:16', 'max:64'])->label('Logo height')->tab('Branding')->field('number')->frontend()->public(),
             Setting::make('logo_square', 'logo_square', null)->label('Square logo')->help('Used where there is only room for an icon, such as the icon rail.')->tab('Branding')->file(self::IMAGES, 1024)->frontend()->public(),
             Setting::make('favicon', 'favicon', null)->label('Favicon')->help('The icon in the browser tab. A square PNG, ICO or SVG, up to 512 KB.')->tab('Branding')->file(self::FAVICON_TYPES, 512)->frontend()->public(),
 
             // Sign-in page
-            Setting::make('login_style', 'login_style', 'backdrop', ['required', 'string', 'in:card,split,backdrop'])->label('Sign-in page')->help("Card is the panel's own; split puts a picture beside the form; backdrop puts it behind.")->tab('Sign-in page')->field('select', $options(['card' => 'Card', 'split' => 'Split with a picture', 'backdrop' => 'Picture behind']))->frontend()->public(),
+            Setting::make('login_style', 'login_style', 'split', ['required', 'string', 'in:card,split,backdrop'])->label('Sign-in page')->help("Card is the panel's own; split puts a picture beside the form; backdrop puts it behind.")->tab('Sign-in page')->field('select', $options(['card' => 'Card', 'split' => 'Split with a picture', 'backdrop' => 'Picture behind']))->frontend()->public(),
             Setting::make('login_mark', 'login_mark', 'logo', ['required', 'string', 'in:logo,mascot,none'])->label('Beside the form')->help('Your logo, the Pterodactyl mascot, or nothing. Without a logo the mascot stays. On a split page it shows on the picture side instead.')->tab('Sign-in page')->field('select', $options(['logo' => 'Your logo', 'mascot' => 'The mascot', 'none' => 'Nothing']))->frontend()->public(),
             Setting::make('login_logo_size', 'login_logo_size', 160, ['required', 'integer', 'min:48', 'max:320'])->label('Logo size on the sign-in pages')->tab('Sign-in page')->field('number')->frontend()->public(),
-            Setting::make('login_title', 'login_title', '', ['nullable', 'string', 'max:80'])->label('Headline')->help('Bold, beside the form when the page is split, else above it.')->tab('Sign-in page')->field('text')->frontend()->public(),
-            Setting::make('login_subtitle', 'login_subtitle', '', ['nullable', 'string', 'max:160'])->label('Tagline')->help('A quieter line under the headline.')->tab('Sign-in page')->field('text')->frontend()->public(),
+            Setting::make('login_title', 'login_title', 'Your servers, one sign-in away.', ['nullable', 'string', 'max:80'])->label('Headline')->help('Bold, beside the form when the page is split, else above it.')->tab('Sign-in page')->field('text')->frontend()->public(),
+            Setting::make('login_subtitle', 'login_subtitle', 'Just sign-in.', ['nullable', 'string', 'max:160'])->label('Tagline')->help('A quieter line under the headline.')->tab('Sign-in page')->field('text')->frontend()->public(),
             Setting::make('login_image', 'login_image', null)->label('Sign-in picture')->help('For the split and backdrop styles. Without one, split uses a calm panel in the theme colors and backdrop a gradient.')->tab('Sign-in page')->file(self::IMAGES, 4096)->frontend()->public(),
 
             // Announcement

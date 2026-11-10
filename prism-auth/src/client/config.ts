@@ -36,9 +36,9 @@ export function read(raw: ExtensionConfig): AuthConfig {
             turnstile: str(get('turnstile_site_key'), '').trim(),
         },
         password: {
-            min: Math.max(8, Number(get('password_min')) || 8),
-            mixed: bool(get('password_mixed'), false),
-            number: bool(get('password_number'), false),
+            min: Math.max(8, Number(get('password_min')) || 14),
+            mixed: bool(get('password_mixed'), true),
+            number: bool(get('password_number'), true),
             special: bool(get('password_special'), false),
         },
     };

@@ -39,7 +39,7 @@ describe('read', () => {
             dividerText: 'Or continue with',
             autoCreate: false,
             signup: { enabled: false, username: 'choose', names: true, terms: '', botTrap: true, turnstile: '' },
-            password: { min: 8, mixed: false, number: false, special: false },
+            password: { min: 14, mixed: true, number: true, special: false },
         });
     });
 

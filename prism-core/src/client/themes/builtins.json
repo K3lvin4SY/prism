@@ -163,7 +163,7 @@
         "font": "inter",
         "labels": "mono",
         "font_size": 16,
-        "switches": "rounded",
+        "switches": "square",
         "surface_style": "raised",
         "blur": 14,
         "opacity": 70,

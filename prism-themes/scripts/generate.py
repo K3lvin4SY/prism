@@ -187,7 +187,7 @@ SLATE_LIGHT = {
 # Prism Slate first: it is the look a new panel starts with.
 PRESETS = [
     {'id': 'prism-slate', 'name': 'Prism Slate', 'description': "Prism's own look: navy and periwinkle, Inter, monospace labels.",
-     'values': look(SLATE_DARK, SLATE_LIGHT, radius=14, font='inter', labels='mono', surface_style='raised', background='plain')},
+     'values': look(SLATE_DARK, SLATE_LIGHT, radius=14, font='inter', labels='mono', surface_style='raised', background='plain', switches='square')},
     {'id': 'studio', 'name': 'Studio', 'description': 'Blue, with soft shadows and a gradient behind.', 'values': look(*generated(255, .17))},
     {'id': 'studio-classic', 'name': 'Studio classic', 'description': 'Indigo and flat, close to the panel you know.', 'values': look(*generated(270, .17), radius=6, surface_style='flat', background='plain')},
     {'id': 'terminal', 'name': 'Terminal', 'description': 'Green on black, monospace and square.', 'values': look(*generated(145, .17, 'strong'), radius=2, font='mono', surface_style='outlined', background='grid', switches='square')},

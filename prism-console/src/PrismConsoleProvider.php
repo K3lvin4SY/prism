@@ -49,7 +49,7 @@ class PrismConsoleProvider extends ExtensionProvider
             Setting::make('feature_charts', 'feature_charts', true, ['required', 'boolean'])->label('Live charts')->tab('Features')->field('toggle')->frontend(),
             Setting::make('feature_quick_commands', 'feature_quick_commands', true, ['required', 'boolean'])->label('Quick commands')->help('Buttons above the command line, kept for each server and shared by everyone who can use its console.')->tab('Features')->field('toggle')->frontend(),
             Setting::make('feature_history_sync', 'feature_history_sync', true, ['required', 'boolean'])->label('Command history follows people')->help('Saves each person\'s history on the panel, so it is there in every browser.')->tab('Features')->field('toggle')->frontend(),
-            Setting::make('feature_pull_progress', 'feature_pull_progress', true, ['required', 'boolean'])->label('Image pull progress')->help('Docker pull output becomes one progress card with speed and time left.')->tab('Features')->field('toggle')->frontend(),
+            Setting::make('feature_pull_progress', 'feature_pull_progress', false, ['required', 'boolean'])->label('Image pull progress')->help('Docker pull output becomes one progress card with speed and time left.')->tab('Features')->field('toggle')->frontend(),
 
             // Terminal
             Setting::make('default_font', 'default_font', 'JetBrains Mono', ['required', 'string'])->label('Font')->tab('Terminal')->field('select', array_map(static fn (string $font) => ['value' => $font, 'label' => $font], self::FONTS))->frontend(),

@@ -379,7 +379,7 @@
                     "rounded": "Rounded",
                     "square": "Square"
                 },
-                "default": "rounded",
+                "default": "square",
                 "attribute": "data-pt-switches"
             },
             "surface_style": {

@@ -70,7 +70,7 @@ No settings of its own. Its admin screen is Prism Properties.
 | Features | `feature_charts` | Live charts | `true` | toggle |
 | Features | `feature_quick_commands` | Quick commands (per server, in the `prism_console_quick_commands` table, not a setting) | `true` | toggle |
 | Features | `feature_history_sync` | Command history follows people | `true` | toggle |
-| Features | `feature_pull_progress` | Image pull progress | `true` | toggle |
+| Features | `feature_pull_progress` | Image pull progress | `false` | toggle |
 | Terminal | `default_font` | Font | `'JetBrains Mono'` | select |
 | Terminal | `default_font_size` | Text size | `13` | number |
 | Terminal | `default_line_height` | Line height | `'1.4'` | select |
@@ -134,14 +134,14 @@ No settings of its own. Its admin screen is Prism Properties.
 | Navigation | `bars_tablet` | Navigation on tablets (768–1023px) | `'top_dock'` | select, layout cards |
 | Navigation | `bars_mobile` | Navigation on phones (<768px) | `'dock_expand'` | select, layout cards |
 | Navigation | `sidebar_width` | Sidebar width | `14` | number |
-| Navigation | `dock_magnify` | Dock icons grow under the pointer | `true` | toggle |
+| Navigation | `dock_magnify` | Dock icons grow under the pointer | `false` | toggle |
 | Navigation | `group_nav` | Group the server pages | `true` | toggle |
 | Navigation | `server_card` | Server card in the sidebar | `true` | toggle |
 | Navigation | `scheme_switch` | Light and dark switch | `true` | toggle |
 | Navigation | `admin_styled` | Lay out the admin area too | `true` | toggle |
 | Navigation | `dashboard_panel` | Overview and filters on the dashboard | `true` | toggle |
 | Navigation | `sidebar_collapse` | People can collapse the sidebar | `true` | toggle |
-| Page | `width` | Page width | `'normal'` | select |
+| Page | `width` | Page width | `'wide'` | select |
 | Page | `density` | Spacing | `'cozy'` | select |
 | Server cards | `cards` | Server cards (`rows` or `tile`; older styles read as tiles, Banner as a tile with the picture) | `'rows'` | select |
 | Server cards | `card_banner` | Picture on tiles | `false` | toggle |
@@ -149,14 +149,14 @@ No settings of its own. Its admin screen is Prism Properties.
 | Server cards | `usage_style` | Usage | `'bars'` | select |
 | Server cards | `egg_colors` | Show the game on cards | `'logo'` | select |
 | Server cards | `power_buttons` | Power buttons on cards | `true` | toggle |
-| Branding | `logo_mode` | Show the logo | `'name'` | select |
+| Branding | `logo_mode` | Show the logo | `'beside'` | select |
 | Branding | `brand_place` | Logo and name | `'sidebar'` | select |
 | Branding | `logo_height` | Logo height | `32` | number |
-| Sign-in page | `login_style` | Sign-in page | `'backdrop'` | select |
+| Sign-in page | `login_style` | Sign-in page | `'split'` | select |
 | Sign-in page | `login_mark` | Beside the form | `'logo'` | select |
 | Sign-in page | `login_logo_size` | Logo size on the sign-in pages | `160` | number |
-| Sign-in page | `login_title` | Headline (was `login_tagline`) | `''` | text |
-| Sign-in page | `login_subtitle` | Tagline | `''` | text |
+| Sign-in page | `login_title` | Headline (was `login_tagline`) | `'Your servers, one sign-in away.'` | text |
+| Sign-in page | `login_subtitle` | Tagline | `'Just sign-in.'` | text |
 | Announcement | `announce_text` | Message | `''` | text |
 | Announcement | `announce_badge` | Badge | `''` | text |
 | Announcement | `announce_level` | Kind | `'info'` | select |
@@ -258,7 +258,7 @@ Each server's admin password for its API is kept encrypted in that server's meta
 | Sign-up | `signup_enabled` | Let people sign up | `false` | toggle, public |
 | Sign-up | `signup_username` | Username (`choose`, `generate`) | `'choose'` | select, public |
 | Sign-up | `signup_names` | Ask for first and last name | `true` | toggle, public |
-| Sign-up | `password_min`, `password_mixed`, `password_number`, `password_special` | Password rules (special is Laravel's `symbols()`, checked the same way in the form) | `8`, `false`, `false`, `false` | number/toggle, public |
+| Sign-up | `password_min`, `password_mixed`, `password_number`, `password_special` | Password rules (special is Laravel's `symbols()`, checked the same way in the form) | `14`, `true`, `true`, `false` | number/toggle, public |
 | Sign-up | `domains_allowed`, `domains_blocked` | Email domain lists | `''` | textarea (lines) |
 | Sign-up | `terms_url` | Terms page | `''` | text, public |
 | Sign-up | `bot_trap` | Bot trap | `true` | toggle, public |

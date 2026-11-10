@@ -23,11 +23,11 @@ final class SignupRules
      */
     public static function validate(array $input, bool $passwordOptional): array
     {
-        $password = Password::min(max(8, Settings::int('password_min', 8)));
-        if (Settings::bool('password_mixed')) {
+        $password = Password::min(max(8, Settings::int('password_min', 14)));
+        if (Settings::bool('password_mixed', true)) {
             $password->mixedCase();
         }
-        if (Settings::bool('password_number')) {
+        if (Settings::bool('password_number', true)) {
             $password->numbers();
         }
         if (Settings::bool('password_special')) {

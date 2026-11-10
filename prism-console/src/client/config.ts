@@ -77,7 +77,7 @@ export function read(raw: ExtensionConfig): ConsoleConfig {
             charts: bool(get('feature_charts'), true),
             quickCommands: bool(get('feature_quick_commands'), true),
             historySync: bool(get('feature_history_sync'), true),
-            pullProgress: bool(get('feature_pull_progress'), true),
+            pullProgress: bool(get('feature_pull_progress'), false),
         },
         terminal: {
             font: String(get('default_font') ?? 'JetBrains Mono'),
