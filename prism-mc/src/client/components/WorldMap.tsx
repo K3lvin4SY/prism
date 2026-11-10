@@ -5,6 +5,7 @@ import { NamedIcon } from '../icons';
 import { base } from '../api/client';
 import { readRegion } from '../lib/anvil';
 import { blockColor, type Rgb } from '../lib/blockColors';
+import { loadRegion, pruneRegions, regionKey, saveRegion } from '../lib/mapCache';
 import PlayerHead from './players/PlayerHead';
 
 export type Dimension = 'overworld' | 'the_nether' | 'the_end';
@@ -16,11 +17,13 @@ const DIMENSIONS: { value: Dimension; label: string }[] = [
 ];
 
 const REGION = 512;
+/** Raise this when the drawing changes, so pictures kept from before are drawn again. */
+const DRAW_VERSION = 1;
 /**
- * Every region drawn this visit, by server, dimension, place and save time. A region that comes
+ * Every region shown this visit, by server, dimension, place and save time. A region that comes
  * back into view is painted from here, without downloading or reading its file again.
  */
-const drawn = new Map<string, ImageData>();
+const drawn = new Map<string, ImageData | ImageBitmap>();
 const ZOOMS = [0.25, 0.5, 1, 2, 4];
 
 interface RegionInfo {
@@ -30,20 +33,66 @@ interface RegionInfo {
     modified: string | null;
 }
 
-/** Draws one region file into a 512×512 canvas, shading by height like an in-game map. */
+function paint(canvas: HTMLCanvasElement, image: ImageData | ImageBitmap) {
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    if (image instanceof ImageData) return context.putImageData(image, 0, 0);
+    context.clearRect(0, 0, REGION, REGION);
+    context.drawImage(image, 0, 0);
+}
+
+/**
+ * Draws one region file into a 512×512 canvas, shading by height like an in-game map.
+ *
+ * The picture is kept in the browser. On the next visit the kept picture shows at once and, when
+ * the region file has been saved since, a new one is drawn out of sight, swapped in and kept in
+ * place of the old one.
+ */
 function RegionTile({ server, dimension, region }: { server: string; dimension: Dimension; region: RegionInfo }) {
     const canvas = useRef<HTMLCanvasElement>(null);
-    const cacheKey = `${server}:${dimension}:${region.x}:${region.z}:${region.modified}`;
+    const storeKey = regionKey(server, dimension, region.x, region.z);
+    const cacheKey = `${storeKey}:${region.modified}`;
     const cached = drawn.get(cacheKey);
+    // What the browser keeps for this region: undefined while it is being looked up.
+    const [stored, setStored] = useState<'none' | 'stale' | 'current' | undefined>(cached ? 'current' : undefined);
+    // Whether the canvas has a picture on it, new or kept; until then the progress shows.
+    const [shown, setShown] = useState(!!cached);
     const [progress, setProgress] = useState(cached ? 1 : 0);
     const [failed, setFailed] = useState(false);
 
     useEffect(() => {
-        if (cached) canvas.current?.getContext('2d')?.putImageData(cached, 0, 0);
+        if (cached && canvas.current) paint(canvas.current, cached);
     }, [cached]);
 
+    useEffect(() => {
+        if (cached) return;
+        let cancelled = false;
+        setStored(undefined);
+
+        (async () => {
+            const entry = await loadRegion(storeKey);
+            if (cancelled) return;
+            if (!entry) return setStored('none');
+
+            const bitmap = await createImageBitmap(entry.image);
+            if (cancelled || !canvas.current) return;
+            paint(canvas.current, bitmap);
+            setShown(true);
+
+            const current = entry.version === DRAW_VERSION && entry.modified !== null && entry.modified === region.modified;
+            if (current) drawn.set(cacheKey, bitmap);
+            setStored(current ? 'current' : 'stale');
+        })().catch(() => !cancelled && setStored('none'));
+
+        return () => {
+            cancelled = true;
+        };
+    }, [storeKey, cacheKey, cached, region.modified]);
+
+    const drawing = !cached && (stored === 'none' || stored === 'stale');
+
     const file = useQuery({
-        enabled: !cached,
+        enabled: drawing,
         queryKey: ['prism-mc', server, 'map', dimension, region.x, region.z, region.modified],
         queryFn: async () => (await http.get<ArrayBuffer>(`${base(server)}/map/${dimension}/${region.x}/${region.z}`, { responseType: 'arraybuffer' })).data,
         staleTime: 300_000,
@@ -52,7 +101,7 @@ function RegionTile({ server, dimension, region }: { server: string; dimension: 
 
     useEffect(() => {
         let cancelled = false;
-        if (cached || !file.data || !canvas.current) return;
+        if (!drawing || !file.data || !canvas.current) return;
 
         (async () => {
             const surface = await readRegion(file.data, dimension, (fraction) => !cancelled && setProgress(fraction));
@@ -61,8 +110,8 @@ function RegionTile({ server, dimension, region }: { server: string; dimension: 
             const colors: Rgb[] = await Promise.all(surface.names.map((name) => blockColor(name)));
             if (cancelled || !canvas.current) return;
 
-            const context = canvas.current.getContext('2d')!;
-            const image = context.createImageData(REGION, REGION);
+            // Drawn into memory first, so a kept picture stays on screen until the new one is whole.
+            const image = new ImageData(REGION, REGION);
             for (let z = 0; z < REGION; z++) {
                 for (let x = 0; x < REGION; x++) {
                     const pixel = z * REGION + x;
@@ -87,19 +136,26 @@ function RegionTile({ server, dimension, region }: { server: string; dimension: 
                 }
             }
 
-            context.putImageData(image, 0, 0);
+            paint(canvas.current, image);
             drawn.set(cacheKey, image);
+            setShown(true);
+            setProgress(1);
+
+            // Kept for the next visit, replacing the picture drawn before.
+            canvas.current.toBlob((blob) => {
+                if (blob) void saveRegion({ key: storeKey, server, dimension, modified: region.modified, version: DRAW_VERSION, image: blob, drawnAt: Date.now() });
+            }, 'image/png');
         })().catch(() => !cancelled && setFailed(true));
 
         return () => {
             cancelled = true;
         };
-    }, [file.data, dimension, cacheKey, cached]);
+    }, [file.data, drawing, dimension, cacheKey, storeKey, server, region.modified]);
 
     return (
         <div className={'mcs:absolute'} style={{ left: region.x * REGION, top: region.z * REGION, width: REGION, height: REGION }}>
             <canvas ref={canvas} width={REGION} height={REGION} className={'mcs-pixelated mcs:size-full'} />
-            {!cached && (file.isLoading || (progress < 1 && !failed && !file.isError)) && (
+            {!shown && stored !== undefined && (file.isLoading || (progress < 1 && !failed && !file.isError)) && (
                 <div className={'mcs:absolute mcs:inset-0 mcs:flex mcs:items-center mcs:justify-center mcs:bg-black/20 mcs:text-white mcs:text-xs'}>
                     {file.isLoading ? 'Downloading…' : `Drawing ${Math.round(progress * 100)}%`}
                 </div>
@@ -161,6 +217,11 @@ export default function WorldMap({ server, markers, focus, height = 560 }: { ser
         queryFn: async () => (await http.get<{ regions: RegionInfo[] }>(`${base(server)}/map/${dimension}`)).data.regions,
         staleTime: 120_000,
     });
+
+    // Pictures of regions the world no longer has are let go.
+    useEffect(() => {
+        if (regions.data) void pruneRegions(server, dimension, new Set(regions.data.map((region) => regionKey(server, dimension, region.x, region.z))));
+    }, [regions.data, server, dimension]);
 
     useEffect(() => {
         const element = box.current;
