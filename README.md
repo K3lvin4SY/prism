@@ -62,6 +62,12 @@ Prism is a set of extensions for Pterodactyl Panel 2.0. Install only the ones yo
 | --- | --- |
 | <img src="assets/share.png" width="20" height="20" align="center"> **[Prism Share](prism-share)** | Guest links for a server: watch the console, chosen power buttons, files and backups, without an account and for as long as you choose. |
 
+### Panel
+
+| Extension | Description |
+| --- | --- |
+| <img src="assets/flask.png" width="20" height="20" align="center"> **[Prism Tweaks](prism-tweaks)** | Change how the Panel behaves without editing `.env`: API request limits for everyone or per person (or none for root admins), per-server create limits, how long people stay signed in, the activity log, the largest file the editor opens and tasks per schedule. |
+
 ## Requirements
 
 - Pterodactyl Panel `2.0` with extension SDK `>= 2.0.0-beta.6`

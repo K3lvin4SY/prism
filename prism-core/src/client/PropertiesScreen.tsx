@@ -17,6 +17,7 @@ import { isLook } from './themes/presets';
 import { ProvidersEditor } from './AuthProviders';
 import ConsoleLayoutPicker from './ConsoleLayoutPicker';
 import { HighlightsEditor, KeybindsEditor, LinesEditor, ShortcutEditor, ToggleRow } from './editors';
+import { UserLimitsEditor } from './UserLimits';
 import NavigationBoard from './NavigationPicker';
 import { HINTS, type Hint } from './hints';
 
@@ -671,6 +672,8 @@ function Field({ field, hint, value, onChange }: { field: SettingField; hint: Hi
                 <LinesEditor value={value} onChange={onChange} placeholder={field.input.startsWith('domains_') ? 'example.com' : undefined} />
             ) : hint.editor === 'authProviders' ? (
                 <ProvidersEditor />
+            ) : hint.editor === 'userLimits' ? (
+                <UserLimitsEditor value={value} onChange={onChange} />
             ) : (
                 <TextArea value={typeof value === 'string' ? value : ''} onChange={(event) => onChange(event.target.value)} rows={5} className={'ppx:w-full'} />
             );

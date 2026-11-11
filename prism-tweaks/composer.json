@@ -1,0 +1,11 @@
+{
+    "description": "Change how the panel behaves: API request limits per user, per-server create limits, sign-in length, the activity log, file editor size and tasks per schedule.",
+    "autoload": {
+        "psr-4": {
+            "PrismTweaks\\": "src/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "PrismTweaksExtension"
+    }
+}

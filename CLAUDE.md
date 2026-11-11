@@ -1,6 +1,6 @@
 # Prism: Pterodactyl Panel 2.0 extensions
 
-Fifteen extensions for Pterodactyl Panel 2.0 ("v2", SDK `>=2.0.0-beta.6`), each in its own `prism-*` folder, developed against the Panel source in `.panel/` (cloned separately, git-ignored, read only) and deployed to a live Panel (`PANEL_URL`, reached through Portainer at `PORTAINER_URL`).
+Sixteen extensions for Pterodactyl Panel 2.0 ("v2", SDK `>=2.0.0-beta.6`), each in its own `prism-*` folder, developed against the Panel source in `.panel/` (cloned separately, git-ignored, read only) and deployed to a live Panel (`PANEL_URL`, reached through Portainer at `PORTAINER_URL`).
 
 Load the matching skill before working in an area:
 
@@ -32,6 +32,7 @@ Load the matching skill before working in an area:
 | `prism-satisfactory` | prism-satisfactory | `sfy` | Satisfactory: everything the game keeps itself goes through its HTTPS API on the game port (the Panel claims the server or connects with its admin password, kept encrypted); players from the log's joins plus the API's count, mods from ficsit.app (LinuxServer builds picked by the game's changelist), public/experimental branches via `SRCDS_BETAID` and the image's update on boot, new game/save/auto-load. |
 | `prism-auth` | prism-auth | `pau` | Sign-in providers (OAuth/OIDC/Steam) on the login page, "Sign-in methods" account page, sign-up with email confirmation. Root routes under `/prism-auth`. |
 | `prism-share` | prism-share | `psh` | Guest share links per server: watch-only console, commands and power through the Panel, chosen files and backups. Guest page at `/share#<token>` (own bundle in `dist/share`). |
+| `prism-tweaks` | prism-tweaks | `ptw` | Panel behavior without `.env`: API rate limits for everyone or per user (admin user form + Prism Properties list), none for root admins, per-server create limits (admin server form), session length, activity retention, editor file size, tasks per schedule. Re-registers the Panel's named rate limiters and sets config in `boot()`. |
 
 Every extension's `extension.json` has `requires.extensions: { "prism-core": ">=0.1.0" }`; the Panel enables Core first and refuses to disable it while others need it.
 

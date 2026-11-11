@@ -12,10 +12,10 @@ export interface SettingField {
     value: unknown;
 }
 
-export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-satisfactory' | 'prism-auth' | 'prism-share';
+export type PrismId = 'prism-layout' | 'prism-console' | 'prism-files' | 'prism-database' | 'prism-backups' | 'prism-schedules' | 'prism-mc' | 'prism-terraria' | 'prism-corekeeper' | 'prism-factorio' | 'prism-satisfactory' | 'prism-auth' | 'prism-share' | 'prism-tweaks';
 
 /** The groups of the Prism Properties sidebar, in order. Hosting has no extension yet. */
-export const CATEGORIES = ['Appearance', 'Server tools', 'Games', 'Collaboration', 'Hosting'] as const;
+export const CATEGORIES = ['Appearance', 'Server tools', 'Games', 'Collaboration', 'Panel', 'Hosting'] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 export interface PrismExtension {
@@ -41,6 +41,7 @@ export const PRISM: PrismExtension[] = [
     { id: 'prism-factorio', name: 'Prism Factorio', icon: 'assembly', category: 'Games', description: 'Players with admins, bans and the whitelist, mods from the Factorio mod portal, versions and server settings for Factorio servers.' },
     { id: 'prism-satisfactory', name: 'Prism Satisfactory', icon: 'barrier-block', category: 'Games', description: 'Players, mods from ficsit.app, public or experimental builds, server settings and new games for Satisfactory servers.' },
     { id: 'prism-share', name: 'Prism Share', icon: 'send-back', category: 'Collaboration', description: 'Guest links for a server: watch the console, chosen power buttons, files and backups, without an account, for as long as the owner chooses.' },
+    { id: 'prism-tweaks', name: 'Prism Tweaks', icon: 'flask', category: 'Panel', description: 'Change how the panel behaves without editing .env: API request limits for everyone or per person, per-server create limits, how long people stay signed in, the activity log, the file editor and schedules.' },
 ];
 
 export const settingsKey = (id: PrismId) => ['prism-core', 'settings', id] as const;

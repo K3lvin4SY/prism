@@ -268,6 +268,24 @@ Each server's admin password for its API is kept encrypted in that server's meta
 
 "Public" settings are `->frontend()->public()`: the sign-in page gets them before anyone signs in.
 
+### prism-tweaks
+
+Every number defaults to `0`, which keeps the Panel's own value. The help texts name the Panel's value, read before Prism Tweaks changes it.
+
+| Tab | Key | Label | Default | Field |
+| --- | --- | --- | --- | --- |
+| Rate limits | `client_limit`, `application_limit`, `admin_limit` | Requests a minute for each API (`throttle:api.*`); the lowest is 30 | `0` | number, frontend |
+| Rate limits | `admins_unlimited` | No limit for root admins (`Limit::none()`) | `false` | toggle |
+| Rate limits | `user_limits` | People with their own limits: JSON `{"<userId>": {"client": n\|null, "application": n\|null, "admin": n\|null}}` | `'{}'` | textarea, drawn as `UserLimitsEditor`; also edited on the admin user form (`UserLimitFields` reads and writes this same setting). Not frontend: it would reach every user |
+| Server limits | `backup_limit`, `database_limit`, `filepull_limit`, `subuser_limit`, `schedule_limit`, `allocation_limit`, `websocket_limit` | How many in the Panel's `ResourceLimit` window | `0` | number, frontend; a server's own number is an admin server form field stored by the Panel (`settings()->fields($server)`) |
+| Sign-in | `session_minutes` | `session.lifetime` | `0` | number |
+| Activity | `activity_days` | `activity.prune_days` | `0` | number |
+| Activity | `hide_admin_activity` | `activity.hide_admin_activity` (`panel`, `off`, `on`) | `'panel'` | select |
+| Files & schedules | `max_edit_mb` | `pterodactyl.files.max_edit_size` in MB | `0` | number |
+| Files & schedules | `schedule_task_limit` | `per_schedule_task_limit` | `0` | number |
+
+`ApplyTweaks::apply()` runs last in the provider's `boot()`. It sets the config values and registers `api.client`/`api.application`/`api.admin` and the `api.client:server-resource:*` limiters again. Extension providers boot after the Panel's, so Prism Tweaks' limiters replace the Panel's. Each limiter keeps the Panel's key (`user->uuid`, else the IP; `server->uuid`) and its period.
+
 
 ## Notes on particular settings
 

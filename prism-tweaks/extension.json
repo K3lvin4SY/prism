@@ -1,0 +1,21 @@
+{
+    "$schema": "./node_modules/@pterodactyl/sdk/manifest.schema.json",
+    "id": "prism-tweaks",
+    "name": "Prism Tweaks",
+    "version": "1.0.0",
+    "requires": {
+        "panel": "^2.0.0-dev",
+        "sdk": ">=2.0.0-beta.6 <3.0",
+        "php": "^8.3",
+        "extensions": { "prism-core": ">=0.1.0" }
+    },
+    "description": "Change how the panel behaves without editing .env: API request limits for everyone or per user, per-server create limits, how long people stay signed in, the activity log, file editor size and tasks per schedule.",
+    "author": "Donkare",
+    "icon": "icon.png",
+    "provider": "PrismTweaks\\PrismTweaksProvider",
+    "ui": {
+        "entry": "dist/client.js",
+        "mode": "native",
+        "prefix": "ptw"
+    }
+}

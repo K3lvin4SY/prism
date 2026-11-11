@@ -8,7 +8,7 @@ export interface Hint {
     /** A heading the field is grouped under inside its tab. */
     section?: string;
     slider?: { min: number; max: number; step?: number; unit?: string };
-    editor?: 'highlights' | 'consoleLayout' | 'lines' | 'keybinds' | 'datetime' | 'authProviders' | 'navigation' | 'shortcut';
+    editor?: 'highlights' | 'consoleLayout' | 'lines' | 'keybinds' | 'datetime' | 'authProviders' | 'navigation' | 'shortcut' | 'userLimits';
     /** Draw a select as buttons side by side. */
     segmented?: boolean;
     /** Draw the field's section as one bar, each label beside its control (selects and short text only). */
@@ -156,6 +156,21 @@ export const HINTS: Record<PrismId, Record<string, Hint>> = {
     },
     'prism-share': {
         max_hours: { slider: { min: 1, max: 720, unit: ' h' } },
+    },
+    'prism-tweaks': {
+        client_limit: { section: 'For everyone' },
+        application_limit: { section: 'For everyone' },
+        admin_limit: { section: 'For everyone' },
+        admins_unlimited: { section: 'For everyone' },
+        user_limits: { section: 'For some people', editor: 'userLimits' },
+        backup_limit: { section: 'Every server' },
+        database_limit: { section: 'Every server' },
+        filepull_limit: { section: 'Every server' },
+        subuser_limit: { section: 'Every server' },
+        schedule_limit: { section: 'Every server' },
+        allocation_limit: { section: 'Every server' },
+        websocket_limit: { section: 'Every server' },
+        hide_admin_activity: { segmented: true },
     },
 };
 
