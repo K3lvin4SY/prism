@@ -3,7 +3,7 @@
     "id": "prism-themes",
     "type": "theme",
     "name": "Prism Themes",
-    "version": "0.4.0",
+    "version": "1.0.0",
     "description": "One theme tool: colors for dark and light, type and shape, surfaces, backgrounds and motion, with built-in presets such as Catppuccin and your own. The layout is Prism Layout.",
     "author": "Donkare",
     "icon": "icon.png",
