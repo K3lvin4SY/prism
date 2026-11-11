@@ -85,10 +85,11 @@ npm install
 npm run build
 ```
 
-Install it on the Panel:
+Install the latest release on the Panel, from the Panel's directory:
 
 ```bash
-php artisan p:extension:install /path/to/prism-schedules --enable
+curl -fLo /tmp/prism-schedules.pteroext https://github.com/K3lvin4SY/prism/releases/latest/download/prism-schedules.pteroext
+php artisan p:extension:install /tmp/prism-schedules.pteroext --enable
 ```
 
 ## Development

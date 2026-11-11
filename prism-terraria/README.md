@@ -87,10 +87,11 @@ npm install
 npm run build
 ```
 
-Install it on the Panel:
+Install the latest release on the Panel, from the Panel's directory:
 
 ```bash
-php artisan p:extension:install /path/to/prism-terraria --enable
+curl -fLo /tmp/prism-terraria.pteroext https://github.com/K3lvin4SY/prism/releases/latest/download/prism-terraria.pteroext
+php artisan p:extension:install /tmp/prism-terraria.pteroext --enable
 ```
 
 ## Development

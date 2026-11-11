@@ -7,9 +7,10 @@ on:
         description: Release tag, such as v0.1.0
         required: true
       prerelease:
+        # A pre-release is skipped by the releases/latest download links in the READMEs.
         description: Mark as a pre-release
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: write
@@ -46,7 +47,13 @@ jobs:
           done
 
       - name: Package the extensions
-        run: node scripts/pack.mjs --out release prism-*/
+        # Release files are named without the version (prism-core.pteroext), so
+        # releases/latest/download/<id>.pteroext always gets the newest one.
+        run: |
+          node scripts/pack.mjs --out release prism-*/
+          for archive in release/*.pteroext; do
+            mv "$archive" "${archive%-*.pteroext}.pteroext"
+          done
 
       - uses: actions/upload-artifact@v4
         with:

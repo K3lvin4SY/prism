@@ -78,10 +78,11 @@ npm install
 npm run build
 ```
 
-Install it on the Panel:
+Install the latest release on the Panel, from the Panel's directory:
 
 ```bash
-php artisan p:extension:install /path/to/prism-factorio --enable
+curl -fLo /tmp/prism-factorio.pteroext https://github.com/K3lvin4SY/prism/releases/latest/download/prism-factorio.pteroext
+php artisan p:extension:install /tmp/prism-factorio.pteroext --enable
 ```
 
 ## Development
