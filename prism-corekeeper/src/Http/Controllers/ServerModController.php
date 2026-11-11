@@ -38,13 +38,15 @@ class ServerModController extends Controller
     {
         $mod = ServerMod::for($server);
         $installed = $mod->installedVersion();
+        $running = ServerConsole::for($server)->isRunning();
 
         return [
             'enabled' => $mod->enabled(),
             'installed' => $installed,
             'version' => ServerMod::VERSION,
             'outdated' => $mod->enabled() && $installed !== ServerMod::VERSION,
-            'running' => ServerConsole::for($server)->isRunning(),
+            'running' => $running,
+            'status' => $mod->status($running),
         ];
     }
 }

@@ -21,7 +21,7 @@ use Throwable;
 final class ServerMod
 {
     /** Bump with every change to resources/servermod, so servers are offered the update. */
-    public const string VERSION = '1.0.0';
+    public const string VERSION = '1.1.0';
 
     public const string GUID = 'f3b1c2a4e5d64f7a8b9c0d1e2f3a4b5c';
 
@@ -128,6 +128,60 @@ final class ServerMod
         }
     }
 
+    /**
+     * How the mod is doing on the server, for the Properties card: whether the game compiled and
+     * loaded it (a game update can stop it compiling), whether it reports, how it watches map syncs
+     * and the parts of its report that failed.
+     *
+     * @return array{state: string, reportedAt: ?int, syncWatch: ?string, problems: array<string, string>, errors: list<string>}
+     */
+    public function status(bool $running): array
+    {
+        $status = ['state' => 'off', 'reportedAt' => null, 'syncWatch' => null, 'problems' => [], 'errors' => []];
+        if (! $this->enabled()) {
+            return $status;
+        }
+        if (! $running) {
+            return ['state' => 'stopped'] + $status;
+        }
+
+        $files = ServerFiles::for($this->server);
+        try {
+            $log = $files->read('CoreKeeperServerLog.txt', 3_000_000) ?? '';
+            $report = $files->readJson(self::OUTPUT.'/players.json', 4_000_000);
+        } catch (Throwable) {
+            $log = '';
+            $report = null;
+        }
+
+        if (preg_match('/mod PrismCoreKeeper load error: (\w+)/', $log, $failed)) {
+            preg_match_all('/^.*error CS\d+.*$/m', $log, $errors);
+            $lines = array_map(static fn (string $line): string => mb_substr(trim(preg_replace('/^.*?([^\/\x5C]+\.cs)/', '$1', $line) ?? $line), 0, 240), $errors[0]);
+
+            return ['state' => 'failed', 'errors' => array_slice(array_values(array_unique($lines)), 0, 3) ?: [$failed[1]]] + $status;
+        }
+
+        $at = is_array($report) && is_numeric($report['utc'] ?? null) ? (int) $report['utc'] : null;
+        if ($at !== null && $at >= time() - 60) {
+            $problems = [];
+            foreach (is_array($report['problems'] ?? null) ? $report['problems'] : [] as $area => $message) {
+                $problems[(string) $area] = mb_substr((string) $message, 0, 300);
+            }
+
+            return ['state' => 'reporting', 'reportedAt' => $at, 'syncWatch' => is_string($report['syncWatch'] ?? null) ? $report['syncWatch'] : null, 'problems' => $problems] + $status;
+        }
+
+        $loaded = str_contains($log, '[Prism Core Keeper mod] loaded');
+
+        return ['state' => $loaded ? 'quiet' : 'loading', 'reportedAt' => $at] + $status;
+    }
+
+    /** "CopperHelm" → "Copper Helm" */
+    private static function spellOut(string $key): string
+    {
+        return trim((string) preg_replace(['/_/', '/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/'], [' ', ' '], $key));
+    }
+
     /** @return array<string, mixed>|null a player's details from their last visit */
     public function details(string $id): ?array
     {
@@ -172,7 +226,8 @@ final class ServerMod
             'y' => $number('y'),
             'dead' => (bool) ($player['dead'] ?? false),
             'skills' => array_map(static fn (array $skill): array => ['name' => (string) ($skill['name'] ?? ''), 'level' => (int) ($skill['level'] ?? 0)], $list('skills')),
-            'equipment' => array_map(static fn (array $item): array => ['slot' => (string) ($item['slot'] ?? ''), 'name' => (string) ($item['name'] ?? ''), 'id' => (int) ($item['id'] ?? 0), 'amount' => (int) ($item['amount'] ?? 1)], $list('equipment')),
+            // Mods before 1.1 sent the item's id name ("CopperHelm") as its name: spell those out.
+            'equipment' => array_map(static fn (array $item): array => ['slot' => (string) ($item['slot'] ?? ''), 'name' => isset($item['key']) ? (string) ($item['name'] ?? '') : self::spellOut((string) ($item['name'] ?? '')), 'id' => (int) ($item['id'] ?? 0), 'amount' => (int) ($item['amount'] ?? 1)], $list('equipment')),
             'customization' => array_map(static fn ($value): string => is_scalar($value) ? (string) $value : '', is_array($player['customization'] ?? null) ? $player['customization'] : []),
         ];
     }
