@@ -27,6 +27,13 @@ const JOBS = 6;
 const DOWNLOADS = 4;
 /** A region that fails this often is left blank until its file changes. */
 const ATTEMPTS = 2;
+/** After the Panel's rate limit refused a region even after waiting, it is tried again this much later. */
+const RATE_LIMITED_WAIT = 15_000;
+
+/** A 429: the Panel's rate limit, not a broken file. */
+function rateLimited(error: unknown): boolean {
+    return (error as { response?: { status?: number } } | null)?.response?.status === 429;
+}
 
 export interface RegionInfo {
     x: number;
@@ -131,6 +138,8 @@ export class MapArea {
     private wantFull = false;
     private readonly running = new Map<string, Promise<void>>();
     private readonly failures = new Map<string, number>();
+    /** No new regions start before this, after the Panel's rate limit refused one. */
+    private waitUntil = 0;
     private readonly listeners = new Set<() => void>();
 
     constructor(
@@ -210,7 +219,13 @@ export class MapArea {
     private start(key: string, job: () => Promise<unknown>) {
         const promise = job()
             .then(() => undefined)
-            .catch(() => {
+            .catch((error: unknown) => {
+                // Too many requests is not the file's fault: the region waits and is tried again.
+                if (rateLimited(error)) {
+                    this.waitUntil = Date.now() + RATE_LIMITED_WAIT;
+                    setTimeout(() => this.pump(), RATE_LIMITED_WAIT);
+                    return;
+                }
                 this.failures.set(key, (this.failures.get(key) ?? 0) + 1);
             })
             .finally(() => {
@@ -223,6 +238,7 @@ export class MapArea {
     }
 
     private pump() {
+        if (Date.now() < this.waitUntil) return;
         for (const key of this.wanted) {
             if (this.running.size >= JOBS) return;
             if (this.running.has(key) || !this.regions.has(key) || this.gaveUp(key) || this.done(key, this.wantFull)) continue;
