@@ -1,5 +1,5 @@
 import { decompress as zstd } from 'fzstd';
-import { SurfaceBuilder, hasSurface, packed, type RegionSurface } from './anvil';
+import { SurfaceBuilder, UNUSED_CHUNK_TAGS, hasSurface, packedWord, words, type RegionSurface } from './anvil';
 import { nbt, readNbt, readNbtFile } from './nbt';
 import table from './pumpkinBlocks.json';
 
@@ -210,7 +210,7 @@ function blockAt(chunk: PumpChunk, x: number, y: number, z: number): string {
 }
 
 /** Pumpkin 0.2.0's layout: NBT around zstd-compressed NBT chunks. */
-async function readNbtPumpRegion(buffer: ArrayBuffer, dimension: string, onProgress?: (fraction: number) => void): Promise<RegionSurface> {
+async function readNbtPumpRegion(buffer: ArrayBuffer, dimension: string, onProgress?: (fraction: number) => void, pause = true): Promise<RegionSurface> {
     const builder = new SurfaceBuilder(dimension);
     const chunks = nbt.compound(readNbt(new Uint8Array(buffer), false, false).chunks) ?? {};
     const entries = Object.entries(chunks);
@@ -218,7 +218,7 @@ async function readNbtPumpRegion(buffer: ArrayBuffer, dimension: string, onProgr
     for (const [index, [key, value]] of entries.entries()) {
         if (index % 32 === 0) {
             onProgress?.(index / Math.max(1, entries.length));
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            if (pause) await new Promise((resolve) => setTimeout(resolve, 0));
         }
 
         const slot = Number(key);
@@ -226,7 +226,7 @@ async function readNbtPumpRegion(buffer: ArrayBuffer, dimension: string, onProgr
 
         try {
             const raw = zstd(new Uint8Array(value.buffer, value.byteOffset, value.byteLength));
-            const chunk = readRegionChunkNbt(readNbt(raw));
+            const chunk = readRegionChunkNbt(readNbt(raw, false, true, UNUSED_CHUNK_TAGS));
             if (chunk) builder.addChunk(slot & 31, slot >> 5, chunk.minY, chunk.surface, chunk.blockAt);
         } catch {
             // A damaged chunk is left blank.
@@ -238,8 +238,8 @@ async function readNbtPumpRegion(buffer: ArrayBuffer, dimension: string, onProgr
     return builder.result();
 }
 
-export async function readPumpRegion(buffer: ArrayBuffer, dimension: string, onProgress?: (fraction: number) => void): Promise<RegionSurface> {
-    if (isNbtPump(buffer)) return readNbtPumpRegion(buffer, dimension, onProgress);
+export async function readPumpRegion(buffer: ArrayBuffer, dimension: string, onProgress?: (fraction: number) => void, pause = true): Promise<RegionSurface> {
+    if (isNbtPump(buffer)) return readNbtPumpRegion(buffer, dimension, onProgress, pause);
 
     const bytes = new Uint8Array(buffer);
     const view = new DataView(buffer);
@@ -249,7 +249,7 @@ export async function readPumpRegion(buffer: ArrayBuffer, dimension: string, onP
     for (let slot = 0; slot < 1024; slot++) {
         if (slot % 32 === 0) {
             onProgress?.(slot / 1024);
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            if (pause) await new Promise((resolve) => setTimeout(resolve, 0));
         }
 
         if (bytes.length < tableStart + 1024 * 8) break;
@@ -273,7 +273,7 @@ export async function readPumpRegion(buffer: ArrayBuffer, dimension: string, onP
             }
 
             // Chunks Pumpkin converted from Anvil keep their NBT until they are rewritten.
-            const root = await readNbtFile(raw);
+            const root = await readNbtFile(raw, UNUSED_CHUNK_TAGS);
             const nested = readRegionChunkNbt(root);
             if (nested) builder.addChunk(chunkX, chunkZ, nested.minY, nested.surface, nested.blockAt);
         } catch {
@@ -291,14 +291,14 @@ function readRegionChunkNbt(root: Awaited<ReturnType<typeof readNbtFile>>) {
     const status = nbt.str(root.Status);
     if (status && !hasSurface(status)) return null;
 
-    const palettes = new Map<number, { palette: string[]; data: BigInt64Array | null; bits: number }>();
+    const palettes = new Map<number, { palette: string[]; data: Uint32Array | null; bits: number }>();
     for (const entry of nbt.list(root.sections)) {
         const section = nbt.compound(entry);
         const states = nbt.compound(section?.block_states);
         if (!section || !states) continue;
         const palette = nbt.list(states.palette).map((block) => nbt.str(nbt.compound(block)?.Name) ?? 'minecraft:air');
         if (palette.length === 0) continue;
-        palettes.set(nbt.num(section.Y), { palette, data: states.data instanceof BigInt64Array ? states.data : null, bits: Math.max(4, Math.ceil(Math.log2(palette.length))) });
+        palettes.set(nbt.num(section.Y), { palette, data: states.data instanceof BigInt64Array ? words(states.data) : null, bits: Math.max(4, Math.ceil(Math.log2(palette.length))) });
     }
 
     const surface = nbt.compound(root.Heightmaps)?.WORLD_SURFACE;
@@ -307,11 +307,11 @@ function readRegionChunkNbt(root: Awaited<ReturnType<typeof readNbtFile>>) {
         minY: nbt.num(root.yPos, -4) * 16,
         surface: surface instanceof BigInt64Array ? surface : null,
         blockAt: (x: number, y: number, z: number) => {
-            const section = palettes.get(Math.floor(y / 16));
+            const section = palettes.get(y >> 4);
             if (!section) return 'minecraft:air';
             if (!section.data || section.palette.length === 1) return section.palette[0];
 
-            return section.palette[packed(section.data, ((y & 15) << 8) | (z << 4) | x, section.bits)] ?? 'minecraft:air';
+            return section.palette[packedWord(section.data, ((y & 15) << 8) | (z << 4) | x, section.bits)] ?? 'minecraft:air';
         },
     };
 }

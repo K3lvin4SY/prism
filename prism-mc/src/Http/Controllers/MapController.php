@@ -53,9 +53,11 @@ class MapController extends Controller
         $bytes = $data->files()->read("$folder/r.$x.$z.mca", self::MAX_REGION) ?? $data->files()->read("$folder/r.$x.$z.pump", self::MAX_REGION);
         abort_if($bytes === null, 404);
 
+        // The map asks with the file's save time (`v`), so a new save is a new address and the
+        // browser may keep this one for good.
         return response($bytes, 200, [
             'Content-Type' => 'application/octet-stream',
-            'Cache-Control' => 'private, max-age=120',
+            'Cache-Control' => $request->query('v') ? 'private, max-age=31536000, immutable' : 'private, max-age=120',
         ]);
     }
 }

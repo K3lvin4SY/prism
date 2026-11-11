@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Spinner, cn, http } from '@pterodactyl/sdk';
 import { NamedIcon } from '../icons';
 import { base } from '../api/client';
-import { readRegion } from '../lib/anvil';
-import { blockColor, type Rgb } from '../lib/blockColors';
-import { loadRegion, pruneRegions, regionKey, saveRegion } from '../lib/mapCache';
+import { REGION, THUMB, mapArea, type RegionInfo } from '../lib/mapTiles';
+import { ZOOMS, zoomAt, type View } from '../lib/mapView';
 import PlayerHead from './players/PlayerHead';
 
 export type Dimension = 'overworld' | 'the_nether' | 'the_end';
@@ -16,153 +15,10 @@ const DIMENSIONS: { value: Dimension; label: string }[] = [
     { value: 'the_end', label: 'End' },
 ];
 
-const REGION = 512;
-/** Raise this when the drawing changes, so pictures kept from before are drawn again. */
-const DRAW_VERSION = 1;
-/**
- * Every region shown this visit, by server, dimension, place and save time. A region that comes
- * back into view is painted from here, without downloading or reading its file again.
- */
-const drawn = new Map<string, ImageData | ImageBitmap>();
-const ZOOMS = [0.25, 0.5, 1, 2, 4];
-
-interface RegionInfo {
-    x: number;
-    z: number;
-    size: number;
-    modified: string | null;
-}
-
-function paint(canvas: HTMLCanvasElement, image: ImageData | ImageBitmap) {
-    const context = canvas.getContext('2d');
-    if (!context) return;
-    if (image instanceof ImageData) return context.putImageData(image, 0, 0);
-    context.clearRect(0, 0, REGION, REGION);
-    context.drawImage(image, 0, 0);
-}
-
-/**
- * Draws one region file into a 512×512 canvas, shading by height like an in-game map.
- *
- * The picture is kept in the browser. On the next visit the kept picture shows at once and, when
- * the region file has been saved since, a new one is drawn out of sight, swapped in and kept in
- * place of the old one.
- */
-function RegionTile({ server, dimension, region }: { server: string; dimension: Dimension; region: RegionInfo }) {
-    const canvas = useRef<HTMLCanvasElement>(null);
-    const storeKey = regionKey(server, dimension, region.x, region.z);
-    const cacheKey = `${storeKey}:${region.modified}`;
-    const cached = drawn.get(cacheKey);
-    // What the browser keeps for this region: undefined while it is being looked up.
-    const [stored, setStored] = useState<'none' | 'stale' | 'current' | undefined>(cached ? 'current' : undefined);
-    // Whether the canvas has a picture on it, new or kept; until then the progress shows.
-    const [shown, setShown] = useState(!!cached);
-    const [progress, setProgress] = useState(cached ? 1 : 0);
-    const [failed, setFailed] = useState(false);
-
-    useEffect(() => {
-        if (cached && canvas.current) paint(canvas.current, cached);
-    }, [cached]);
-
-    useEffect(() => {
-        if (cached) return;
-        let cancelled = false;
-        setStored(undefined);
-
-        (async () => {
-            const entry = await loadRegion(storeKey);
-            if (cancelled) return;
-            if (!entry) return setStored('none');
-
-            const bitmap = await createImageBitmap(entry.image);
-            if (cancelled || !canvas.current) return;
-            paint(canvas.current, bitmap);
-            setShown(true);
-
-            const current = entry.version === DRAW_VERSION && entry.modified !== null && entry.modified === region.modified;
-            if (current) drawn.set(cacheKey, bitmap);
-            setStored(current ? 'current' : 'stale');
-        })().catch(() => !cancelled && setStored('none'));
-
-        return () => {
-            cancelled = true;
-        };
-    }, [storeKey, cacheKey, cached, region.modified]);
-
-    const drawing = !cached && (stored === 'none' || stored === 'stale');
-
-    const file = useQuery({
-        enabled: drawing,
-        queryKey: ['prism-mc', server, 'map', dimension, region.x, region.z, region.modified],
-        queryFn: async () => (await http.get<ArrayBuffer>(`${base(server)}/map/${dimension}/${region.x}/${region.z}`, { responseType: 'arraybuffer' })).data,
-        staleTime: 300_000,
-        gcTime: 600_000,
-    });
-
-    useEffect(() => {
-        let cancelled = false;
-        if (!drawing || !file.data || !canvas.current) return;
-
-        (async () => {
-            const surface = await readRegion(file.data, dimension, (fraction) => !cancelled && setProgress(fraction));
-            if (cancelled || !canvas.current) return;
-
-            const colors: Rgb[] = await Promise.all(surface.names.map((name) => blockColor(name)));
-            if (cancelled || !canvas.current) return;
-
-            // Drawn into memory first, so a kept picture stays on screen until the new one is whole.
-            const image = new ImageData(REGION, REGION);
-            for (let z = 0; z < REGION; z++) {
-                for (let x = 0; x < REGION; x++) {
-                    const pixel = z * REGION + x;
-                    const index = surface.blocks[pixel];
-                    if (index === 0) continue;
-
-                    const color = colors[index];
-                    let shade = 1;
-                    const depth = surface.waterDepth[pixel];
-                    if (depth > 0) {
-                        shade = 1.05 - Math.min(depth, 12) * 0.035;
-                    } else if (z > 0 && surface.blocks[pixel - REGION] !== 0) {
-                        const difference = surface.heights[pixel] - surface.heights[pixel - REGION];
-                        shade = difference > 0 ? 1.12 : difference < 0 ? 0.82 : 1;
-                    }
-
-                    const offset = pixel * 4;
-                    image.data[offset] = Math.min(255, color[0] * shade);
-                    image.data[offset + 1] = Math.min(255, color[1] * shade);
-                    image.data[offset + 2] = Math.min(255, color[2] * shade);
-                    image.data[offset + 3] = 255;
-                }
-            }
-
-            paint(canvas.current, image);
-            drawn.set(cacheKey, image);
-            setShown(true);
-            setProgress(1);
-
-            // Kept for the next visit, replacing the picture drawn before.
-            canvas.current.toBlob((blob) => {
-                if (blob) void saveRegion({ key: storeKey, server, dimension, modified: region.modified, version: DRAW_VERSION, image: blob, drawnAt: Date.now() });
-            }, 'image/png');
-        })().catch(() => !cancelled && setFailed(true));
-
-        return () => {
-            cancelled = true;
-        };
-    }, [file.data, drawing, dimension, cacheKey, storeKey, server, region.modified]);
-
-    return (
-        <div className={'mcs:absolute'} style={{ left: region.x * REGION, top: region.z * REGION, width: REGION, height: REGION }}>
-            <canvas ref={canvas} width={REGION} height={REGION} className={'mcs-pixelated mcs:size-full'} />
-            {!shown && stored !== undefined && (file.isLoading || (progress < 1 && !failed && !file.isError)) && (
-                <div className={'mcs:absolute mcs:inset-0 mcs:flex mcs:items-center mcs:justify-center mcs:bg-black/20 mcs:text-white mcs:text-xs'}>
-                    {file.isLoading ? 'Downloading…' : `Drawing ${Math.round(progress * 100)}%`}
-                </div>
-            )}
-        </div>
-    );
-}
+const START_ZOOM = ZOOMS.indexOf(1);
+const FOCUS_ZOOM = ZOOMS.indexOf(2);
+/** Scroll distance for one zoom step, so a touchpad does not race through every level. */
+const WHEEL_STEP = 60;
 
 /** A player on the map, where they were at their last save. */
 export interface Marker {
@@ -190,27 +46,23 @@ export const toDimension = (value: string): Dimension => {
 /**
  * A top-down map drawn from the world's region files, with each player's head where they were
  * at their last save. Drag to move around, scroll or use the buttons to zoom.
+ *
+ * The regions are painted onto one canvas, so even a whole world zoomed out is quick to move
+ * around. Their pictures come from mapTiles.ts, which keeps every one for the whole visit.
  */
 export default function WorldMap({ server, markers, focus, height = 560 }: { server: string; markers: Marker[]; focus: Focus | null; height?: number }) {
     const [dimension, setDimension] = useState<Dimension>(focus?.dimension ?? 'overworld');
-    const [zoom, setZoom] = useState(1);
-    const [center, setCenter] = useState<[number, number]>(() => (focus ? [focus.x, focus.z] : [0, 0]));
+    const [view, setView] = useState<View>(() => ({ zoom: START_ZOOM, center: focus ? [focus.x, focus.z] : [0, 0] }));
     const [size, setSize] = useState<[number, number]>([800, 420]);
+    const [remaining, setRemaining] = useState(0);
     const box = useRef<HTMLDivElement>(null);
+    const canvas = useRef<HTMLCanvasElement>(null);
     const drag = useRef<{ x: number; z: number; pointerX: number; pointerY: number } | null>(null);
+    const wheel = useRef(0);
 
-    // React's wheel listener is passive, so it cannot stop the page scrolling under the map.
-    useEffect(() => {
-        const element = box.current;
-        if (!element) return;
-        const onWheel = (event: WheelEvent) => {
-            event.preventDefault();
-            setZoom((current) => Math.max(0, Math.min(ZOOMS.length - 1, current + (event.deltaY < 0 ? 1 : -1))));
-        };
-        element.addEventListener('wheel', onWheel, { passive: false });
-
-        return () => element.removeEventListener('wheel', onWheel);
-    }, []);
+    const area = useMemo(() => mapArea(server, dimension), [server, dimension]);
+    const { zoom, center } = view;
+    const scale = ZOOMS[zoom];
 
     const regions = useQuery({
         queryKey: ['prism-mc', server, 'map', dimension],
@@ -218,10 +70,9 @@ export default function WorldMap({ server, markers, focus, height = 560 }: { ser
         staleTime: 120_000,
     });
 
-    // Pictures of regions the world no longer has are let go.
     useEffect(() => {
-        if (regions.data) void pruneRegions(server, dimension, new Set(regions.data.map((region) => regionKey(server, dimension, region.x, region.z))));
-    }, [regions.data, server, dimension]);
+        if (regions.data) area.setRegions(regions.data);
+    }, [area, regions.data]);
 
     useEffect(() => {
         const element = box.current;
@@ -232,37 +83,157 @@ export default function WorldMap({ server, markers, focus, height = 560 }: { ser
         return () => observer.disconnect();
     }, []);
 
-    const here = markers.filter((marker) => marker.dimension === dimension);
+    // React's wheel listener is passive, so it cannot stop the page scrolling under the map.
+    // Zooming keeps the spot under the pointer where it is.
+    useEffect(() => {
+        const element = box.current;
+        if (!element) return;
+        const onWheel = (event: WheelEvent) => {
+            event.preventDefault();
+            wheel.current += event.deltaMode === 1 ? event.deltaY * 40 : event.deltaY;
+            if (Math.abs(wheel.current) < WHEEL_STEP && Math.abs(event.deltaY) < WHEEL_STEP) return;
+            const direction = wheel.current < 0 ? 1 : -1;
+            wheel.current = 0;
 
-    // Centre on the players in view, or on 0, 0 when there are none.
-    const recenter = () => {
-        if (here.length === 0) return setCenter([0, 0]);
-        setCenter([here.reduce((sum, marker) => sum + marker.position[0], 0) / here.length, here.reduce((sum, marker) => sum + marker.position[2], 0) / here.length]);
-    };
+            const rect = element.getBoundingClientRect();
+            const offset: [number, number] = [event.clientX - rect.left - rect.width / 2, event.clientY - rect.top - rect.height / 2];
+            setView((current) => zoomAt(current, direction, offset));
+        };
+        element.addEventListener('wheel', onWheel, { passive: false });
+
+        return () => element.removeEventListener('wheel', onWheel);
+    }, []);
 
     useEffect(() => {
         if (!focus) return;
         setDimension(focus.dimension);
-        setCenter([focus.x, focus.z]);
-        setZoom((current) => Math.max(current, 2));
+        setView((current) => ({ zoom: Math.max(current.zoom, FOCUS_ZOOM), center: [focus.x, focus.z] }));
     }, [focus]);
 
-    const scale = ZOOMS[zoom];
     const halfWidth = size[0] / 2 / scale;
     const halfHeight = size[1] / 2 / scale;
 
-    // Only regions in view, plus a margin, are downloaded.
-    const visible = useMemo(
-        () =>
-            (regions.data ?? []).filter(
+    // Regions in view, plus half a region around it, nearest the middle first.
+    const visible = useMemo(() => {
+        const margin = REGION / 2;
+        const middle = (region: RegionInfo) => [(region.x + 0.5) * REGION - center[0], (region.z + 0.5) * REGION - center[1]];
+
+        return (regions.data ?? [])
+            .filter(
                 (region) =>
-                    (region.x + 1) * REGION > center[0] - halfWidth - REGION / 2 &&
-                    region.x * REGION < center[0] + halfWidth + REGION / 2 &&
-                    (region.z + 1) * REGION > center[1] - halfHeight - REGION / 2 &&
-                    region.z * REGION < center[1] + halfHeight + REGION / 2
-            ),
-        [regions.data, center, halfWidth, halfHeight]
-    );
+                    (region.x + 1) * REGION > center[0] - halfWidth - margin &&
+                    region.x * REGION < center[0] + halfWidth + margin &&
+                    (region.z + 1) * REGION > center[1] - halfHeight - margin &&
+                    region.z * REGION < center[1] + halfHeight + margin
+            )
+            .map((region) => {
+                const [dx, dz] = middle(region);
+
+                return { region, key: area.key(region.x, region.z), distance: dx * dx + dz * dz };
+            })
+            .sort((a, b) => a.distance - b.distance);
+    }, [regions.data, center, halfWidth, halfHeight, area]);
+
+    const pixelRatio = typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1;
+    // Full pictures once a region is shown larger than its small picture.
+    const needFull = scale * pixelRatio * REGION > THUMB * 1.25;
+
+    useEffect(() => {
+        area.want(
+            visible.map((entry) => entry.key),
+            needFull
+        );
+    }, [area, visible, needFull]);
+
+    useEffect(() => () => area.want([], false), [area]);
+
+    // The latest view for painting outside React's renders.
+    const latest = useRef({ visible, scale, center, size });
+    latest.current = { visible, scale, center, size };
+
+    const paint = useCallback(() => {
+        const element = canvas.current;
+        if (!element) return;
+        const { visible, scale, center, size } = latest.current;
+        const ratio = window.devicePixelRatio || 1;
+        const width = Math.round(size[0] * ratio);
+        const height = Math.round(size[1] * ratio);
+        if (element.width !== width) element.width = width;
+        if (element.height !== height) element.height = height;
+
+        const context = element.getContext('2d');
+        if (!context) return;
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.clearRect(0, 0, width, height);
+
+        const pixels = scale * ratio;
+        const left = width / 2 - center[0] * pixels;
+        const top = height / 2 - center[1] * pixels;
+        const useFull = pixels * REGION > THUMB * 1.25;
+        context.imageSmoothingEnabled = pixels < 1;
+        context.imageSmoothingQuality = 'medium';
+
+        for (const { region, key } of visible) {
+            // Edges on whole pixels, so neighbouring regions meet without seams.
+            const x0 = Math.round(left + region.x * REGION * pixels);
+            const x1 = Math.round(left + (region.x + 1) * REGION * pixels);
+            const y0 = Math.round(top + region.z * REGION * pixels);
+            const y1 = Math.round(top + (region.z + 1) * REGION * pixels);
+            if (x1 <= 0 || y1 <= 0 || x0 >= width || y0 >= height) continue;
+
+            const tile = area.tiles.get(key);
+            const picture = tile ? (useFull && tile.full) || tile.thumb : null;
+            if (picture) {
+                context.drawImage(picture, x0, y0, x1 - x0, y1 - y0);
+            } else {
+                context.fillStyle = '#1b1b1b';
+                context.fillRect(x0, y0, x1 - x0, y1 - y0);
+            }
+
+            const progress = area.progress.get(key);
+            if (progress !== undefined && x1 - x0 >= 48) {
+                const barHeight = Math.max(3, Math.round(3 * ratio));
+                context.fillStyle = 'rgba(0, 0, 0, 0.55)';
+                context.fillRect(x0, y1 - barHeight, x1 - x0, barHeight);
+                context.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                context.fillRect(x0, y1 - barHeight, Math.max(2, (x1 - x0) * progress), barHeight);
+            }
+        }
+    }, [area]);
+
+    useLayoutEffect(paint, [paint, visible, scale, center, size]);
+
+    // Pictures arrive between renders; they are painted on the next frame.
+    useEffect(() => {
+        let frame = 0;
+        const update = () => {
+            if (frame) return;
+            frame = requestAnimationFrame(() => {
+                frame = 0;
+                paint();
+                setRemaining(area.remaining());
+            });
+        };
+        const unsubscribe = area.subscribe(update);
+        update();
+
+        return () => {
+            unsubscribe();
+            if (frame) cancelAnimationFrame(frame);
+        };
+    }, [area, paint]);
+
+    const here = markers.filter((marker) => marker.dimension === dimension);
+
+    // Centre on the players in view, or on 0, 0 when there are none.
+    const recenter = () => {
+        const middle: [number, number] =
+            here.length === 0 ? [0, 0] : [here.reduce((sum, marker) => sum + marker.position[0], 0) / here.length, here.reduce((sum, marker) => sum + marker.position[2], 0) / here.length];
+        setView((current) => ({ ...current, center: middle }));
+    };
+
+    // The buttons have no pointer on the map, so they zoom around the middle.
+    const zoomBy = (step: number) => setView((current) => zoomAt(current, step));
 
     const onPointerDown = (event: ReactPointerEvent) => {
         (event.target as Element).setPointerCapture?.(event.pointerId);
@@ -270,8 +241,12 @@ export default function WorldMap({ server, markers, focus, height = 560 }: { ser
     };
 
     const onPointerMove = (event: ReactPointerEvent) => {
-        if (!drag.current) return;
-        setCenter([drag.current.x - (event.clientX - drag.current.pointerX) / scale, drag.current.z - (event.clientY - drag.current.pointerY) / scale]);
+        const start = drag.current;
+        if (!start) return;
+        setView((current) => ({
+            ...current,
+            center: [start.x - (event.clientX - start.pointerX) / ZOOMS[current.zoom], start.z - (event.clientY - start.pointerY) / ZOOMS[current.zoom]],
+        }));
     };
 
     return (
@@ -296,10 +271,10 @@ export default function WorldMap({ server, markers, focus, height = 560 }: { ser
                     <Button.Text size={'small'} onClick={recenter} title={'Centre on the players'}>
                         <NamedIcon name={'locate-fixed'} size={16} />
                     </Button.Text>
-                    <Button.Text size={'small'} disabled={zoom === 0} onClick={() => setZoom(zoom - 1)} aria-label={'Zoom out'}>
+                    <Button.Text size={'small'} disabled={zoom === 0} onClick={() => zoomBy(-1)} aria-label={'Zoom out'}>
                         <NamedIcon name={'minus'} size={16} />
                     </Button.Text>
-                    <Button.Text size={'small'} disabled={zoom === ZOOMS.length - 1} onClick={() => setZoom(zoom + 1)} aria-label={'Zoom in'}>
+                    <Button.Text size={'small'} disabled={zoom === ZOOMS.length - 1} onClick={() => zoomBy(1)} aria-label={'Zoom in'}>
                         <NamedIcon name={'plus'} size={16} />
                     </Button.Text>
                 </div>
@@ -314,13 +289,12 @@ export default function WorldMap({ server, markers, focus, height = 560 }: { ser
                 onPointerUp={() => (drag.current = null)}
                 onPointerCancel={() => (drag.current = null)}
             >
+                <canvas ref={canvas} className={'mcs:absolute mcs:inset-0 mcs:size-full'} />
+
                 <div
                     className={'mcs:absolute mcs:left-0 mcs:top-0 mcs:origin-top-left'}
                     style={{ transform: `translate(${size[0] / 2 - center[0] * scale}px, ${size[1] / 2 - center[1] * scale}px) scale(${scale})` }}
                 >
-                    {visible.map((region) => (
-                        <RegionTile key={`${dimension}:${region.x}:${region.z}`} server={server} dimension={dimension} region={region} />
-                    ))}
                     {here.map((marker) => (
                         <div key={marker.key} className={'mcs:absolute mcs:flex mcs:flex-col mcs:items-center'} title={`${marker.name}: ${Math.round(marker.position[0])}, ${Math.round(marker.position[1])}, ${Math.round(marker.position[2])}`} style={{ left: marker.position[0], top: marker.position[2], transform: `translate(-50%, -12px) scale(${1 / scale})`, transformOrigin: 'center 12px' }}>
                             <PlayerHead server={server} skinKey={marker.key} className={cn('mcs:size-6 mcs:max-w-none mcs:shadow-lg', marker.online ? 'mcs:outline-2 mcs:outline-[#55ff55]' : 'mcs:outline-2 mcs:outline-white')} />
@@ -340,6 +314,12 @@ export default function WorldMap({ server, markers, focus, height = 560 }: { ser
                 <div className={'mcs:absolute mcs:bottom-2 mcs:left-2 mcs:rounded mcs:bg-black/60 mcs:px-2 mcs:py-0.5 mcs:font-mono mcs:text-xs mcs:text-white'}>
                     {Math.round(center[0])}, {Math.round(center[1])}
                 </div>
+                {remaining > 0 && (
+                    <div className={'mcs:absolute mcs:bottom-2 mcs:right-2 mcs:flex mcs:items-center mcs:gap-1.5 mcs:rounded mcs:bg-black/60 mcs:px-2 mcs:py-0.5 mcs:text-xs mcs:text-white'}>
+                        <Spinner size={'small'} />
+                        Drawing {remaining} {remaining === 1 ? 'region' : 'regions'}…
+                    </div>
+                )}
             </div>
         </div>
     );

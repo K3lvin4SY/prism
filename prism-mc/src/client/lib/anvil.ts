@@ -1,5 +1,5 @@
 import { decompressLz4Java } from './lz4';
-import { nbt, readNbtFile, type NbtCompound, type NbtValue } from './nbt';
+import { LITTLE_ENDIAN, nbt, readNbtFile, type NbtCompound, type NbtValue } from './nbt';
 import { isPumpRegion, readPumpRegion } from './pump';
 
 /**
@@ -24,7 +24,8 @@ const AIR = new Set(['minecraft:air', 'minecraft:cave_air', 'minecraft:void_air'
 
 interface Section {
     palette: string[];
-    data: BigInt64Array | null;
+    /** The packed block indexes as 32-bit halves (see `words`). */
+    data: Uint32Array | null;
     bits: number;
 }
 
@@ -59,8 +60,9 @@ export class SurfaceBuilder {
      * Scans the 16×16 columns of one chunk. `blockAt` takes chunk-local x and z and a world y;
      * `surface` is the packed WORLD_SURFACE heightmap, when the chunk has one.
      */
-    addChunk(chunkX: number, chunkZ: number, minY: number, surface: BigInt64Array | null, blockAt: (x: number, y: number, z: number) => string): void {
+    addChunk(chunkX: number, chunkZ: number, minY: number, heightmap: BigInt64Array | null, blockAt: (x: number, y: number, z: number) => string): void {
         this.chunks++;
+        const surface = heightmap ? words(heightmap) : null;
 
         for (let z = 0; z < 16; z++) {
             for (let x = 0; x < 16; x++) {
@@ -76,7 +78,7 @@ export class SurfaceBuilder {
                         else if (seenAir) break;
                     }
                 } else if (surface) {
-                    y = minY + packed(surface, z * 16 + x, 9) - 1;
+                    y = minY + packedWord(surface, z * 16 + x, 9) - 1;
                 } else {
                     continue;
                 }
@@ -118,7 +120,7 @@ function sectionsOf(root: NbtCompound): { sections: Map<number, Section>; minY: 
         const data = (states?.data ?? section.BlockStates) as NbtValue | undefined;
         sections.set(nbt.num(section.Y), {
             palette,
-            data: data instanceof BigInt64Array ? data : null,
+            data: data instanceof BigInt64Array ? words(data) : null,
             bits: Math.max(4, Math.ceil(Math.log2(palette.length))),
         });
     }
@@ -129,73 +131,133 @@ function sectionsOf(root: NbtCompound): { sections: Map<number, Section>; minY: 
     return { sections, minY };
 }
 
-/** Reads one packed value; since 1.16 values never span two longs. */
-export function packed(data: BigInt64Array, index: number, bits: number): number {
-    const perLong = Math.floor(64 / bits);
-    const long = data[Math.floor(index / perLong)];
-    if (long === undefined) return 0;
-    const shift = BigInt((index % perLong) * bits);
+/**
+ * A long array as 32-bit halves, the low half of each long first. Packed values are read from
+ * these with plain number arithmetic, which is many times faster than shifting bigints.
+ */
+export function words(data: BigInt64Array): Uint32Array {
+    if (LITTLE_ENDIAN) return new Uint32Array(data.buffer, data.byteOffset, data.length * 2);
 
-    return Number((BigInt.asUintN(64, long) >> shift) & ((1n << BigInt(bits)) - 1n));
+    const halves = new Uint32Array(data.length * 2);
+    for (let i = 0; i < data.length; i++) {
+        const value = BigInt.asUintN(64, data[i]);
+        halves[i * 2] = Number(value & 0xffffffffn);
+        halves[i * 2 + 1] = Number(value >> 32n);
+    }
+
+    return halves;
+}
+
+/** Reads one packed value from `words`; since 1.16 values never span two longs. */
+export function packedWord(halves: Uint32Array, index: number, bits: number): number {
+    const perLong = (64 / bits) | 0;
+    const long = (index / perLong) | 0;
+    if (long * 2 + 1 >= halves.length) return 0;
+    const shift = (index - long * perLong) * bits;
+    const mask = bits >= 32 ? 0xffffffff : (1 << bits) - 1;
+    const low = halves[long * 2];
+    const high = halves[long * 2 + 1];
+
+    if (shift + bits <= 32) return (low >>> shift) & mask;
+    if (shift >= 32) return (high >>> (shift - 32)) & mask;
+
+    return ((low >>> shift) | (high << (32 - shift))) & mask;
+}
+
+/** Reads one packed value of a long array. */
+export function packed(data: BigInt64Array, index: number, bits: number): number {
+    return packedWord(words(data), index, bits);
 }
 
 function blockAt(sections: Map<number, Section>, x: number, y: number, z: number): string {
-    const section = sections.get(Math.floor(y / 16));
+    const section = sections.get(y >> 4);
     if (!section) return 'minecraft:air';
     if (!section.data || section.palette.length === 1) return section.palette[0];
 
-    return section.palette[packed(section.data, ((y & 15) << 8) | (z << 4) | x, section.bits)] ?? 'minecraft:air';
+    return section.palette[packedWord(section.data, ((y & 15) << 8) | (z << 4) | x, section.bits)] ?? 'minecraft:air';
 }
+
+/**
+ * Chunk tags the map never looks at. Stepping over them instead of reading them roughly halves
+ * the time spent in NBT; a lived-in chunk is mostly block entities, ticks and light.
+ */
+export const UNUSED_CHUNK_TAGS: ReadonlySet<string> = new Set([
+    'block_entities',
+    'block_ticks',
+    'fluid_ticks',
+    'structures',
+    'PostProcessing',
+    'biomes',
+    'BlockLight',
+    'SkyLight',
+    'blending_data',
+    'UpgradeData',
+    'below_zero_retrogen',
+    'CarvingMasks',
+    'Lights',
+    'Entities',
+    'TileEntities',
+    'TileTicks',
+    'LiquidTicks',
+    'LiquidsToBeTicked',
+    'ToBeTicked',
+    'Biomes',
+    'Structures',
+]);
+
+/** Chunks unpacked at once: the browser's decompression is far quicker side by side. */
+const BATCH = 32;
 
 async function inflateChunk(bytes: Uint8Array, compression: number): Promise<NbtCompound | null> {
     // 1 gzip, 2 zlib, 3 none, 4 LZ4 (Pumpkin's default for Anvil, and vanilla's option since
     // 24w04a). External chunk files (+128) are skipped.
-    if (compression === 1 || compression === 2 || compression === 3) return readNbtFile(bytes);
-    if (compression === 4) return readNbtFile(decompressLz4Java(bytes));
+    if (compression === 1 || compression === 2 || compression === 3) return readNbtFile(bytes, UNUSED_CHUNK_TAGS);
+    if (compression === 4) return readNbtFile(decompressLz4Java(bytes), UNUSED_CHUNK_TAGS);
 
     return null;
 }
 
-export async function readRegion(buffer: ArrayBuffer, dimension: string, onProgress?: (fraction: number) => void): Promise<RegionSurface> {
-    if (isPumpRegion(buffer)) return readPumpRegion(buffer, dimension, onProgress);
+/**
+ * Reads a region file. `pause` lets the page breathe between batches of chunks; a worker,
+ * which has no page to keep responsive, reads straight through.
+ */
+export async function readRegion(buffer: ArrayBuffer, dimension: string, onProgress?: (fraction: number) => void, pause = true): Promise<RegionSurface> {
+    if (isPumpRegion(buffer)) return readPumpRegion(buffer, dimension, onProgress, pause);
 
     const bytes = new Uint8Array(buffer);
     const view = new DataView(buffer);
     const builder = new SurfaceBuilder(dimension);
+    if (bytes.length < 8192) return builder.result();
 
-    for (let slot = 0; slot < 1024; slot++) {
-        if (slot % 32 === 0) {
-            onProgress?.(slot / 1024);
-            // Let the page breathe between batches of chunks.
-            await new Promise((resolve) => setTimeout(resolve, 0));
-        }
-
-        if (bytes.length < 8192) break;
-        const location = view.getUint32(slot * 4);
-        const offset = (location >>> 8) * 4096;
-        if (offset === 0 || offset + 5 > bytes.length) continue;
+    // A chunk's NBT, or null when the slot is empty or the chunk cannot be read.
+    const chunk = (slot: number): Promise<NbtCompound | null> => {
+        const offset = (view.getUint32(slot * 4) >>> 8) * 4096;
+        if (offset === 0 || offset + 5 > bytes.length) return Promise.resolve(null);
 
         const length = view.getUint32(offset);
-        const compression = bytes[offset + 4];
-        if (length < 2 || offset + 4 + length > bytes.length) continue;
+        if (length < 2 || offset + 4 + length > bytes.length) return Promise.resolve(null);
 
-        let root: NbtCompound | null;
-        try {
-            root = await inflateChunk(bytes.subarray(offset + 5, offset + 4 + length), compression);
-        } catch {
-            continue;
-        }
+        return inflateChunk(bytes.subarray(offset + 5, offset + 4 + length), bytes[offset + 4]).catch(() => null);
+    };
 
-        if (!root) continue;
-        const status = nbt.str(root.Status) ?? nbt.str(nbt.compound(root.Level)?.Status);
-        if (status && !hasSurface(status)) continue;
+    for (let first = 0; first < 1024; first += BATCH) {
+        onProgress?.(first / 1024);
+        if (pause) await new Promise((resolve) => setTimeout(resolve, 0));
 
-        const { sections, minY } = sectionsOf(root);
-        if (sections.size === 0) continue;
+        const roots = await Promise.all(Array.from({ length: BATCH }, (_, index) => chunk(first + index)));
+        roots.forEach((root, index) => {
+            if (!root) return;
+            const slot = first + index;
+            const status = nbt.str(root.Status) ?? nbt.str(nbt.compound(root.Level)?.Status);
+            if (status && !hasSurface(status)) return;
 
-        const heightmaps = nbt.compound(root.Heightmaps ?? nbt.compound(root.Level)?.Heightmaps);
-        const surface = heightmaps?.WORLD_SURFACE;
-        builder.addChunk(slot & 31, slot >> 5, minY, surface instanceof BigInt64Array ? surface : null, (x, y, z) => blockAt(sections, x, y, z));
+            const { sections, minY } = sectionsOf(root);
+            if (sections.size === 0) return;
+
+            const heightmaps = nbt.compound(root.Heightmaps ?? nbt.compound(root.Level)?.Heightmaps);
+            const surface = heightmaps?.WORLD_SURFACE;
+            builder.addChunk(slot & 31, slot >> 5, minY, surface instanceof BigInt64Array ? surface : null, (x, y, z) => blockAt(sections, x, y, z));
+        });
     }
 
     onProgress?.(1);

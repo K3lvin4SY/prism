@@ -100,22 +100,63 @@ function fallback(id: string): Rgb {
     return FALLBACKS.find(([pattern]) => pattern.test(id))?.[1] ?? [128, 128, 128];
 }
 
+/**
+ * Colors worked out on earlier visits, kept in the browser so a block's texture is only fetched
+ * once. The key names the texture set, so new textures start a fresh list.
+ */
+const STORAGE_KEY = `prism-mc:block-colors:${TEXTURES}`;
+let remembered: Record<string, Rgb> | null = null;
+let saving: number | null = null;
+
+function rememberedColors(): Record<string, Rgb> {
+    if (remembered) return remembered;
+    try {
+        remembered = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Record<string, Rgb>;
+    } catch {
+        remembered = {};
+    }
+
+    return remembered;
+}
+
+function remember(id: string, color: Rgb) {
+    rememberedColors()[id] = [Math.round(color[0]), Math.round(color[1]), Math.round(color[2])];
+    // Written once a burst of new blocks has settled.
+    if (saving !== null) return;
+    saving = window.setTimeout(() => {
+        saving = null;
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(remembered));
+        } catch {
+            // Storage full or turned off: the colors are worked out again next time.
+        }
+    }, 1000);
+}
+
 export function blockColor(id: string): Promise<Rgb> {
     let color = cache.get(id);
     if (!color) {
-        color = (async () => {
-            if (!id.startsWith('minecraft:')) return fallback(id);
-            for (const name of candidates(id)) {
-                try {
-                    const rgb = average(await load(`${TEXTURES}/${name}.png`));
-                    if (rgb) return tint(id, rgb);
-                } catch {
-                    // Try the next name.
-                }
-            }
+        const known = rememberedColors()[id];
+        color = known
+            ? Promise.resolve(known)
+            : (async () => {
+                  if (!id.startsWith('minecraft:')) return fallback(id);
+                  for (const name of candidates(id)) {
+                      try {
+                          const rgb = average(await load(`${TEXTURES}/${name}.png`));
+                          if (rgb) {
+                              const tinted = tint(id, rgb);
+                              remember(id, tinted);
 
-            return fallback(id);
-        })();
+                              return tinted;
+                          }
+                      } catch {
+                          // Try the next name.
+                      }
+                  }
+
+                  return fallback(id);
+              })();
         cache.set(id, color);
     }
 
