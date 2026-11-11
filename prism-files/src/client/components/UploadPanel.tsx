@@ -8,15 +8,31 @@ export default function UploadPanel({ queue }: { queue: UploadQueue }) {
     if (uploads.length === 0) return null;
 
     const active = uploads.filter((upload) => upload.status === 'uploading' || upload.status === 'queued');
+    const failed = uploads.filter((upload) => upload.status === 'failed').length;
+    const finished = active.length ? `Uploading ${active.length} of ${uploads.length}` : failed ? `${uploads.length - failed} finished, ${failed} failed` : `${uploads.length} uploads finished`;
     const total = uploads.reduce((sum, upload) => sum + upload.size, 0);
     const loaded = uploads.reduce((sum, upload) => sum + (upload.status === 'done' ? upload.size : upload.loaded), 0);
 
     return (
         <div className={'pt-surface pt-overlay pfl:fixed pfl:bottom-4 pfl:right-4 pfl:z-40 pfl:w-[min(24rem,calc(100vw-2rem))] pfl:overflow-hidden pfl:rounded-lg pfl:border pfl:border-border pfl:bg-card pfl:shadow-2xl'}>
             <div className={'pfl:flex pfl:items-center pfl:gap-2 pfl:border-b pfl:border-border pfl:px-3 pfl:py-2 pfl:text-sm'}>
-                <NamedIcon name={active.length ? 'upload' : 'circle-check'} size={15} className={active.length ? 'pfl:text-primary' : 'pfl:text-success'} />
-                <span className={'pfl:flex-1 pfl:font-semibold'}>{active.length ? `Uploading ${active.length} of ${uploads.length}` : `${uploads.length} uploads finished`}</span>
-                <span className={'pfl:text-xs pfl:text-muted-foreground'}>
+                <NamedIcon
+                    name={active.length ? 'upload' : failed ? 'triangle-alert' : 'circle-check'}
+                    size={15}
+                    className={active.length ? 'pfl:text-primary' : failed ? 'pfl:text-destructive' : 'pfl:text-success'}
+                />
+                <span className={'pfl:min-w-0 pfl:flex-1 pfl:truncate pfl:font-semibold'}>{finished}</span>
+                {failed > 0 && (
+                    <button
+                        type={'button'}
+                        onClick={() => queue.retryFailed()}
+                        className={'pfl:flex pfl:shrink-0 pfl:cursor-pointer pfl:items-center pfl:gap-1 pfl:text-xs pfl:font-medium pfl:text-primary pfl:hover:underline'}
+                    >
+                        <NamedIcon name={'refresh-cw'} size={12} />
+                        Retry {failed} failed
+                    </button>
+                )}
+                <span className={'pfl:shrink-0 pfl:text-xs pfl:text-muted-foreground'}>
                     {bytesToString(loaded)} / {bytesToString(total)}
                 </span>
                 {active.length === 0 && (

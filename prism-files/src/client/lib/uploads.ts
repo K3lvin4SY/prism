@@ -14,9 +14,27 @@ export interface Upload {
     file: File;
 }
 
+/** A signed upload URL is good for 15 minutes; it is used for 10. */
+export const URL_LIFETIME = 10 * 60_000;
+/** Folder listings are refreshed at most this often while uploads finish. */
+export const REFRESH_DELAY = 1500;
+
+class UploadRejected extends Error {
+    constructor(
+        readonly status: number,
+        message: string
+    ) {
+        super(message);
+    }
+}
+
 /**
  * The upload queue: files go to the node through signed upload URLs a few at a time, with
  * progress, retry and cancel. Folders dropped on the page keep their structure.
+ *
+ * The Panel limits API requests a minute, so a big upload asks it as little as possible: one
+ * signed URL serves every file until it is near its expiry, and the folders that got files are
+ * refreshed together rather than after each file.
  */
 export class UploadQueue {
     uploads: Upload[] = [];
@@ -24,6 +42,9 @@ export class UploadQueue {
     private listeners = new Set<() => void>();
     private nextId = 1;
     private version = 0;
+    private signed: { url: Promise<string>; at: number } | null = null;
+    private touched = new Set<string>();
+    private refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(
         private readonly server: string,
@@ -54,12 +75,25 @@ export class UploadQueue {
         this.pump();
     }
 
-    retry(id: number): void {
-        const upload = this.uploads.find((item) => item.id === id);
-        if (!upload) return;
+    private requeue(upload: Upload): void {
         upload.status = 'queued';
         upload.loaded = 0;
         upload.error = undefined;
+    }
+
+    retry(id: number): void {
+        const upload = this.uploads.find((item) => item.id === id);
+        if (!upload) return;
+        this.requeue(upload);
+        this.changed();
+        this.pump();
+    }
+
+    /** Puts every failed upload back in the queue. */
+    retryFailed(): void {
+        const failed = this.uploads.filter((upload) => upload.status === 'failed');
+        if (failed.length === 0) return;
+        failed.forEach((upload) => this.requeue(upload));
         this.changed();
         this.pump();
     }
@@ -84,34 +118,61 @@ export class UploadQueue {
         next.forEach((upload) => void this.send(upload));
     }
 
+    /** The signed URL, shared by every upload while it is fresh. */
+    private uploadUrl(): Promise<string> {
+        if (this.signed && Date.now() - this.signed.at < URL_LIFETIME) return this.signed.url;
+
+        const url = http.get<{ attributes: { url: string } }>(`/api/client/servers/${this.server}/files/upload`).then(({ data }) => data.attributes.url);
+        const signed = { url, at: Date.now() };
+        this.signed = signed;
+        url.catch(() => {
+            if (this.signed === signed) this.signed = null;
+        });
+
+        return url;
+    }
+
+    private post(upload: Upload, signedUrl: string): Promise<void> {
+        const url = new URL(signedUrl);
+        url.searchParams.set('directory', upload.directory);
+
+        return new Promise<void>((resolve, reject) => {
+            const request = new XMLHttpRequest();
+            this.requests.set(upload.id, request);
+            request.open('POST', url.toString());
+            request.upload.onprogress = (event) => {
+                upload.loaded = event.loaded;
+                this.changed();
+            };
+            request.onload = () =>
+                request.status >= 200 && request.status < 300 ? resolve() : reject(new UploadRejected(request.status, request.responseText.slice(0, 200) || `HTTP ${request.status}`));
+            request.onerror = () => reject(new Error('The upload was interrupted.'));
+            request.onabort = () => reject(new Error('cancelled'));
+            const form = new FormData();
+            form.append('files', upload.file, upload.file.name);
+            request.send(form);
+        });
+    }
+
     private async send(upload: Upload): Promise<void> {
         upload.status = 'uploading';
         this.changed();
 
         try {
-            const { data } = await http.get<{ attributes: { url: string } }>(`/api/client/servers/${this.server}/files/upload`);
-            const url = new URL(data.attributes.url);
-            url.searchParams.set('directory', upload.directory);
-
-            await new Promise<void>((resolve, reject) => {
-                const request = new XMLHttpRequest();
-                this.requests.set(upload.id, request);
-                request.open('POST', url.toString());
-                request.upload.onprogress = (event) => {
-                    upload.loaded = event.loaded;
-                    this.changed();
-                };
-                request.onload = () => (request.status >= 200 && request.status < 300 ? resolve() : reject(new Error(request.responseText.slice(0, 200) || `HTTP ${request.status}`)));
-                request.onerror = () => reject(new Error('The upload was interrupted.'));
-                request.onabort = () => reject(new Error('cancelled'));
-                const form = new FormData();
-                form.append('files', upload.file, upload.file.name);
-                request.send(form);
-            });
+            const url = await this.uploadUrl();
+            try {
+                await this.post(upload, url);
+            } catch (error) {
+                // The node no longer takes the URL: get a new one and try once more.
+                if (!(error instanceof UploadRejected) || (error.status !== 401 && error.status !== 403)) throw error;
+                if (this.signed && (await this.signed.url.catch(() => null)) === url) this.signed = null;
+                upload.loaded = 0;
+                await this.post(upload, await this.uploadUrl());
+            }
 
             upload.status = 'done';
             upload.loaded = upload.size;
-            this.onFinished(upload.directory);
+            this.touch(upload.directory);
         } catch (error) {
             if ((upload.status as Upload['status']) !== 'cancelled') {
                 upload.status = 'failed';
@@ -121,7 +182,22 @@ export class UploadQueue {
             this.requests.delete(upload.id);
             this.changed();
             this.pump();
+            if (!this.uploads.some((item) => item.status === 'uploading' || item.status === 'queued')) this.refresh();
         }
+    }
+
+    /** Notes a folder that got a file; the listings are refreshed shortly, all together. */
+    private touch(directory: string): void {
+        this.touched.add(directory);
+        this.refreshTimer ??= setTimeout(() => this.refresh(), REFRESH_DELAY);
+    }
+
+    private refresh(): void {
+        if (this.refreshTimer) clearTimeout(this.refreshTimer);
+        this.refreshTimer = null;
+        const directories = [...this.touched];
+        this.touched.clear();
+        directories.forEach((directory) => this.onFinished(directory));
     }
 }
 
