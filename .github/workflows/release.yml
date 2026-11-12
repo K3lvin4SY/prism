@@ -36,7 +36,19 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: prism-*/package-lock.json
+          cache-dependency-path: |
+            prism-*/package-lock.json
+            .panel/package-lock.json
+
+      # The SDK is linked from .panel, so its stylesheets resolve their imports there:
+      # panel.css imports tailwindcss and @tailwindcss/forms from the Panel's node_modules,
+      # and theme-entry.css sources core-classes.txt, which the Panel generates and git ignores.
+      # Without both, prism-themes fails with "ENOENT ... prism-themes/tailwindcss".
+      - name: Prepare the Panel's SDK
+        working-directory: .panel
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          node scripts/generate-core-classes.mjs
 
       - name: Build the extensions
         run: |
