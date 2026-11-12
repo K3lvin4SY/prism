@@ -15,6 +15,8 @@
 
 ---
 
+![Prism Core: every Prism setting on one page, with a live preview](slides/01.png)
+
 ## Overview
 
 Prism Core is the base of the Prism suite. It adds **Prism Properties**, an admin page at `/panel/prism` where the settings of every installed Prism extension live side by side, and a live preview that shows a change before you save it. Every other Prism extension requires it.
